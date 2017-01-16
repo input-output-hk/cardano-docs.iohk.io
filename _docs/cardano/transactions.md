@@ -6,8 +6,6 @@ group: cardano
 ---
 # Transactions in Cardano SL
 
-[//]: # (<2017-02-21>)
-
 You can think of transactions in Cardano SL as entities that consist of
 list of inputs and a list of outputs. Outputs of a transaction can later
 be used as inputs for another transaction.

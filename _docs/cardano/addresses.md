@@ -7,8 +7,6 @@ group: cardano
 
 # Addresses in Cardano SL
 
-[//]: # (<2017-02-01>)
-
 To send and receive value, Addresses are used in virtually any cryptocurrency.
 
 ## How Does an Address Look Like?

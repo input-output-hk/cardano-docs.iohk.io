@@ -6,8 +6,6 @@ group: cardano
 ---
 # Ouroboros Proof of Stake Algorithm
 
-[//]: # (<2017-02-21>)
-
 Ouroboros Proof of Stake Algorithm is the most important part of
 protocol, the way that nodes reach consensus about the state of ledger.
 

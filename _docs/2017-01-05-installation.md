@@ -5,12 +5,12 @@ permalink: /instalation/
 group: base
 children: dsa
 ---
-# Get Cardano SL
+# Instalation
+## Get Cardano SL
 
  + [Windows](https://github.com/input-output-hk/pos-haskell-prototype/tree/master/installers)
  + [macOS](https://github.com/input-output-hk/pos-haskell-prototype/tree/master/installers)
 
-[//]: # (|^| Yep, now Mac OS X is written as macOS. I know, right?)
 
 Linux installer is going to be released soon. For now, to get Cardano
 SL on Linux, please refer to the [Building From
