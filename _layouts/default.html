@@ -21,6 +21,7 @@
 
                                         {% for doc in site.pages %}
                                         {% if doc.visible != false %}
+                                        {% if doc.title != '' %}
                                         {% if doc.group == 'base' %}
 
                                         <li>
@@ -32,6 +33,7 @@
                                           {% include nav-submenu.html item=doc %}
                                         </li>
 
+                                        {% endif %}
                                         {% endif %}
                                         {% endif %}
                                         {% endfor %}
