@@ -1,6 +1,6 @@
-title: Cardano docs
+title: Cardano
 email: cardano@iohk.io
-description: ''
+description: SL Documentation
 baseurl: ""
 url: "//docs.cardano.iohk.io"
 include: ["_pages","_docs"]

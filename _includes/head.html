@@ -1,8 +1,10 @@
+{% if page.redirect %}<script>location.href='{{page.redirect}}';</script>{% endif %}
 <head>
-<title>{{ site.title }} - {{ site.description }}</title>
+<title>{% if page.permalink == '/' %}{{ site.title }} - {{ site.description }}{% else %}{{ page.title }} - {{ site.title }}{% endif %}</title>
 <meta charset="utf-8">
 
 {% assign urlprefix = site.baseurl %}
+
 
 
 <meta id="viewport" name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
