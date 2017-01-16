@@ -1,8 +1,8 @@
 title: Cardano docs
 email: cardano@iohk.io
-description: Cryptocurrency wallet
+description: ''
 baseurl: ""
-url: "https://docs.cardano.iohk.io"
+url: "//docs.cardano.iohk.io"
 include: ["_pages","_docs"]
 permalink: /:title
 
