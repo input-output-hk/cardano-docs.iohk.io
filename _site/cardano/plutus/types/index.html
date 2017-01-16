@@ -61,7 +61,6 @@
 
 <script type="text/javascript" src="/js/app/jquery-1.11.2.min.js"></script>
 <script type="text/javascript" src="/js/app/jquery-ui.js"></script>
-<script type="text/javascript" src="/js/app/app.js"></script>
 
 </head>
 
@@ -3991,7 +3990,10 @@ for example, define the factorial function using case like so:</p>
 
 
 
-      <div id="foot" class="foot noprint">
+    
+
+
+  <div id="foot" class="foot noprint">
       <footer>
           <div class="grad"></div>
 
@@ -4032,6 +4034,19 @@ for example, define the factorial function using case like so:</p>
           </div>
       </footer>
   </div>
+
+  <script type="text/javascript" src="/js/app/app.js"></script>
+  <script type="text/javascript" src="/js/app/base.js"></script>
+  <script>
+
+  $(".navbar-side li").each(function(){
+    var txt = $(this).text().trim();
+    if(txt.length == 0){
+      $(this).remove();
+    }
+  });
+
+  </script>
 
 
   </body>
