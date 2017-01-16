@@ -1,10 +1,17 @@
 <ul>
 
 
+                      {% for anchor in include.item.anchors %}
+                      <li><a href="{{include.item.permalink}}#{{anchor[1]}}">{{anchor[0]}}</a></li>
+
+                      {% endfor %}
+
+
                       {% for subdoc in site.pages %}
                       {% if subdoc.visible != false %}
                       {% if subdoc.title != '' %}
                       {% if subdoc.group == include.item.children %}
+
 
                       <li>
                         {% if subdoc.permalink %}

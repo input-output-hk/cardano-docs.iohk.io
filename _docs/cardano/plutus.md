@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Plutus
+title: Scripting
 group: cardano
 children: cardano-plutus
 ---
