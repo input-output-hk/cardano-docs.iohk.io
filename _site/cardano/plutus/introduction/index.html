@@ -1,0 +1,2909 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+<title>Cardano docs - Cryptocurrency wallet</title>
+<meta charset="utf-8">
+
+
+
+
+<meta id="viewport" name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+<meta name="twitter:card" content="Introduction">
+<meta name="twitter:site" content="Cardano docs">
+<meta name="twitter:creator" content="Cardano docs">
+
+<meta name="twitter:image" content="/images/home.jpg">
+
+<meta name="twitter:title" content="Introduction">
+<meta name="twitter:description" content="Introduction">
+
+<meta property="og:title" content="Introduction" />
+<meta property="og:type" content="page" />
+<meta property="og:url" content="/cardano/plutus/introduction/" />
+
+
+<meta property="og:image" content="/images/home.jpg" />
+
+
+<meta property="og:description" content="Cryptocurrency wallet" />
+<meta property="og:site_name" content="Cardano docs" />
+
+<script>(function(){document.documentElement.className='js'})();</script>
+
+<link rel="icon" href="/images/favicon.ico" type="image/x-icon">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css" type="text/css" media="all" />
+<link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
+
+
+<link href="/css/app.css" rel="stylesheet" media="screen">
+<link href="/css/app-theme.1.css" rel="stylesheet" media="screen">
+
+
+
+<!--[if lte IE 10]>
+<script>webglIE = false;</script>
+<style>#io_intro_nav {display: none !important}</style>
+<![endif]-->
+<!--[if lte IE 9]>
+<script src="/js/lowie.js"></script>
+<![endif]-->
+<!--[if lt IE 9]>
+<link rel="stylesheet"  href="/css/ie.css" type="text/css" media="all" />
+<script src="/js/html5.js"></script>
+<![endif]-->
+<!--[if lt IE 8]>
+<script>lowerie = true;</script>
+<link rel="stylesheet"  href="/css/ieoff.css" type="text/css" media="all" />
+<![endif]-->
+
+<script type="text/javascript" src="/js/app/jquery-1.11.2.min.js"></script>
+<script type="text/javascript" src="/js/app/jquery-ui.js"></script>
+<script type="text/javascript" src="/js/app/app.js"></script>
+
+</head>
+
+
+  <body>
+
+    
+  <nav class="navbar navbar-default  navbar-inverse">
+    <div class="container">
+
+      <div class="navbar-header cardano logo">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#cardano-nav" aria-expanded="false">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="/"><img src="http://static.iohk.io/cardano/images/cardano-white-120.png" alt="" width="40" height="36" /> <span>Cardano SL</span></a>
+      </div>
+
+      <div class="collapse navbar-collapse">
+
+      </div><!-- /.navbar-collapse -->
+    </div><!-- /.container-fluid -->
+  </nav>
+  <div class="navbar-grad"></div>
+
+
+
+
+
+      <div class="container">
+          <!-- left, vertical navbar & content -->
+          <div class="row">
+              <!-- left, vertical navbar -->
+              <div class="col-md-3 col-sm-4 col-left">
+
+                	<ul class="nav navbar-collapse collapse navbar-side" id="cardano-nav">
+
+
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+
+                                        <li>
+                                          
+                                          <span>Cardano</span>
+                                          
+                                          <ul>
+
+
+                      
+                      
+                      
+                      
+                      
+
+                      <li>
+                        
+                        <a href="">Addresses in Cardano SL</a>
+                        
+                        <ul>
+
+
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+
+                      <li>
+                        
+                        <span></span>
+                        
+                      </li>
+
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+
+</ul>
+
+                      </li>
+
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+
+                      <li>
+                        
+                        <a href="">Joining the Network</a>
+                        
+                        <ul>
+
+
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+
+                      <li>
+                        
+                        <span></span>
+                        
+                      </li>
+
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+
+</ul>
+
+                      </li>
+
+                      
+                      
+                      
+                      
+                      
+
+                      <li>
+                        
+                        <span>Plutus</span>
+                        
+                        <ul>
+
+
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+
+                      <li>
+                        
+                        <a href="">Examples</a>
+                        
+                      </li>
+
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+
+                      <li>
+                        
+                        <a href="">Introduction</a>
+                        
+                      </li>
+
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+
+                      <li>
+                        
+                        <a href="">Types</a>
+                        
+                      </li>
+
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+
+</ul>
+
+                      </li>
+
+                      
+                      
+                      
+                      
+                      
+
+                      <li>
+                        
+                        <a href="">Ouroboros Proof of Stake Algorithm</a>
+                        
+                        <ul>
+
+
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+
+                      <li>
+                        
+                        <span></span>
+                        
+                      </li>
+
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+
+</ul>
+
+                      </li>
+
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+
+                      <li>
+                        
+                        <a href="">Reward System</a>
+                        
+                        <ul>
+
+
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+
+                      <li>
+                        
+                        <span></span>
+                        
+                      </li>
+
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+
+</ul>
+
+                      </li>
+
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+
+                      <li>
+                        
+                        <a href="">Transactions in Cardano SL</a>
+                        
+                        <ul>
+
+
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+
+                      <li>
+                        
+                        <span></span>
+                        
+                      </li>
+
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+
+</ul>
+
+                      </li>
+
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+
+</ul>
+
+                                        </li>
+
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+
+                                        <li>
+                                          
+                                          <span>For Contributors</span>
+                                          
+                                          <ul>
+
+
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+
+                      <li>
+                        
+                        <a href="">Building Cardano SL and Daedalus from Source</a>
+                        
+                        <ul>
+
+
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+
+                      <li>
+                        
+                        <span></span>
+                        
+                      </li>
+
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+
+</ul>
+
+                      </li>
+
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+
+                      <li>
+                        
+                        <a href="">Implementation</a>
+                        
+                        <ul>
+
+
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+
+                      <li>
+                        
+                        <span></span>
+                        
+                      </li>
+
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+
+</ul>
+
+                      </li>
+
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+
+</ul>
+
+                                        </li>
+
+                                        
+                                        
+                                        
+                                        
+                                        
+
+                                        <li>
+                                          
+                                          <span>Getting started</span>
+                                          
+                                          <ul>
+
+
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+
+                      <li>
+                        
+                        <a href="">Your First Transaction</a>
+                        
+                        <ul>
+
+
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+
+                      <li>
+                        
+                        <span></span>
+                        
+                      </li>
+
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+
+</ul>
+
+                      </li>
+
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+
+                      <li>
+                        
+                        <a href="">Navigating in Daedalus User Interface</a>
+                        
+                        <ul>
+
+
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+
+                      <li>
+                        
+                        <span></span>
+                        
+                      </li>
+
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+
+</ul>
+
+                      </li>
+
+                      
+                      
+                      
+                      
+                      
+
+</ul>
+
+                                        </li>
+
+                                        
+                                        
+                                        
+                                        
+                                        
+
+                                        <li>
+                                          
+                                          <a href="/glossary/">Glossary</a>
+                                          
+                                          <ul>
+
+
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+
+                      <li>
+                        
+                        <span></span>
+                        
+                        <ul>
+
+
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+
+                      <li>
+                        
+                        <span></span>
+                        
+                      </li>
+
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+
+</ul>
+
+                      </li>
+
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+
+</ul>
+
+                                        </li>
+
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+
+                                        <li>
+                                          
+                                          <a href="/">Introduction</a>
+                                          
+                                          <ul>
+
+
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+
+</ul>
+
+                                        </li>
+
+                                        
+                                        
+                                        
+                                        
+                                        
+
+                                        <li>
+                                          
+                                          <a href="/instalation/">Instalation</a>
+                                          
+                                          <ul>
+
+
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+
+</ul>
+
+                                        </li>
+
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+
+                                        <li>
+                                          
+                                          <span>Timeline</span>
+                                          
+                                          <ul>
+
+
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+
+                      <li>
+                        
+                        <a href="">Bootstrap Era</a>
+                        
+                        <ul>
+
+
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+
+                      <li>
+                        
+                        <span></span>
+                        
+                      </li>
+
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+
+</ul>
+
+                      </li>
+
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+
+                      <li>
+                        
+                        <a href="">Reward Era</a>
+                        
+                        <ul>
+
+
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+
+                      <li>
+                        
+                        <span></span>
+                        
+                      </li>
+
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+
+</ul>
+
+                      </li>
+
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+
+                      <li>
+                        
+                        <a href="">Testnet Era</a>
+                        
+                        <ul>
+
+
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+
+                      <li>
+                        
+                        <span></span>
+                        
+                      </li>
+
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+
+</ul>
+
+                      </li>
+
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+
+</ul>
+
+                                        </li>
+
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+
+                  </ul>
+
+              </div>
+
+              <!-- content -->
+              <div class="col-md-9 col-sm-8">
+
+
+                  <div class="main" role="main">
+                    <p>Plutus is a strictly typed pure functional programming language used for
+defining smart contracts in Cardano. The syntax is fairly Haskell-like, but
+unlike Haskell, the language is eagerly evaluated.</p>
+
+<h1 id="declaring-data-types">Declaring Data Types</h1>
+
+<p>In Plutus, to define a data type, we give the name of the type, then any type
+parameters, together with a list of constructor alternatives like in Haskell.
+Each constructor alternative has the types of its arguments.</p>
+
+<p>So, for instance, the type of Peano numerals would be defined as</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>data Nat = { Zero | Suc Nat }
+</code></pre>
+</div>
+
+<p>whereas binary trees would be defined as</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>data Tree a = { Leaf | Branch (Tree a) a (Tree a) }
+</code></pre>
+</div>
+
+<p>The type constructor <code class="highlighter-rouge">Tree</code> takes one parameter, <code class="highlighter-rouge">a</code>. It’s inhabited by values
+constructed by two constructors, <code class="highlighter-rouge">Leaf</code>, which has no arguments, and <code class="highlighter-rouge">Branch</code>,
+which has three arguments, a left subtree of type <code class="highlighter-rouge">Tree a</code>, a value of type
+<code class="highlighter-rouge">a</code>, and a right subtree of type <code class="highlighter-rouge">Tree a</code>.</p>
+
+<p>We can inspect data using the <code class="highlighter-rouge">case</code> construct, like so:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>case t of {
+  Leaf -&gt; ... ;
+  Branch l x r -&gt; ...
+}
+</code></pre>
+</div>
+
+<h1 id="declaring-values">Declaring Values</h1>
+
+<p>To declare a new value (whether it’s a function or not), we give its type, and
+then specify its value. For instance, to define addition for natural numbers,
+we can give a recursive definition using <code class="highlighter-rouge">case</code>:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>add : Nat -&gt; Nat -&gt; Nat {
+  add = \m n -&gt;
+    case m of {
+      Zero -&gt; n ;
+      Suc m' -&gt; Suc (add m' n)
+    }
+}
+</code></pre>
+</div>
+
+<p>We can also use pattern matching equations like in Haskell, which makes the
+definition of functions like this much more elegant:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>add : Nat -&gt; Nat -&gt; Nat {
+  add Zero n = n ;
+  add (Suc m) n = Suc (add m n)
+}
+</code></pre>
+</div>
+
+<h1 id="smart-contract-computations">Smart Contract Computations</h1>
+
+<p>Plutus has one important type built into the language specific for smart
+contract computations: the type constructor <code class="highlighter-rouge">Comp</code>, which takes one type
+parameter. The simplest way to make values is with the two computation
+constructors <code class="highlighter-rouge">success</code>, which takes a value <code class="highlighter-rouge">M</code> with type <code class="highlighter-rouge">A</code> (for any choice
+of <code class="highlighter-rouge">A</code>) and produces a computation of type <code class="highlighter-rouge">Comp A</code> that represents a
+successful smart contract computation that returns <code class="highlighter-rouge">M</code>. You can also build a
+value of type <code class="highlighter-rouge">Comp A</code> with just <code class="highlighter-rouge">failure</code>, which represents a failed
+computation.</p>
+
+<p>It’s also possible to chain together smart contract computations using <code class="highlighter-rouge">do</code>
+notation. Given a term <code class="highlighter-rouge">M</code> of the type <code class="highlighter-rouge">Comp A</code>, and a term <code class="highlighter-rouge">N</code> of type
+<code class="highlighter-rouge">Comp B</code> with a free variable <code class="highlighter-rouge">x</code> of type <code class="highlighter-rouge">A</code>, we can form <code class="highlighter-rouge">do { x &lt;- M ; N }</code>
+which runs the computation <code class="highlighter-rouge">M</code>, binds its returned value to <code class="highlighter-rouge">x</code>, then runs the
+computation <code class="highlighter-rouge">N</code>. If the term <code class="highlighter-rouge">M</code> computes to <code class="highlighter-rouge">failure</code>, then the failure is
+propagated by the <code class="highlighter-rouge">do</code> construct and the whole thing computes to <code class="highlighter-rouge">failure</code>.</p>
+
+<p>This is most useful for building validator scripts for smart contracts. The
+standard way this is done is by asking for a redeemer program of type <code class="highlighter-rouge">Comp A</code>
+and a validator program of type <code class="highlighter-rouge">A -&gt; Comp B</code>, which are then composed to form
+<code class="highlighter-rouge">do { x &lt;- redeemer ; validator x }</code>. The <code class="highlighter-rouge">redeemer</code> program is run, returning
+whatever data <code class="highlighter-rouge">validator</code> needs, and then that data is given to <code class="highlighter-rouge">redeemer</code>,
+which is run.</p>
+
+<h1 id="more-detailed-overview">More Detailed Overview</h1>
+
+<p>The other files in this directory provide a more detailed overview of the
+grammar, types, and programs of Plutus, including the built in types and
+functionality, and should be read before diving into writing programs. There’s
+also a demo file, showing the implementation of a number of common functions,
+to give a good sense of the use of the language.</p>
+
+
+                  </div>
+              </div>
+              <!-- end content -->
+          </div>
+
+      </div>
+
+
+
+      <div id="foot" class="foot noprint">
+      <footer>
+          <div class="grad"></div>
+
+          <div class="links network text-center">
+              <a href="http://daedaluswallet.io/" target="_blank">Daedalus Wallet</a>  |
+              <a href="" target="_blank">Cardano SL Statistics</a> |
+              <a href="" target="_blank">Cardano SL Explorer</a> |
+              <a href="" target="_blank">Cardano ADA Faucet</a> |
+              <a href="http://cardano-docs.rtfd.io" target="_blank">Cardano SL Documentation</a>
+          </div>
+
+          <hr />
+
+          <div class="container">
+
+            <div class="footer">
+              <div class="row">
+              <div class="col-sm-5 cardano logo">
+
+                <a href="https://iohk.io/projects/cardano/" target="_blank" class=""><img src="http://static.iohk.io/cardano/images/cardano-white-120.png" alt="" width="40" height="36" /> <span>Cardano </span></a>
+
+                      <p class="uppercase supported_project"><a href="https://iohk.io/projects/cardano/" target="_blank">IOHK supported project</a></p>
+              </div>
+              <div class="col-sm-7 text-right links">
+
+                  <a href="" target="_blank">About</a> |
+                  <a href="" target="_blank">Github</a> |
+                  <a href="" target="_blank">Twitter</a> |
+                  <a href="" target="_blank">Privacy policy</a> |
+                  <a href="" target="_blank">Terms of Service</a>
+
+              </div>
+            </div>
+          </div>
+
+          <p class="note">Privacy notice: We store your IP address to prevent abuse of our service. Your IP address is 194.187.251.60.</p>
+
+          </div>
+      </footer>
+  </div>
+
+
+  </body>
+
+</html>
