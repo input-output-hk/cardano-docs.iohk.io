@@ -2,8 +2,7 @@ title: Cardano
 email: cardano@iohk.io
 description: SL Documentation
 baseurl: ""
-url: "https://docs.cardano.iohk.io"
-enforce_ssl: docs.cardano.iohk.io
+url: "https://cardano-docs.iohk.io"
 include: ["_pages","_docs"]
 permalink: /:title
 
