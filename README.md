@@ -4,18 +4,18 @@ Build on [Jekyll](https://jekyllrb.com/) using Github pages.
 
 Manage, add and edit documents only in `/_docs/` folder.
 
-Header example: 
-<code>
+Header example:
+<pre>
 ---
 layout: default
 title: Getting started
 group: base
 children: getting-started
 ---
-</code>
+</pre>
 
 Page anchors example (  Heading sentence: heading-sentence):
-<code>
+<pre>
 ---
 layout: default
 title: Introduction
@@ -26,4 +26,4 @@ anchors:
   What Makes Cardano SL Special?: what-makes-cardano-sl-special
   Beyond Settlement Layer: beyond-settlement-layer
 ---
-</code>
+</pre>
