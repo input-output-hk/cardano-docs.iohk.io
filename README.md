@@ -1,9 +1,10 @@
 # Cardano SL documentation
-
 Build on [Jekyll](https://jekyllrb.com/) using Github pages.
 
-Manage, add and edit documents only in `/_docs/` folder.
+## Where is it?
+Manage, add and edit documents only in `/_docs/` folder. Use any folder structure you like. Final permalink url is defined in each page header.
 
+## Header examples
 Header example:
 <pre>
 ---
@@ -27,3 +28,7 @@ anchors:
   Beyond Settlement Layer: beyond-settlement-layer
 ---
 </pre>
+
+## Menu order
+Items in menu can reordered by its date prefix in the filename eg: 2017-01-01-filename.md.
+For now. Can be sorted otherwise later.
