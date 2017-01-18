@@ -13,11 +13,7 @@
 <meta name="twitter:card" content="{{ page.title }}">
 <meta name="twitter:site" content="{{ site.title }}">
 <meta name="twitter:creator" content="{{ site.title }}">
-{% if page.thumbnail %}
-<meta name="twitter:image" content="{{ page.thumbnail | prepend: site.baseurl }}">
-{% else %}
-<meta name="twitter:image" content="{{ '/images/home.jpg' | prepend: site.baseurl }}">
-{% endif %}
+
 <meta name="twitter:title" content="{{ page.title }}">
 <meta name="twitter:description" content="{{ page.title }}">
 
@@ -25,18 +21,12 @@
 <meta property="og:type" content="page" />
 <meta property="og:url" content="{{site.baseurl}}{{page.permalink}}" />
 
-{% if page.thumbnail %}
-<meta property="og:image" content="{{ page.thumbnail  | prepend: site.baseurl }}" />
-{% else %}
-<meta property="og:image" content="{{ '/images/home.jpg' | prepend: site.baseurl }}" />
-{% endif %}
 
 <meta property="og:description" content="{{site.description}}" />
 <meta property="og:site_name" content="{{ site.title }}" />
 
 <script>(function(){document.documentElement.className='js'})();</script>
 
-<link rel="icon" href="{{ '/images/favicon.ico' | prepend: urlprefix }}" type="image/x-icon">
 <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css" type="text/css" media="all" />
 <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
 
