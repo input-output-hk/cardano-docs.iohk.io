@@ -1,5 +1,5 @@
 # Cardano SL documentation
-Build on [Jekyll](https://jekyllrb.com/) using Github pages.
+Build on [Jekyll](https://jekyllrb.com/) for [Github Pages](https://pages.github.com/).
 
 ## Where is it?
 Manage, add and edit documents only in `/_docs/` folder. Use any folder structure you like. Final permalink url is defined in each page header.
