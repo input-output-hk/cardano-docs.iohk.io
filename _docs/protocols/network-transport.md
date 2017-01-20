@@ -23,7 +23,7 @@ Fundamental properties of the implementation:
 1. Single connection. Once a connection with other node is established, use it for sending/receiving messages until connection is _explicitly_ closed or some unrecoverable error occurred.
 2. Resistance to network lags/failures. If a connection dropped, try to reconnect (not simply failing with some exception or error code).
 
-## Overiview
+## Overview
 
 Basic network concepts are:
 
@@ -97,7 +97,7 @@ And when `Code 2` do `connect`, lightweight connection `1` is created, so _conce
  +----------+                           +----------+
 ~~~
 
-So, when `Code 1` sends a message to `Code 3`, index of lightweight connection `0` stores in the first 4 bytes of the message (`Word32`-value). And when `Code 2` sends a message to `Code 4`, index of lightweight connection `1` stores in the first 4 bytes of the message. So, _in reality_ we have two messages sent via single real TCP-connection. But _conceptually_ we have two messages sent via two different lightweight connections. In this case we'll never get any collisions: messages sent by `Code 1` will always be received by `Code 3` only, as well as messages sent by `Code 4` will always be received by `Code 2` only.
+So, when `Code 1` sends a message to `Code 3`, index of lightweight connection `0` stores as 4 bytes in this message (`Word32`-value). And when `Code 2` sends a message to `Code 4`, index of lightweight connection `1` stores as 4 bytes in this message. So, _in reality_ we have two messages sent via single real TCP-connection. But _conceptually_ we have two messages sent via two different lightweight connections. In this case we'll never get any collisions: messages sent by `Code 1` will always be received by `Code 3` only, as well as messages sent by `Code 4` will always be received by `Code 2` only.
 
 And when `Code 1` disconnected _explicitly_ from `Code 3` (or vice versa), lightweight connection `0` disappeared, there're no more messages between `Code 1` and `Code 3`. But our real TCP-connection is still here, and lightweight connection `1` is still here too, so `Code 2` and `Code 4` can continue sent messages to each other:
 
@@ -120,7 +120,7 @@ And only when `Code 2` _or_ `Code 4` disconnected _explicitly_, lightweight conn
 
 There're two situations: some node wants to connect to your one, or your node wants to connect to the other one.
 
-### Listen connection requests
+### Listen connection request
 
 When node `B` wants to connect to your node `A`, it sends message called **connection request**. Message structure is:
 
@@ -138,7 +138,7 @@ where:
 - `B-EPAl` - length of the other node `B` endpoint's address,
 - `B-EPA` - other node `B` endpoint's address.
 
-If node `A` decided that node `B` _can_ connect, it replies to node `B` with message called **connection request accepted**. Message structure is:
+If node `A` accepts connection request, it replies to node `B` with message called **connection request accepted**. Message structure is:
 
 ~~~
 +-----------+
@@ -150,7 +150,9 @@ If node `A` decided that node `B` _can_ connect, it replies to node `B` with mes
 
 where `CRAF` - connection request accepted flag, value `0`.
 
-### Send connection requests
+_Pending_ about `Invalid` and `Crossed` replies.
+
+### Send connection request
 
 When your node `A` wants to connect to the other node `B`, it sends the same **connection request**. Message structure is:
 
@@ -168,6 +170,8 @@ where:
 - `A-EPAl` - length of our node `A` endpoint's address,
 - `A-EPA` - our node `A` endpoint's address.
 
+The same situation
+
 _Pending_
 
 If node accepted your connection request, it replies with `ConnectionRequestAccepted` code with value `0` (`Word32`).
@@ -183,4 +187,36 @@ handleIncomingMessages
 
 ## How to disconnect
 
-If your node wants to disconnect from other node, it should send `CloseSocket` code with value `2` (`Word32`).
+If your node `A` wants to disconnect from other node `B`, it sends a message called **close connection**. Message structure is:
+
+~~~
++-----------+-----------+
+|     CC    |   LWCId   |
++-----------+-----------|
+
+|   Word32  |   Word32  | 
+~~~
+
+where:
+
+- `CC` - close connection flag, value `1`.
+- `LWCId` - using lightweight connection id.
+
+After node `B` receives **close connection** message, it just replies with the same message. After that corresponding lightweight connection is gone.
+
+Moreover, if there's no more lightweight connections, node `A` can request to close a socket (i.e. our real TCP-connection). In this case it sends to other node `B` a message called **close socket**. Message structure is:
+
+~~~
++-----------+-----------+
+|     CS    |   LWCId   |
++-----------+-----------|
+
+|   Word32  |   Word32  | 
+~~~
+
+where:
+
+- `CS` - close socket flag, value `2`.
+- `LWCId` - using lightweight connection id.
+
+After node `B` receives **close socket** message, it just replies with the same message. After that our real TCP-connection is gone.
