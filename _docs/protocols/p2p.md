@@ -11,7 +11,8 @@ For P2P communication we're using Kademlia DHT protocol.
 
 ## Briefly how Kademlia works
 
-Every node is associated with some random generated 160-bit ID used to identify the node not using its network address. Keys used to store values in Kademlia are also 160-bit identifiers.
+Every node is associated with some 32-byte ID (see [Messages binary representation](#messages-binary-representation)) used to identify the node not using its network address. Keys used to store values in Kademlia are also 32-byte identifiers.
+[P2P Network section](/for-contributors/implementation#p2p-network)
 
 Kademlia uses XOR-metric to define distance between nodes. Key-value pairs are store in nodes with ID close to the key. Also this distance is used to locate
 a node with the given ID efficiently.
@@ -40,10 +41,12 @@ Every message is represented as binary string with size of at most 1200 bytes (t
 Special case is *RETURN\_NODES*: in case this message exceed 1200 bytes, node list is splitted into several packages. Number of packages is one byte length.
 Where each package is concatenation of the following binary sequences for each peer:
     <Peer ID><Peer host><Peer port>
-All IDs and keys are represented as 160-bit binary string.
+All IDs and keys are represented as 32-byte string of following format:
+    <Hash><Nonce>
+Where *Nonce* is random binary string and *Hash* is *PBKDF2* key generated from *Nonce*
 
 | Message           | Binary representation                                   |
-|-------------------+---------------------------------------------------------|
+|-------------------|---------------------------------------------------------|
 | **PING**          | 0<Our ID>                                               |
 | **PONG**          | 1<Our ID>                                               |
 | **STORE**         | 2<Our ID><Key><Value>                                   |
