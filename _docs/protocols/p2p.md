@@ -33,3 +33,20 @@ At start one initial peer should be provided to kademlia to join the network, it
 **RETURN\_VALUE key value nodes**: Answer to *STORE* request. This message is not used in Cardano SL because we do not store any values in Kademlia.
 
 **RETURN\_NODES nodes**: Send network addresses of some nodes as answer to *FIND\_NODE* of *FIND\_VALUE*
+
+## Messages binary representation
+
+Every message is represented as binary string with size of at most 1200 bytes (to not exceed IPV6 datagram size).
+Special case is *RETURN\_NODES*: in case this message exceed 1200 bytes, node list is splitted into several packages.
+Where each package is concatenation of the following binary sequences for each peer:
+    <Peer ID><Peer host><Peer port>
+
+| Message           | Binary representation                                   |
+|-------------------|---------------------------------------------------------|
+| **PING**          | 0<Our ID>                                               |
+| **PONG**          | 1<Our ID>                                               |
+| **STORE**         | 2<Our ID><Key><Value>                                   |
+| **FIND_NODE**     | 3<Our ID><Destination ID>                               |
+| **FIND\_VALUE**   | 4<Our ID><Key>                                          |
+| **RETURN\_VALUE** | 5<Our ID><Destination ID><Value>                        |
+| **RETURN\_NODES** | 6<Our ID><Number of packages><Destination ID><Packages> |
