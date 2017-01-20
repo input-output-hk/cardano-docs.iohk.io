@@ -19,6 +19,8 @@ a node with the given ID efficiently.
 
 At start one initial peer should be provided to kademlia to join the network, it will provide initial list of peers which will be extended with sending and receiving some Kademlia messages. Kademlia node sends messages to its peers which resend messages to their peers close to the needed ID/key.
 
+Kademlia uses UDP protocol for transmitting packages.
+
 ## Messages used in Kademlia
 
 **PING**: Check if peer is still accessible. Node which sent *PING* message would expect to receive *PONG* message as answer. Kademlia pings every peer periodically to maintain correct peer list.
