@@ -4,8 +4,10 @@ body{background:#fff;color:#555;padding-top:0px;}
 a{color:#007FCF;}
 
 
-h1,h2,h3,h4,h5,h6{	font-family: 'Montserrat', sans-serif;color:#444}
-h1{letter-spacing:-.02em;margin:.08em 0 .38em 0;color:#000;line-height:1;border-bottom:10px solid #eee;padding:0 0 .33em 0}
+h1,h2,h3,h4,h5,h6{	font-family: 'Roboto', sans-serif;color:#444}
+h1,h2{font-weight: 100}
+h3{font-weight:200}
+h1{letter-spacing:-.02em;margin:.08em 0 .38em 0;color:#000;line-height:1}
 @media (min-width:990px){
   h1{font-size:350%;letter-spacing:-.04em;}
 }
@@ -14,8 +16,8 @@ h1{letter-spacing:-.02em;margin:.08em 0 .38em 0;color:#000;line-height:1;border-
 a{outline: 0 !important;}
 hr{border-color: #222}
 
-.navbar {background:#0A0E17 url('//static.iohk.io/cardano/images/cardano-bg.jpg') center ;margin:0;border-radius: 0 ;background-size:cover;   background-repeat: no-repeat;color:#aaa;	font-weight:200;letter-spacing: 0.05em}
-.navbar-brand {padding: 12px 15px;font-size: 11px;line-height:20px;font-weight:400}
+.navbar {background:#F2FAFF;margin:0;border:0;border-radius: 0 ;background-size:cover;   background-repeat: no-repeat;color:#aaa;	font-weight:200;letter-spacing: 0.05em}
+.navbar-brand {padding: 12px 15px;font-size: 11px;line-height:20px;font-weight:500}
 .navbar-brand img{margin:-7px 0 0 0}
 .navbar-brand span{line-height:42px;display: inline-block;}
 
@@ -37,7 +39,7 @@ hr{border-color: #222}
 .navbar-side ul{padding:0 0 0 10px;}
 .navbar-side ul ul{padding:0 0 0 10px;}
 
-.navbar-grad{height:20px;
+.navbar-grad{height:2px;margin: 0 0 15px 0;
   background: rgb(0,0,0); /* Old browsers */
   background: -moz-linear-gradient(top, rgba(230,230,230,1) 0%, rgba(255,255,255,1) 100%); /* FF3.6-15 */
   background: -webkit-linear-gradient(top, rgba(230,230,230,1) 0%,rgba(255,255,255,1) 100%); /* Chrome10-25,Safari5.1-6 */
@@ -72,7 +74,7 @@ hr{border-color: #222}
 
 .cardano.logo a{text-decoration: none;}
 .cardano.logo a img{margin:-5px 0 0 0}
-.cardano.logo a span{font-family: 'Montserrat', sans-serif;text-transform: uppercase;color:#fff;font-size:160%;letter-spacing: .1em;display: inline-block;padding:0 0 0 10px}
+.cardano.logo a span{font-family: 'Montserrat', sans-serif;text-transform: uppercase;color:#333;font-size:160%;letter-spacing: .1em;display: inline-block;padding:0 0 0 10px}
 .cardano.logo .supported_project {margin:-10px 0 0 53px;}
 .cardano.logo .supported_project a{	color:#777;text-transform: uppercase;font-size: 80%}
 
