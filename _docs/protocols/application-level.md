@@ -46,13 +46,9 @@ is an example of a message that sends newest headers first, minding scc.
 
 ### Block Exchange Messages
 
-~~~
-+--------------+---------+--------------+
 | Message Name | Payload | Commentaries |
-+--------------+---------+--------------+
-
+|--------------|---------|--------------|
 | GetHeaders | Oldest header hash we're interested in, Newest hash we're interested in, or blank | Expect newest header first |
 | GetBlocks | Oldest header hash, Newest hash | As opposed to GetHeaders, both hashes have to be present |
 | BlockHeaders | Non-empty collection of block headers, newest first | Polymorphic in scc |
 | Block | A single block | Polymorphic in scc |
-~~~
