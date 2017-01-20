@@ -42,17 +42,21 @@ Kademlia uses UDP protocol for transmitting packages.
 Every message is represented as binary string with size of at most 1200 bytes (to not exceed IPV6 datagram size).
 Special case is *RETURN\_NODES*: in case this message exceed 1200 bytes, node list is splitted into several packages. Number of packages is one byte length.
 Where each package is concatenation of the following binary sequences for each peer:
+
     <Peer ID><Peer host><Peer port>
+
 All IDs and keys are represented as 32-byte string of following format:
+
     <Hash><Nonce>
+
 Where *Nonce* is random binary string and *Hash* is *PBKDF2* key generated from *Nonce*
 
-| Message           | Binary representation                                   |
-|-------------------|---------------------------------------------------------|
-| **PING**          | 0<Our ID>                                               |
-| **PONG**          | 1<Our ID>                                               |
-| **STORE**         | 2<Our ID><Key><Value>                                   |
-| **FIND_NODE**     | 3<Our ID><Destination ID>                               |
-| **FIND\_VALUE**   | 4<Our ID><Key>                                          |
-| **RETURN\_VALUE** | 5<Our ID><Destination ID><Value>                        |
-| **RETURN\_NODES** | 6<Our ID><Number of packages><Destination ID><Packages> |
+| Message           | Binary representation                                           |
+|-------------------|-----------------------------------------------------------------|
+| **PING**          | 0\<Our ID\>                                                     |
+| **PONG**          | 1\<Our ID\>                                                     |
+| **STORE**         | 2\<Our ID\>\<Key\>\<Value\>                                     |
+| **FIND_NODE**     | 3\<Our ID\>\<Destination ID\>                                   |
+| **FIND\_VALUE**   | 4\<Our ID\>\<Key\>                                              |
+| **RETURN\_VALUE** | 5\<Our ID\>\<Destination ID\>\<Value\>                          |
+| **RETURN\_NODES** | 6\<Our ID\>\<Number of packages\>\<Destination ID\>\<Packages\> |
