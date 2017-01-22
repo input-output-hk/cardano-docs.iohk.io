@@ -120,11 +120,7 @@ And only when `Code 2` _or_ `Code 4` disconnected _explicitly_, lightweight conn
 
 ## How to connect
 
-Two situations are possible: some node wants to connect to your one, or your node wants to connect to the other one.
-
-### Listen connection request
-
-When node `B` wants to connect to your node `A`, it sends message called **connection request**. Message structure is:
+When node `B` wants to connect to node `A`, it sends message called **connection request**. Message structure is:
 
 ~~~
 +-----------+-----------+--------------------+
@@ -152,43 +148,52 @@ If node `A` accepts connection request, it replies to node `B` with message call
 
 where `CRAF` - connection request accepted flag, value `0`.
 
-_Pending_ about `Invalid` and `Crossed` replies.
-
-### Send connection request
-
-When your node `A` wants to connect to the other node `B`, it sends the same **connection request**. Message structure is:
+When node `B` receives **connection request accepted** message, it replies with message called **created new connection**. Message structure is:
 
 ~~~
-+-----------+-----------+--------------------+
-|   B-EPI   |   A-EPAl  |       A-EPA        |
-+-----------+-----------+--------------------+
++-----------+-----------+
+|   CNCF    |   LWCId   |
++-----------+-----------|
 
-|   Word32  |   Word32  |       A-EPAl       |
+|   Word32  |   Word32  | 
 ~~~
 
 where:
 
-- `B-EPI` - other node `B` endpoint's id,
-- `A-EPAl` - length of our node `A` endpoint's address,
-- `A-EPA` - our node `A` endpoint's address.
+- `CNCF` - created new connection flag, value `0`,
+- `LWCId` - new lightweight connection's id.
 
-The same situation
+After that nodes `B` and `A` will use lightweight connection with `LWCId` id to send messages to each other.
 
-_Pending_
+### Crossed connection request
 
-If node accepted your connection request, it replies with `ConnectionRequestAccepted` code with value `0` (`Word32`).
+The tricky case arises when nodes `A` and `B` send connection request to each other _at the same time_. In this case node `B` receives connection request from the node `A` but finds that it had _already_ sent a connection request to the node `A`. So node `B` will accept the connection request from the node `A` if endpoint's address of the node `A` is smaller (lexicographically) than endpoint's address of the node `B`, and reject it otherwise. If it rejects it, it sends to the node `A` a message called **connection request crossed**. If a connection exists between nodes `A` and `B` when node `B` rejects the request, node `B` will probe the connection to make sure it's healthy. If node `A` doesn't answer timely to the probe, node `B` will discard the connection.
 
-## How to send messages
+When it receives a **connection request crossed** message the node `A`that initiated the request just needs to wait until the node `A` that is dealing with `B`'s connection request completes, unless there is a network failure. If there is a network failure, the initiator node would timeout and return an error.
 
-_Pending_
+## How to send/receive messages
 
-## How to receive messages
+When node `A` sends a message to the node `B`, message structure is:
 
-_Pending_
+~~~
++-----------+-----------+-------------------+
+|   LWCId   |   DataL   |       Data        |
++-----------+-----------+-------------------+
+
+|   Word32  |   Word32  |       DataL       |
+~~~
+
+where:
+
+- `LWCId` - using lightweight connection id,
+- `DataL` - length of the binary data,
+- `Data` - binary data itself.
+
+At this level we know nothing about the `Data`, it's just a raw bytes.
 
 ## How to disconnect
 
-If your node `A` wants to disconnect from other node `B`, it sends a message called **close connection**. Message structure is:
+If node `A` wants to disconnect from the node `B`, it sends a message called **close connection**. Message structure is:
 
 ~~~
 +-----------+-----------+
