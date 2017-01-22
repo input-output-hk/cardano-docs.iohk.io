@@ -7,11 +7,13 @@ group: protocols
 
 # Network Transport Layer
 
-This guide will be useful for developers who want to build their own client for Cardano SL. Please read [Cardano SL Implementation Overview](/for-contributors/implementation) for more info. This guide covers network transport layer used in Cardano SL nodes.
+This guide is for developers who want to build their own client for Cardano SL. Please read [Cardano SL Implementation Overview](/for-contributors/implementation) for more info. This guide covers network transport layer used in Cardano SL nodes.
+
+**IMPORTANT: THIS GUIDE IS NOT FINISHED YET!**
 
 ## Principles
 
-From the highest point of view we're talking about four steps:
+From the highest point of view we're talking about 4 steps:
 
 1. Connecting to other node.
 2. Sending message(s) to other node.
@@ -20,8 +22,8 @@ From the highest point of view we're talking about four steps:
 
 Fundamental properties of the implementation:
 
-1. Single connection. Once a connection with other node is established, use it for sending/receiving messages until connection is _explicitly_ closed or some unrecoverable error occurred.
-2. Resistance to network lags/failures. If a connection dropped, try to reconnect (not simply failing with some exception or error code).
+1. **Single connection**. Once a connection with other node is established, use it for sending/receiving messages until connection is _explicitly_ closed or some unrecoverable error occurred.
+2. **Resistance to network lags/failures**. If a connection dropped, try to reconnect (not simply failing with some exception or error code).
 
 ## Overview
 
@@ -53,13 +55,13 @@ Basic network concepts are:
 
 After your node was started, it looks around and tries to find other nodes (neighbors). Please read [P2P Network section](/for-contributors/implementation#p2p-network) for more info about peer discovery and neighbors. Further it's assumed that list of neighbors' endpoints addresses already obtained.
 
-Every node should work asynchronously: there're should be thread(s) for sending messages and thread(s) for receiving messages.
+Every node should work asynchronously: node should run thread(s) for sending messages and thread(s) for receiving messages.
 
 ### Low-level notice
 
 All messages must be encoded with [network byte order](https://en.wikipedia.org/wiki/Endianness#Networking) before sending.
 
-`Word32` is 32-bit unsigned integer value.
+`Word32` type represents 32-bit unsigned integer value.
 
 ## Understanding lightweight connection
 
@@ -97,9 +99,9 @@ And when `Code 2` do `connect`, lightweight connection `1` is created, so _conce
  +----------+                           +----------+
 ~~~
 
-So, when `Code 1` sends a message to `Code 3`, index of lightweight connection `0` stores as 4 bytes in this message (`Word32`-value). And when `Code 2` sends a message to `Code 4`, index of lightweight connection `1` stores as 4 bytes in this message. So, _in reality_ we have two messages sent via single real TCP-connection. But _conceptually_ we have two messages sent via two different lightweight connections. In this case we'll never get any collisions: messages sent by `Code 1` will always be received by `Code 3` only, as well as messages sent by `Code 4` will always be received by `Code 2` only.
+So, when `Code 1` sends a message to `Code 3`, index of lightweight connection `0` stores as `Word32`-value in this message. And when `Code 2` sends a message to `Code 4`, index of lightweight connection `1` stores as `Word32`-value in this message. So, _in reality_ we have two messages sent via single real TCP-connection. But _conceptually_ we have two messages sent via two different lightweight connections. In this case we'll never get any collisions: messages sent by `Code 1` will always be received by `Code 3` only, as well as messages sent by `Code 4` will always be received by `Code 2` only.
 
-And when `Code 1` disconnected _explicitly_ from `Code 3` (or vice versa), lightweight connection `0` disappeared, there're no more messages between `Code 1` and `Code 3`. But our real TCP-connection is still here, and lightweight connection `1` is still here too, so `Code 2` and `Code 4` can continue sent messages to each other:
+And when `Code 1` disconnected _explicitly_ from `Code 3` (or vice versa), lightweight connection `0` disappeared, there's no more messages between `Code 1` and `Code 3`. But our real TCP-connection is still here, and lightweight connection `1` is still here too, so `Code 2` and `Code 4` can continue sent messages to each other:
 
 ~~~
     Node A                                 Node B
@@ -118,7 +120,7 @@ And only when `Code 2` _or_ `Code 4` disconnected _explicitly_, lightweight conn
 
 ## How to connect
 
-There're two situations: some node wants to connect to your one, or your node wants to connect to the other one.
+Two situations are possible: some node wants to connect to your one, or your node wants to connect to the other one.
 
 ### Listen connection request
 
@@ -178,12 +180,11 @@ If node accepted your connection request, it replies with `ConnectionRequestAcce
 
 ## How to send messages
 
-When your node `A` wants to send message to other node `B`, 
+_Pending_
 
 ## How to receive messages
 
-_Pending_.
-handleIncomingMessages
+_Pending_
 
 ## How to disconnect
 
@@ -204,7 +205,7 @@ where:
 
 After node `B` receives **close connection** message, it just replies with the same message. After that corresponding lightweight connection is gone.
 
-Moreover, if there's no more lightweight connections, node `A` can request to close a socket (i.e. our real TCP-connection). In this case it sends to other node `B` a message called **close socket**. Message structure is:
+Moreover, if there's no more lightweight connections, node `A` can request to close a socket (our real TCP-connection). In this case it sends to other node `B` a message called **close socket**. Message structure is:
 
 ~~~
 +-----------+-----------+
