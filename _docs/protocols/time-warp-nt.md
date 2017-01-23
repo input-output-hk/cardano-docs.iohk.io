@@ -36,11 +36,11 @@ for peer's response
  * Upon connection initialization, node sends `UNI`:
 
  ~~~
- +---------------------------+
- |           UNI             |
- +---------------------------+
+ +------------------+
+ |       UNI        |
+ +------------------+
 
- |   fromEnum 'U' :: Word8   |
+ |   'U' :: Word8   |
  ~~~
 
 
@@ -55,11 +55,11 @@ and automatically closes connection on action's end.
    * Initiator sends connection request, which has following structure:
 
    ~~~
-   +---------------------------+-----------------+
-   |         `BI_SYN`          |      Nonce      |
-   +---------------------------+-----------------+
+   +------------------+-----------------+
+   |     `BI_SYN`     |      Nonce      |
+   +------------------+-----------------+
 
-   |   fromEnum 'S' :: Word8   |   Word64 (BE)   |
+   |   'S' :: Word8   |   Word64 (BE)   |
    ~~~
 
    where `Nonce` is randomly generated.
@@ -67,11 +67,11 @@ and automatically closes connection on action's end.
    * Peer sends acknowledgement, with the following structure:
 
    ~~~
-   +---------------------------+-----------------+
-   |         `BI_ACK`          |   Nonce         |
-   +---------------------------+-----------------+
+   +------------------+-----------------+
+   |     `BI_ACK`     |      Nonce      |
+   +------------------+-----------------+
 
-   |   fromEnum 'A' :: Word8   |   Word64 (BE)   |
+   |   'A' :: Word8   |   Word64 (BE)   |
    ~~~
 
    where `Nonce` is same nonce which came from request.
@@ -89,7 +89,7 @@ Before talking about upper layer, we first describe messaging.
 **TODO** Change first section about messaging in *application-layer*?
 
 In order to specify different handlers for various message types,
-sent messages should implement `Message` type class, defining `messageName` function. It tells unique message identifier, which is sent
+sent messages should implement `Message` interface, defining `messageName` function. It tells unique message identifier, which is sent
  along with the message itself and allows receiver to select correct handler
  to process this message.
 
