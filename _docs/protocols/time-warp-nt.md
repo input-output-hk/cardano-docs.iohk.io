@@ -5,21 +5,37 @@ permalink: /protocols/time-warp-nt/
 group: protocols
 ---
 
-# Time-warp layer
+# Introduction
 
-This layer is written on top of _network-transport_ and used as network library
-at application layer.
+Time-warp is developed to provide reliable networking layer with different levels of abstractions. Its second big objective is to provide an easy way to write and run tests for distributed systems using emulation mode, which should be flexible enough to support different scenarios (tunable network delays, disconnects, other real-time conditions). Time-warp is split up into two parts:
 
-Its interface design aims following points:
+1. `Mockable` interfaces
+2. Network functionality
 
-1. Convenience of *network-transport* functionality usage
-2. Provide message exchange capabilities
 
-**TODO** smth else?
+## Mockable
 
-This layer is split up to two sub-layers.
+`Mockable` interfaces allow to abstract from implementation of
+language-specific basic functions.
 
-## Lower layer
+They are split to several categories. For instance, `Mockable Delay`
+contains `delay` operation, while `Mockable Fork` keeps elementary
+functions to manipulate with threads.
+
+Such innovation allows to launch same code both in production and testing
+environment, where the latter allows to emulate time, threads, networking e.t.c.
+
+`Production` implements all those interfaces with references to respective
+prototypes of the functions.
+
+
+## Networking
+
+This layer is written on top of _network-transport_ and provides network
+capabilities for application layer. It is split up to two sub-layers.
+
+
+### Lower layer
 
 This sub-layer is direct wrapper over _network-transport_ and provides
 convenient interface which allows to initiate lightweight connection
@@ -82,7 +98,7 @@ and automatically closes connection on action's end.
    That's just normal, and node should ignore such acknowledgement.
 
 
-## Messaging
+### Messaging
 
 Before talking about upper layer, we first describe messaging.
 
@@ -94,7 +110,7 @@ sent messages should implement `Message` interface, defining `messageName` funct
  to process this message.
 
 
-## Upper layer
+### Upper layer
 
 This sub-layer enables message exchange.
 
@@ -133,7 +149,7 @@ Listeners could be of two types: `ListenerActionOneMsg` and
 and *conversation style* accordingly.
 
 
-## Serialization
+### Serialization
 
 Time-warp doesn't rely on any predefined serialization strategy, but rather
 allows user to use its own.
