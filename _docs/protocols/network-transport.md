@@ -9,8 +9,6 @@ group: protocols
 
 This guide is for developers who want to build their own client for Cardano SL. Please read [Cardano SL Implementation Overview](/for-contributors/implementation) for more info. This guide covers network transport layer used in Cardano SL nodes.
 
-**IMPORTANT: THIS GUIDE IS NOT FINISHED YET!**
-
 ## Principles
 
 From the highest point of view we're talking about 4 steps:
@@ -56,6 +54,8 @@ Basic network concepts are:
 After your node was started, it looks around and tries to find other nodes (neighbors). Please read [P2P Network section](/for-contributors/implementation#p2p-network) for more info about peer discovery and neighbors. Further it's assumed that list of neighbors' endpoints addresses already obtained.
 
 Every node should work asynchronously: node should run thread(s) for sending messages and thread(s) for receiving messages.
+
+Messages can be divided into two groups: command messages and data messages. We use command messages for the needs of network transport layer itself, like a connection requests. Data messages are used for transmitting some data between the nodes.
 
 ### Low-level notice
 
@@ -165,15 +165,43 @@ where:
 
 After that nodes `B` and `A` will use lightweight connection with `LWCId` id to send messages to each other.
 
+### Invalid connection request
+
+If node `B` sent **connection request** with invalid endpoint (for example, with `A-EPI` that doesn't exist), node `A` replies with a message called **connection request invalid**. Message structure is:
+
+~~~
++-----------+
+|   CRIF    |
++-----------+
+
+|   Word32  |
+~~~
+
+where `CRIF` - connection request invalid flag, value `1`.
+
 ### Crossed connection request
 
-The tricky case arises when nodes `A` and `B` send connection request to each other _at the same time_. In this case node `B` receives connection request from the node `A` but finds that it had _already_ sent a connection request to the node `A`. So node `B` will accept the connection request from the node `A` if endpoint's address of the node `A` is smaller (lexicographically) than endpoint's address of the node `B`, and reject it otherwise. If it rejects it, it sends to the node `A` a message called **connection request crossed**. If a connection exists between nodes `A` and `B` when node `B` rejects the request, node `B` will probe the connection to make sure it's healthy. If node `A` doesn't answer timely to the probe, node `B` will discard the connection.
+The tricky case arises when nodes `A` and `B` send connection request to each other _at the same time_. In this case node `B` receives connection request from the node `A` but finds that it had _already_ sent a connection request to the node `A`. So node `B` will accept connection request from the node `A` if endpoint's address of the node `A` is smaller (lexicographically) than endpoint's address of the node `B`, and reject it otherwise. If node `B` rejects it, it sends to the node `A` a message called **connection request crossed**. Message structure is:
+
+~~~
++-----------+
+|   CRCF    |
++-----------+
+
+|   Word32  |
+~~~
+
+where `CRCF` - connection request crossed flag, value `2`.
+
+If a connection exists between nodes `A` and `B` when node `B` rejects the request, node `B` will probe the connection to make sure it's healthy. If node `A` doesn't answer timely to the probe, node `B` will discard the connection.
 
 When it receives a **connection request crossed** message the node `A`that initiated the request just needs to wait until the node `A` that is dealing with `B`'s connection request completes, unless there is a network failure. If there is a network failure, the initiator node would timeout and return an error.
 
-## How to send/receive messages
+## How to send/receive data messages
 
-When node `A` sends a message to the node `B`, message structure is:
+As said above, data messages contain some binary data. Of course, at this level we know nothing about such a data and treat it as a raw bytes.
+
+When node `A` sends data message to the node `B`, message structure is:
 
 ~~~
 +-----------+-----------+-------------------+
@@ -189,9 +217,9 @@ where:
 - `DataL` - length of the binary data,
 - `Data` - binary data itself.
 
-At this level we know nothing about the `Data`, it's just a raw bytes.
-
 ## How to disconnect
+
+It's possible to request closing lightweight connection as well as heavyweight one.
 
 If node `A` wants to disconnect from the node `B`, it sends a message called **close connection**. Message structure is:
 
@@ -205,12 +233,12 @@ If node `A` wants to disconnect from the node `B`, it sends a message called **c
 
 where:
 
-- `CC` - close connection flag, value `1`.
+- `CC` - close connection flag, value `1`,
 - `LWCId` - using lightweight connection id.
 
 After node `B` receives **close connection** message, it just replies with the same message. After that corresponding lightweight connection is gone.
 
-Moreover, if there's no more lightweight connections, node `A` can request to close a socket (our real TCP-connection). In this case it sends to other node `B` a message called **close socket**. Message structure is:
+Moreover, node `A` can request to close a socket (our real TCP-connection). In this case it sends to other node `B` a message called **close socket**. Message structure is:
 
 ~~~
 +-----------+-----------+
@@ -222,7 +250,7 @@ Moreover, if there's no more lightweight connections, node `A` can request to cl
 
 where:
 
-- `CS` - close socket flag, value `2`.
+- `CS` - close socket flag, value `2`,
 - `LWCId` - using lightweight connection id.
 
-After node `B` receives **close socket** message, it just replies with the same message. After that our real TCP-connection is gone.
+After node `B` receives **close socket** message, it just replies with the same message. After that our real TCP-connection dropped.
