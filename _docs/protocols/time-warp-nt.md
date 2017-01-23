@@ -102,8 +102,6 @@ and automatically closes connection on action's end.
 
 Before talking about upper layer, we first describe messaging.
 
-**TODO** Change first section about messaging in *application-layer*?
-
 In order to specify different handlers for various message types,
 sent messages should implement `Message` interface, defining `messageName` function. It tells unique message identifier, which is sent
  along with the message itself and allows receiver to select correct handler
