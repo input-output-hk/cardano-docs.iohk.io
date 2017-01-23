@@ -23,7 +23,7 @@ This layer is split up to two sub-layers.
 
 This sub-layer is direct wrapper over _network-transport_ and provides
 convenient interface which allows to initiate lightweight connection
-and send/receive data on it. It takes place in `Node.Internal` module.
+and send/receive data on it.
 
 It supports two types of connections:
 
@@ -96,7 +96,7 @@ sent messages should implement `Message` interface, defining `messageName` funct
 
 ## Upper layer
 
-This sub-layer enables message exchange. It's placed in `Node` module.
+This sub-layer enables message exchange.
 
 It provides two styles of communication:
 
@@ -139,4 +139,4 @@ Time-warp doesn't rely on any predefined serialization strategy, but rather
 allows user to use its own.
 
 To define custom serialization, user should create special data type, so-called
-*packing type*, and define `Packable` and `Unpackable` type classes from `Node.Message` for it.
+*packing type*, and implement `Packable` and `Unpackable` interfaces for it.
