@@ -66,3 +66,42 @@ Where *Nonce* is random binary string and *Hash* is *PBKDF2* key generated from 
 | **FIND\_VALUE**   | 4\<Our ID\>\<Key\>                                              |
 | **RETURN\_VALUE** | 5\<Our ID\>\<Destination ID\>\<Value\>                          |
 | **RETURN\_NODES** | 6\<Our ID\>\<Number of packages\>\<Destination ID\>\<Packages\> |
+
+## Security
+
+Being a protocol for open P2P network, Kademlia protocol need to be modified in few other ways to become reasonably secure.
+
+### Possible attacks
+
+**Eclipse attack** is a situation when node is surrounded by adversary nodes.
+
+In Kademlia eclipse attacks (targeted at particular participant of network) are possible but hard: just launch 100 nodes with node ids close to target node id. This nodes would fill node’s lowest k-buckets (which are probably empty). Then adversary may DDOS nodes from target’s k-buckets (it’s possible to deduce such list if network topology didn’t change much from node’s start) and all nodes neighbors would be adversary agents.
+
+And here should be highlighted, that Kademlia’s structure implies that just launching nodes close to target is not enough to eclipse it. Node contains node lists in k-buckets (i-th bucket contains no more than k nodes with relative distance `2^i-1 < d < 2^i`). And new nodes would be added to corresponding k-buckets only if these buckets are not full already. Kademlia biases nodes that stay in lists for long time and recently shown alive.
+And without getting some nodes down it’s impossible to eclipse node.
+
+This attack is tricky and unlikely to happen in practice. Also [Addressing](#addressing) modification makes it harder.
+
+**100500 attack** is an attack that launches amount of nodes significantly larger than the amount of nodes in the current P2P network, either in order to eclipse some nodes or to deny service by flooding the network. No problem would arise for old nodes (maybe only some network overhead) because they preserve their routes. But if new node would want to join network, it would get eclipsed (isolated in adversary subnet), because old honest nodes won’t add it to their buckets (because these buckets are already filled by other nodes) and it would be known only to adversaries.
+
+It’s an open question, how to fight 100500 attacks. We’re going to make them practically infeasible with sophisticated ban system / adversary detection.
+
+### Addressing
+
+For Kademlia addresses we use so called HashNodeId. This makes impossible to assign yourself an arbitrary ID. This makes eclipse attacks only possible by 100500 attack.
+
+### Routing data anti-forging
+
+In Kademlia node requests some neighbors for routing data, and accepts first message received.
+This way adversary may forge these replies, providing addresses of adversary group as closest nodes to given id. To overcome this issue we made node to wait for some period to gather as many replies as possible. Then node merges them and select K closest nodes from merges set. This way adversary would need to eclipse node to forge its list.
+
+### Routing tables sharing
+
+When node just joins network, it requests list of neighbors (set of nodes closest to ours).
+We modified Kademlia in such a way that now some other nodes are also included in this list.
+Now we just pick up some random nodes along with neighbors and return them.
+This gives node additional knowledge to recover from case, when it’s surrounded by adversary nodes.
+
+### Ban nodes
+
+We introduced feature to ban nodes to Kademlia. We will use this to ban nodes when detect them to act maliciously.
