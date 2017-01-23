@@ -7,7 +7,11 @@ group: protocols
 
 # P2P Layer
 
-For P2P communication we're using Kademlia DHT protocol.
+To start communicating with other nodes of the Cardano SL node need to join the network. To do this node has to know one node already participating in the protocol.
+We call this node *bootstrap node*. When connected to the bootstrap node we recieve list of peers used for network communication called *neighbors*.
+This list should be maintained in such a way that these nodes are online and any node from the network can receive our messages. Moreover messages should be delivered efficiently.
+
+To achieve this Cardano SL uses Kademlia DHT protocol. Kademlia DHT is used only for peer discovery whereas it provides more features.
 
 ## Briefly how Kademlia works
 
@@ -17,9 +21,11 @@ Every node is associated with some 32-byte ID (see [Messages binary representati
 Kademlia uses XOR-metric to define distance between nodes. Key-value pairs are store in nodes with ID close to the key. Also this distance is used to locate
 a node with the given ID efficiently.
 
-At start one initial peer should be provided to kademlia to join the network, it will provide initial list of peers which will be extended with sending and receiving some Kademlia messages. Kademlia node sends messages to its peers which resend messages to their peers close to the needed ID/key.
+At start bootstrap node should be provided to kademlia to join the network, it will provide initial list of peers which will be extended with sending and receiving some Kademlia messages. Kademlia node sends messages to its peers which resend messages to their peers close to the needed ID/key.
 
 Kademlia uses UDP protocol for transmitting packages.
+
+To learn more about how Kademlia is implemented read the [paper](https://pdos.csail.mit.edu/~petar/papers/maymounkov-kademlia-lncs.pdf).
 
 ## Messages used in Kademlia
 
