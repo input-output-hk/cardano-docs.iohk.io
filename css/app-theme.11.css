@@ -12,6 +12,12 @@ h1{letter-spacing:-.02em;margin:.08em 0 .38em 0;color:#000;line-height:1}
   h1{font-size:350%;letter-spacing:-.04em;}
 }
 
+table{margin:20px 0}
+table td,
+table th{padding:6px 10px}
+table td{border-top:1px solid #ddd}
+table th+th,
+table td+td{border-left:1px solid #eee}
 
 a{outline: 0 !important;}
 hr{border-color: #222}
