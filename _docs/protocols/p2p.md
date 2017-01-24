@@ -89,6 +89,9 @@ Defending against 100500 attacks remains an open problem. However, we’re going
 
 For Kademlia addresses we use so-called HashNodeId. This makes it impossible to assign yourself an arbitrary ID, which makes a 100500 attack the only way to perform an eclipse attack.
 
+See:
+[Network.Kademlia.HashNodeId](https://github.com/serokell/kademlia/blob/7f3f96d7bfdb80077ac27b0a424828fa88d85334/src/Network/Kademlia/HashNodeId.hs)
+
 ### Routing data anti-forging
 
 In Kademlia, node requests a list of peers from its neighbors and accepts the first message it receives. An adversary may forge those replies, providing addresses of adversary nodes as closest nodes to given ID. To overcome this issue, we make nodes wait for some period to gather as many replies as possible, after which the replies get merged and the node selects K closest nodes from the resulting set. This way an adversary would have to eclipse a node in order to forge the list of peers it receives.
@@ -97,6 +100,15 @@ In Kademlia, node requests a list of peers from its neighbors and accepts the fi
 
 When a node has just joined the network, it requests a list of neighbors (set of nodes closest to it). We have modified Kademlia to include some extra nodes into this list – specifically, now we just pick some random nodes along with neighbors and return them. This gives the node additional knowledge to recover in the case it’s surrounded with adversary nodes.
 
-### Banning nodes
+See:
++ [Network.Kademlia.Tree.pickupRandom](https://github.com/serokell/kademlia/blob/7f3f96d7bfdb80077ac27b0a424828fa88d85334/src/Network/Kademlia/Tree.hs#L219)
++ [Network.Kademlia.Tree.findClosest](https://github.com/serokell/kademlia/blob/7f3f96d7bfdb80077ac27b0a424828fa88d85334/src/Network/Kademlia/Tree.hs#L234)
++ [Network.Kademlia.Instance.returnNodes](https://github.com/serokell/kademlia/blob/7f3f96d7bfdb80077ac27b0a424828fa88d85334/src/Network/Kademlia/Instance.hs#L360)
+
+### Ban nodes
 
 We introduced a feature to ban nodes to Kademlia. We will use this to ban nodes when we detect them to act maliciously.
+
+See:
++ [Network.Kademlia.Instance](https://github.com/serokell/kademlia/blob/7f3f96d7bfdb80077ac27b0a424828fa88d85334/src/Network/Kademlia/Instance.hs)
++ [Network.Kademlia.Implementation](https://github.com/serokell/kademlia/blob/7f3f96d7bfdb80077ac27b0a424828fa88d85334/src/Network/Kademlia/Instance.hs)
