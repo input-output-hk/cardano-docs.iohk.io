@@ -102,7 +102,7 @@ In order to specify different handlers for various message types, sent messages 
 This sub-layer enables message exchange. It provides two styles of communication:
 
 1. *One-message style* allows to send single message and uses unidirectional connection from layer below. Here node first sends message name, then message itself.
-2. *Conversation style* uses capabilities of bidirectional connectionand allows to send / receive messages. In this case initiator node sends message name once, then both initiator and peer just send required messages.
+2. *Conversation style* uses capabilities of bidirectional connection and allows to send / receive messages. For single conversation, types of incoming and outgoing messages are fixed. In this case initiator node sends message name once, then both initiator and peer just send required messages.
 
 Network events processing is initiated by `node` function, where ***worker*** and ***listeners*** arguments should be specified.
 
