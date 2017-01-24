@@ -92,3 +92,60 @@ with revokable long-lived certificates. Per-epoch delegation is called
 | ConfirmProxySK | Signature of ProxySKEpoch with the proxy key itself | Used to confirm proxy signature delivery |
 | CheckProxySKConfirmed | Ø | Checks if node is aware of PSK delivery. To be responded with CheckProxySKConfirmedRes |
 | CheckProxySKConfirmedRes | Boolean | |
+
+# Handlers and Workers in CSL
+
+## Request Data With Pos.Block.Network.Retrieval
+
+Block acquisition is handled
+[here](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Retrieval.hs)
+
+ 1. `retrievalWorker`, a server that operates on [block retrieval
+queue](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Context/Context.hs#L74),
+	validating headers and that blocks mention parents properly. 
+ 2. `requestHeaders`, a handler that performs and handles header
+	retrieval request. It handles expected headers, tracking those locally
+	and behaves by banning a node if it sends headers that weren't
+	requested.
+ 3. `addToBlockRequestQueue` is a function that is exectuted when a
+	header is successfully fetched and we want to carry on and receive a
+	block as well.
+ 4. `mkHeadersRequest`: for `requestHeaders` to work, we have to first
+	tell it what exactly do we want to fetch. `mkHeadersRequest` is a
+	function that is basically a constructor for `MsgGetHeaders` if such
+	message is possible to construct, will return `Nothing` otherwise.
+
+The way Blocks are processed is specified in the
+[Logic](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Logic.hs)
+module.
+
+## Respond to Requests With Pos.Block.Network.Listeners
+
+Listeners get requests and send data such as block headers and blocks.
+[This
+module](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Listeners.hs)
+deals with that. Below are listed block listeners.
+
+ 1. `handleGetHeaders` is used to send out block headers
+ 2. `handleGetBlocks` is used to send out blocks
+ 3. `handleBlockHeaders` is used to send out unsolicited headers
+
+## Announce New Blocks With Pos.Block.Network.Announce
+
+ 1. When a node gets a chance to mint a block, it runs `announceBlock`. This
+	function will send the header to peers, then peers will be able to
+	request full block and verify it.
+ 2. To handle such announcement, `handleHeadersCommunication` is used.
+
+## Block Workers
+
+[Block
+Worker](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Worker.hs)
+module reuses `retrievalWorker` worker and defines a
+[well-documented](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Worker.hs#L50)
+`blkOnNewSlot` function. This function:
+
+ 1. Generates a genesis block, if necessary
+ 2. Get leaders for the current epoch
+ 3. Maybe initiate block generation, if we're the slot leader or we're
+	delegated to do so.
