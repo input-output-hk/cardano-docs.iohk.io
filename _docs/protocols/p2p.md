@@ -7,11 +7,11 @@ group: protocols
 
 # P2P Layer
 
-To start communicating with other nodes, a node has to join the network. To do this, the node has to know some other node which already participates in the protocol; this node is called a *bootstrap node*.
+To start communicating with other nodes, a node has to join the network. To do this, the node has to know some other node that already participates in the protocol; this node is called a *bootstrap node*.
 
 After connecting to the bootstrap node, we receive a list of peers whom we'll use for network communication. Those peers are called *neighbors*. The list of neighbors should be maintained in such a way that these nodes are online and any node from the network can receive our messages. Moreover, messages should be delivered efficiently.
 
-To achieve this, Cardano SL uses the *Kademlia* DHT protocol. DHT is used only for peer discovery whereas it provides more features.
+To achieve this, Cardano SL uses the *Kademlia* DHT protocol. Even though Kademlia provides more features, we only use it as a method of peer discovery.
 
 ## An overview of the Kademlia protocol
 
@@ -21,9 +21,9 @@ In Kademlia, every node is associated with a 32-byte ID (see [Binary representat
 
 Kademlia uses the XOR metric to define distance between nodes. Key-value pairs are stored in nodes with IDs that are “close” to the keys. This distance is also used to efficiently locate a node with the given ID.
 
-At start, a bootstrap node should be provided to Kademlia in order to join the network. Later, the initial list of peers sent by the bootstap node will be extended by sending and receiving some Kademlia messages. A Kademlia node sends messages to its peers, which resend messages to their peers close to the needed ID/key.
+At start, a bootstrap node should be provided to Kademlia in order to join the network. Later, the node will attempt to find more peers by querying its neighbors (from the initial list of peers sent by the bootstap node). A node sends messages to its peers, which resend messages to their peers close to the needed ID/key.
 
-Kademlia uses the UDP protocol for transmitting packages.
+Kademlia uses the UDP protocol for transmitting messages.
 
 To learn more about how Kademlia is implemented, please refer to the paper [Kademlia: a Peer-to-peer Information System Based on the XOR Metric](https://pdos.csail.mit.edu/~petar/papers/maymounkov-kademlia-lncs.pdf).
 
@@ -37,7 +37,7 @@ To learn more about how Kademlia is implemented, please refer to the paper [Kade
 
 **FIND\_NODE ID**: Request network address of node with given ID. After sending this message the node would expect to receive a *RETURN\_NODES* message with a list of nodes closest to the requested one (including the requested node itself).
 
-**FIND\_VALUE key**: Behaves just like *FIND\_NODE*, except that it can also receive a *RETURN\_VALUE* response in case of a successful lookup. Currently it's used in Cardano SL for only one purpose: when the node starts working, it generates a random key and asks Kademlia to find it. This search always fails, but it lets the node discover some initial peer addresses.
+**FIND\_VALUE key**: Behaves just like *FIND\_NODE*, except that it can also receive a *RETURN\_VALUE* response in case of a successful lookup. Currently it's only used in Cardano SL for finding peers. When the node starts working, it generates a random key and asks Kademlia to find it; this search always fails, but it lets the node discover some initial peer addresses.
 
 **RETURN\_VALUE key value nodes**: A reply to a *STORE* request. This message is not used in Cardano SL because it does not store any values in Kademlia.
 
@@ -45,7 +45,7 @@ To learn more about how Kademlia is implemented, please refer to the paper [Kade
 
 ## Binary representation of messages
 
-Every message is represented as a binary string with length of at most 1200 bytes (so that it wouldn't exceed IPv6 datagram size). A special case is *RETURN\_NODES*: if it exceeds 1200 bytes, the node list is splitted into several packages. The number of packages is represented with a single byte.
+Every message is represented as a binary string with length of at most 1200 bytes (so that it wouldn't exceed IPv6 datagram size). A special case is *RETURN\_NODES*: if it exceeds 1200 bytes, the node list is split into several messages. The number of messages is represented with a single byte.
 
 Each package is a concatenation of the following binary sequences for each peer:
 
@@ -55,7 +55,7 @@ All IDs and keys are represented as 32-byte strings in the following format:
 
     <Hash><Nonce>
 
-where *Nonce* is a random binary string and *Hash* is a *PBKDF2* key generated from *Nonce*.
+Here *Nonce* is a random binary string and *Hash* is a *PBKDF2* key generated from *Nonce*.
 
 | Message           | Binary representation                                           |
 |-------------------|-----------------------------------------------------------------|
@@ -79,19 +79,19 @@ In Kademlia, eclipse attacks (targeted at a particular participant of the networ
 
 Please note that Kademlia’s structure implies that merely launching nodes close to the target is not enough to eclipse it. Node lists are stored by node in k-buckets (the i-th bucket contains no more than k nodes with relative distance `2^i-1 < d < 2^i`), and new nodes are added to corresponding buckets only if those buckets are not full already. Kademlia prefers nodes that have been in lists for a long time and were recently seen alive. Without getting some nodes down it’s impossible to eclipse a node.
 
-This attack is tricky and unlikely to happen in practice. Also, the [Addressing](#addressing) modification makes it harder still.
+This attack is tricky and unlikely to happen in practice. Also, the [Addressing](#addressing) modification makes it even harder.
 
 A **100500 attack** is an attack that launches significantly more nodes than the amount of nodes in the current P2P network, either in order to eclipse some nodes or to deny service by flooding the network. The attack wouldn't cause any problems for old nodes (with a possible exception of some network overhead), because old nodes preserve their routes. But when a new node joins the network, it would get eclipsed (isolated in an adversarial subnet), because old honest nodes won’t add it to their buckets (as these buckets are already filled by other nodes) and the new node would be known only to adversaries.
 
-Defending against 100500 attacks remains an open problem. We’re going to make them practically infeasible with sophisticated ban system / adversary detection.
+Defending against 100500 attacks remains an open problem. However, we’re going to make them practically infeasible with sophisticated ban system / adversary detection.
 
 ### Addressing
 
-For Kademlia addresses we use so-called HashNodeId. This makes it impossible to assign yourself an arbitrary ID, and thus eclipse attacks become only possible via performing a 100500 attack.
+For Kademlia addresses we use so-called HashNodeId. This makes it impossible to assign yourself an arbitrary ID, which makes a 100500 attack the only way to perform an eclipse attack.
 
 ### Routing data anti-forging
 
-In Kademlia, node requests routing data from its neighbors and accepts the first message it receives. An adversary may forge those replies, providing addresses of adversary nodes as closest nodes to given ID. To overcome this issue, we make nodes wait for some period to gather as many replies as possible, after which the replies get merged and the node selects K closest nodes from the resulting set. This way an adversary would have to eclipse a node in order to forge its list.
+In Kademlia, node requests a list of peers from its neighbors and accepts the first message it receives. An adversary may forge those replies, providing addresses of adversary nodes as closest nodes to given ID. To overcome this issue, we make nodes wait for some period to gather as many replies as possible, after which the replies get merged and the node selects K closest nodes from the resulting set. This way an adversary would have to eclipse a node in order to forge the list of peers it receives.
 
 ### Routing tables sharing
 
