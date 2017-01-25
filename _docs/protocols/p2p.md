@@ -55,7 +55,7 @@ All IDs and keys are represented as 32-byte strings in the following format:
 
     <Hash><Nonce>
 
-Where *Nonce* is a random binary string and *Hash* is a *PBKDF2* key generated from *Nonce* (see [Addressing](#addressing)).
+Here *Nonce* is a random binary string and *Hash* is a *PBKDF2* key generated from *Nonce* (see [Addressing](#addressing)).
 
 | Message           | Binary representation                                           |
 |-------------------|-----------------------------------------------------------------|
@@ -119,7 +119,7 @@ Function [pickupRandom](https://github.com/serokell/kademlia/blob/7f3f96d7bfdb80
 Exact number of shared random nodes is specified through *routingSharingN* field from Kademlia config.
 So *RETURN_NODES* message includes results of *findClosest* and *pickupRandom* calls, see [returnNodes](https://github.com/serokell/kademlia/blob/7f3f96d7bfdb80077ac27b0a424828fa88d85334/src/Network/Kademlia/Instance.hs#L360) function.
 
-### Ban nodes
+### Banning nodes
 
 We introduced a feature to ban nodes to Kademlia. We will use this to ban nodes when we detect them to act maliciously.
 
