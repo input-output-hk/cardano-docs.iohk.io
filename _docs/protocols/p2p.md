@@ -55,7 +55,7 @@ All IDs and keys are represented as 32-byte strings in the following format:
 
     <Hash><Nonce>
 
-Here *Nonce* is a random binary string and *Hash* is a *PBKDF2* key generated from *Nonce*.
+Where *Nonce* is a random binary string and *Hash* is a *PBKDF2* key generated from *Nonce* (see [Addressing](#addressing)).
 
 | Message           | Binary representation                                           |
 |-------------------|-----------------------------------------------------------------|
@@ -89,26 +89,48 @@ Defending against 100500 attacks remains an open problem. However, we’re going
 
 For Kademlia addresses we use so-called HashNodeId. This makes it impossible to assign yourself an arbitrary ID, which makes a 100500 attack the only way to perform an eclipse attack.
 
-See:
+#### Implementation notes
+
+[//]: # TODO (CSLD-6): Explain used crypto algorithms in details
+See module:
 [Network.Kademlia.HashNodeId](https://github.com/serokell/kademlia/blob/7f3f96d7bfdb80077ac27b0a424828fa88d85334/src/Network/Kademlia/HashNodeId.hs)
 
 ### Routing data anti-forging
 
 In Kademlia, node requests a list of peers from its neighbors and accepts the first message it receives. An adversary may forge those replies, providing addresses of adversary nodes as closest nodes to given ID. To overcome this issue, we make nodes wait for some period to gather as many replies as possible, after which the replies get merged and the node selects K closest nodes from the resulting set. This way an adversary would have to eclipse a node in order to forge the list of peers it receives.
 
+#### Implementation notes
+
+To implement this idea we just add *k* neighbors nodes closest to the destination at the beginning of each [lookup](https://github.com/serokell/kademlia/blob/7f3f96d7bfdb80077ac27b0a424828fa88d85334/src/Network/Kademlia/Implementation.hs#L44) (lookup is function used by *FIND_NODE* or *FIND_VALUE* to find *k* nodes closest to the given ID) to the [pending](https://github.com/serokell/kademlia/blob/7f3f96d7bfdb80077ac27b0a424828fa88d85334/src/Network/Kademlia/Implementation.hs#L228) set. When we receive a *RETURN_NODES* message we just update [known](https://github.com/serokell/kademlia/blob/7f3f96d7bfdb80077ac27b0a424828fa88d85334/src/Network/Kademlia/Implementation.hs#L227) list to make it contain *k* nodes currently known that are closest to the destination ID. This loop ends when no *pending* nodes left.
+We do not introduce any specific period to collect neighbors replies. If any neighbor do not send us *RETURN_NODES* reply we just receive *Timeout* signal and this neighbor is handled by [waitForReply](https://github.com/serokell/kademlia/blob/7f3f96d7bfdb80077ac27b0a424828fa88d85334/src/Network/Kademlia/Implementation.hs#L301).
+
+See also [continueLookup](https://github.com/serokell/kademlia/blob/7f3f96d7bfdb80077ac27b0a424828fa88d85334/src/Network/Kademlia/Implementation.hs#L333). It is the place where *pending* and *known* fields are updated. So the core logic of this enchancement is located here.
+
 ### Routing tables sharing
 
 When a node has just joined the network, it requests a list of neighbors (set of nodes closest to it). We have modified Kademlia to include some extra nodes into this list – specifically, now we just pick some random nodes along with neighbors and return them. This gives the node additional knowledge to recover in the case it’s surrounded with adversary nodes.
 
-See:
-+ [Network.Kademlia.Tree.pickupRandom](https://github.com/serokell/kademlia/blob/7f3f96d7bfdb80077ac27b0a424828fa88d85334/src/Network/Kademlia/Tree.hs#L219)
-+ [Network.Kademlia.Tree.findClosest](https://github.com/serokell/kademlia/blob/7f3f96d7bfdb80077ac27b0a424828fa88d85334/src/Network/Kademlia/Tree.hs#L234)
-+ [Network.Kademlia.Instance.returnNodes](https://github.com/serokell/kademlia/blob/7f3f96d7bfdb80077ac27b0a424828fa88d85334/src/Network/Kademlia/Instance.hs#L360)
+#### Implementation notes
+
+There is function [findClosest](https://github.com/serokell/kademlia/blob/7f3f96d7bfdb80077ac27b0a424828fa88d85334/src/Network/Kademlia/Tree.hs#L234) in our Kademlia implementation which finds *k* nodes closest to the given ID.
+Function [pickupRandom](https://github.com/serokell/kademlia/blob/7f3f96d7bfdb80077ac27b0a424828fa88d85334/src/Network/Kademlia/Tree.hs#L219) was added which picks up given number of random nodes from Kademlia tree.
+Exact number of shared random nodes is specified through *routingSharingN* field from Kademlia config.
+So *RETURN_NODES* message includes results of *findClosest* and *pickupRandom* calls, see [returnNodes](https://github.com/serokell/kademlia/blob/7f3f96d7bfdb80077ac27b0a424828fa88d85334/src/Network/Kademlia/Instance.hs#L360) function.
 
 ### Ban nodes
 
 We introduced a feature to ban nodes to Kademlia. We will use this to ban nodes when we detect them to act maliciously.
 
-See:
-+ [Network.Kademlia.Instance](https://github.com/serokell/kademlia/blob/7f3f96d7bfdb80077ac27b0a424828fa88d85334/src/Network/Kademlia/Instance.hs)
-+ [Network.Kademlia.Implementation](https://github.com/serokell/kademlia/blob/7f3f96d7bfdb80077ac27b0a424828fa88d85334/src/Network/Kademlia/Instance.hs)
+#### Implementation notes
+
+There are three possible states for a node: *NoBan*, *BanTill* and *BanForever* (see [BanState](https://github.com/serokell/kademlia/blob/7f3f96d7bfdb80077ac27b0a424828fa88d85334/src/Network/Kademlia/Instance.hs#L69)). Values of this type are passed to [banNode](https://github.com/serokell/kademlia/blob/7f3f96d7bfdb80077ac27b0a424828fa88d85334/src/Network/Kademlia/Instance.hs#L166) function.
++ *NoBan* is used to unban already banned node. But this action do not insert this node back into tree structure, but makes possible for this node to appear in peers again.
++ *BanTill* bans node till some time.
++ *BanForever* bans node forever
+
+Function *banNode* just adds a given node to the *banned* field of [KademliaState](https://github.com/serokell/kademlia/blob/master/src/Network/Kademlia/Instance.hs#L76) and deletes it from the tree. [isNodeBanned](https://github.com/serokell/kademlia/blob/master/src/Network/Kademlia/Instance.hs#L150) checks if node is banned at the moment and deletes node from *banned* field if it was unbanned or ban expired.
+
+When we ban node:
++ We cannot use it as our initial peer to join the network. (see [joinNetwork](https://github.com/serokell/kademlia/blob/7f3f96d7bfdb80077ac27b0a424828fa88d85334/src/Network/Kademlia/Implementation.hs#L144))
++ We ignore all messages received from banned node. (see [waitForReply](https://github.com/serokell/kademlia/blob/7f3f96d7bfdb80077ac27b0a424828fa88d85334/src/Network/Kademlia/Implementation.hs#L272))
++ We do not include this node to the tree, do not send any messages to it and do not include this node to the *RETURN_NODES* messages.
