@@ -67,6 +67,8 @@ Where *Nonce* is a random binary string and *Hash* is a *PBKDF2* key generated f
 | **RETURN\_VALUE** | 5\<Our ID\>\<Destination ID\>\<Value\>                          |
 | **RETURN\_NODES** | 6\<Our ID\>\<Number of packages\>\<Destination ID\>\<Packages\> |
 
+See [serialize](https://github.com/serokell/kademlia/blob/7f3f96d7bfdb80077ac27b0a424828fa88d85334/src/Network/Kademlia/Protocol.hs#L41).
+
 ## Security
 
 Since Kademlia is a protocol for open P2P networks, it had to be modified in several other ways to become reasonably secure.
