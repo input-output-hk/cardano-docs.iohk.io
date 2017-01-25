@@ -2,7 +2,7 @@
 
 
                       {% for anchor in include.item.anchors %}
-                      <li><a href="{{include.item.permalink}}#{{anchor[1]}}">{{anchor[0]}}</a></li>
+                      <li><a class="nosearch" href="{{include.item.permalink}}#{{anchor[1]}}">{{anchor[0]}}</a></li>
 
                       {% endfor %}
 

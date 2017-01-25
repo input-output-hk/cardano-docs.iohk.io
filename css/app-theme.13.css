@@ -53,6 +53,17 @@ hr{border-color: #222}
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#eeeeee', endColorstr='#ffffff',GradientType=0 );
 }
 
+.navbar-form {padding:0px 0px;margin:14px 15px;border:1px solid #C0D8E8 !important;background:#fff;
+-moz-border-radius:4px;-webkit-border-radius:4px;border-radius:4px;
+}
+.navbar-form input,
+.navbar-form input:focus{padding:8px 15px;border:0;
+box-shadow:0 0 0 transparent;
+-o-box-shadow:0 0 0 transparent;
+-moz-box-shadow:0 0 0 transparent;
+-webkit-box-shadow:0 0 0 transparent;
+}
+.navbar-form button{background:transparent;border:0;}
 
 .top {padding:100px 0 70px 0}
 .top h1{text-transform: uppercase;letter-spacing:.15em}
@@ -140,3 +151,16 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#cecece', end
 @media (max-width:768px){
 #foot .navbar-nav li a{padding:0 0 5px 10px}
 }
+
+
+
+#search-results .search-result{margin: 0 0 5px 0;padding: 0 0 5px 0;border-top:1px solid #ddd}
+#search-results .search-result .output span{background:#ff0;color:#222}
+
+
+
+
+
+
+
+.nothing{}
