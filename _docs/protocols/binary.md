@@ -7,21 +7,22 @@ group: protocols
 
 # Binary protocols
 
-Sizes of all fields are represented in bytes.
-Big-Endian is used everywhere. If type of some field is not primitive
-(like unsigned 64bit int) -- our type -- than full body of this data type
-is just concatenated and added after previously described field.
+Sizes of all fields are represented in bytes. Big-Endian is used
+everywhere. Composite types are serialized in the order of definition
+with no delimiters.
 
-If you see tuples of data (for example `(Word32, Word8)`) you should just put
-content of next value right after previous (4 bytes number + 1 byte in example).
+For example, `(Word32, Word8)` is serialized with five bytes — four,
+for `Word32`, and 1 for `Word8`.
 
-`size(T)` notation will be used to show exact byte size that is not known
-in advance and can be more or less arbitrary (not fixed, but defined for data).
+For variable-length structures, dependant on object of type T, we use
+`size(T)` notation.
 
-> Developer notes:
-> To test in `ghci` you should use next command:
->
-> `ghci> toLazyByteString $ lazyByteStringHex $ encode $ myObject`
+To test serialization of objet `myObject` in `ghci`,
+one should use the following command:
+
+```
+ghci> toLazyByteString $ lazyByteStringHex $ encode $ myObject
+```
 
 ## Common datatypes
 
@@ -58,8 +59,10 @@ type Hash = AbstractHash Blake2s_224
 | 28         | Word8[28] | 224 bits of hash digest |
 
 
-So whenever you'll see `Hash SomeType` in code this field will occupy 28 bytes.
-Additional type parameter after `Hash` is used only in code for type-safety.
+So whenever you see `Hash SomeType` in the code, this field will occupy 28
+bytes.
+Additional type parameter after `Hash` is used only in code for
+type-safety and has no impact on serialization.
 
 Example:
 
@@ -218,7 +221,7 @@ data Script = Script {
 
 Sometimes we store list of some objects inside our datatypes. You will see references to them
 as `Vector a` or `[a]`. You should read this as _array of objects of types `a`_. Both these
-standard Haskell data types are serialized in the same way. Difference only in code.
+standard Haskell data types are serialized in the same way.
 
 | Field size  | Type        | Value | Description                                  |
 |-------------|-------------|-------|----------------------------------------------|
