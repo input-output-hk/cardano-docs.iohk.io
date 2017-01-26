@@ -6,5 +6,6 @@ url: "https://cardano-docs.iohk.io"
 include: ["_pages","_docs"]
 permalink: /:title
 
-markdown: kramdown
+#markdown: kramdown
+markdown: redcarpet
 array: []
