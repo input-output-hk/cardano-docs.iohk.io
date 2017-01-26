@@ -143,9 +143,9 @@ data Address
     deriving (Eq, Ord, Generic, Typeable)
 ~~~
 
-| Field size | Type    | Description                                                                              |
-| ---------- | ------- | -----------                                                                              |
-|          1 | Word8   | Tag to select between constructors. 0x00 for `PubKeyAddress` and 0x01 for `ScriptAddress |
+| Field size | Type    | Description                                                                               |
+| ---------- | ------- | -----------                                                                               |
+|          1 | Word8   | Tag to select between constructors. 0x00 for `PubKeyAddress` and 0x01 for `ScriptAddress` |
 |         28 | Hash    | Hash for corresponding PublicKey
 
 Example:
@@ -189,7 +189,7 @@ data Attributes () = Attributes
 ~~~
 
 Stored as `totalLen + (k, v) pairs + some remaining part`. But currenlty there are
-no `(key, value)` pairs in attributes, only arbitrary length byte array.
+no `(key, value)` pairs in attributes, only arbitrary length byte array:
 
 | Field size | Type     | Value | Description                                 |
 |------------|----------|-------|---------------------------------------------|
