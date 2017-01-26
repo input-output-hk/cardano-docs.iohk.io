@@ -61,6 +61,46 @@ ghci> toLazyByteString $ lazyByteStringHex $ encode $ hash $ mkCoin 3
 "4de0604c5643bf32440d0e380b7ca68e85f623a4de50fe33de2f355e"
 ```
 
+### MerkleTree
+
+### SlotId
+
+```
+-- | Index of epoch.
+newtype EpochIndex = EpochIndex
+    { getEpochIndex :: Word64
+    } deriving (Show, Eq, Ord, Num, Enum, Integral, Real, Generic, Hashable, Bounded, Typeable)
+
+-- | Index of slot inside a concrete epoch.
+newtype LocalSlotIndex = LocalSlotIndex
+    { getSlotIndex :: Word16
+    } deriving (Show, Eq, Ord, Num, Enum, Ix, Integral, Real, Generic, Hashable, Buildable, Typeable)
+
+-- | Slot is identified by index of epoch and local index of slot in
+-- this epoch. This is a global index
+data SlotId = SlotId
+    { siEpoch :: !EpochIndex
+    , siSlot  :: !LocalSlotIndex
+    } deriving (Show, Eq, Ord, Generic, Typeable)
+```
+
+| Field size | Type    | Description                        |
+| ---------- | ------- | ---------------------------------- |
+|          8 | uint64  | Epoch index                        |
+|          2 | uint16  | Slot index inside a concrete epoch |
+
+Example:
+[//]: TODO: Add example
+
+### PublicKey
+
+| Field size | Type       | Description                           |
+| ---------- | -------    | ----------------------------------    |
+| 32         | ByteString | Public key as bytestring of length 32 |
+
+Example:
+[//]: TODO: Add example
+
 ### Address
 
 ```
@@ -90,6 +130,47 @@ ghci> toLazyByteString $ lazyByteStringHex $ encode $ PubKeyAddress $ hash someP
 ```
 
 ## Headers
+
+### HeaderHash
+
+```
+-- | 'Hash' of block header. This should be @Hash (BlockHeader ssc)@
+-- but we don't want to have @ssc@ in 'HeaderHash' type.
+type HeaderHash = Hash BlockHeaderStub
+data BlockHeaderStub
+```
+
+### MainProof
+
+| Field size | Type                 | Description     |
+| ---------- | -------              | -----------     |
+| 4          | Word32               | mpNumber        |
+| ?          | MerkleRoot Tx        | mpRoot          |
+| 28         | Hash [TxWitness]     | mpWitnessesHash |
+| ?          | SscProof ssc         | mpMpcProof      |
+| ?          | Hash [ProxySKSimple] | mpProxySKsProof |
+| 28         | UpdateProof          | mpUpdateProof   |
+
+### MainConsensusData
+
+
+| Field size | Type             | Description   |
+| ---------- | ---------------- | ------------- |
+| ?          | SlotId           | mcdSlot       |
+| ?          | PublicKey        | mcdLeaderKey  |
+| ?          | ChainDifficulty  | mcdDifficulty |
+| ?          | BlockSignature   | mcdSignature  |
+
+### GenericBlockHeader
+
+| Field size | Type            | Description         |
+| ---------- | -------         | -----------         |
+| 4          | uint32????      | Protocol magic      |
+| 28         | HeaderHash      | Previous block hash |
+| ?          | MainProof       | Body proof          |
+| ?          | ConsensusData   | gbhConsensus        |
+| ?          | ExtraHeaderData | ExtraHeaderData     |
+
 
 ## Transaction sending
 
