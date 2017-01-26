@@ -102,18 +102,18 @@ Block acquisition is handled
 
  1. `retrievalWorker`, a server that operates on [block retrieval
 queue](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Context/Context.hs#L74),
-	validating headers and that blocks mention parents properly. 
+	validating headers and that blocks form a proper chain. 
  2. `requestHeaders`, a handler that performs and handles header
 	retrieval request. It handles expected headers, tracking those locally
-	and behaves by banning a node if it sends headers that weren't
-	requested.
+	and bans a node if it sends headers that weren't requested.
  3. `addToBlockRequestQueue` is a function that is exectuted when a
 	header is successfully fetched and we want to carry on and receive a
 	block as well.
  4. `mkHeadersRequest`: for `requestHeaders` to work, we have to first
 	tell it what exactly do we want to fetch. `mkHeadersRequest` is a
-	function that is basically a constructor for `MsgGetHeaders` if such
-	message is possible to construct, will return `Nothing` otherwise.
+	function that is basically a constructor for `MsgGetHeaders`. If such
+	message is possible to construct, it will return `Just MsgGetHeaders`,
+  otherwise it will return `Nothing`.
 
 The way Blocks are processed is specified in the
 [Logic](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Logic.hs)
