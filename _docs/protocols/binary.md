@@ -179,11 +179,11 @@ data Script = Script {
   deriving (Eq, Show, Generic, Typeable)
 ~~~
 
-| Field size | Type           | Value | Description                  |
-|------------+----------------+-------+------------------------------|
-|        1-3 | UVarInt Word16 |       | 64 bytes of signature string |
-|        1-9 | UVarInt Int64  | n     | Size of byte array           |
-|          n | Word8[n]       |       | n bytes of script            |
+| Field size | Type           | Value | Description        |
+|------------+----------------+-------+--------------------|
+|        1-3 | UVarInt Word16 |       | Script version     |
+|        1-9 | UVarInt Int64  | n     | Size of byte array |
+|          n | Word8[n]       |       | n bytes of script  |
 
 ### Lists and vectors
 
