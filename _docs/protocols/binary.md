@@ -227,7 +227,73 @@ standard Haskell data types are serialized in the same way. Difference only in c
 | 1-9         | UVarInt Int | n     | Size of array                                |
 | n * size(a) | a[n]        |       | Array with length `n` of objects of type `a` |
 
+#### ProxySKSimple
+
+```
+-- | Correspondent SK for no-ttl proxy signature scheme.
+type ProxySKSimple = ProxySecretKey ()
+
+-- | Convenient wrapper for secret key, that's basically ω plus
+-- certificate.
+data ProxySecretKey w = ProxySecretKey
+    { pskOmega      :: w
+    , pskIssuerPk   :: PublicKey
+    , pskDelegatePk :: PublicKey
+    , pskCert       :: ProxyCert w
+    } deriving (Eq, Ord, Show, Generic)
+
+-- | Proxy certificate, made of ω + public key of delegate.
+newtype ProxyCert w = ProxyCert { unProxyCert :: Ed25519.Signature }
+    deriving (Eq, Ord, Show, Generic, NFData, Hashable)
+```
+
+| Field size | Type         | Description   |
+| ---------- | -------      | -----------   |
+| 32         | PublicKey    | pskIssuerPk   |
+| 32         | PublicKey    | pskDelegatePk |
+| 64         | ProxyCert () | pskCert       |
+
+[//]: TODO: Describe proxy cert and other fields
+
+Note that we skip *pskOmega* field in the table above, because it has type *()* and is serialized into empty string.
+
 ## Headers
+
+### BlockVersion
+
+```
+-- | Communication protocol version.
+data BlockVersion = BlockVersion
+    { bvMajor :: !Word16
+    , bvMinor :: !Word16
+    , bvAlt   :: !Word8
+    } deriving (Eq, Generic, Ord, Typeable)
+```
+| Field size | Type   | Description        |
+|------------|--------|--------------------|
+|          2 | Word16 | Major version      |
+|          2 | Word16 | Minor version      |
+|          1 | Word8  | TODO: what is Alt? |
+
+### SoftwareVersion
+
+```
+newtype ApplicationName = ApplicationName
+    { getApplicationName :: Text
+    } deriving (Eq, Ord, Show, Generic, Typeable, ToString, Hashable, Buildable, ToJSON, FromJSON)
+
+-- | Software version.
+data SoftwareVersion = SoftwareVersion
+    { svAppName :: !ApplicationName
+    , svNumber  :: !NumSoftwareVersion
+    } deriving (Eq, Generic, Ord, Typeable)
+```
+
+| Field size | Type        | Value | Description                   |
+|------------|-------------|-------|-------------------------------|
+| 1-9        | UVarInt Int | n     | Length of application name    |
+| n          | Word8[n]    |       | UTF8 encoded application name |
+|            |             |       |                               |
 
 ### HeaderHash
 
@@ -238,37 +304,129 @@ type HeaderHash = Hash BlockHeaderStub
 data BlockHeaderStub
 ```
 
-### MainProof
+### GodTossing
 
-| Field size | Type                 | Description     |
-| ---------- | -------              | -----------     |
-| 4          | Word32               | mpNumber        |
-| ?          | MerkleRoot Tx        | mpRoot          |
-| 28         | Hash [TxWitness]     | mpWitnessesHash |
-| ?          | SscProof ssc         | mpMpcProof      |
-| ?          | Hash [ProxySKSimple] | mpProxySKsProof |
-| 28         | UpdateProof          | mpUpdateProof   |
+#### GtProof
 
-### MainConsensusData
+```
+-- | Proof of MpcData.
+-- We can use ADS for commitments, openings, shares as well,
+-- if we find it necessary.
+data GtProof
+    = CommitmentsProof !(Hash CommitmentsMap) !(Hash VssCertificatesMap)
+    | OpeningsProof !(Hash OpeningsMap) !(Hash VssCertificatesMap)
+    | SharesProof !(Hash SharesMap) !(Hash VssCertificatesMap)
+    | CertificatesProof !(Hash VssCertificatesMap)
+    deriving (Show, Eq, Generic)
+```
+[//]: TODO: Add code for maps
 
+| Tag size | Tag Type | Tag Value | Description               | Field size | Field Type              | Description |
+|----------|----------|-----------|---------------------------|------------|-------------------------|-------------|
+|        1 | Word8    |         0 | Tag for CommitmentsProof  |            |                         |             |
+|          |          |           |                           |         28 | Hash CommitmentsMap     | ?           |
+|          |          |           |                           |         28 | Hash VssCertificatesMap | ?           |
+|          |          |         1 | Tag for OpeningsProof     |            |                         |             |
+|          |          |           |                           |         28 | Hash OpeningsMap        | ?           |
+|          |          |           |                           |         28 | Hash VssCertificatesMap | ?           |
+|          |          |         2 | Tag for SharesProof       |            |                         |             |
+|          |          |           |                           |         28 | Hash SharesMap          | ?           |
+|          |          |           |                           |         28 | Hash VssCertificatesMap | ?           |
+|          |          |         3 | Tag for CertificatesProof |            |                         |             |
+|          |          |           |                           |         28 | Hash VssCertificatesMap | ?           |
+
+### MainBlockHeader
+
+[//]: TODO: Replace all Main* and Genesis* by type (*Blockchain)
+[//]: TODO: Add code for MainBlockHeader
+
+| Field size                | Type                | Description         |
+| ----------                | -------             | -----------         |
+| 4                         | uint32????          | Protocol magic      |
+| 28                        | HeaderHash          | Previous block hash |
+| size(MainProof)           | MainProof           | Body proof          |
+| size(MainConsensusData)   | MainConsensusData   | Consensus data      |
+| size(MainExtraHeaderData) | MainExtraHeaderData | MainExtraHeaderData |
+
+#### MainProof
+
+[//]: TODO: Add code for MainProof
+
+|    Field size | Type                 | Description     |
+|    ---------- | -------              | -----------     |
+|             4 | Word32               | mpNumber        |
+|             ? | MerkleRoot Tx        | mpRoot          |
+|            28 | Hash [TxWitness]     | mpWitnessesHash |
+| size(GtProof) | GtProof              | mpMpcProof      |
+|            28 | Hash [ProxySKSimple] | mpProxySKsProof |
+|            28 | UpdateProof          | mpUpdateProof   |
+
+#### MainConsensusData
+
+```
+-- | Chain difficulty represents necessary effort to generate a
+-- chain. In the simplest case it can be number of blocks in chain.
+newtype ChainDifficulty = ChainDifficulty
+    { getChainDifficulty :: Word64
+    } deriving (Show, Eq, Ord, Num, Enum, Real, Integral, Generic, Buildable, Typeable)
+```
 
 | Field size | Type             | Description   |
 | ---------- | ---------------- | ------------- |
-| ?          | SlotId           | mcdSlot       |
-| ?          | PublicKey        | mcdLeaderKey  |
-| ?          | ChainDifficulty  | mcdDifficulty |
-| ?          | BlockSignature   | mcdSignature  |
+| 10         | SlotId           | mcdSlot       |
+| 32         | PublicKey        | mcdLeaderKey  |
+| 8          | ChainDifficulty  | mcdDifficulty |
+| 64         | BlockSignature   | mcdSignature  |
 
-### GenericBlockHeader
+#### MainExtraHeaderData
 
-| Field size | Type            | Description         |
-| ---------- | -------         | -----------         |
-| 4          | uint32????      | Protocol magic      |
-| 28         | HeaderHash      | Previous block hash |
-| ?          | MainProof       | Body proof          |
-| ?          | ConsensusData   | gbhConsensus        |
-| ?          | ExtraHeaderData | ExtraHeaderData     |
+```
+-- | Represents main block header extra data
+data MainExtraHeaderData = MainExtraHeaderData
+    { -- | Version of block.
+      _mehBlockVersion    :: !BlockVersion
+    , -- | Software version.
+      _mehSoftwareVersion :: !SoftwareVersion
+    , -- | Header attributes
+      _mehAttributes      :: !BlockHeaderAttributes
+    }
+    deriving (Eq, Show, Generic)
 
+-- | Represents main block header attributes: map from 1-byte integer to
+-- arbitrary-type value. To be used for extending header with new
+-- fields via softfork.
+type BlockHeaderAttributes = Attributes ()
+```
+
+| Field size                  | Type                  | Description                                                                |
+|-----------------------------|-----------------------|----------------------------------------------------------------------------|
+| size(BlockVersion)          | BlockVersion          | Version of block                                                           |
+| size(SoftwareVersion)       | SoftwareVersion       | Software version                                                           |
+| size(BlockHeaderAttributes) | BlockHeaderAttributes | Header attributes (used for extending header with new fields via softfork) |
+
+### GenesisBlockHeader
+
+[//]: TODO: Add code for GenesisBlockHeader
+
+| Field size                 | Type                 | Description         |
+| ----------                 | -------              | -----------         |
+| 4                          | Word32               | Protocol magic      |
+| 28                         | HeaderHash           | Previous block hash |
+| size(GenesisProof)         | GenesisProof         | Body proof          |
+| size(GenesisConsensusData) | GenesisConsensusData | Consensus data      |
+
+#### GenesisProof
+
+| Field size | Type             | Description |
+|------------|------------------|-------------|
+|         28 | Hash SlotLeaders | ?           |
+
+#### GenesisConsensusData
+
+| Field | Type            | Description                                             |
+|-------|-----------------|---------------------------------------------------------|
+|     8 | EpochIndex      | Index of epoch for which this genesis block is relevant |
+|     8 | ChainDifficulty | Difficulty of the chain ending in this genesis block.   |
 
 ## Transaction sending
 
