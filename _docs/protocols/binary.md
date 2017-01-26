@@ -94,8 +94,6 @@ newtype Signature a = Signature Ed25519.Signature
 |------------|-----------|------------------------------|
 |         64 | Word8[64] | 64 bytes of signature string |
 
-### MerkleTree
-
 ### SlotId
 
 ```
@@ -227,6 +225,33 @@ standard Haskell data types are serialized in the same way. Difference only in c
 | 1-9         | UVarInt Int | n     | Size of array                                |
 | n * size(a) | a[n]        |       | Array with length `n` of objects of type `a` |
 
+### Raw
+
+```
+-- | A wrapper over 'ByteString' for adding type safety to
+-- 'Pos.Crypto.Pki.encryptRaw' and friends.
+newtype Raw = Raw ByteString
+    deriving (Bi, Eq, Ord, Show, Typeable)
+```
+
+| Field size | Type        | Value | Description    |
+|------------|-------------|-------|----------------|
+| 1-9        | UVarInt Int | n     | Length of data |
+| n          | Word8[n]    |       | Data           |
+
+### MerkleRoot
+
+```
+-- | Data type for root of merkle tree.
+newtype MerkleRoot a = MerkleRoot
+    { getMerkleRoot :: Hash Raw  -- ^ returns root 'Hash' of Merkle Tree
+    } deriving (Show, Eq, Ord, Generic, ByteArrayAccess, Typeable)
+```
+
+| Field size | Type     | Description              |
+|------------|----------|--------------------------|
+|         28 | Hash Raw | Root hash of Merkle tree |
+
 #### ProxySKSimple
 
 ```
@@ -319,21 +344,21 @@ data GtProof
     | CertificatesProof !(Hash VssCertificatesMap)
     deriving (Show, Eq, Generic)
 ```
-[//]: TODO: Add code for maps
+[//]: TODO: Add descriptions and code for maps to the basic types section
 
-| Tag size | Tag Type | Tag Value | Description               | Field size | Field Type              | Description |
-|----------|----------|-----------|---------------------------|------------|-------------------------|-------------|
-|        1 | Word8    |         0 | Tag for CommitmentsProof  |            |                         |             |
-|          |          |           |                           |         28 | Hash CommitmentsMap     | ?           |
-|          |          |           |                           |         28 | Hash VssCertificatesMap | ?           |
-|          |          |         1 | Tag for OpeningsProof     |            |                         |             |
-|          |          |           |                           |         28 | Hash OpeningsMap        | ?           |
-|          |          |           |                           |         28 | Hash VssCertificatesMap | ?           |
-|          |          |         2 | Tag for SharesProof       |            |                         |             |
-|          |          |           |                           |         28 | Hash SharesMap          | ?           |
-|          |          |           |                           |         28 | Hash VssCertificatesMap | ?           |
-|          |          |         3 | Tag for CertificatesProof |            |                         |             |
-|          |          |           |                           |         28 | Hash VssCertificatesMap | ?           |
+| Tag size | Tag Type | Tag Value | Description               | Field size | Field Type              |
+|----------|----------|-----------|---------------------------|------------|-------------------------|
+|        1 | Word8    |         0 | Tag for CommitmentsProof  |            |                         |
+|          |          |           |                           |         28 | Hash CommitmentsMap     |
+|          |          |           |                           |         28 | Hash VssCertificatesMap |
+|          |          |         1 | Tag for OpeningsProof     |            |                         |
+|          |          |           |                           |         28 | Hash OpeningsMap        |
+|          |          |           |                           |         28 | Hash VssCertificatesMap |
+|          |          |         2 | Tag for SharesProof       |            |                         |
+|          |          |           |                           |         28 | Hash SharesMap          |
+|          |          |           |                           |         28 | Hash VssCertificatesMap |
+|          |          |         3 | Tag for CertificatesProof |            |                         |
+|          |          |           |                           |         28 | Hash VssCertificatesMap |
 
 ### MainBlockHeader
 
@@ -342,7 +367,7 @@ data GtProof
 
 | Field size                | Type                | Description         |
 | ----------                | -------             | -----------         |
-| 4                         | uint32????          | Protocol magic      |
+| 4                         | Word32              | Protocol magic      |
 | 28                        | HeaderHash          | Previous block hash |
 | size(MainProof)           | MainProof           | Body proof          |
 | size(MainConsensusData)   | MainConsensusData   | Consensus data      |
@@ -352,14 +377,14 @@ data GtProof
 
 [//]: TODO: Add code for MainProof
 
-|    Field size | Type                 | Description     |
-|    ---------- | -------              | -----------     |
-|             4 | Word32               | mpNumber        |
-|             ? | MerkleRoot Tx        | mpRoot          |
-|            28 | Hash [TxWitness]     | mpWitnessesHash |
-| size(GtProof) | GtProof              | mpMpcProof      |
-|            28 | Hash [ProxySKSimple] | mpProxySKsProof |
-|            28 | UpdateProof          | mpUpdateProof   |
+|       Field size | Type                 | Description     |
+|       ---------- | -------              | -----------     |
+|                4 | Word32               | mpNumber        |
+| size(MerkleRoot) | MerkleRoot Tx        | mpRoot          |
+|               28 | Hash [TxWitness]     | mpWitnessesHash |
+|    size(GtProof) | GtProof              | mpMpcProof      |
+|               28 | Hash [ProxySKSimple] | mpProxySKsProof |
+|               28 | UpdateProof          | mpUpdateProof   |
 
 #### MainConsensusData
 
@@ -417,9 +442,11 @@ type BlockHeaderAttributes = Attributes ()
 
 #### GenesisProof
 
-| Field size | Type             | Description |
-|------------|------------------|-------------|
-|         28 | Hash SlotLeaders | ?           |
+[//]: TODO: SlotLeaders type
+
+| Field size | Type             | Description               |
+|------------|------------------|---------------------------|
+|         28 | Hash SlotLeaders | Hash of slot leaders list |
 
 #### GenesisConsensusData
 
