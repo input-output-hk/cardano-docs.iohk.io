@@ -82,7 +82,7 @@ newtype PublicKey = PublicKey Ed25519.PublicKey
 ~~~
 
 | Field size | Type      | Description            |
-|------------+-----------+------------------------|
+|------------|-----------|------------------------|
 |         32 | Word8[32] | 32 bytes of public key |
 
 ### Signature
@@ -94,8 +94,37 @@ newtype Signature a = Signature Ed25519.Signature
 ~~~
 
 | Field size | Type      | Description                  |
-|------------+-----------+------------------------------|
+|------------|-----------|------------------------------|
 |         64 | Word8[64] | 64 bytes of signature string |
+
+### SlotId
+
+```
+-- | Index of epoch.
+newtype EpochIndex = EpochIndex
+    { getEpochIndex :: Word64
+    } deriving (Show, Eq, Ord, Num, Enum, Integral, Real, Generic, Hashable, Bounded, Typeable)
+
+-- | Index of slot inside a concrete epoch.
+newtype LocalSlotIndex = LocalSlotIndex
+    { getSlotIndex :: Word16
+    } deriving (Show, Eq, Ord, Num, Enum, Ix, Integral, Real, Generic, Hashable, Buildable, Typeable)
+
+-- | Slot is identified by index of epoch and local index of slot in
+-- this epoch. This is a global index
+data SlotId = SlotId
+    { siEpoch :: !EpochIndex
+    , siSlot  :: !LocalSlotIndex
+    } deriving (Show, Eq, Ord, Generic, Typeable)
+```
+
+| Field size | Type    | Description                        |
+| ---------- | ------- | ---------------------------------- |
+|          8 | uint64  | Epoch index                        |
+|          2 | uint16  | Slot index inside a concrete epoch |
+
+Example:
+[//]: TODO: Add example
 
 ### Address
 
@@ -163,7 +192,7 @@ Stored as `totalLen + (k, v) pairs + some remaining part`. But currenlty there a
 no `(key, value)` pairs in attributes, only arbitrary length byte array.
 
 | Field size | Type     | Value | Description                                 |
-|------------+----------+-------+---------------------------------------------|
+|------------|----------|-------|---------------------------------------------|
 | 4          | Word32   | n     | Size of attributes in bytes. Should <= 2^28 |
 | n          | Word8[n] |       | `n` bytes of data                           |
 
@@ -183,7 +212,7 @@ data Script = Script {
 ~~~
 
 | Field size | Type           | Value | Description        |
-|------------+----------------+-------+--------------------|
+|------------|----------------|-------|--------------------|
 |        1-3 | UVarInt Word16 |       | Script version     |
 |        1-9 | UVarInt Int64  | n     | Size of byte array |
 |          n | Word8[n]       |       | n bytes of script  |
@@ -195,11 +224,239 @@ as `Vector a` or `[a]`. You should read this as _array of objects of types `a`_.
 standard Haskell data types are serialized in the same way.
 
 | Field size  | Type        | Value | Description                                  |
-|-------------+-------------+-------+----------------------------------------------|
+|-------------|-------------|-------|----------------------------------------------|
 | 1-9         | UVarInt Int | n     | Size of array                                |
 | n * size(a) | a[n]        |       | Array with length `n` of objects of type `a` |
 
+### Raw
+
+```
+-- | A wrapper over 'ByteString' for adding type safety to
+-- 'Pos.Crypto.Pki.encryptRaw' and friends.
+newtype Raw = Raw ByteString
+    deriving (Bi, Eq, Ord, Show, Typeable)
+```
+
+| Field size | Type        | Value | Description    |
+|------------|-------------|-------|----------------|
+| 1-9        | UVarInt Int | n     | Length of data |
+| n          | Word8[n]    |       | Data           |
+
+### MerkleRoot
+
+```
+-- | Data type for root of merkle tree.
+newtype MerkleRoot a = MerkleRoot
+    { getMerkleRoot :: Hash Raw  -- ^ returns root 'Hash' of Merkle Tree
+    } deriving (Show, Eq, Ord, Generic, ByteArrayAccess, Typeable)
+```
+
+| Field size | Type     | Description              |
+|------------|----------|--------------------------|
+|         28 | Hash Raw | Root hash of Merkle tree |
+
+#### ProxySKSimple
+
+```
+-- | Correspondent SK for no-ttl proxy signature scheme.
+type ProxySKSimple = ProxySecretKey ()
+
+-- | Convenient wrapper for secret key, that's basically ω plus
+-- certificate.
+data ProxySecretKey w = ProxySecretKey
+    { pskOmega      :: w
+    , pskIssuerPk   :: PublicKey
+    , pskDelegatePk :: PublicKey
+    , pskCert       :: ProxyCert w
+    } deriving (Eq, Ord, Show, Generic)
+
+-- | Proxy certificate, made of ω + public key of delegate.
+newtype ProxyCert w = ProxyCert { unProxyCert :: Ed25519.Signature }
+    deriving (Eq, Ord, Show, Generic, NFData, Hashable)
+```
+
+| Field size | Type         | Description   |
+| ---------- | -------      | -----------   |
+| 32         | PublicKey    | pskIssuerPk   |
+| 32         | PublicKey    | pskDelegatePk |
+| 64         | ProxyCert () | pskCert       |
+
+[//]: TODO: Describe proxy cert and other fields
+
+Note that we skip *pskOmega* field in the table above, because it has type *()* and is serialized into empty string.
+
 ## Headers
+
+### BlockVersion
+
+```
+-- | Communication protocol version.
+data BlockVersion = BlockVersion
+    { bvMajor :: !Word16
+    , bvMinor :: !Word16
+    , bvAlt   :: !Word8
+    } deriving (Eq, Generic, Ord, Typeable)
+```
+| Field size | Type   | Description        |
+|------------|--------|--------------------|
+|          2 | Word16 | Major version      |
+|          2 | Word16 | Minor version      |
+|          1 | Word8  | TODO: what is Alt? |
+
+### SoftwareVersion
+
+```
+newtype ApplicationName = ApplicationName
+    { getApplicationName :: Text
+    } deriving (Eq, Ord, Show, Generic, Typeable, ToString, Hashable, Buildable, ToJSON, FromJSON)
+
+-- | Software version.
+data SoftwareVersion = SoftwareVersion
+    { svAppName :: !ApplicationName
+    , svNumber  :: !NumSoftwareVersion
+    } deriving (Eq, Generic, Ord, Typeable)
+```
+
+| Field size | Type        | Value | Description                   |
+|------------|-------------|-------|-------------------------------|
+| 1-9        | UVarInt Int | n     | Length of application name    |
+| n          | Word8[n]    |       | UTF8 encoded application name |
+|            |             |       |                               |
+
+### HeaderHash
+
+```
+-- | 'Hash' of block header. This should be @Hash (BlockHeader ssc)@
+-- but we don't want to have @ssc@ in 'HeaderHash' type.
+type HeaderHash = Hash BlockHeaderStub
+data BlockHeaderStub
+```
+
+### GodTossing
+
+#### GtProof
+
+```
+-- | Proof of MpcData.
+-- We can use ADS for commitments, openings, shares as well,
+-- if we find it necessary.
+data GtProof
+    = CommitmentsProof !(Hash CommitmentsMap) !(Hash VssCertificatesMap)
+    | OpeningsProof !(Hash OpeningsMap) !(Hash VssCertificatesMap)
+    | SharesProof !(Hash SharesMap) !(Hash VssCertificatesMap)
+    | CertificatesProof !(Hash VssCertificatesMap)
+    deriving (Show, Eq, Generic)
+```
+[//]: TODO: Add descriptions and code for maps to the basic types section
+
+| Tag size | Tag Type | Tag Value | Description               | Field size | Field Type              |
+|----------|----------|-----------|---------------------------|------------|-------------------------|
+|        1 | Word8    |         0 | Tag for CommitmentsProof  |            |                         |
+|          |          |           |                           |         28 | Hash CommitmentsMap     |
+|          |          |           |                           |         28 | Hash VssCertificatesMap |
+|          |          |         1 | Tag for OpeningsProof     |            |                         |
+|          |          |           |                           |         28 | Hash OpeningsMap        |
+|          |          |           |                           |         28 | Hash VssCertificatesMap |
+|          |          |         2 | Tag for SharesProof       |            |                         |
+|          |          |           |                           |         28 | Hash SharesMap          |
+|          |          |           |                           |         28 | Hash VssCertificatesMap |
+|          |          |         3 | Tag for CertificatesProof |            |                         |
+|          |          |           |                           |         28 | Hash VssCertificatesMap |
+
+### MainBlockHeader
+
+[//]: TODO: Replace all Main* and Genesis* by type (*Blockchain)
+[//]: TODO: Add code for MainBlockHeader
+
+| Field size                | Type                | Description         |
+| ----------                | -------             | -----------         |
+| 4                         | Word32              | Protocol magic      |
+| 28                        | HeaderHash          | Previous block hash |
+| size(MainProof)           | MainProof           | Body proof          |
+| size(MainConsensusData)   | MainConsensusData   | Consensus data      |
+| size(MainExtraHeaderData) | MainExtraHeaderData | MainExtraHeaderData |
+
+#### MainProof
+
+[//]: TODO: Add code for MainProof
+
+|       Field size | Type                 | Description     |
+|       ---------- | -------              | -----------     |
+|                4 | Word32               | mpNumber        |
+| size(MerkleRoot) | MerkleRoot Tx        | mpRoot          |
+|               28 | Hash [TxWitness]     | mpWitnessesHash |
+|    size(GtProof) | GtProof              | mpMpcProof      |
+|               28 | Hash [ProxySKSimple] | mpProxySKsProof |
+|               28 | UpdateProof          | mpUpdateProof   |
+
+#### MainConsensusData
+
+```
+-- | Chain difficulty represents necessary effort to generate a
+-- chain. In the simplest case it can be number of blocks in chain.
+newtype ChainDifficulty = ChainDifficulty
+    { getChainDifficulty :: Word64
+    } deriving (Show, Eq, Ord, Num, Enum, Real, Integral, Generic, Buildable, Typeable)
+```
+
+| Field size | Type             | Description   |
+| ---------- | ---------------- | ------------- |
+| 10         | SlotId           | mcdSlot       |
+| 32         | PublicKey        | mcdLeaderKey  |
+| 8          | ChainDifficulty  | mcdDifficulty |
+| 64         | BlockSignature   | mcdSignature  |
+
+#### MainExtraHeaderData
+
+```
+-- | Represents main block header extra data
+data MainExtraHeaderData = MainExtraHeaderData
+    { -- | Version of block.
+      _mehBlockVersion    :: !BlockVersion
+    , -- | Software version.
+      _mehSoftwareVersion :: !SoftwareVersion
+    , -- | Header attributes
+      _mehAttributes      :: !BlockHeaderAttributes
+    }
+    deriving (Eq, Show, Generic)
+
+-- | Represents main block header attributes: map from 1-byte integer to
+-- arbitrary-type value. To be used for extending header with new
+-- fields via softfork.
+type BlockHeaderAttributes = Attributes ()
+```
+
+| Field size                  | Type                  | Description                                                                |
+|-----------------------------|-----------------------|----------------------------------------------------------------------------|
+| size(BlockVersion)          | BlockVersion          | Version of block                                                           |
+| size(SoftwareVersion)       | SoftwareVersion       | Software version                                                           |
+| size(BlockHeaderAttributes) | BlockHeaderAttributes | Header attributes (used for extending header with new fields via softfork) |
+
+### GenesisBlockHeader
+
+[//]: TODO: Add code for GenesisBlockHeader
+
+| Field size                 | Type                 | Description         |
+| ----------                 | -------              | -----------         |
+| 4                          | Word32               | Protocol magic      |
+| 28                         | HeaderHash           | Previous block hash |
+| size(GenesisProof)         | GenesisProof         | Body proof          |
+| size(GenesisConsensusData) | GenesisConsensusData | Consensus data      |
+
+#### GenesisProof
+
+[//]: TODO: SlotLeaders type
+
+| Field size | Type             | Description               |
+|------------|------------------|---------------------------|
+|         28 | Hash SlotLeaders | Hash of slot leaders list |
+
+#### GenesisConsensusData
+
+| Field | Type            | Description                                             |
+|-------|-----------------|---------------------------------------------------------|
+|     8 | EpochIndex      | Index of epoch for which this genesis block is relevant |
+|     8 | ChainDifficulty | Difficulty of the chain ending in this genesis block.   |
 
 ## Transaction sending
 
@@ -214,7 +471,7 @@ type TxSigData = (TxId, Word32, Hash [TxOut], Hash TxDistribution)
 ~~~
 
 | Field size | Type   | Description                         |
-|------------+--------+-------------------------------------|
+|------------|--------|-------------------------------------|
 |         28 | Hash   | Signature of transaction            |
 |          4 | Word32 | ???                                 |
 |         28 | Hash   | Hash of list of transaction outputs |
@@ -243,7 +500,7 @@ type TxWitness = Vector TxInWitness
 Table for `TxInWitness`:
 
 | Tag size | Tag Type | Tag Value | Description           | Field size   | Field Type | Field name  |
-|----------+----------+-----------+-----------------------+--------------+------------+-------------|
+|----------|----------|-----------|-----------------------|--------------|------------|-------------|
 |        1 | Word8    |         0 | Tag for PkWitness     |              |            |             |
 |          |          |           |                       | 32           | PublicKey  | twKey       |
 |          |          |           |                       | 64           | TxSig      | twSig       |
@@ -264,7 +521,7 @@ data TxIn = TxIn
 ~~~
 
 | Field size | Type   | Field name   |
-|------------+--------+--------------|
+|------------|--------|--------------|
 |         28 | Hash   | txOutAddress |
 |          4 | Word32 | txOutValue   |
 
@@ -295,7 +552,7 @@ type TxOutAux = (TxOut, [(StakeholderId, Coin)])
 Lets define `distr_size(n) = n * (size(Hash) + size(Coin))`.
 
 |    Field size | Type           | Value | Description                               |
-|---------------+----------------+-------+-------------------------------------------|
+|---------------|----------------|-------|-------------------------------------------|
 |            37 | TxOut          |       | Transaction output                        |
 |           1-9 | UVarInt Int    | n     | Length of list for output auxilary data   |
 | distr_size(n) | <Hash,Coin>[n] |       | Array of pairs for StakeholderId and Coin |
@@ -314,7 +571,7 @@ data Tx = Tx
 ~~~
 
 | Field size         | Type         | Value | Description                   |
-|--------------------+--------------+-------+-------------------------------|
+|--------------------|--------------|-------|-------------------------------|
 | 1-9                | UVarInt Int  | n     | Number of transaction inputs  |
 | n * size(TxIn)     | TxIn[n]      |       | Array of transaction inputs   |
 | 1-9                | UVarInt Int  | m     | Number of transaction outputs |
@@ -336,7 +593,7 @@ strategy it is often happens that we pass list of empty lists. In that case we s
 lists more efficiently.
 
 | Tag size | Tag Type | Tag Value | Description              |    Field size | Field Type     | Value |
-|----------+----------+-----------+--------------------------+---------------+----------------+-------|
+|----------|----------|-----------|--------------------------|---------------|----------------|-------|
 |        1 | Word8    |         0 | List of empty lists      |               |                |       |
 |          |          |           |                          |           1-9 | UVarInt Int    |       |
 |          |          |         1 | Some lists are not empty |               |                |       |
@@ -351,7 +608,7 @@ type TxAux = (Tx, TxWitness, TxDistribution)
 ~~~
 
 | Field size           | Type           | Description              |
-|----------------------+----------------+--------------------------|
+|----------------------|----------------|--------------------------|
 | size(Tx)             | Tx             | Transaction itself       |
 | size(TxWitness)      | TxWitness      | Witness for transaction  |
 | size(TxDistribution) | TxDistribution | Transaction distribution |
