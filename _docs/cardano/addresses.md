@@ -63,7 +63,7 @@ spending money. Instead of sending a transaction to a public key
 address, we create a validator script into which redemption script can
 be plugged in. To redeem funds, we evaluate validator script with
 redemption script as an argument. If validator script evaluates to
-`success`, money is gettning sent as specified by the redeemer.
+`success`, money is getting sent as specified by the redeemer.
 Otherwise, nothing happens.
 
 To quote Bitcoin Wiki,
