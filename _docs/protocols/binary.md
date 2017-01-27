@@ -643,30 +643,174 @@ type TxAux = (Tx, TxWitness, TxDistribution)
 
 ## Delegation
 
-### ProxySKSimple
+Description of *Delegation* process in CSL-application chapter. Here is only
+description of message formats.
+
+### Proxy certificate
+
+Similar to `Signature`.
 
 ~~~ haskell
--- | Correspondent SK for no-ttl proxy signature scheme.
-type ProxySKSimple = ProxySecretKey ()
+-- | Proxy certificate, made of ω + public key of delegate.
+newtype ProxyCert w = ProxyCert { unProxyCert :: Ed25519.Signature }
+    deriving (Eq, Ord, Show, Generic, NFData, Hashable)
+~~~
 
--- | Convenient wrapper for secret key, that's basically ω plus
--- certificate.
+| Field size | Type      | Description                                 |
+|------------+-----------+---------------------------------------------|
+|         64 | Word8[64] | `unProxyCert`: 64 bytes of signature string |
+
+### Proxy secret key
+
+~~~ haskell
+-- | Convenient wrapper for secret key, that's basically ω + certificate.
 data ProxySecretKey w = ProxySecretKey
     { pskOmega      :: w
     , pskIssuerPk   :: PublicKey
     , pskDelegatePk :: PublicKey
     , pskCert       :: ProxyCert w
     } deriving (Eq, Ord, Show, Generic)
+~~~
 
--- | Proxy certificate, made of ω + public key of delegate.
-newtype ProxyCert w = ProxyCert { unProxyCert :: Ed25519.Signature }
-    deriving (Eq, Ord, Show, Generic, NFData, Hashable)
+| Field size | Type        | Description   |
+|------------+-------------+---------------|
+|    size(w) | w           | pskOmega      |
+|         32 | PublicKey   | pskIssuerPk   |
+|         32 | PublicKey   | pskDelegatePk |
+|         64 | ProxyCert w | pskCert       |
+
+### Proxy signature
+
+~~~ haskell
+-- | Delegate signature made with certificate-based permission. @a@
+-- stays for message type used in proxy (ω in the implementation
+-- notes).
+data ProxySignature w a = ProxySignature
+    { pdOmega      :: w
+    , pdDelegatePk :: PublicKey
+    , pdCert       :: ProxyCert w
+    , pdSig        :: Ed25519.Signature
+    } deriving (Eq, Ord, Show, Generic)
+~~~
+
+| Field size | Type        | Description  |
+|------------+-------------+--------------|
+|    size(w) | w           | pdOmega      |
+|         32 | PublicKey   | pdDelegatePk |
+|         64 | ProxyCert w | pdCert       |
+|         64 | Signature   | pdSig        |
+
+### Proxy secret key for lightweight delegation
+
+~~~ haskell
+-- | Correspondent SK for no-ttl proxy signature scheme.
+type ProxySKSimple = ProxySecretKey ()
 ~~~
 
 | Field size | Type         | Description   |
-| ---------- | -------      | -----------   |
-| 32         | PublicKey    | pskIssuerPk   |
-| 32         | PublicKey    | pskDelegatePk |
-| 64         | ProxyCert () | pskCert       |
+|------------+--------------+---------------|
+|         32 | PublicKey    | pskIssuerPk   |
+|         32 | PublicKey    | pskDelegatePk |
+|         64 | ProxyCert () | pskCert       |
 
 Note that we skip *pskOmega* field in the table above, because it has type *()* and is serialized into empty string.
+
+### Proxy secret key for heavyweight delegation
+
+
+#### Signature
+
+~~~ haskell
+-- | Proxy signature used in csl -- holds a pair of epoch
+-- indices. Block is valid if it's epoch index is inside this range.
+type ProxySigEpoch a = ProxySignature (EpochIndex, EpochIndex) a
+~~~
+
+| Field size | Type                               | Description  |
+|------------+------------------------------------+--------------|
+|       1-10 | UVarInt Word64                     | from epoch   |
+|       1-10 | UVarInt Word64                     | to epoch     |
+|         32 | PublicKey                          | pdDelegatePk |
+|         64 | ProxyCert (EpochIndex, EpochIndex) | pdCert       |
+|         64 | Signature                          | pdSig        |
+
+#### Secret key
+
+~~~ haskell
+-- | Same alias for the proxy secret key (see 'ProxySigEpoch').
+type ProxySKEpoch = ProxySecretKey (EpochIndex, EpochIndex)
+~~~
+
+| Field size | Type                               | Description   |
+|------------+------------------------------------+---------------|
+|       1-10 | UVarInt Word64                     | from epoch    |
+|       1-10 | UVarInt Word64                     | to epoch      |
+|         32 | PublicKey                          | pskIssuerPk   |
+|         32 | PublicKey                          | pskDelegatePk |
+|         64 | ProxyCert (EpochIndex, EpochIndex) | pskCert       |
+
+### Proxy delegation start message
+
+~~~ haskell
+-- | Message with delegated proxy secret key. Is used to propagate
+-- both epoch-oriented psks (lightweight) and simple (heavyweight).
+data SendProxySK
+    = SendProxySKEpoch !ProxySKEpoch
+    | SendProxySKSimple !ProxySKSimple
+    deriving (Show, Eq, Generic)
+~~~
+
+| Tag size | Tag Type | Tag Value | Description               | Field size          | Description |
+|----------+----------+-----------+---------------------------+---------------------+-------------|
+|        1 | Word8    |      0x00 | Tag for SendProxySKEpoch  |                     |             |
+|          |          |           |                           | size(ProxySKEpoch)  | heavyweight |
+|          |          |      0x01 | Tag for SendProxySKSimple |                     |             |
+|          |          |           |                           | size(ProxySKSimple) | lightweigh  |
+
+### Lighweight delegation confirmation
+
+#### ConfirmProxySK
+
+~~~ haskell
+-- | Confirmation of proxy signature delivery. Delegate should take
+-- the proxy signing key he has and sign this key with itself. If the
+-- signature is correct, then it was done by delegate (guaranteed by
+-- PSK scheme). Checking @w@ can be done with @(const True)@
+-- predicate, because certificate may be sent in epoch id that's
+-- before lower cert's @EpochIndex@.
+data ConfirmProxySK =
+    ConfirmProxySK !ProxySKEpoch !(ProxySigEpoch ProxySKEpoch)
+    deriving (Show, Eq, Generic)
+~~~
+
+| Field size          | Description           |
+|---------------------+-----------------------|
+| size(ProxySKEpoch)  | certificate           |
+| size(ProxySigEpoch) | proof for certificate |
+
+#### CheckProxySKConfirmed
+
+~~~ haskell
+-- | Request to check if a node has any info about PSK delivery.
+data CheckProxySKConfirmed =
+    CheckProxySKConfirmed !ProxySKEpoch
+    deriving (Show, Eq, Generic)
+~~~
+
+| Field size         | Description |
+|--------------------+-------------|
+| size(ProxySKEpoch) | certificate |
+
+#### CheckProxySKConfirmedRes
+
+~~~ haskell
+-- | Response to the @CheckProxySKConfirmed@ call.
+data CheckProxySKConfirmedRes =
+    CheckProxySKConfirmedRes !Bool
+    deriving (Show, Eq, Generic)
+~~~
+
+| Value size | Value Type | Value | Result |
+|------------+------------+-------+--------|
+|          1 | Word8      |  0x00 | False  |
+|            |            |  0x01 | True   |
