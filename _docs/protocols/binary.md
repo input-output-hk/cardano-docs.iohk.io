@@ -121,7 +121,7 @@ Example:
 ~~~
 ghci> hash $ mkCoin 3
 AbstractHash 4de0604c5643bf32440d0e380b7ca68e85f623a4de50fe33de2f355e
-ghci> toLazyByteString $ lazyByteStringHex $ encode $ hash $ mkCoin 3
+ghci> hexEncode $ hash $ mkCoin 3
 "4de0604c5643bf32440d0e380b7ca68e85f623a4de50fe33de2f355e"
 ~~~
 
@@ -190,7 +190,7 @@ type StakeholderId = AddressHash PublicKey
 -- | Address is where you can send coins.
 data Address
     = PubKeyAddress
-          { addrKeyHash :: !(AddressHash PublicKey) }
+          { addrKeyHash :: !StakeholderId }
     | ScriptAddress
           { addrScriptHash :: !(AddressHash Script) }
     deriving (Eq, Ord, Generic, Typeable)
@@ -206,7 +206,7 @@ Example:
 ~~~
 ghci> hash somePk
 AbstractHash 7d9be76a0b384dbe8d408012b5f9a33978da79793a9602a65ed3a0f3
-ghci> toLazyByteString $ lazyByteStringHex $ encode $ PubKeyAddress $ hash somePk
+ghci> hexEncode $ PubKeyAddress $ hash somePk
 "007d9be76a0b384dbe8d408012b5f9a33978da79793a9602a65ed3a0f33103f2c5"
 ~~~
 
@@ -298,35 +298,6 @@ newtype MerkleRoot a = MerkleRoot
 |------------|----------|--------------------------|
 |         28 | Hash Raw | Root hash of Merkle tree |
 
-#### ProxySKSimple
-
-~~~ haskell
--- | Correspondent SK for no-ttl proxy signature scheme.
-type ProxySKSimple = ProxySecretKey ()
-
--- | Convenient wrapper for secret key, that's basically ω plus
--- certificate.
-data ProxySecretKey w = ProxySecretKey
-    { pskOmega      :: w
-    , pskIssuerPk   :: PublicKey
-    , pskDelegatePk :: PublicKey
-    , pskCert       :: ProxyCert w
-    } deriving (Eq, Ord, Show, Generic)
-
--- | Proxy certificate, made of ω + public key of delegate.
-newtype ProxyCert w = ProxyCert { unProxyCert :: Ed25519.Signature }
-    deriving (Eq, Ord, Show, Generic, NFData, Hashable)
-~~~
-
-| Field size | Type         | Description   |
-| ---------- | -------      | -----------   |
-| 32         | PublicKey    | pskIssuerPk   |
-| 32         | PublicKey    | pskDelegatePk |
-| 64         | ProxyCert () | pskCert       |
-
-[//]: TODO: Describe proxy cert and other fields
-
-Note that we skip *pskOmega* field in the table above, because it has type *()* and is serialized into empty string.
 
 ## Headers
 
@@ -505,6 +476,9 @@ type BlockHeaderAttributes = Attributes ()
 
 ## Transaction sending
 
+To send transaction you need to create and send `TxAux` data type to node. All data types
+required to successfully perform sending are described in this section.
+
 ### Transaction input
 
 ~~~ haskell
@@ -542,7 +516,10 @@ data TxOut = TxOut
 
 Example:
 
-`TxOut addr (mkCoin 31) --> 0x007d9be76a0b384dbe8d408012b5f9a33978da79793a9602a65ed3a0f33103f2c5000000000000001f`
+~~~
+ghci> hexEncode $ TxOut addr (mkCoin 31)
+0x007d9be76a0b384dbe8d408012b5f9a33978da79793a9602a65ed3a0f33103f2c5000000000000001f`
+~~~
 
 ### Transaction output auxilary
 
@@ -597,11 +574,11 @@ type TxWitness = Vector TxInWitness
 Table for `TxInWitness`:
 
 | Tag size | Tag Type | Tag Value | Description           | Field size   | Field Type | Field name  |
-|----------|----------|-----------|-----------------------|--------------|------------|-------------|
-|        1 | Word8    |         0 | Tag for PkWitness     |              |            |             |
+|----------+----------+-----------+-----------------------+--------------+------------+-------------|
+|        1 | Word8    |      0x00 | Tag for PkWitness     |              |            |             |
 |          |          |           |                       | 32           | PublicKey  | twKey       |
 |          |          |           |                       | 64           | TxSig      | twSig       |
-|          |          |         1 | Tag for ScriptWitness |              |            |             |
+|          |          |      0x01 | Tag for ScriptWitness |              |            |             |
 |          |          |           |                       | size(Script) | Script     | twValidator |
 |          |          |           |                       | size(Script) | Script     | twRedeemer  |
 
@@ -642,10 +619,10 @@ strategy it is often happens that we pass list of empty lists. In that case we s
 lists more efficiently.
 
 | Tag size | Tag Type | Tag Value | Description              |    Field size | Field Type     | Value |
-|----------|----------|-----------|--------------------------|---------------|----------------|-------|
-|        1 | Word8    |         0 | List of empty lists      |               |                |       |
+|----------+----------+-----------+--------------------------+---------------+----------------+-------|
+|        1 | Word8    |      0x00 | List of empty lists      |               |                |       |
 |          |          |           |                          |           1-9 | UVarInt Int    |       |
-|          |          |         1 | Some lists are not empty |               |                |       |
+|          |          |      0x01 | Some lists are not empty |               |                |       |
 |          |          |           |                          |           1-9 | UVarInt Int    | n     |
 |          |          |           |                          | distr_size(n) | <Hash,Coin>[n] |       |
 
@@ -661,3 +638,35 @@ type TxAux = (Tx, TxWitness, TxDistribution)
 | size(Tx)             | Tx             | Transaction itself       |
 | size(TxWitness)      | TxWitness      | Witness for transaction  |
 | size(TxDistribution) | TxDistribution | Transaction distribution |
+
+[//]: TODO: describe full creation of transaction by bytes
+
+## Delegation
+
+### ProxySKSimple
+
+~~~ haskell
+-- | Correspondent SK for no-ttl proxy signature scheme.
+type ProxySKSimple = ProxySecretKey ()
+
+-- | Convenient wrapper for secret key, that's basically ω plus
+-- certificate.
+data ProxySecretKey w = ProxySecretKey
+    { pskOmega      :: w
+    , pskIssuerPk   :: PublicKey
+    , pskDelegatePk :: PublicKey
+    , pskCert       :: ProxyCert w
+    } deriving (Eq, Ord, Show, Generic)
+
+-- | Proxy certificate, made of ω + public key of delegate.
+newtype ProxyCert w = ProxyCert { unProxyCert :: Ed25519.Signature }
+    deriving (Eq, Ord, Show, Generic, NFData, Hashable)
+~~~
+
+| Field size | Type         | Description   |
+| ---------- | -------      | -----------   |
+| 32         | PublicKey    | pskIssuerPk   |
+| 32         | PublicKey    | pskDelegatePk |
+| 64         | ProxyCert () | pskCert       |
+
+Note that we skip *pskOmega* field in the table above, because it has type *()* and is serialized into empty string.
