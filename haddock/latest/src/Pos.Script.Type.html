@@ -1,0 +1,141 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE DeriveLift           #-}</span><span>
+</span><a name="line-2"></a><span class="hs-pragma">{-# LANGUAGE TemplateHaskell      #-}</span><span>
+</span><a name="line-3"></a><span class="hs-pragma">{-# LANGUAGE UndecidableInstances #-}</span><span>
+</span><a name="line-4"></a><span>
+</span><a name="line-5"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Script</span><span class="hs-operator">.</span><span class="hs-identifier">Type</span><span>
+</span><a name="line-6"></a><span>       </span><span class="hs-special">(</span><span> </span><a href="Pos.Script.Type.html#Script"><span class="hs-identifier hs-type">Script</span></a><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-7"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Script.Type.html#Script_v0"><span class="hs-identifier hs-type">Script_v0</span></a><span>
+</span><a name="line-8"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Script.Type.html#ScriptVersion"><span class="hs-identifier hs-type">ScriptVersion</span></a><span>
+</span><a name="line-9"></a><span>       </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-10"></a><span>
+</span><a name="line-11"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Binary</span><span>                </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Binary</span><span class="hs-special">)</span><span>
+</span><a name="line-12"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Binary</span><span>                </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">Binary</span><span>
+</span><a name="line-13"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Eq</span><span class="hs-operator">.</span><span class="hs-identifier">Deriving</span><span>           </span><span class="hs-special">(</span><span class="hs-identifier hs-var">deriveEq1</span><span class="hs-special">)</span><span>
+</span><a name="line-14"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Hashable</span><span>              </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Hashable</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">hashWithSalt</span><span class="hs-special">)</span><span>
+</span><a name="line-15"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">SafeCopy</span><span>              </span><span class="hs-special">(</span><span class="hs-identifier hs-type">SafeCopy</span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><a name="line-16"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">SafeCopy</span><span>              </span><span class="hs-special">(</span><span class="hs-identifier hs-var">base</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">deriveSafeCopySimple</span><span class="hs-special">)</span><span>
+</span><a name="line-17"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Text</span><span class="hs-operator">.</span><span class="hs-identifier">Buildable</span><span>        </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Buildable</span><span class="hs-special">)</span><span>
+</span><a name="line-18"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Text</span><span class="hs-operator">.</span><span class="hs-identifier">Buildable</span><span>        </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">Buildable</span><span>
+</span><a name="line-19"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Formatting</span><span>                 </span><span class="hs-special">(</span><span class="hs-identifier hs-var">bprint</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">int</span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="hs-operator hs-var">%</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><a name="line-20"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Instances</span><span class="hs-operator">.</span><span class="hs-identifier">TH</span><span class="hs-operator">.</span><span class="hs-identifier">Lift</span><span>          </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><a name="line-21"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Language</span><span class="hs-operator">.</span><span class="hs-identifier">Haskell</span><span class="hs-operator">.</span><span class="hs-identifier">TH</span><span class="hs-operator">.</span><span class="hs-identifier">Syntax</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Lift</span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><a name="line-22"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">PlutusCore</span><span class="hs-operator">.</span><span class="hs-identifier">Program</span><span>         </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">PLCore</span><span>
+</span><a name="line-23"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">PlutusCore</span><span class="hs-operator">.</span><span class="hs-identifier">Term</span><span>            </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">PLCore</span><span>
+</span><a name="line-24"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">PlutusTypes</span><span class="hs-operator">.</span><span class="hs-identifier">ConSig</span><span>         </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">PLTypes</span><span>
+</span><a name="line-25"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">PlutusTypes</span><span class="hs-operator">.</span><span class="hs-identifier">Type</span><span>           </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">PLTypes</span><span>
+</span><a name="line-26"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Universum</span><span>                  </span><span class="hs-keyword">hiding</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">lift</span><span class="hs-special">)</span><span>
+</span><a name="line-27"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Utils</span><span class="hs-operator">.</span><span class="hs-identifier">ABT</span><span>                  </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">ABT</span><span>
+</span><a name="line-28"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Utils</span><span class="hs-operator">.</span><span class="hs-identifier">Names</span><span>                </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">Names</span><span>
+</span><a name="line-29"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Utils</span><span class="hs-operator">.</span><span class="hs-identifier">Vars</span><span>                 </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">Vars</span><span>
+</span><a name="line-30"></a><span>
+</span><a name="line-31"></a><span class="hs-keyword">import</span><span>           </span><a href="Pos.Binary.Class.html"><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Binary</span><span class="hs-operator">.</span><span class="hs-identifier">Class</span></a><span>           </span><span class="hs-special">(</span><a href="Pos.Binary.Class.html#Bi"><span class="hs-identifier hs-type">Bi</span></a><span class="hs-special">)</span><span>
+</span><a name="line-32"></a><span class="hs-keyword">import</span><span>           </span><a href="Pos.Util.html"><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Util</span></a><span>                   </span><span class="hs-special">(</span><a href="Pos.Util.html#getCopyBinary"><span class="hs-identifier hs-var">getCopyBinary</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Util.html#putCopyBinary"><span class="hs-identifier hs-var">putCopyBinary</span></a><span class="hs-special">)</span><span>
+</span><a name="line-33"></a><span>
+</span><a name="line-34"></a><span class="hs-comment">-- | Version of script</span><span>
+</span><a name="line-35"></a><span class="hs-keyword">type</span><span> </span><a name="ScriptVersion"><a href="Pos.Script.Type.html#ScriptVersion"><span class="hs-identifier">ScriptVersion</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-type">Word16</span><span>
+</span><a name="line-36"></a><span>
+</span><a name="line-37"></a><span class="hs-comment">-- | A script for inclusion into a transaction.</span><span>
+</span><a name="line-38"></a><span class="hs-keyword">data</span><span> </span><a name="Script"><a href="Pos.Script.Type.html#Script"><span class="hs-identifier">Script</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a name="Script"><a href="Pos.Script.Type.html#Script"><span class="hs-identifier">Script</span></a></a><span> </span><span class="hs-special">{</span><span>
+</span><a name="line-39"></a><span>    </span><a name="scrVersion"><a href="Pos.Script.Type.html#scrVersion"><span class="hs-identifier">scrVersion</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><a href="Pos.Script.Type.html#ScriptVersion"><span class="hs-identifier hs-type">ScriptVersion</span></a><span class="hs-special">,</span><span>    </span><span class="hs-comment">-- ^ Version</span><span>
+</span><a name="line-40"></a><span>    </span><a name="scrScript"><a href="Pos.Script.Type.html#scrScript"><span class="hs-identifier">scrScript</span></a></a><span>  </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">LByteString</span><span class="hs-special">}</span><span>      </span><span class="hs-comment">-- ^ Serialized script</span><span>
+</span><a name="line-41"></a><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Eq</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Show</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Generic</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Typeable</span><span class="hs-special">)</span><span>
+</span><a name="line-42"></a><span>
+</span><a name="line-43"></a><span class="hs-keyword">instance</span><span> </span><span class="hs-identifier hs-type">NFData</span><span> </span><a href="Pos.Script.Type.html#Script"><span class="hs-identifier hs-type">Script</span></a><span>
+</span><a name="line-44"></a><span class="hs-keyword">instance</span><span> </span><span class="hs-identifier hs-type">Hashable</span><span> </span><a href="Pos.Script.Type.html#Script"><span class="hs-identifier hs-type">Script</span></a><span>
+</span><a name="line-45"></a><span>
+</span><a name="line-46"></a><span class="hs-keyword">instance</span><span> </span><span class="hs-identifier hs-type">Buildable</span><span> </span><a href="Pos.Script.Type.html#Script"><span class="hs-identifier hs-type">Script</span></a><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-47"></a><span>    </span><a name="local-1912614678"><span class="hs-identifier">build</span></a><span> </span><a href="Pos.Script.Type.html#Script"><span class="hs-identifier hs-var">Script</span></a><span class="hs-special">{</span><span class="hs-glyph">..</span><span class="hs-special">}</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-var">bprint</span><span> </span><span class="hs-special">(</span><span class="hs-string">&quot;&lt;script v&quot;</span><span class="hs-operator hs-var">%</span><span class="hs-identifier hs-var">int</span><span class="hs-operator hs-var">%</span><span class="hs-string">&quot;&gt;&quot;</span><span class="hs-special">)</span><span> </span><a href="#local-1627871096"><span class="hs-identifier hs-var">scrVersion</span></a><span>
+</span><a name="line-48"></a><span>
+</span><a name="line-49"></a><span class="hs-identifier hs-var">deriveSafeCopySimple</span><span> </span><span class="hs-number">0</span><span> </span><span class="hs-char">'base ''Script
+
+-- | Deserialized script (i.e. an AST), version 0.
+type Script_v0 = PLCore.Program
+
+----------------------------------------------------------------------------
+-- Orphan instances, to be included into plutus-prototype
+----------------------------------------------------------------------------
+
+deriving instance Show PLCore.PrimData
+
+deriving instance (Show a, Show (PLCore.ClauseF a)) =&gt; Show (PLCore.TermF a)
+deriving instance (Eq a, Eq (PLCore.ClauseF a)) =&gt; Eq (PLCore.TermF a)
+
+deriving instance Eq PLTypes.TyConSig
+deriving instance Eq PLTypes.ConSig
+deriving instance Eq PLTypes.PolymorphicType
+deriving instance Eq PLCore.Program
+
+deriveEq1 ''PLCore.PatternF
+deriveEq1 ''PLCore.ClauseF
+deriveEq1 ''PLCore.TermF
+deriveEq1 ''PLTypes.TypeF
+
+deriving instance Show (f PLCore.PatternF) =&gt; Show (PLCore.PatternF (f PLCore.PatternF))
+
+deriving instance Show r =&gt; Show (PLCore.ClauseF r)
+
+instance Binary Vars.FreeVar
+instance Binary Vars.MetaVar
+instance Binary Vars.BoundVar
+instance Binary PLTypes.TyConSig
+instance Binary PLTypes.ConSig
+instance Binary PLTypes.PolymorphicType
+instance Binary a =&gt; Binary (Names.Sourced a)
+instance Binary ABT.Variable
+instance Binary (f (ABT.Scope f)) =&gt; Binary (ABT.ABT f)
+instance Binary (f (ABT.Scope f)) =&gt; Binary (ABT.Scope f)
+instance Binary r =&gt; Binary (PLCore.ClauseF r)
+instance Binary a =&gt; Binary (PLCore.TermF a)
+instance Binary a =&gt; Binary (PLCore.PatternF a)
+instance Binary a =&gt; Binary (PLTypes.TypeF a)
+instance Binary PLCore.PrimData
+instance Binary PLCore.Program
+
+instance NFData Vars.FreeVar
+instance NFData Vars.MetaVar
+instance NFData Vars.BoundVar
+instance NFData PLTypes.TyConSig
+instance NFData PLTypes.ConSig
+instance NFData PLTypes.PolymorphicType
+instance NFData a =&gt; NFData (Names.Sourced a)
+instance NFData ABT.Variable
+instance NFData (f (ABT.Scope f)) =&gt; NFData (ABT.ABT f)
+instance NFData (f (ABT.Scope f)) =&gt; NFData (ABT.Scope f)
+instance NFData r =&gt; NFData (PLCore.ClauseF r)
+instance NFData a =&gt; NFData (PLCore.TermF a)
+instance NFData a =&gt; NFData (PLCore.PatternF a)
+instance NFData a =&gt; NFData (PLTypes.TypeF a)
+instance NFData PLCore.PrimData
+instance NFData PLCore.Program
+
+deriving instance Lift Vars.FreeVar
+deriving instance Lift Vars.MetaVar
+deriving instance Lift Vars.BoundVar
+deriving instance Lift PLTypes.TyConSig
+deriving instance Lift PLTypes.ConSig
+deriving instance Lift PLTypes.PolymorphicType
+deriving instance Lift a =&gt; Lift (Names.Sourced a)
+deriving instance Lift ABT.Variable
+deriving instance Lift (f (ABT.Scope f)) =&gt; Lift (ABT.ABT f)
+deriving instance Lift (f (ABT.Scope f)) =&gt; Lift (ABT.Scope f)
+deriving instance Lift r =&gt; Lift (PLCore.ClauseF r)
+deriving instance Lift a =&gt; Lift (PLCore.TermF a)
+deriving instance Lift a =&gt; Lift (PLCore.PatternF a)
+deriving instance Lift a =&gt; Lift (PLTypes.TypeF a)
+deriving instance Lift PLCore.PrimData
+deriving instance Lift PLCore.Program
+
+instance Bi PLCore.Term =&gt; SafeCopy PLCore.Term where
+    getCopy = getCopyBinary &quot;Term&quot;
+    putCopy = putCopyBinary
+
+instance Bi PLCore.Program =&gt; SafeCopy PLCore.Program where
+    getCopy = getCopyBinary &quot;Program&quot;
+    putCopy = putCopyBinary
+
+instance Hashable PLCore.Term where
+    hashWithSalt s = hashWithSalt s . Binary.encode
+
+instance Hashable PLCore.Program where
+    hashWithSalt s = hashWithSalt s . Binary.encode
+</span></pre></body></html>

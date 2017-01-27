@@ -1,0 +1,51 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">-- | Types which are stored in memory.</span><span>
+</span><a name="line-2"></a><span>
+</span><a name="line-3"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Update</span><span class="hs-operator">.</span><span class="hs-identifier">MemState</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span><span>
+</span><a name="line-4"></a><span>       </span><span class="hs-special">(</span><span> </span><a href="Pos.Update.MemState.Types.html#MemPool"><span class="hs-identifier hs-type">MemPool</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-5"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Update.Core.Types.html#UpdateProposals"><span class="hs-identifier hs-type">UpdateProposals</span></a><span>
+</span><a name="line-6"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Update.Core.Types.html#LocalVotes"><span class="hs-identifier hs-type">LocalVotes</span></a><span>
+</span><a name="line-7"></a><span>
+</span><a name="line-8"></a><span>       </span><span class="hs-comment">-- , LocalProposalState (..)</span><span>
+</span><a name="line-9"></a><span>       </span><span class="hs-comment">-- , fixLocalState</span><span>
+</span><a name="line-10"></a><span>       </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-11"></a><span>
+</span><a name="line-12"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Default</span><span>    </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Default</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">def</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><a name="line-13"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Universum</span><span>
+</span><a name="line-14"></a><span>
+</span><a name="line-15"></a><span class="hs-keyword">import</span><span>           </span><a href="Pos.Update.Core.html"><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Update</span><span class="hs-operator">.</span><span class="hs-identifier">Core</span></a><span> </span><span class="hs-special">(</span><a href="Pos.Update.Core.Types.html#LocalVotes"><span class="hs-identifier hs-type">LocalVotes</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Update.Core.Types.html#UpdateProposals"><span class="hs-identifier hs-type">UpdateProposals</span></a><span class="hs-special">)</span><span>
+</span><a name="line-16"></a><span>
+</span><a name="line-17"></a><span class="hs-comment">-- I suppose it's not needed nowadays.</span><span>
+</span><a name="line-18"></a><span>
+</span><a name="line-19"></a><span class="hs-comment">-- -- | Local state of proposal</span><span>
+</span><a name="line-20"></a><span class="hs-comment">-- data LocalProposalState = LocalProposalState</span><span>
+</span><a name="line-21"></a><span class="hs-comment">--     { lpsVotes         :: !StakeholderVotes</span><span>
+</span><a name="line-22"></a><span class="hs-comment">--       -- ^ Votes given for this proposal.</span><span>
+</span><a name="line-23"></a><span class="hs-comment">--     , lpsProposal      :: !UpdateProposal</span><span>
+</span><a name="line-24"></a><span class="hs-comment">--       -- ^ Proposal itself.</span><span>
+</span><a name="line-25"></a><span class="hs-comment">--     , lpsPositiveStake :: !Coin</span><span>
+</span><a name="line-26"></a><span class="hs-comment">--       -- ^ Total stake of all positive votes.</span><span>
+</span><a name="line-27"></a><span class="hs-comment">--     , lpsNegativeStake :: !Coin</span><span>
+</span><a name="line-28"></a><span class="hs-comment">--       -- ^ Total stake of all negative votes.</span><span>
+</span><a name="line-29"></a><span class="hs-comment">--     }</span><span>
+</span><a name="line-30"></a><span>
+</span><a name="line-31"></a><span class="hs-comment">-- -- | Function for saving local state of proposal into blockchain</span><span>
+</span><a name="line-32"></a><span class="hs-comment">-- fixLocalState :: LocalProposalState -&gt; SlotId -&gt; UndecidedProposalState</span><span>
+</span><a name="line-33"></a><span class="hs-comment">-- fixLocalState LocalProposalState{..} upsSlot = UndecidedProposalState</span><span>
+</span><a name="line-34"></a><span class="hs-comment">--     { upsVotes = lpsVotes</span><span>
+</span><a name="line-35"></a><span class="hs-comment">--     , upsProposal = lpsProposal</span><span>
+</span><a name="line-36"></a><span class="hs-comment">--     , upsPositiveStake = lpsPositiveStake</span><span>
+</span><a name="line-37"></a><span class="hs-comment">--     , upsNegativeStake = lpsNegativeStake</span><span>
+</span><a name="line-38"></a><span class="hs-comment">--     , ..</span><span>
+</span><a name="line-39"></a><span class="hs-comment">--     }</span><span>
+</span><a name="line-40"></a><span>
+</span><a name="line-41"></a><span class="hs-comment">-- | MemPool is data maintained by node to be included into block and</span><span>
+</span><a name="line-42"></a><span class="hs-comment">-- relayed to other nodes.</span><span>
+</span><a name="line-43"></a><span>
+</span><a name="line-44"></a><span class="hs-keyword">data</span><span> </span><a name="MemPool"><a href="Pos.Update.MemState.Types.html#MemPool"><span class="hs-identifier">MemPool</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a name="MemPool"><a href="Pos.Update.MemState.Types.html#MemPool"><span class="hs-identifier">MemPool</span></a></a><span>
+</span><a name="line-45"></a><span>    </span><span class="hs-special">{</span><span> </span><a name="mpProposals"><a href="Pos.Update.MemState.Types.html#mpProposals"><span class="hs-identifier">mpProposals</span></a></a><span>  </span><span class="hs-glyph">::</span><span> </span><span class="hs-glyph">!</span><a href="Pos.Update.Core.Types.html#UpdateProposals"><span class="hs-identifier hs-type">UpdateProposals</span></a><span>
+</span><a name="line-46"></a><span>    </span><span class="hs-special">,</span><span> </span><a name="mpLocalVotes"><a href="Pos.Update.MemState.Types.html#mpLocalVotes"><span class="hs-identifier">mpLocalVotes</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-glyph">!</span><a href="Pos.Update.Core.Types.html#LocalVotes"><span class="hs-identifier hs-type">LocalVotes</span></a><span>
+</span><a name="line-47"></a><span>    </span><span class="hs-special">}</span><span>
+</span><a name="line-48"></a><span>
+</span><a name="line-49"></a><span class="hs-keyword">instance</span><span> </span><span class="hs-identifier hs-type">Default</span><span> </span><a href="Pos.Update.MemState.Types.html#MemPool"><span class="hs-identifier hs-type">MemPool</span></a><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-50"></a><span>    </span><a name="local-1912881394"><span class="hs-identifier">def</span></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="Pos.Update.MemState.Types.html#MemPool"><span class="hs-identifier hs-var">MemPool</span></a><span> </span><span class="hs-identifier hs-var">mempty</span><span> </span><span class="hs-identifier hs-var">mempty</span><span>
+</span><a name="line-51"></a></pre></body></html>
