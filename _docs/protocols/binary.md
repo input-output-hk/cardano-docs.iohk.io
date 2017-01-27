@@ -28,7 +28,7 @@ ghci> toLazyByteString $ lazyByteStringHex $ encode $ myObject
 
 ### Coin
 
-~~~
+~~~ haskell
 -- | Coin is the least possible unit of currency.
 newtype Coin = Coin
     { getCoin :: Word64
