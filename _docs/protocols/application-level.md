@@ -17,7 +17,7 @@ making it possible to implement a full CSL node.
 When you read the source code, you often encounter things
 [like](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Types.hs#L20-L29)
 
-```
+~~~ haskell
 -- | 'GetHeaders' message (see protocol specification).
 data MsgGetHeaders = MsgGetHeaders
     { -- not guaranteed to be in any particular order
@@ -28,7 +28,7 @@ data MsgGetHeaders = MsgGetHeaders
 instance Message MsgGetHeaders where
     messageName _ = MessageName $ BC.pack "GetHeaders"
     formatMessage _ = "GetHeaders"
-```
+~~~
 
 How to read this? Let's first examine `instance` part. This particular snippet
 says that data structure defined by type `MsgGetHeaders` is used as a message
