@@ -117,10 +117,3 @@ Such trees support functions such as `count`, `traversal`, and `reverse`:
       reverse Leaf = Leaf ;
       reverse (Branch x l r) = Branch x (reverse r) (reverse l)
     }
-
-Haskell Highlight
-
-~~~ haskell
-main :: IO ()
-main = putStrLn "Hi!"
-~~~
