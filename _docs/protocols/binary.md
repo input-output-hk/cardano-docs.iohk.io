@@ -20,9 +20,9 @@ For variable-length structures, dependant on object of type T, we use
 To test serialization of objet `myObject` in `ghci`,
 one should use the following command:
 
-```
+~~~
 ghci> toLazyByteString $ lazyByteStringHex $ encode $ myObject
-```
+~~~
 
 ## Common datatypes
 
@@ -43,7 +43,7 @@ Example: `Coin 31 --> 0x000000000000001F`
 
 ### Hash
 
-~~~
+~~~ haskell
 -- | Hash wrapper with phantom type for more type-safety.
 -- Made abstract in order to support different algorithms in
 -- different situations
@@ -75,7 +75,7 @@ ghci> toLazyByteString $ lazyByteStringHex $ encode $ hash $ mkCoin 3
 
 ### Public Key
 
-~~~
+~~~ haskell
 -- | Wrapper around 'Ed25519.PublicKey'.
 newtype PublicKey = PublicKey Ed25519.PublicKey
     deriving (Eq, Ord, Show, Generic, NFData, Hashable, Typeable)
@@ -87,7 +87,7 @@ newtype PublicKey = PublicKey Ed25519.PublicKey
 
 ### Signature
 
-~~~
+~~~ haskell
 -- | Wrapper around 'Ed25519.Signature'.
 newtype Signature a = Signature Ed25519.Signature
     deriving (Eq, Ord, Show, Generic, NFData, Hashable, Typeable)
@@ -99,7 +99,7 @@ newtype Signature a = Signature Ed25519.Signature
 
 ### SlotId
 
-```
+~~~ haskell
 -- | Index of epoch.
 newtype EpochIndex = EpochIndex
     { getEpochIndex :: Word64
@@ -116,7 +116,7 @@ data SlotId = SlotId
     { siEpoch :: !EpochIndex
     , siSlot  :: !LocalSlotIndex
     } deriving (Show, Eq, Ord, Generic, Typeable)
-```
+~~~
 
 | Field size | Type    | Description                        |
 | ---------- | ------- | ---------------------------------- |
@@ -124,11 +124,12 @@ data SlotId = SlotId
 |          2 | uint16  | Slot index inside a concrete epoch |
 
 Example:
+
 [//]: TODO: Add example
 
 ### Address
 
-~~~
+~~~ haskell
 type AddressHash = Hash
 
 -- | Stakeholder identifier (stakeholders are identified by their public keys)
@@ -162,7 +163,7 @@ ghci> toLazyByteString $ lazyByteStringHex $ encode $ PubKeyAddress $ hash someP
 This type will be referenced later as `UVarInt Word16` or `UVarInt Word64`
 to describe maximum available value.
 
-~~~
+~~~ haskell
 newtype UnsignedVarInt a = UnsignedVarInt {getUnsignedVarInt :: a}
     deriving (Eq, Ord, Show, Generic, NFData)
 ~~~
@@ -176,7 +177,7 @@ https://developers.google.com/protocol-buffers/docs/encoding#varints.
 
 ### Attributes
 
-~~~
+~~~ haskell
 -- | Convenient wrapper for the datatype to represent it (in binary
 -- format) as k-v map.
 data Attributes () = Attributes
@@ -200,7 +201,7 @@ Example: `Attributes () (BS.pack [1, 31]) --> 0x00000002011f`
 
 ### Script
 
-~~~
+~~~ haskell
 -- | Version of script
 type ScriptVersion = Word16
 
@@ -230,12 +231,12 @@ standard Haskell data types are serialized in the same way.
 
 ### Raw
 
-```
+~~~ haskell
 -- | A wrapper over 'ByteString' for adding type safety to
 -- 'Pos.Crypto.Pki.encryptRaw' and friends.
 newtype Raw = Raw ByteString
     deriving (Bi, Eq, Ord, Show, Typeable)
-```
+~~~
 
 | Field size | Type        | Value | Description    |
 |------------|-------------|-------|----------------|
@@ -244,12 +245,12 @@ newtype Raw = Raw ByteString
 
 ### MerkleRoot
 
-```
+~~~ haskell
 -- | Data type for root of merkle tree.
 newtype MerkleRoot a = MerkleRoot
     { getMerkleRoot :: Hash Raw  -- ^ returns root 'Hash' of Merkle Tree
     } deriving (Show, Eq, Ord, Generic, ByteArrayAccess, Typeable)
-```
+~~~
 
 | Field size | Type     | Description              |
 |------------|----------|--------------------------|
@@ -257,7 +258,7 @@ newtype MerkleRoot a = MerkleRoot
 
 #### ProxySKSimple
 
-```
+~~~ haskell
 -- | Correspondent SK for no-ttl proxy signature scheme.
 type ProxySKSimple = ProxySecretKey ()
 
@@ -273,7 +274,7 @@ data ProxySecretKey w = ProxySecretKey
 -- | Proxy certificate, made of ω + public key of delegate.
 newtype ProxyCert w = ProxyCert { unProxyCert :: Ed25519.Signature }
     deriving (Eq, Ord, Show, Generic, NFData, Hashable)
-```
+~~~
 
 | Field size | Type         | Description   |
 | ---------- | -------      | -----------   |
@@ -289,14 +290,15 @@ Note that we skip *pskOmega* field in the table above, because it has type *()* 
 
 ### BlockVersion
 
-```
+~~~ haskell
 -- | Communication protocol version.
 data BlockVersion = BlockVersion
     { bvMajor :: !Word16
     , bvMinor :: !Word16
     , bvAlt   :: !Word8
     } deriving (Eq, Generic, Ord, Typeable)
-```
+~~~
+
 | Field size | Type   | Description        |
 |------------|--------|--------------------|
 |          2 | Word16 | Major version      |
@@ -305,7 +307,7 @@ data BlockVersion = BlockVersion
 
 ### SoftwareVersion
 
-```
+~~~ haskell
 newtype ApplicationName = ApplicationName
     { getApplicationName :: Text
     } deriving (Eq, Ord, Show, Generic, Typeable, ToString, Hashable, Buildable, ToJSON, FromJSON)
@@ -315,7 +317,7 @@ data SoftwareVersion = SoftwareVersion
     { svAppName :: !ApplicationName
     , svNumber  :: !NumSoftwareVersion
     } deriving (Eq, Generic, Ord, Typeable)
-```
+~~~
 
 | Field size | Type        | Value | Description                   |
 |------------|-------------|-------|-------------------------------|
@@ -325,18 +327,18 @@ data SoftwareVersion = SoftwareVersion
 
 ### HeaderHash
 
-```
+~~~ haskell
 -- | 'Hash' of block header. This should be @Hash (BlockHeader ssc)@
 -- but we don't want to have @ssc@ in 'HeaderHash' type.
 type HeaderHash = Hash BlockHeaderStub
 data BlockHeaderStub
-```
+~~~
 
 ### GodTossing
 
 #### GtProof
 
-```
+~~~ haskell
 -- | Proof of MpcData.
 -- We can use ADS for commitments, openings, shares as well,
 -- if we find it necessary.
@@ -346,7 +348,8 @@ data GtProof
     | SharesProof !(Hash SharesMap) !(Hash VssCertificatesMap)
     | CertificatesProof !(Hash VssCertificatesMap)
     deriving (Show, Eq, Generic)
-```
+~~~
+
 [//]: TODO: Add descriptions and code for maps to the basic types section
 
 | Tag size | Tag Type | Tag Value | Description               | Field size | Field Type              |
@@ -391,13 +394,13 @@ data GtProof
 
 #### MainConsensusData
 
-```
+~~~ haskell
 -- | Chain difficulty represents necessary effort to generate a
 -- chain. In the simplest case it can be number of blocks in chain.
 newtype ChainDifficulty = ChainDifficulty
     { getChainDifficulty :: Word64
     } deriving (Show, Eq, Ord, Num, Enum, Real, Integral, Generic, Buildable, Typeable)
-```
+~~~
 
 | Field size | Type             | Description   |
 | ---------- | ---------------- | ------------- |
@@ -408,7 +411,7 @@ newtype ChainDifficulty = ChainDifficulty
 
 #### MainExtraHeaderData
 
-```
+~~~ haskell
 -- | Represents main block header extra data
 data MainExtraHeaderData = MainExtraHeaderData
     { -- | Version of block.
@@ -424,7 +427,7 @@ data MainExtraHeaderData = MainExtraHeaderData
 -- arbitrary-type value. To be used for extending header with new
 -- fields via softfork.
 type BlockHeaderAttributes = Attributes ()
-```
+~~~
 
 | Field size                  | Type                  | Description                                                                |
 |-----------------------------|-----------------------|----------------------------------------------------------------------------|
@@ -462,7 +465,7 @@ type BlockHeaderAttributes = Attributes ()
 
 ### Transaction signature data
 
-~~~
+~~~ haskell
 -- | Represents transaction identifier as 'Hash' of 'Tx'.
 type TxId = Hash Tx
 
@@ -479,7 +482,7 @@ type TxSigData = (TxId, Word32, Hash [TxOut], Hash TxDistribution)
 
 ### Transaction witness
 
-~~~
+~~~ haskell
 -- | 'Signature' of addrId.
 type TxSig = Signature TxSigData
 
@@ -510,7 +513,7 @@ Table for `TxInWitness`:
 
 ### Transaction input
 
-~~~
+~~~ haskell
 -- | Transaction input.
 data TxIn = TxIn
     { -- | Which transaction's output is used
@@ -527,7 +530,7 @@ data TxIn = TxIn
 
 ### Transaction output
 
-~~~
+~~~ haskell
 -- | Transaction output.
 data TxOut = TxOut
     { txOutAddress :: !Address
@@ -544,7 +547,7 @@ Example:
 
 `TxOut addr (mkCoin 31) --> 0x007d9be76a0b384dbe8d408012b5f9a33978da79793a9602a65ed3a0f33103f2c5000000000000001f`
 
-~~~
+~~~ haskell
 -- | Transaction output auxilary data
 type TxOutAux = (TxOut, [(StakeholderId, Coin)])
 ~~~
@@ -559,7 +562,7 @@ Lets define `distr_size(n) = n * (size(Hash) + size(Coin))`.
 
 ### Transaction
 
-~~~
+~~~ haskell
 -- | Transaction.
 --
 -- NB: transaction witnesses are stored separately.
@@ -580,7 +583,7 @@ data Tx = Tx
 
 ### Transaction distribution
 
-~~~
+~~~ haskell
 -- | Distribution of “fake” stake that follow-the-satoshi would use for a
 -- particular transaction.
 newtype TxDistribution = TxDistribution {
@@ -602,7 +605,7 @@ lists more efficiently.
 
 ### Transaction auxilary
 
-~~~
+~~~ haskell
 -- | Transaction + auxiliary data
 type TxAux = (Tx, TxWitness, TxDistribution)
 ~~~
