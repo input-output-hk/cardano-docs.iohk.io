@@ -463,57 +463,12 @@ type BlockHeaderAttributes = Attributes ()
 
 ## Transaction sending
 
-### Transaction signature data
+### Transaction input
 
 ~~~ haskell
 -- | Represents transaction identifier as 'Hash' of 'Tx'.
 type TxId = Hash Tx
 
--- | Data that is being signed when creating a TxSig.
-type TxSigData = (TxId, Word32, Hash [TxOut], Hash TxDistribution)
-~~~
-
-| Field size | Type   | Description                         |
-|------------|--------|-------------------------------------|
-|         28 | Hash   | Signature of transaction            |
-|          4 | Word32 | ???                                 |
-|         28 | Hash   | Hash of list of transaction outputs |
-|         28 | Hash   | Hash of transaction distribution    |
-
-### Transaction witness
-
-~~~ haskell
--- | 'Signature' of addrId.
-type TxSig = Signature TxSigData
-
--- | A witness for a single input.
-data TxInWitness
-    = PkWitness { twKey :: PublicKey
-                , twSig :: TxSig}
-    | ScriptWitness { twValidator :: Script
-                    , twRedeemer  :: Script}
-    deriving (Eq, Show, Generic, Typeable)
-
--- | A witness is a proof that a transaction is allowed to spend the funds it
--- spends (by providing signatures, redeeming scripts, etc). A separate proof
--- is provided for each input.
-type TxWitness = Vector TxInWitness
-~~~
-
-Table for `TxInWitness`:
-
-| Tag size | Tag Type | Tag Value | Description           | Field size   | Field Type | Field name  |
-|----------|----------|-----------|-----------------------|--------------|------------|-------------|
-|        1 | Word8    |         0 | Tag for PkWitness     |              |            |             |
-|          |          |           |                       | 32           | PublicKey  | twKey       |
-|          |          |           |                       | 64           | TxSig      | twSig       |
-|          |          |         1 | Tag for ScriptWitness |              |            |             |
-|          |          |           |                       | size(Script) | Script     | twValidator |
-|          |          |           |                       | size(Script) | Script     | twRedeemer  |
-
-### Transaction input
-
-~~~ haskell
 -- | Transaction input.
 data TxIn = TxIn
     { -- | Which transaction's output is used
@@ -547,6 +502,8 @@ Example:
 
 `TxOut addr (mkCoin 31) --> 0x007d9be76a0b384dbe8d408012b5f9a33978da79793a9602a65ed3a0f33103f2c5000000000000001f`
 
+### Transaction output auxilary
+
 ~~~ haskell
 -- | Transaction output auxilary data
 type TxOutAux = (TxOut, [(StakeholderId, Coin)])
@@ -559,6 +516,53 @@ Lets define `distr_size(n) = n * (size(Hash) + size(Coin))`.
 |            37 | TxOut          |       | Transaction output                        |
 |           1-9 | UVarInt Int    | n     | Length of list for output auxilary data   |
 | distr_size(n) | <Hash,Coin>[n] |       | Array of pairs for StakeholderId and Coin |
+
+### Transaction signature data
+
+~~~ haskell
+
+-- | Data that is being signed when creating a TxSig.
+type TxSigData = (TxId, Word32, Hash [TxOut], Hash TxDistribution)
+~~~
+
+| Field size | Type   | Description                                                              |
+|------------+--------+--------------------------------------------------------------------------|
+|         28 | Hash   | Signature of transaction                                                 |
+|          4 | Word32 | Index of the output in transaction's outputs (see `txInIndex` in `TxIn`) |
+|         28 | Hash   | Hash of list of transaction outputs                                      |
+|         28 | Hash   | Hash of transaction distribution                                         |
+
+### Transaction witness
+
+~~~ haskell
+-- | 'Signature' of addrId.
+type TxSig = Signature TxSigData
+
+-- | A witness for a single input.
+data TxInWitness
+    = PkWitness { twKey :: PublicKey
+                , twSig :: TxSig}
+    | ScriptWitness { twValidator :: Script
+                    , twRedeemer  :: Script}
+    deriving (Eq, Show, Generic, Typeable)
+
+-- | A witness is a proof that a transaction is allowed to spend the funds it
+-- spends (by providing signatures, redeeming scripts, etc). A separate proof
+-- is provided for each input.
+type TxWitness = Vector TxInWitness
+~~~
+
+Table for `TxInWitness`:
+
+| Tag size | Tag Type | Tag Value | Description           | Field size   | Field Type | Field name  |
+|----------|----------|-----------|-----------------------|--------------|------------|-------------|
+|        1 | Word8    |         0 | Tag for PkWitness     |              |            |             |
+|          |          |           |                       | 32           | PublicKey  | twKey       |
+|          |          |           |                       | 64           | TxSig      | twSig       |
+|          |          |         1 | Tag for ScriptWitness |              |            |             |
+|          |          |           |                       | size(Script) | Script     | twValidator |
+|          |          |           |                       | size(Script) | Script     | twRedeemer  |
+
 
 ### Transaction
 
