@@ -7,4 +7,5 @@ include: ["_pages","_docs"]
 permalink: /:title
 
 markdown: kramdown
+highlighter: rouge
 array: []
