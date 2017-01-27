@@ -17,14 +17,66 @@ for `Word32`, and 1 for `Word8`.
 For variable-length structures, dependant on object of type T, we use
 `size(T)` notation.
 
+`Word32` is _unsigned integer of 32 bits_ (`uint32`).
+
 To test serialization of objet `myObject` in `ghci`,
-one should use the following command:
+one should use the following command (which will be referenced later as just `hexEncode myObject`):
 
 ~~~
 ghci> toLazyByteString $ lazyByteStringHex $ encode $ myObject
 ~~~
 
-## Common datatypes
+## Common Haskell data types
+
+### Either
+
+~~~ haskell
+data Either a b = Left a | Right b
+~~~
+
+`Either a b` is either value of type `a` or value of type `b`. To distinguish between
+two values we add 1 byte tag before data.
+
+| Tag size | Tag Type | Tag Value | Description   | Field size | Description       |
+|----------+----------+-----------+---------------+------------+-------------------|
+|        1 | Word8    |      0x00 | Tag for Left  |            |                   |
+|          |          |           |               | size(a)    | Value of type `a` |
+|          |          |      0x01 | Tag for Right |            |                   |
+|          |          |           |               | size(b)    | Value of type `b` |
+
+Example:
+
+~~~
+ghci> hexEncode (Left  3 :: Either Word16 Word32)
+"000003"
+ghci> hexEncode (Right 4 :: Either Word16 Word32)
+"0100000004"
+~~~
+
+### Lists and vectors
+
+Sometimes we store list of some objects inside our datatypes. You will see references to them
+as `Vector a` or `[a]`. You should read this as _array of objects of types `a`_. Both these
+standard Haskell data types are serialized in the same way.
+
+| Field size  | Type        | Value | Description                                  |
+|-------------|-------------|-------|----------------------------------------------|
+| 1-9         | UVarInt Int | n     | Size of array                                |
+| n * size(a) | a[n]        |       | Array with length `n` of objects of type `a` |
+
+Example:
+
+~~~
+ghci> hexEncode ([1, 31] :: [Word16])
+"020001001f"
+ghci> hexEncode ([0..135] :: [Word8])  -- 136 bytes from 0 to 135 including
+"8801000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f2021222324252
+62728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4
+f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f70717273747576777
+8797a7b7c7d7e7f8081828384858687"
+~~~
+
+## Basic Cardano-SL data types
 
 ### Coin
 
@@ -218,16 +270,6 @@ data Script = Script {
 |        1-9 | UVarInt Int64  | n     | Size of byte array |
 |          n | Word8[n]       |       | n bytes of script  |
 
-### Lists and vectors
-
-Sometimes we store list of some objects inside our datatypes. You will see references to them
-as `Vector a` or `[a]`. You should read this as _array of objects of types `a`_. Both these
-standard Haskell data types are serialized in the same way.
-
-| Field size  | Type        | Value | Description                                  |
-|-------------|-------------|-------|----------------------------------------------|
-| 1-9         | UVarInt Int | n     | Size of array                                |
-| n * size(a) | a[n]        |       | Array with length `n` of objects of type `a` |
 
 ### Raw
 
