@@ -80,18 +80,18 @@ Modules covered are:
 
 This table describes delegation-related messages, found in
 [Pos.Delegation.Types](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Delegation/Types.hs)
-module.
+module. Format of delegation messages described in _Binary protocols_ section.
 
 Delegation comes in two flavours — per-epoch delegation and delegation
 with revokable long-lived certificates. Per-epoch delegation is called
 “lightweight”, long-lived is called “heavyweight”.
 
-| Message Name | Payload | Commentaries |
-|--------------|---------|--------------|
-| SendProxySK | ProxySKEpoch (lightweight) proxy secret key _or_ SendProxySKSimple (heavyweight) proxy secret key | |
-| ConfirmProxySK | Signature of ProxySKEpoch with the proxy key itself | Used to confirm proxy signature delivery |
-| CheckProxySKConfirmed | Ø | Checks if node is aware of PSK delivery. To be responded with CheckProxySKConfirmedRes |
-| CheckProxySKConfirmedRes | Boolean | |
+| Message Name             | Commentaries                                                                           |
+|--------------------------+----------------------------------------------------------------------------------------|
+| SendProxySK              | Message with proxy delegation certificate                                              |
+| ConfirmProxySK           | Used to confirm proxy signature delivery                                               |
+| CheckProxySKConfirmed    | Checks if node is aware of PSK delivery. To be responded with CheckProxySKConfirmedRes |
+| CheckProxySKConfirmedRes | Returns _True_ if node aware of asked proxy certificate                                |
 
 # Handlers and Workers in CSL
 
@@ -102,17 +102,17 @@ Block acquisition is handled
 
  1. `retrievalWorker`, a server that operates on [block retrieval
 queue](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Context/Context.hs#L74),
-	validating headers and that blocks form a proper chain. 
+        validating headers and that blocks form a proper chain.
  2. `requestHeaders`, a handler that performs and handles header
-	retrieval request. It handles expected headers, tracking those locally
-	and bans a node if it sends headers that weren't requested.
+        retrieval request. It handles expected headers, tracking those locally
+        and bans a node if it sends headers that weren't requested.
  3. `addToBlockRequestQueue` is a function that is exectuted when a
-	header is successfully fetched and we want to carry on and receive a
-	block as well.
+        header is successfully fetched and we want to carry on and receive a
+        block as well.
  4. `mkHeadersRequest`: for `requestHeaders` to work, we have to first
-	tell it what exactly do we want to fetch. `mkHeadersRequest` is a
-	function that is basically a constructor for `MsgGetHeaders`. If such
-	message is possible to construct, it will return `Just MsgGetHeaders`,
+        tell it what exactly do we want to fetch. `mkHeadersRequest` is a
+        function that is basically a constructor for `MsgGetHeaders`. If such
+        message is possible to construct, it will return `Just MsgGetHeaders`,
   otherwise it will return `Nothing`.
 
 The way Blocks are processed is specified in the
@@ -133,8 +133,8 @@ deals with that. Below are listed block listeners.
 ## Announce New Blocks With Pos.Block.Network.Announce
 
  1. When a node gets a chance to mint a block, it runs `announceBlock`. This
-	function will send the header to peers, then peers will be able to
-	request full block and verify it.
+        function will send the header to peers, then peers will be able to
+        request full block and verify it.
  2. To handle such announcement, `handleHeadersCommunication` is used.
 
 ## Block Workers
@@ -148,4 +148,4 @@ module reuses `retrievalWorker` worker and defines a
  1. Generates a genesis block, if necessary
  2. Get leaders for the current epoch
  3. Maybe initiate block generation, if we're the slot leader or we're
-	delegated to do so.
+        delegated to do so.
