@@ -12,10 +12,10 @@ h1{letter-spacing:-.02em;margin:.08em 0 .38em 0;color:#000;line-height:1}
   h1{font-size:350%;letter-spacing:-.04em;}
 }
 
-code.language-haskell .n{color:#f00}
-code.language-haskell .kt{color:#00AEFF}
-code.language-haskell .o{color:#999}
-code.language-haskell .s{color:#3C9B14}
+.language-haskell .n{color:#f00}
+.language-haskell .kt{color:#00AEFF}
+.language-haskell .o{color:#999}
+.language-haskell .s{color:#3C9B14}
 
 
 
