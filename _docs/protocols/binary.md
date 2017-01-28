@@ -17,14 +17,66 @@ for `Word32`, and 1 for `Word8`.
 For variable-length structures, dependant on object of type T, we use
 `size(T)` notation.
 
+`Word32` is _unsigned integer of 32 bits_ (`uint32`).
+
 To test serialization of objet `myObject` in `ghci`,
-one should use the following command:
+one should use the following command (which will be referenced later as just `hexEncode myObject`):
 
 ~~~
 ghci> toLazyByteString $ lazyByteStringHex $ encode $ myObject
 ~~~
 
-## Common datatypes
+## Common Haskell data types
+
+### Either
+
+~~~ haskell
+data Either a b = Left a | Right b
+~~~
+
+`Either a b` is either value of type `a` or value of type `b`. To distinguish between
+two values we add 1 byte tag before data.
+
+| Tag size | Tag Type | Tag Value | Description   | Field size | Description       |
+|----------+----------+-----------+---------------+------------+-------------------|
+|        1 | Word8    |      0x00 | Tag for Left  |            |                   |
+|          |          |           |               | size(a)    | Value of type `a` |
+|          |          |      0x01 | Tag for Right |            |                   |
+|          |          |           |               | size(b)    | Value of type `b` |
+
+Example:
+
+~~~
+ghci> hexEncode (Left  3 :: Either Word16 Word32)
+"000003"
+ghci> hexEncode (Right 4 :: Either Word16 Word32)
+"0100000004"
+~~~
+
+### Lists and vectors
+
+Sometimes we store list of some objects inside our datatypes. You will see references to them
+as `Vector a` or `[a]`. You should read this as _array of objects of types `a`_. Both these
+standard Haskell data types are serialized in the same way.
+
+| Field size  | Type        | Value | Description                                  |
+|-------------|-------------|-------|----------------------------------------------|
+| 1-9         | UVarInt Int | n     | Size of array                                |
+| n * size(a) | a[n]        |       | Array with length `n` of objects of type `a` |
+
+Example:
+
+~~~
+ghci> hexEncode ([1, 31] :: [Word16])
+"020001001f"
+ghci> hexEncode ([0..135] :: [Word8])  -- 136 bytes from 0 to 135 including
+"8801000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f2021222324252
+62728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4
+f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f70717273747576777
+8797a7b7c7d7e7f8081828384858687"
+~~~
+
+## Basic Cardano-SL data types
 
 ### Coin
 
@@ -69,7 +121,7 @@ Example:
 ~~~
 ghci> hash $ mkCoin 3
 AbstractHash 4de0604c5643bf32440d0e380b7ca68e85f623a4de50fe33de2f355e
-ghci> toLazyByteString $ lazyByteStringHex $ encode $ hash $ mkCoin 3
+ghci> hexEncode $ hash $ mkCoin 3
 "4de0604c5643bf32440d0e380b7ca68e85f623a4de50fe33de2f355e"
 ~~~
 
@@ -138,7 +190,7 @@ type StakeholderId = AddressHash PublicKey
 -- | Address is where you can send coins.
 data Address
     = PubKeyAddress
-          { addrKeyHash :: !(AddressHash PublicKey) }
+          { addrKeyHash :: !StakeholderId }
     | ScriptAddress
           { addrScriptHash :: !(AddressHash Script) }
     deriving (Eq, Ord, Generic, Typeable)
@@ -154,7 +206,7 @@ Example:
 ~~~
 ghci> hash somePk
 AbstractHash 7d9be76a0b384dbe8d408012b5f9a33978da79793a9602a65ed3a0f3
-ghci> toLazyByteString $ lazyByteStringHex $ encode $ PubKeyAddress $ hash somePk
+ghci> hexEncode $ PubKeyAddress $ hash somePk
 "007d9be76a0b384dbe8d408012b5f9a33978da79793a9602a65ed3a0f33103f2c5"
 ~~~
 
@@ -218,16 +270,6 @@ data Script = Script {
 |        1-9 | UVarInt Int64  | n     | Size of byte array |
 |          n | Word8[n]       |       | n bytes of script  |
 
-### Lists and vectors
-
-Sometimes we store list of some objects inside our datatypes. You will see references to them
-as `Vector a` or `[a]`. You should read this as _array of objects of types `a`_. Both these
-standard Haskell data types are serialized in the same way.
-
-| Field size  | Type        | Value | Description                                  |
-|-------------|-------------|-------|----------------------------------------------|
-| 1-9         | UVarInt Int | n     | Size of array                                |
-| n * size(a) | a[n]        |       | Array with length `n` of objects of type `a` |
 
 ### Raw
 
@@ -256,35 +298,6 @@ newtype MerkleRoot a = MerkleRoot
 |------------|----------|--------------------------|
 |         28 | Hash Raw | Root hash of Merkle tree |
 
-#### ProxySKSimple
-
-~~~ haskell
--- | Correspondent SK for no-ttl proxy signature scheme.
-type ProxySKSimple = ProxySecretKey ()
-
--- | Convenient wrapper for secret key, that's basically ω plus
--- certificate.
-data ProxySecretKey w = ProxySecretKey
-    { pskOmega      :: w
-    , pskIssuerPk   :: PublicKey
-    , pskDelegatePk :: PublicKey
-    , pskCert       :: ProxyCert w
-    } deriving (Eq, Ord, Show, Generic)
-
--- | Proxy certificate, made of ω + public key of delegate.
-newtype ProxyCert w = ProxyCert { unProxyCert :: Ed25519.Signature }
-    deriving (Eq, Ord, Show, Generic, NFData, Hashable)
-~~~
-
-| Field size | Type         | Description   |
-| ---------- | -------      | -----------   |
-| 32         | PublicKey    | pskIssuerPk   |
-| 32         | PublicKey    | pskDelegatePk |
-| 64         | ProxyCert () | pskCert       |
-
-[//]: TODO: Describe proxy cert and other fields
-
-Note that we skip *pskOmega* field in the table above, because it has type *()* and is serialized into empty string.
 
 ## Headers
 
@@ -463,6 +476,9 @@ type BlockHeaderAttributes = Attributes ()
 
 ## Transaction sending
 
+To send transaction you need to create and send `TxAux` data type to node. All data types
+required to successfully perform sending are described in this section.
+
 ### Transaction input
 
 ~~~ haskell
@@ -500,7 +516,10 @@ data TxOut = TxOut
 
 Example:
 
-`TxOut addr (mkCoin 31) --> 0x007d9be76a0b384dbe8d408012b5f9a33978da79793a9602a65ed3a0f33103f2c5000000000000001f`
+~~~
+ghci> hexEncode $ TxOut addr (mkCoin 31)
+0x007d9be76a0b384dbe8d408012b5f9a33978da79793a9602a65ed3a0f33103f2c5000000000000001f`
+~~~
 
 ### Transaction output auxilary
 
@@ -555,11 +574,11 @@ type TxWitness = Vector TxInWitness
 Table for `TxInWitness`:
 
 | Tag size | Tag Type | Tag Value | Description           | Field size   | Field Type | Field name  |
-|----------|----------|-----------|-----------------------|--------------|------------|-------------|
-|        1 | Word8    |         0 | Tag for PkWitness     |              |            |             |
+|----------+----------+-----------+-----------------------+--------------+------------+-------------|
+|        1 | Word8    |      0x00 | Tag for PkWitness     |              |            |             |
 |          |          |           |                       | 32           | PublicKey  | twKey       |
 |          |          |           |                       | 64           | TxSig      | twSig       |
-|          |          |         1 | Tag for ScriptWitness |              |            |             |
+|          |          |      0x01 | Tag for ScriptWitness |              |            |             |
 |          |          |           |                       | size(Script) | Script     | twValidator |
 |          |          |           |                       | size(Script) | Script     | twRedeemer  |
 
@@ -600,10 +619,10 @@ strategy it is often happens that we pass list of empty lists. In that case we s
 lists more efficiently.
 
 | Tag size | Tag Type | Tag Value | Description              |    Field size | Field Type     | Value |
-|----------|----------|-----------|--------------------------|---------------|----------------|-------|
-|        1 | Word8    |         0 | List of empty lists      |               |                |       |
+|----------+----------+-----------+--------------------------+---------------+----------------+-------|
+|        1 | Word8    |      0x00 | List of empty lists      |               |                |       |
 |          |          |           |                          |           1-9 | UVarInt Int    |       |
-|          |          |         1 | Some lists are not empty |               |                |       |
+|          |          |      0x01 | Some lists are not empty |               |                |       |
 |          |          |           |                          |           1-9 | UVarInt Int    | n     |
 |          |          |           |                          | distr_size(n) | <Hash,Coin>[n] |       |
 
@@ -619,3 +638,179 @@ type TxAux = (Tx, TxWitness, TxDistribution)
 | size(Tx)             | Tx             | Transaction itself       |
 | size(TxWitness)      | TxWitness      | Witness for transaction  |
 | size(TxDistribution) | TxDistribution | Transaction distribution |
+
+[//]: TODO: describe full creation of transaction by bytes
+
+## Delegation
+
+Description of *Delegation* process in CSL-application chapter. Here is only
+description of message formats.
+
+### Proxy certificate
+
+Similar to `Signature`.
+
+~~~ haskell
+-- | Proxy certificate, made of ω + public key of delegate.
+newtype ProxyCert w = ProxyCert { unProxyCert :: Ed25519.Signature }
+    deriving (Eq, Ord, Show, Generic, NFData, Hashable)
+~~~
+
+| Field size | Type      | Description                                 |
+|------------+-----------+---------------------------------------------|
+|         64 | Word8[64] | `unProxyCert`: 64 bytes of signature string |
+
+### Proxy secret key
+
+~~~ haskell
+-- | Convenient wrapper for secret key, that's basically ω + certificate.
+data ProxySecretKey w = ProxySecretKey
+    { pskOmega      :: w
+    , pskIssuerPk   :: PublicKey
+    , pskDelegatePk :: PublicKey
+    , pskCert       :: ProxyCert w
+    } deriving (Eq, Ord, Show, Generic)
+~~~
+
+| Field size | Type        | Description   |
+|------------+-------------+---------------|
+|    size(w) | w           | pskOmega      |
+|         32 | PublicKey   | pskIssuerPk   |
+|         32 | PublicKey   | pskDelegatePk |
+|         64 | ProxyCert w | pskCert       |
+
+### Proxy signature
+
+~~~ haskell
+-- | Delegate signature made with certificate-based permission. @a@
+-- stays for message type used in proxy (ω in the implementation
+-- notes).
+data ProxySignature w a = ProxySignature
+    { pdOmega      :: w
+    , pdDelegatePk :: PublicKey
+    , pdCert       :: ProxyCert w
+    , pdSig        :: Ed25519.Signature
+    } deriving (Eq, Ord, Show, Generic)
+~~~
+
+| Field size | Type        | Description  |
+|------------+-------------+--------------|
+|    size(w) | w           | pdOmega      |
+|         32 | PublicKey   | pdDelegatePk |
+|         64 | ProxyCert w | pdCert       |
+|         64 | Signature   | pdSig        |
+
+### Proxy secret key for lightweight delegation
+
+~~~ haskell
+-- | Correspondent SK for no-ttl proxy signature scheme.
+type ProxySKSimple = ProxySecretKey ()
+~~~
+
+| Field size | Type         | Description   |
+|------------+--------------+---------------|
+|         32 | PublicKey    | pskIssuerPk   |
+|         32 | PublicKey    | pskDelegatePk |
+|         64 | ProxyCert () | pskCert       |
+
+Note that we skip *pskOmega* field in the table above, because it has type *()* and is serialized into empty string.
+
+### Proxy secret key for heavyweight delegation
+
+
+#### Signature
+
+~~~ haskell
+-- | Proxy signature used in csl -- holds a pair of epoch
+-- indices. Block is valid if it's epoch index is inside this range.
+type ProxySigEpoch a = ProxySignature (EpochIndex, EpochIndex) a
+~~~
+
+| Field size | Type                               | Description  |
+|------------+------------------------------------+--------------|
+|       1-10 | UVarInt Word64                     | from epoch   |
+|       1-10 | UVarInt Word64                     | to epoch     |
+|         32 | PublicKey                          | pdDelegatePk |
+|         64 | ProxyCert (EpochIndex, EpochIndex) | pdCert       |
+|         64 | Signature                          | pdSig        |
+
+#### Secret key
+
+~~~ haskell
+-- | Same alias for the proxy secret key (see 'ProxySigEpoch').
+type ProxySKEpoch = ProxySecretKey (EpochIndex, EpochIndex)
+~~~
+
+| Field size | Type                               | Description   |
+|------------+------------------------------------+---------------|
+|       1-10 | UVarInt Word64                     | from epoch    |
+|       1-10 | UVarInt Word64                     | to epoch      |
+|         32 | PublicKey                          | pskIssuerPk   |
+|         32 | PublicKey                          | pskDelegatePk |
+|         64 | ProxyCert (EpochIndex, EpochIndex) | pskCert       |
+
+### Proxy delegation start message
+
+~~~ haskell
+-- | Message with delegated proxy secret key. Is used to propagate
+-- both epoch-oriented psks (lightweight) and simple (heavyweight).
+data SendProxySK
+    = SendProxySKEpoch !ProxySKEpoch
+    | SendProxySKSimple !ProxySKSimple
+    deriving (Show, Eq, Generic)
+~~~
+
+| Tag size | Tag Type | Tag Value | Description               | Field size          | Description |
+|----------+----------+-----------+---------------------------+---------------------+-------------|
+|        1 | Word8    |      0x00 | Tag for SendProxySKEpoch  |                     |             |
+|          |          |           |                           | size(ProxySKEpoch)  | heavyweight |
+|          |          |      0x01 | Tag for SendProxySKSimple |                     |             |
+|          |          |           |                           | size(ProxySKSimple) | lightweigh  |
+
+### Lighweight delegation confirmation
+
+#### ConfirmProxySK
+
+~~~ haskell
+-- | Confirmation of proxy signature delivery. Delegate should take
+-- the proxy signing key he has and sign this key with itself. If the
+-- signature is correct, then it was done by delegate (guaranteed by
+-- PSK scheme). Checking @w@ can be done with @(const True)@
+-- predicate, because certificate may be sent in epoch id that's
+-- before lower cert's @EpochIndex@.
+data ConfirmProxySK =
+    ConfirmProxySK !ProxySKEpoch !(ProxySigEpoch ProxySKEpoch)
+    deriving (Show, Eq, Generic)
+~~~
+
+| Field size          | Description           |
+|---------------------+-----------------------|
+| size(ProxySKEpoch)  | certificate           |
+| size(ProxySigEpoch) | proof for certificate |
+
+#### CheckProxySKConfirmed
+
+~~~ haskell
+-- | Request to check if a node has any info about PSK delivery.
+data CheckProxySKConfirmed =
+    CheckProxySKConfirmed !ProxySKEpoch
+    deriving (Show, Eq, Generic)
+~~~
+
+| Field size         | Description |
+|--------------------+-------------|
+| size(ProxySKEpoch) | certificate |
+
+#### CheckProxySKConfirmedRes
+
+~~~ haskell
+-- | Response to the @CheckProxySKConfirmed@ call.
+data CheckProxySKConfirmedRes =
+    CheckProxySKConfirmedRes !Bool
+    deriving (Show, Eq, Generic)
+~~~
+
+| Value size | Value Type | Value | Result |
+|------------+------------+-------+--------|
+|          1 | Word8      |  0x00 | False  |
+|            |            |  0x01 | True   |
