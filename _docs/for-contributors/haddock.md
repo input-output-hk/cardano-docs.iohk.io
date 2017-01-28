@@ -16,6 +16,3 @@ This is the [latest documentation](/haddock/latest/index.html). **Notice: it can
 ## Release
 
 Stable releases documentation:
-
-* [0.2](/haddock/release/0.2/index.html).
-* [0.2](/haddock/release/0.2/index.html).
