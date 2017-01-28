@@ -6,7 +6,7 @@
 --   
 --   Please see README.md
 @package cardano-sl
-@version 0.2
+@version 0.1.0.0
 
 
 -- | Common things used in <a>Arbitrary</a> and <a>Arbitrary</a>
