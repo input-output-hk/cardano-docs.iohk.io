@@ -170,12 +170,12 @@ data SlotId = SlotId
     } deriving (Show, Eq, Ord, Generic, Typeable)
 ~~~
 
-| Field size | Type    | Description                        |
-| ---------- | ------- | ---------------------------------- |
-|          8 | uint64  | Epoch index                        |
-|          2 | uint16  | Slot index inside a concrete epoch |
+| Field size | Type           | Description                        |
+| ---------- | -------        | ---------------------------------- |
+|       1-10 | UVarInt Word64 | Epoch index                        |
+|        1-3 | UVarInt Word16 | Slot index inside a concrete epoch |
 
-Example:
+Example: `SlotId 128 15 --> 0x80010F`
 
 [//]: TODO: Add example
 
@@ -336,7 +336,6 @@ data SoftwareVersion = SoftwareVersion
 |------------|-------------|-------|-------------------------------|
 | 1-9        | UVarInt Int | n     | Length of application name    |
 | n          | Word8[n]    |       | UTF8 encoded application name |
-|            |             |       |                               |
 
 ### HeaderHash
 
@@ -366,17 +365,17 @@ data GtProof
 [//]: TODO: Add descriptions and code for maps to the basic types section
 
 | Tag size | Tag Type | Tag Value | Description               | Field size | Field Type              |
-|----------|----------|-----------|---------------------------|------------|-------------------------|
-|        1 | Word8    |         0 | Tag for CommitmentsProof  |            |                         |
+|----------+----------+-----------+---------------------------+------------+-------------------------|
+|        1 | Word8    |      0x00 | Tag for CommitmentsProof  |            |                         |
 |          |          |           |                           |         28 | Hash CommitmentsMap     |
 |          |          |           |                           |         28 | Hash VssCertificatesMap |
-|          |          |         1 | Tag for OpeningsProof     |            |                         |
+|          |          |      0x01 | Tag for OpeningsProof     |            |                         |
 |          |          |           |                           |         28 | Hash OpeningsMap        |
 |          |          |           |                           |         28 | Hash VssCertificatesMap |
-|          |          |         2 | Tag for SharesProof       |            |                         |
+|          |          |      0x02 | Tag for SharesProof       |            |                         |
 |          |          |           |                           |         28 | Hash SharesMap          |
 |          |          |           |                           |         28 | Hash VssCertificatesMap |
-|          |          |         3 | Tag for CertificatesProof |            |                         |
+|          |          |      0x03 | Tag for CertificatesProof |            |                         |
 |          |          |           |                           |         28 | Hash VssCertificatesMap |
 
 ### MainBlockHeader
