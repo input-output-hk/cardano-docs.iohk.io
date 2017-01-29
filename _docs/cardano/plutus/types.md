@@ -19,7 +19,7 @@ Ints, Floats, and Byte Strings
 ==============================
 
 `Int`, `Float`, and `ByteString` are primitive types, with constructor forms
-given by the various constants specified by the following grammar.
+given by various constants specified by the following grammar.
 
     <int> ::= "-"? <digit>+
     <float> ::= "-"? <digit>+ <fractExponent>
