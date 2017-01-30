@@ -34,5 +34,5 @@ anchors:
 
 ## Menu order
 
-Items in menu can reordered by its date prefix in the filename eg: 2017-01-01-filename.md.
+Items in menu can be reordered by its date prefix in the filename eg: 2017-01-01-filename.md.
 For now. Can be sorted otherwise later.
