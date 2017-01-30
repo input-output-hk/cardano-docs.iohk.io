@@ -35,9 +35,9 @@ Basic network concepts are:
 
 **Transport** represents real "TCP-point". Actually transport associated with concrete host and port.
 
-**EndPoint** represents node from the network point of view. The main property of endpoint is endpoint's address. If we want to connect to the node, we should use endpoint's address. Address is a binary string with the structure `"HOST:PORT:NODE_ID"`, for example, `"127.0.0.1:3010:0"`. It's theoretically possible to have more than one nodes within one transport, for example, `"127.0.0.1:3010:0"` and `"127.0.0.1:3010:1"`, but in most cases there's one node on one transport.
+**EndPoint** represents node from the network point of view. The main property of an endpoint is the endpoint's address. If we want to connect to the node, we should use the endpoint's address. Address is a binary string with the structure `"HOST:PORT:NODE_ID"`, for example, `"127.0.0.1:3010:0"`. It's theoretically possible to have more than one node within one transport, for example, `"127.0.0.1:3010:0"` and `"127.0.0.1:3010:1"`, but in most cases there's one node on one transport.
 
-**Connection** is a _lightweight_ bidirectional connection between nodes. In fact two connected nodes use one and _only one_ real TCP-connection, so lightweight connections are just a _logical_ concepts. You can think about them as about tiny bidirectional channels inside TCP-connection. Every connection has an integer id. It's theoretically possible to have thousands of lightweight connections inside single TCP-connection. When the first lightweight connection created, real TCP-connection is established. When the last lightweight connection is closed, real TCP-connection is dropped. In these terms you can think about real TCP-connection as about _heavyweight_ connection.
+**Connection** is a _lightweight_ bidirectional connection between nodes. In fact, two connected nodes use one and _only one_ real TCP-connection, so lightweight connections are just a _logical_ concepts. You can think about them as about tiny bidirectional channels inside a TCP-connection. Every connection has an integer id. It's theoretically possible to have thousands of lightweight connections inside a single TCP-connection. When the first lightweight connection is created, the real TCP-connection is established. When the last lightweight connection is closed, the real TCP-connection is dropped. In these terms, you can think about real TCP-connection as about a _heavyweight_ connection.
 
 **Event** represents some concrete network event. For example:
 
@@ -47,15 +47,15 @@ Basic network concepts are:
 - EndPoint closed (_when endpoint closed and TCP-connection dropped_),
 - Error (_when some error occurs_).
 
-**Errors** describe different network errors, like errors during creation of the endpoint, during sending messages or some common network error.
+**Errors** describe different network errors, like errors during creation of the endpoint, during sending of messages or some common network error.
 
 ## Nodes interconnection notice
 
-After your node was started, it looks around and tries to find other nodes (neighbors). Please read [P2P Network section](/for-contributors/implementation#p2p-network) for more info about peer discovery and neighbors. Further it's assumed that list of neighbors' endpoints addresses already obtained.
+After your node was started, it looks around and tries to find other nodes (neighbors). Please read [P2P Network section](/for-contributors/implementation#p2p-network) for more info about peer discovery and neighbors. Further it's assumed that the list of neighbors' endpoints addresses is already obtained.
 
-Every node should work asynchronously: node should run thread(s) for sending messages and thread(s) for receiving messages.
+Every node should work asynchronously: the node should run thread(s) for sending messages and thread(s) for receiving messages.
 
-Messages can be divided into two groups: command messages and data messages. We use command messages for the needs of network transport layer itself, like a connection requests. Data messages are used for transmitting some data between the nodes.
+Messages can be divided into two groups: command messages and data messages. We use command messages for the needs of network transport layer itself, like connection requests. Data messages are used for transmitting of some data between the nodes.
 
 ### Low-level notice
 
