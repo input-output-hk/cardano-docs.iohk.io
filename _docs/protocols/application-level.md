@@ -8,8 +8,8 @@ group: protocols
 # CSL Application-Level Messaging
 
 In this document we explore messaging in Cardano SL. The goal of this
-document is to get the reader acquanited with the way all the pieces,
-such as Time-Warp, Network-Transport and Kademlia DHT click together
+document is to get the reader acquainted with the way all the pieces,
+such as Time-Warp, Network-Transport and Kademlia DHT, click together
 making it possible to implement a full CSL node.
 
 ## Message Typeclass and Message Types
