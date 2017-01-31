@@ -13,10 +13,10 @@ This guide describes blocks handling logic, which is defined in [Pos.Block.Logic
 
 We work with blocks and blocks' headers. Fundamentally, we can:
 
-* create block,
-* verify block,
-* apply block,
-* rollback block,
+* create a block,
+* verify a block,
+* apply a block,
+* rollback a block,
 
 and:
 
@@ -25,24 +25,24 @@ and:
 
 ## Block Creation
 
-There are two kinds of blocks: **main** block and **genesis** block. We create main block with [`createMainBlock`](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/Block/Logic.hs#L29) function and genesis block with [`createGenesisBlock`](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/Block/Logic.hs#L28) function.
+There are two kinds of blocks: a **main** block and a **genesis** block. We create a main block with [`createMainBlock`](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/Block/Logic.hs#L29) function and a genesis block with [`createGenesisBlock`](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/Block/Logic.hs#L28) function.
 
 ### Main Block Creation
 
 We try to create a new main block on top of the best chain if possible. We actually can create new block if:
 
-* we know genesis block for epoch from given slot id,
+* we know the genesis block for the epoch from given slot id,
 * last known block is not more than [`slotSecurityParam`](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/Block/Logic.hs#L55) blocks away from given slot id.
 
 Value of [`slotSecurityParam`](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/Constants.hs#L103) (actually - number of slots) depends on maximum number of blocks which can be rolled back. This [maximum number](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/Constants.hs#L98) is a security parameter from the protocol paper.
 
-First of all, we have to check whether our software can create block according to current global state. If not - we just report that this software is obsolete. If yes, we have to [check slot id](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/Block/Logic.hs#L633): it shouldn't be too big but should be bigger than slot id from the last known block. Then, if this condition is satisfied, we can [actually create new block](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/Block/Logic.hs#L646).
+First of all, we have to check whether our software can create block according to current global state. If not - we just report that this software is obsolete. If yes, we have to [check slot id](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/Block/Logic.hs#L633): it shouldn't be too big but should be bigger than slot id from the last known block. Then, if this condition is satisfied, we can [actually create the new block](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/Block/Logic.hs#L646).
 
 ### Genesis Block Creation
 
-We create genesis block for current epoch when head of currently known best chain is [`MainBlock`](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/Block/Logic.hs#L76) corresponding to one of last [`slotSecurityParam`](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/Constants.hs#L103) slots of (i - 1)-th epoch.
+We create a genesis block for the current epoch when the head of currently known best chain is [`MainBlock`](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/Block/Logic.hs#L76) corresponding to one of last [`slotSecurityParam`](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/Constants.hs#L103) slots of (i - 1)-th epoch.
 
-First of all, we try to get leaders. If there's no leaders or not enough blocks for LRC (Leaders and Richmen Computation), we just report about error, otherwise we're trying to create [actually new genesis block](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/Block/Logic.hs#L581). However, sometimes we [shouldn't create one](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/Block/Logic.hs#L558). For example, we shouldn't do it [for 0-th epoch](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/Block/Logic.hs#L560).
+First of all, we try to get leaders. If there's no leaders or not enough blocks for LRC (Leaders and Richmen Computation), we just report an error, otherwise we're trying to create [actually new genesis block](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/Block/Logic.hs#L581). However, sometimes we [shouldn't create one](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/Block/Logic.hs#L558). For example, we shouldn't do it [for the 0-th epoch](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/Block/Logic.hs#L560).
 
 ## Block Application
 
@@ -54,7 +54,7 @@ If everything is ok, we [actually apply blocks](https://github.com/input-output-
 * [apply delegation](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/Delegation/Logic.hs#L290),
 * [apply transactions](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/Txp/Logic.hs#L72).
 
-Moreover, we can verify blocks before application (i.e. apply blocks only if they're valid). We use [`verifyAndApplyBlocks`](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/Block/Logic.hs#L404) function for it. If some error occurred during applying, two behaviour are possible:
+Moreover, we can verify blocks before application (i.e. apply blocks only if they're valid). We use [`verifyAndApplyBlocks`](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/Block/Logic.hs#L404) function for it. If some error occurred during applying, two behaviors are possible:
 
 1. all blocks applied inside this function will be rollbacked,
 2. this function will try to apply as much blocks as it's possible.
@@ -73,13 +73,13 @@ Of course, sometimes we cannot rollback blocks. For example, it's [impossible to
 
 ## Block Headers Classification
 
-Header can be classified as:
+A header can be classified as:
 
 1. [valid](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/Block/Logic.hs#L196),
 2. [invalid](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/Block/Logic.hs#L198),
 3. [useless](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/Block/Logic.hs#L197).
 
-We use function [`classifyHeaders`](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/Block/Logic.hs#L207) for it.
+We use the function [`classifyHeaders`](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/Block/Logic.hs#L207) for it.
 
 We treat headers as **useless** if:
 
