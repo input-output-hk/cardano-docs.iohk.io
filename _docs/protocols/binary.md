@@ -53,6 +53,31 @@ ghci> hexEncode (Right 4 :: Either Word16 Word32)
 "0100000004"
 ~~~
 
+### Big Integer
+
+~~~ haskell
+-- Fixed-size type for a subset of Integer
+type SmallInt = Int32
+~~~
+
+Integers are encoded in two ways: if they fit inside a SmallInt,
+they're written as a byte tag, and that value. If the `Integer` value
+is too large to fit in a SmallInt, it is written as a byte array,
+along with a sign and length field.
+
+For reference see [implementation](http://hackage.haskell.org/package/binary-0.8.4.1/docs/src/Data.Binary.Class.html#line-306).
+
+Example:
+
+~~~
+ghci> hexEncode $ (15 :: Integer)
+"000000000f"
+ghci> hexEncode $ (  (2 :: Integer) ^ (128 :: Integer))
+"010100000000000000110000000000000000000000000000000001"
+ghci> hexEncode $ (- (2 :: Integer) ^ (128 :: Integer))
+"01ff00000000000000110000000000000000000000000000000001"
+~~~
+
 ### Lists and vectors
 
 Sometimes we store list of some objects inside our datatypes. You will see references to them
@@ -74,6 +99,23 @@ ghci> hexEncode ([0..135] :: [Word8])  -- 136 bytes from 0 to 135 including
 62728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4
 f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f70717273747576777
 8797a7b7c7d7e7f8081828384858687"
+~~~
+
+### HashMap
+
+`HashMap key value` is mapping from keys to values. In serialization HashMap is represented
+as list of pairs from `key` and `value` and thus is serialized as `[(key, value)]`.
+
+| Field size                    | Type            | Value | Description                                             |
+|-------------------------------+-----------------+-------+---------------------------------------------------------|
+| 1-9                           | UVarInt Int     | n     | Size of HashMap                                         |
+| n * (size(key) + size(value)) | <key, value>[n] |       | Array with length `n` of objects of type `(key, value)` |
+
+Example:
+
+~~~
+ghci> hexEncode $ Data.HashMap.Strict.fromList [(1 :: Word8, 127 :: Word64), (2, 255)]
+"0201000000000000007f0200000000000000ff"
 ~~~
 
 ## Basic Cardano-SL data types
@@ -813,3 +855,150 @@ data CheckProxySKConfirmedRes =
 |------------+------------+-------+--------|
 |          1 | Word8      |  0x00 | False  |
 |            |            |  0x01 | True   |
+
+## Update System
+
+### Update Vote
+
+~~~ haskell
+-- | ID of softwaree update proposal
+type UpId = Hash UpdateProposal
+
+-- | Vote for update proposal
+data UpdateVote = UpdateVote
+    { -- | Public key of stakeholder, who votes
+      uvKey        :: !PublicKey
+    , -- | Proposal to which this vote applies
+      uvProposalId :: !UpId
+    , -- | Approval/rejection bit
+      uvDecision   :: !Bool
+    , -- | Signature of (Update proposal, Approval/rejection bit)
+      --   by stakeholder
+      uvSignature  :: !(Signature (UpId, Bool))
+    } deriving (Eq, Show, Generic, Typeable)
+~~~
+
+| Field size | Type      | Field        |
+|------------+-----------+--------------|
+|         32 | PublicKey | uvKey        |
+|         28 | Hash      | uvProposalId |
+|          1 | Bool      | uvDecision   |
+|         64 | Signature | uvSignature  |
+
+### Vote Identifier
+
+~~~ haskell
+type VoteId = (UpId, PublicKey, Bool)
+~~~
+
+| Field size | Type      | Description             |
+|------------+-----------+-------------------------|
+|         28 | Hash      | hash of update proposal |
+|         32 | PublicKey | public key              |
+|          1 | Bool      | vote result             |
+
+For more description of fields see *UpdateVote* message description. `VoteId` is
+just `(uvProposalId, uvKey, uvDecision)`.
+
+### Block Version Data
+
+~~~ haskell
+-- | Data which is associated with 'BlockVersion'.
+data BlockVersionData = BlockVersionData
+    { bvdScriptVersion     :: !ScriptVersion
+    , bvdSlotDuration      :: !Millisecond
+    , bvdMaxBlockSize      :: !Byte
+    , bvdMaxTxSize         :: !Byte
+    , bvdMpcThd            :: !CoinPortion
+    , bvdHeavyDelThd       :: !CoinPortion
+    , bvdUpdateVoteThd     :: !CoinPortion
+    , bvdUpdateProposalThd :: !CoinPortion
+    , bvdUpdateImplicit    :: !FlatSlotId
+    , bvdUpdateSoftforkThd :: !CoinPortion
+    } deriving (Show, Eq, Generic, Typeable)
+~~~
+
+|    Field size | Type           | Field                |
+|---------------+----------------+----------------------|
+|           1-3 | UVarInt Word16 | bvdScriptVersion     |
+| size(Integer) | Integer        | bvdSlotDuration      |
+|             4 | Int32          | bvdMaxBlockSize      |
+|             4 | Int32          | bvdMaxTxSize         |
+|             8 | Word64         | bvdMpcThd            |
+|             8 | Word64         | bvdHeavyDelThd       |
+|             8 | Word64         | bvdUpdateVoteThd     |
+|             8 | Word64         | bvdUpdateProposalThd |
+|             8 | Word64         | bvdUpdateImplicit    |
+|             8 | Word64         | bvdUpdateSoftforkThd |
+
+### Update Data
+
+~~~ haskell
+-- | Data which describes update. It is specific for each system.
+data UpdateData = UpdateData
+    { udAppDiffHash  :: !(Hash Raw)
+    -- ^ Hash of binary diff between two applications. This diff can
+    -- be passed to updater to create new application.
+    , udPkgHash      :: !(Hash Raw)
+    -- ^ Hash of package to install new application. This package can
+    -- be used to install new application from scratch instead of
+    -- updating existing application.
+    , udUpdaterHash  :: !(Hash Raw)
+    -- ^ Hash if update application which can be used to install this
+    -- update (relevant only when updater is used, not package).
+    , udMetadataHash :: !(Hash Raw)
+    -- ^ Hash of metadata relevant to this update.  It is raw hash,
+    -- because metadata can include image or something
+    -- (maybe). Anyway, we can always use `unsafeHash`.
+    } deriving (Eq, Show, Generic, Typeable)
+~~~
+
+| Field size | Type | Field          |
+|------------+------+----------------|
+|         28 | Hash | udAppDiffHash  |
+|         28 | Hash | udPkgHash      |
+|         28 | Hash | udUpdaterHash  |
+|         28 | Hash | udMetadataHash |
+
+### System Tag
+
+~~~ haskell
+-- | Tag of system for which update data is purposed, e.g. win64, mac32
+newtype SystemTag = SystemTag { getSystemTag :: Text }
+  deriving (Eq, Ord, Show, Generic, Buildable, Hashable, Lift, Typeable)
+~~~
+
+`SystemTag` is encoded as `ByteString` in UTF-8 encoding.
+
+| Field size | Type          | Value | Field                           |
+|------------+---------------+-------+---------------------------------|
+| 1-9        | UVarInt Int64 | n     | Size of text in bytes           |
+| n          | Word8[n]      |       | `n` bytes of UTF-8 encoded text |
+
+### Update Proposal
+
+~~~ haskell
+type UpAttributes = Attributes ()
+
+-- | Proposal for software update
+data UpdateProposal = UpdateProposal
+    { upBlockVersion     :: !BlockVersion
+    , upBlockVersionData :: !BlockVersionData
+    , upSoftwareVersion  :: !SoftwareVersion
+    , upData             :: !(HM.HashMap SystemTag UpdateData)
+    -- ^ UpdateData for each system which this update affects.
+    -- It must be non-empty.
+    , upAttributes       :: !UpAttributes
+    -- ^ Attributes which are currently empty, but provide
+    -- extensibility.
+    } deriving (Eq, Show, Generic, Typeable)
+~~~
+
+| Field size                               | Type                       | Value | Field              |
+|------------------------------------------+----------------------------+-------+--------------------|
+| 5                                        | BlockVersion               |       | upBlockVersion     |
+| size(BlockVersionData)                   | BlockVersionData           |       | upBlockVersionData |
+| size(SoftwareVersion)                    | SoftwareVersion            |       | upSoftwareVersion  |
+| 1-9                                      | UVarInt Int                | n     |                    |
+| n * (size(SystemTag) + size(UpdateData)) | <SystemTag, UpdateData>[n] |       | upData             |
+| size(Attributes ())                      | Attributes ()              |       | upAttributes       |
