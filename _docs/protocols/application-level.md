@@ -264,13 +264,37 @@ function. This function tries to [establish connection with the
 listeners](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/DHT/Model/Neighbors.hs#L79)
 to start a _conversation_ with them.
 
-## Update
+## Update System
 
-Below is the list of workers and listeners related to update system
+Below is the list of workers and listeners related to update system.
 
 ### Workers
 
+Workers for update system are defined
+[here](https://github.com/input-output-hk/cardano-sl/blob/22360aa45e5dd82d0c87872d8530217fc3d08f4a/src/Pos/Update/Worker.hs).
+The only thing update system does, on each slot it checks for a new
+*approved* update.
+
 ### Listeners
+
+Listeners for update system are defined
+[here](https://github.com/input-output-hk/cardano-sl/blob/22360aa45e5dd82d0c87872d8530217fc3d08f4a/src/Pos/Update/Network/Listeners.hs).
+
+`UpdateProposal` handlers:
+
+ + `Req` — local node answers to a request about update proposal with
+   the set of votes for/against this proposal.
+ + `Inv` — checks if we need offered proposal and record the data if
+   this inventory message is relevant.
+ + `Data` — carries proposal information along with votes, which is
+   verified and recorded.
+
+`UpdateVote` listeners:
+
+ + `Req` — sends _our_ vote to whoever requested it.
+ + `Inv` — checks if we care for the offered vote and record it if
+    relevant.
+ + `Data` — carries a single vote, which is verified and recorded.
 
 ## WorkMode and WorkModeMin
 
