@@ -107,15 +107,34 @@ Block exchange messages are described above.
 
 ### Block Processing Workers
 
-Block acquisition is handled in [Pos.Block.Network.Retrieval](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Retrieval.hs) module.
+Block acquisition is handled in
+[Pos.Block.Network.Retrieval](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Retrieval.hs)
+module.
 
-Function `retrievalWorker` is very important: it's a server that operates on [block retrieval queue](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Context/Context.hs#L74), validating headers and that blocks form a proper chain. Thus, in [this point](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Retrieval.hs#L105) it sends a message of type `MsgGetBlocks` to the listener, and in [this point](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Retrieval.hs#L134) it receives an answer from that listener, message of type `MsgBlock`.
+Function `retrievalWorker` is very important: it's a server that
+operates on [block retrieval
+queue](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Context/Context.hs#L74),
+validating headers and that blocks form a proper chain. Thus, in [this
+point](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Retrieval.hs#L105)
+it sends a message of type `MsgGetBlocks` to the listener, and in [this
+point](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Retrieval.hs#L134)
+it receives an answer from that listener, message of type `MsgBlock`.
 
-Another example, function `requestHeaders`. This function handles expected block headers, tracking those locally and bans a node if it sends headers that weren't requested. So in [this point](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Retrieval.hs#L190) it sends a message of type `MsgGetHeaders` to the listener, and in [this point](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Retrieval.hs#L191) it receives an answer from that listener, a message of type `MsgHeaders`. 
+Another example, function `requestHeaders`. This function handles
+expected block headers, tracking those locally and bans a node if it
+sends headers that weren't requested. So in [this
+point](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Retrieval.hs#L190)
+it sends a message of type `MsgGetHeaders` to the listener, and in [this
+point](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Retrieval.hs#L191)
+it receives an answer from that listener, a message of type
+`MsgHeaders`. 
 
-Additional worker for the block processing defined in [Pos.Block.Worker](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Worker.hs) module. Here we reuse `retrievalWorker` described above and defines a
+Additional worker for the block processing defined in
+[Pos.Block.Worker](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Worker.hs)
+module. Here we reuse `retrievalWorker` described above and defines a
 [well-documented](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Worker.hs#L50)
-`blkOnNewSlot` worker. It represents an action which should be done when new slot starts. This action includes following steps:
+`blkOnNewSlot` worker. It represents an action which should be done when
+new slot starts. This action includes following steps:
 
  1. generates a genesis block, if necessary;
  2. get leaders for the current epoch;
@@ -123,17 +142,47 @@ Additional worker for the block processing defined in [Pos.Block.Worker](https:/
 
 ### Logic
 
-The way blocks are processed is specified in the [Pos.Block.Logic](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Logic.hs) module. Please read about [Handling Blocks and Headers](/protocols/handling-blocks-and-headers/) for more info.
+The way blocks are processed is specified in the
+[Pos.Block.Logic](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Logic.hs)
+module. Please read about [Handling Blocks and
+Headers](/protocols/handling-blocks-and-headers/) for more info.
 
 ### Block Processing Listeners
 
-Listeners for the block processing are defined in [Pos.Block.Network.Listeners](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Listeners.hs) module.
+Listeners for the block processing are defined in
+[Pos.Block.Network.Listeners](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Listeners.hs)
+module.
 
-Handler [`handleGetHeaders`](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Listeners.hs#L58) sends out the block headers: in [this point](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Announce.hs#L61) it receives a message of type `MsgGetHeaders` from the worker, [get the headers](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Logic.hs#L235) and then, in [this point](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Announce.hs#L65), it sends response message of type `MsgHeaders` to that worker.
+Handler
+[`handleGetHeaders`](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Listeners.hs#L58)
+sends out the block headers: in [this
+point](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Announce.hs#L61)
+it receives a message of type `MsgGetHeaders` from the worker, [get the
+headers](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Logic.hs#L235)
+and then, in [this
+point](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Announce.hs#L65),
+it sends response message of type `MsgHeaders` to that worker.
 
-A handler [`handleGetBlocks`](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Listeners.hs#L65) sends out blocks. This handler corresponds to [`retrieveBlocks`](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Retrieval.hs#L117) from main [`retrievalWorker`](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Retrieval.hs#L53). Thus, in [this point](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Listeners.hs#L70) it receives a message of type `MsgGetBlocks` from the worker, [get corresponding headers](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Logic.hs#L308) and then, in [this point](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Listeners.hs#L86), it sends response message of type `MsgBlock` to that worker.
+A handler
+[`handleGetBlocks`](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Listeners.hs#L65)
+sends out blocks. This handler corresponds to
+[`retrieveBlocks`](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Retrieval.hs#L117)
+from main
+[`retrievalWorker`](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Retrieval.hs#L53).
+Thus, [here](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Listeners.hs#L70)
+it receives a message of type `MsgGetBlocks` from the worker, [gets
+corresponding
+headers](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Logic.hs#L308)
+and then, [here](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Listeners.hs#L86),
+it sends response message of type `MsgBlock` to that worker.
 
-The similar way a handler [`handleBlockHeaders`](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Listeners.hs#L90) sends out block headers for unsolicited usecase: it receives a message of type [`MsgHeaders`](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Listeners.hs#L97) from the worker and [handle it](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Listeners.hs#L116).
+The similar way a handler
+[`handleBlockHeaders`](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Listeners.hs#L90)
+sends out block headers for unsolicited usecase: it receives a message
+of type
+[`MsgHeaders`](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Listeners.hs#L97)
+from the worker and [handle
+it](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Listeners.hs#L116).
 
 All these handlers work in the `ListenerActionConversation` mode because they send replies to corresponding workers (so we have a _conversation_ between workers and listeners).
 
@@ -143,23 +192,59 @@ Another example is a work with delegation messages described above.
 
 ### Workers
 
-Workers for delegation messages are defined in [Pos.Delegation.Methods](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Delegation/Methods.hs) module. There are 3 workers, [`sendProxySKEpoch`](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Delegation/Methods.hs#L24), [`sendProxySKSimple`](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Delegation/Methods.hs#L31) and [`sendProxyConfirmSK`](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Delegation/Methods.hs#L39).
+Workers for delegation messages are defined in
+[Pos.Delegation.Methods](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Delegation/Methods.hs)
+module. There are 3 workers,
+[`sendProxySKEpoch`](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Delegation/Methods.hs#L24),
+[`sendProxySKSimple`](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Delegation/Methods.hs#L31)
+and
+[`sendProxyConfirmSK`](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Delegation/Methods.hs#L39).
 
-All these workers sends a messages not to one particular node, but to all neighbors. Thus, `sendProxyConfirmSK` worker [sends](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Delegation/Methods.hs#L46) a message of type `ConfirmProxySK` to all neighbors.
+All these workers send messages not to one particular node, but to all
+neighbors. Thus, `sendProxyConfirmSK` worker
+[sends](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Delegation/Methods.hs#L46)
+a message of type `ConfirmProxySK` to all neighbors.
 
 ### Listeners
 
-Listeners for delegation messages are defined in [Pos.Delegation.Listeners](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Delegation/Listeners.hs) module.
+Listeners for delegation messages are defined in
+[Pos.Delegation.Listeners](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Delegation/Listeners.hs)
+module.
 
-A handler [`handleSendProxySK`](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Delegation/Listeners.hs#L67) handles `SendProxySK*`-messages. This handler works in another mode called `ListenerActionOneMsg` which means there's no _conversation_ with the worker, we just receives single incoming message. Thus, in this case handler receives a message of type `SendProxySK` from the worker, but doesn't reply to it. Instead it sends a message of type `SendProxySKSimple` [to its neighbors](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Delegation/Methods.hs#L35).
+A handler
+[`handleSendProxySK`](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Delegation/Listeners.hs#L67)
+handles `SendProxySK*`-messages. This handler works in another mode
+called `ListenerActionOneMsg` which means there's no _conversation_ with
+the worker, we just receives single incoming message. Thus, in this case
+handler receives a message of type `SendProxySK` from the worker, but
+doesn't reply to it. Instead it sends a message of type
+`SendProxySKSimple` [to its
+neighbors](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Delegation/Methods.hs#L35).
 
-A handler [`handleConfirmProxySK`](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Delegation/Listeners.hs#L124) works similarly. It receives a message of type `ConfirmProxySK` from the worker and sends a message of type `ConfirmProxySK` [to its neighbors](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Delegation/Listeners.hs#L146).
+A handler
+[`handleConfirmProxySK`](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Delegation/Listeners.hs#L124)
+works similarly. It receives a message of type `ConfirmProxySK` from the
+worker and sends a message of type `ConfirmProxySK` [to its
+neighbors](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Delegation/Listeners.hs#L146).
 
-A handler [`handleCheckProxySKConfirmed`](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Delegation/Listeners.hs#L149) works in `ListenerActionOneMsg` mode too, but after it receives a message of type `CheckProxySKConfirmed` it [sends](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Delegation/Listeners.hs#L157) a message of type `CheckProxySKConfirmedRes` as a reply to the worker.
+A handler
+[`handleCheckProxySKConfirmed`](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Delegation/Listeners.hs#L149)
+works in `ListenerActionOneMsg` mode too, but after it receives a
+message of type `CheckProxySKConfirmed` it
+[sends](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Delegation/Listeners.hs#L157)
+a message of type `CheckProxySKConfirmedRes` as a reply to the worker.
 
 ## Security
 
-Workers for security operations are defined in [Pos.Security.Workers](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/Security/Workers.hs) module. Interesting example is [`checkForReceivedBlocksWorker`](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/Security/Workers.hs#L48): in this case we again send a message to all neighbors using [`converseToNode`](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/DHT/Model/Neighbors.hs#L68) function. This function tries to [establish connection with the listeners](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/DHT/Model/Neighbors.hs#L79) to start a _conversation_ with them.
+Workers for security operations are defined in
+[Pos.Security.Workers](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/Security/Workers.hs)
+module. Interesting example is
+[`checkForReceivedBlocksWorker`](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/Security/Workers.hs#L48):
+in this case we again send a message to all neighbors using
+[`converseToNode`](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/DHT/Model/Neighbors.hs#L68)
+function. This function tries to [establish connection with the
+listeners](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/DHT/Model/Neighbors.hs#L79)
+to start a _conversation_ with them.
 
 ## WorkMode and WorkModeMin
 
