@@ -90,7 +90,7 @@ Below we explain terminology realted to this process.
 in the code) which, for an update proposal with version `v`, says that
 it is a version of software ran by the network.
 
-### Acceptable Proposal
+#### Acceptable Proposal
 
 A proposal is called “acceptable” if it is:
 
@@ -98,15 +98,38 @@ A proposal is called “acceptable” if it is:
  + Its version is greater or equal to the currently adopted proposal
    (see below).
 
-### Confirmed Proposal
+#### Confirmed Proposal
 
 An acceptable proposal is called “confirmed” if it was voted for by the
 majority of stake, but `softforkResolutionThreshold` predicate isn't yet
 true for it.
 
-### Adopted Proposal
+#### Adopted Proposal
 
 A confirmed proposal is said to be “adopted” if its
 `softforkResolutionThreshold` predicate is true for it. For each
 blockchain state, there is exactly one adopted version. Blocks are
 checked honoring the currently adopted version.
+
+### Download New Version
+
+In
+[Pos.Update.Download](https://github.com/input-output-hk/cardano-sl/blob/22360aa45e5dd82d0c87872d8530217fc3d08f4a/src/Pos/Update/Download.hs)
+module, the following algorighms are implemeted. Downloaded updates are
+applied using a tool called
+[launcher](https://github.com/input-output-hk/cardano-sl/blob/22360aa45e5dd82d0c87872d8530217fc3d08f4a/src/launcher/Main.hs)
+
+#### Download Confirmed Update
+
+To download confirmed update, we extract update hash from
+ConfirmedProposalState. We extreact it depending on whether or not we're
+using installer on given platform. If extract update hash successfully,
+we're invoking “Download Update by Hash” algorithm to download and save
+confirmed update.
+
+#### Download Update by Hash
+
+To download update by hash, we loop through known update servers trying
+to download update with given hash using `httpLBS` from HTTP.Simple. In
+the end, we will either have update completely downloaded or server list
+exhausted and an error reported.
