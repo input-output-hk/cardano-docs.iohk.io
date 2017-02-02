@@ -38,7 +38,28 @@ Currently, everything is done to add hard-fork functionality via
 software update to then perform a hard-fork, as described in research
 section and soft-forks (or software updates) are fully implemented.
 
-### Terminology Related to Update Proposal Adoption
+### Fields Updatable with a Soft-Fork
+
+# писать сюда
+
+### Proposal Accumulation and Application
+
+We store proposals in mempool or gather those from the blockchain in
+order to figure out which proposal is adopted and whether or not current
+node has to participate in voting. No matter whether a change in
+proposal state comes from the network / mempool, or from loading
+blockchain, it's stored in `PollModifier` data structure and applied
+appropriately.
+
+### Core Types
+
+Core types are mentioned in the Binary protocols document. Those types
+reflect concepts from the research section in a straight-forward way.
+Please refer to [core types
+module](https://github.com/input-output-hk/cardano-sl/blob/22360aa45e5dd82d0c87872d8530217fc3d08f4a/src/Pos/Update/Core/Types.hs)
+to for more information.
+
+### Update Proposal Adoption
 
 A very important part of implementation of update mechanism is actually
 the part that works with genesis blocks for epochs and applies updates.
@@ -72,9 +93,3 @@ A confirmed proposal is said to be “adopted” if it
 `softforkResolutionThreshold` predicate is true for it. For each
 blockchain state, there is exactly one adopted version. Blocks are
 checked honoring currently adopted version.
-
-### Global State
-
-### Local State
-
-### Messages
