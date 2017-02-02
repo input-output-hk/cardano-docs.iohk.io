@@ -256,7 +256,7 @@ publishing it as a separate document.
 
 # Implementation Overview
 
-Implementation of the update system lives in the
+Implementation of the update system can be found in the
 [Pos.Update](https://github.com/input-output-hk/cardano-sl/tree/22360aa45e5dd82d0c87872d8530217fc3d08f4a/src/Pos/Update)
 family of modules. General approach to implementation is the same as
 with other subsystems of CSL, such as Txp, Ssc and Delegation. Update
@@ -283,13 +283,13 @@ duration). Specifically, `upBlockVersion` is used to signify that a proposal
 performs such changes; if `upBlockVersion` is greater than the last used
 block version, the changes from `upBlockVersionData` will be applied.
 
-`upBlockVersionData` has
+`upBlockVersionData` has the
 type
 [`BlockVersionData`](https://github.com/input-output-hk/cardano-sl/blob/22360aa45e5dd82d0c87872d8530217fc3d08f4a/src/Pos/Update/Core/Types.hs#L131-L142). Its fields are described below:
 
   * `bvdScriptVersion` – script language version used to validate script
     transactions. If the proposal increases `upBlockVersion`, it must also
-    increase `bvdScriptVersion` by 1 (and can't leave it unchanged).
+    increase `bvdScriptVersion` by 1 (and cannot leave it unchanged).
 
   * `bvdSlotDuration` – slot duration (in milliseconds).
 
@@ -353,7 +353,7 @@ in
 
 Core types are mentioned in the Binary protocols document. Those types
 reflect concepts from the research section in a straight-forward way.
-Please refer to [core types
+Please refer to the [core types
 module](https://github.com/input-output-hk/cardano-sl/blob/22360aa45e5dd82d0c87872d8530217fc3d08f4a/src/Pos/Update/Core/Types.hs)
 for more information.
 
@@ -394,23 +394,23 @@ checked honoring the currently adopted version.
 
 ### Download New Version
 
-In
+In the
 [Pos.Update.Download](https://github.com/input-output-hk/cardano-sl/blob/22360aa45e5dd82d0c87872d8530217fc3d08f4a/src/Pos/Update/Download.hs)
-module, the following algorighms are implemeted. Downloaded updates are
+module, the following algorithms are implemeted. Downloaded updates are
 applied using a tool called
 [launcher](https://github.com/input-output-hk/cardano-sl/blob/22360aa45e5dd82d0c87872d8530217fc3d08f4a/src/launcher/Main.hs)
 
 #### Download Confirmed Update
 
 To download confirmed update, we extract update hash from
-ConfirmedProposalState. We extreact it depending on whether or not we're
-using installer on given platform. If extract update hash successfully,
-we're invoking “Download Update by Hash” algorithm to download and save
-confirmed update.
+`ConfirmedProposalState`. We extreact it depending on whether or not we're
+using an installer on given platform. If update hash is extracted successfully,
+the “Download Update by Hash” algorithm to download and save
+confirmed update is invoked.
 
 #### Download Update by Hash
 
 To download update by hash, we loop through known update servers trying
-to download update with given hash using `httpLBS` from HTTP.Simple. In
-the end, we will either have update completely downloaded or server list
+to download update with given hash using `httpLBS` from HTTP. Simple. In
+the end, we will either have the update completely downloaded or server list
 exhausted and an error reported.
