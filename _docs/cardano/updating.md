@@ -40,7 +40,51 @@ section, and soft-forks (or software updates) are fully implemented.
 
 ### Fields Updatable with a Soft-Fork
 
-# писать сюда
+An
+[`UpdateProposal`](https://github.com/input-output-hk/cardano-sl/blob/22360aa45e5dd82d0c87872d8530217fc3d08f4a/src/Pos/Update/Core/Types.hs#L97-L108) contains
+fields for changing some parameters used by Cardano SL (for instance, slot
+duration). Specifically, `upBlockVersion` is used to signify that a proposal
+performs such changes; if `upBlockVersion` is greater than the last used
+block version, the changes from `upBlockVersionData` will be applied.
+
+`upBlockVersionData` has
+type
+[`BlockVersionData`](https://github.com/input-output-hk/cardano-sl/blob/22360aa45e5dd82d0c87872d8530217fc3d08f4a/src/Pos/Update/Core/Types.hs#L131-L142). Its fields are described below:
+
+  * `bvdScriptVersion` – script language version used to validate script
+    transactions. The proposal can either keep it unchanged or increase by 1.
+
+  * `bvdSlotDuration` – slot duration (in milliseconds).
+
+  * `bvdMaxBlockSize` – block size limit (in bytes). A proposal can't
+    increase the block size limit more than twofold compared to the previous
+    limit.
+
+The checks described above are done
+in
+[`verifyNextBVData`](https://github.com/input-output-hk/cardano-sl/blob/f77917a6a6a393bb3ef158500c147181fe21ed39/src/Pos/Update/Poll/Logic/Base.hs#L194-L221).
+
+In addition, there are some fields that are unused right now but will be used
+in the future. Their meaning is briefly described below:
+
+  * `bvdMaxTxSize` – transaction size limit (in bytes).
+
+  * `bvdMpcThd` – eligibility threshold for MPC.
+
+  * `bvdHeavyDelThd` – threshold for heavyweight delegation.
+
+  * `bvdUpdateVoteThd` – portion of total stake necessary to vote for or
+    against an update.
+
+  * `bvdUpdateProposalThd` – number of slots after which an update is
+    implicitly approved (unless it has more negative votes than positive).
+
+  * `bvdUpdateImplicit` – number of slots after which an update is implicitly
+    approved (unless it has more negative votes than positive).
+
+  * `bvdUpdateSoftforkThd` – portion of total stake such that if total stake
+    of issuers of blocks with some block version is bigger than this portion,
+    this block version is adopted.
 
 ### Proposal Accumulation
 
@@ -82,7 +126,7 @@ A very important part of implementation of the update mechanism is
 the part that works with genesis blocks for epochs and applies updates.
 This logic resides
 [in this well-documented function](https://github.com/input-output-hk/cardano-sl/blob/22360aa45e5dd82d0c87872d8530217fc3d08f4a/src/Pos/Update/Poll/Logic/Softfork.hs#L67).
-Below we explain terminology realted to this process.
+Below we explain terminology related to this process.
 
 #### `softforkResolutionThreshold` Predicate
 
