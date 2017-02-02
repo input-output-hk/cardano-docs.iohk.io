@@ -26,21 +26,21 @@ family of modules. General approach to implementation is the same as
 with other subsystems of CSL, such as Txp, Ssc and Delegation. Update
 system has a global state, stored in the database. Global state can be
 unambiguously derived from the information that is in the blockchain.
-Local state, sometimes referred to as “mempool”, is stored in memory.
+Local state, sometimes referred to as “mempool”, is stored in the memory.
 Mempool is used for data transfer and inclusion of transferred data into
 blocks. The network protocol (built with standard [Inv/Req/Data
 pattern](https://github.com/input-output-hk/cardano-sl/blob/22360aa45e5dd82d0c87872d8530217fc3d08f4a/src/Pos/Communication/Relay.hs))
 is described in [Application-level
-document](/protocols/csl-application-level/) with binary protocol
+document](/protocols/csl-application-level/) with a binary protocol
 described in [Binary protocols document](/protocols/binary-protocols/).
 
 Currently, everything is done to add hard-fork functionality via
 software update to then perform a hard-fork, as described in research
-section and soft-forks (or software updates) are fully implemented.
+section, and soft-forks (or software updates) are fully implemented.
 
 ### Terminology Related to Update Proposal Adoption
 
-A very important part of implementation of update mechanism is actually
+A very important part of implementation of the update mechanism is
 the part that works with genesis blocks for epochs and applies updates.
 This logic resides
 [in this well-documented function](https://github.com/input-output-hk/cardano-sl/blob/22360aa45e5dd82d0c87872d8530217fc3d08f4a/src/Pos/Update/Poll/Logic/Softfork.hs#L67).
@@ -49,29 +49,29 @@ Below we explain terminology realted to this process.
 #### softforkResolutionThreshold
 
 `softforkResolutionThreshold` is a predicate (seen as “threshold” in the
-code) which, for an update proposal with version `v` says that it is a
+code) which, for an update proposal with version `v`, says that it is a
 version of software ran by the network.
 
 ### Acceptable Proposal
 
 A proposal is called “acceptable” if it is:
 
- + Correctly formed (which includes necessary cryptographic signatures)
+ + Correctly formed, including necessary cryptographic signatures.
  + Its version is greater or equal to the currently adopted proposal
    (see below).
 
 ### Confirmed Proposal
 
-An acceptable proposal is called “confirmed” if it was voted for by
+An acceptable proposal is called “confirmed” if it was voted for by the
 majority of stake, but `softforkResolutionThreshold` predicate isn't yet
 true for it.
 
 ### Adopted Proposal
 
-A confirmed proposal is said to be “adopted” if it
+A confirmed proposal is said to be “adopted” if its
 `softforkResolutionThreshold` predicate is true for it. For each
 blockchain state, there is exactly one adopted version. Blocks are
-checked honoring currently adopted version.
+checked honoring the currently adopted version.
 
 ### Global State
 
