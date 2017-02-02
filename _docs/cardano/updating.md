@@ -1,7 +1,7 @@
 ---
 layout: default
-title: Reward System
-permalink: /cardano/updating/
+title: Update Mechanism
+permalink: /cardano/update-mechanism/
 group: cardano
-visible: false
+visible: true
 ---
