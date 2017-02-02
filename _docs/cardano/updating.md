@@ -42,7 +42,7 @@ section, and soft-forks (or software updates) are fully implemented.
 
 # писать сюда
 
-### Proposal Accumulation and Application
+### Proposal Accumulation
 
 Proposals are stored in mempool or gathered from the blockchain in
 order to figure out which proposal is adopted, and whether or not the current
@@ -50,6 +50,23 @@ node has to participate in voting. No matter whether a change in
 proposal state comes from the network / mempool, or from loading
 blockchain, it is stored in the `PollModifier` data structure and applied
 appropriately.
+
+### Updating Mempool
+
+As nodes deserialize [payloads of update system
+messages](/protocols/binary-protocols/#update-system), they modify
+mempool as implemented
+[here](https://github.com/input-output-hk/cardano-sl/blob/22360aa45e5dd82d0c87872d8530217fc3d08f4a/src/Pos/Update/MemState/Functions.hs#L40).
+
+### Interaction With the Database
+
+In order to verify update system data, we have to get this data from the
+global state (database). To provide such interface, a [well-documented
+set of typeclasses are
+presented](https://github.com/input-output-hk/cardano-sl/blob/22360aa45e5dd82d0c87872d8530217fc3d08f4a/src/Pos/Update/Poll/Class.hs).
+It is important that implementation of those relies on functions found
+in
+[Pos.DB.GState.Update](https://github.com/input-output-hk/cardano-sl/blob/22360aa45e5dd82d0c87872d8530217fc3d08f4a/src/Pos/DB/GState/Update.hs).
 
 ### Core Types
 
@@ -67,11 +84,11 @@ This logic resides
 [in this well-documented function](https://github.com/input-output-hk/cardano-sl/blob/22360aa45e5dd82d0c87872d8530217fc3d08f4a/src/Pos/Update/Poll/Logic/Softfork.hs#L67).
 Below we explain terminology realted to this process.
 
-#### softforkResolutionThreshold
+#### `softforkResolutionThreshold` Predicate
 
-`softforkResolutionThreshold` is a predicate (seen as “threshold” in the
-code) which, for an update proposal with version `v`, says that it is a
-version of software ran by the network.
+`softforkResolutionThreshold` is a predicate (referred to as “threshold”
+in the code) which, for an update proposal with version `v`, says that
+it is a version of software ran by the network.
 
 ### Acceptable Proposal
 
