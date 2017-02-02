@@ -93,13 +93,31 @@ with revokable long-lived certificates. Per-epoch delegation is called
 | CheckProxySKConfirmed    | Checks if node is aware of PSK delivery. To be responded with CheckProxySKConfirmedRes |
 | CheckProxySKConfirmedRes | Returns _True_ if node aware of asked proxy certificate                                |
 
+## Update System Messages
+
+You can see how those messages are implemented under `WorkMode`
+[here](https://github.com/input-output-hk/cardano-sl/blob/22360aa45e5dd82d0c87872d8530217fc3d08f4a/src/Pos/Communication/Methods.hs)
+
+| Message Name             | Commentaries                                                                           |
+|--------------------------+----------------------------------------------------------------------------------------|
+| UpdateProposal | Serialized update proposal, sent to a DHT peers in Pos.Communication.Methods |
+| VoteMsgTag | A tag for vote message. Works with UpdateVote to tag the payload |
+| UpdateVote | Message, payload of which contains the actual vote |
+
 # Workers, Listeners and Handlers in CSL
 
 You can think about it as about «operating personnel» for messages.
 
-**Workers** initiate messages exchange, so worker is an _active_ communication part of Cardano SL. **Listeners** accept messages from the workers and probably sends some messages as answers, so listener is a _passive_ communication part of Cardano SL. After message was received, listener use the function called **handler** to actually perform corresponding job. Particular handler is using based on the type of received message (as said above, messages have different types).
+**Workers** initiate messages exchange, so worker is an _active_
+communication part of Cardano SL. **Listeners** accept messages from the
+workers and probably sends some messages as answers, so listener is a
+_passive_ communication part of Cardano SL. After message was received,
+listener use the function called **handler** to actually perform
+corresponding job. Particular handler is using based on the type of
+received message (as said above, messages have different types).
 
-To be able to perform necessary actions all workers and handlers work in the `WorkMode`'s constraints, see below.
+To be able to perform necessary actions all workers and handlers work in
+the `WorkMode`'s constraints, see below.
 
 ## Block Processing
 
@@ -245,6 +263,14 @@ in this case we again send a message to all neighbors using
 function. This function tries to [establish connection with the
 listeners](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/DHT/Model/Neighbors.hs#L79)
 to start a _conversation_ with them.
+
+## Update
+
+Below is the list of workers and listeners related to update system
+
+### Workers
+
+### Listeners
 
 ## WorkMode and WorkModeMin
 
