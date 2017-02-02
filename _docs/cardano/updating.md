@@ -52,7 +52,8 @@ type
 [`BlockVersionData`](https://github.com/input-output-hk/cardano-sl/blob/22360aa45e5dd82d0c87872d8530217fc3d08f4a/src/Pos/Update/Core/Types.hs#L131-L142). Its fields are described below:
 
   * `bvdScriptVersion` – script language version used to validate script
-    transactions. The proposal can either keep it unchanged or increase by 1.
+    transactions. If the proposal increases `upBlockVersion`, it must also
+    increase `bvdScriptVersion` by 1 (and can't leave it unchanged).
 
   * `bvdSlotDuration` – slot duration (in milliseconds).
 
