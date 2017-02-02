@@ -44,11 +44,11 @@ section, and soft-forks (or software updates) are fully implemented.
 
 ### Proposal Accumulation and Application
 
-We store proposals in mempool or gather those from the blockchain in
-order to figure out which proposal is adopted and whether or not current
+Proposals are stored in mempool or gathered from the blockchain in
+order to figure out which proposal is adopted, and whether or not the current
 node has to participate in voting. No matter whether a change in
 proposal state comes from the network / mempool, or from loading
-blockchain, it's stored in `PollModifier` data structure and applied
+blockchain, it is stored in the `PollModifier` data structure and applied
 appropriately.
 
 ### Core Types
@@ -57,7 +57,7 @@ Core types are mentioned in the Binary protocols document. Those types
 reflect concepts from the research section in a straight-forward way.
 Please refer to [core types
 module](https://github.com/input-output-hk/cardano-sl/blob/22360aa45e5dd82d0c87872d8530217fc3d08f4a/src/Pos/Update/Core/Types.hs)
-to for more information.
+for more information.
 
 ### Update Proposal Adoption
 
