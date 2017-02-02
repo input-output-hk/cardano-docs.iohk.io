@@ -193,6 +193,6 @@ confirmed update is invoked.
 #### Download Update by Hash
 
 To download update by hash, we loop through known update servers trying
-to download update with given hash using `httpLBS` from HTTP.Simple. In
-the end, we will either have update completely downloaded or server list
+to download update with given hash using `httpLBS` from HTTP. Simple. In
+the end, we will either have the update completely downloaded or server list
 exhausted and an error reported.
