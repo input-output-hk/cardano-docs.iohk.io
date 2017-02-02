@@ -10,7 +10,25 @@ visible: true
 
 ## Research Overview
 
+To update the application securely, the majority of the stake must put
+their signatures on it. To put an update proposal forward if there are
+T% signatures of the stake. Then anyone can post their signature of
+the update to the blockchain; if one epoch after the update collects
+over 50% of the stake's signatures, the update is considered approved
+and is to be applied by everyone.
+
+There would, of course, be some notification for stakeholders to sign
+an update and a button to sign and publish the signature on the
+blockchain.
+
+Soft fork proposes modification of blockchain consensus rules in such
+a way that blocks with a new version are still compatible with old
+version clients.
+
+Hard Fork, however, doesn’t maintain backward compatibility with the previous version.
+
 ### Problem Definition
+In the case of a soft fork update, 
 
 ### Terminology
 
