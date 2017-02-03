@@ -52,7 +52,7 @@ Every message should be instance of `Message` typeclass. See [Time-Warp-NT](/pro
 
 ## Inv/Req/Data and MessagePart
 
-In Cardano most of messages are generalized with Inv/Req/Data standard. Within this framework we define three data types:
+In Cardano most of messages are generalized with Inv/Req/Data standard. See [Pos.Communication.Relay](https://github.com/input-output-hk/cardano-sl/blob/3d695fd804814647f50abe452a81a678aad080cc/src/Pos/Communication/Types/Relay.hs). Within this framework we define three data types:
 
 ~~~ haskell
 
@@ -91,6 +91,8 @@ class MessagePart a where
 Here `pMessageName` is identifier for particular message type (e.g should be the same for tag and contents but should differ between messages).
 
 `Message` typeclass for `InvMsg key tag`, `ReqMsg key tag`, `DataMsg contents` is automatically derived from `MessagePart` for the concrete tag and contents.
+
+See [Pos.Communication.Message](https://github.com/input-output-hk/cardano-sl/blob/3d695fd804814647f50abe452a81a678aad080cc/src/Pos/Communication/Message.hs) for examples of messages that are using Inv/Req/Data.
 
 ## Block Exchange Messages
 
