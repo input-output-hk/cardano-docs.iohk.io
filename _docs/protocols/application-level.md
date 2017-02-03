@@ -78,13 +78,39 @@ Modules covered are:
 
 ## Delegation Messages
 
+*Delegation* is feature that allows one stakeholder called *issuer* to let another one called *delegate* generate blocks on her behalf.
+
+To do this issuer should create *proxy signing key* that allows delegate to sign blocks instead of issuer. Any stakeholder can verify that a proxy signing key was actually issued
+by a specific stakeholder to a specific delegate and that this key is valid at time.
+
+Delegation comes in two flavours — per-epoch delegation and delegation
+with revocable long-lived certificates. Per-epoch delegation is called
+“lightweight”, long-lived is called “heavyweight”.
+
+### Lightweight delegation
+
+Lightweight delegation allows delegate to sign blocks instead of issuer for some epochs (range [low, high] of epochs is specified for created signing key).
+
+To do this issuer should send message containing time range, issuer public key, delegate public key and certificate over network.
+Every node from network receives this message and can later check if one who generated the block have right for it.
+Lightweight delegation data is stored in memory and deleted after some time (500 seconds).
+
+This delegation type can be used to delegate blocks generating right to some trusted node when issuer knows she will be absent in some time range.
+
+### Heavyweight delegation
+
+Heavyweight delegation serves for two purposes:
+
+1. Delegate block generation right like lightweight delegation.
+2. Share stake with some delegate thus allowing delegate to take part in Follow-The-Satoshi. No real money is transfered, stake of issuer is just added to stake of delegate when calculating stakeholders for Follow-The-Satoshi.
+
+Every particular stakeholder can share stake with the only one delegate. To revoke certificate node should create new certificate and put itself as both issuer and delegate.
+
+### Messages table
+
 This table describes delegation-related messages, found in
 [Pos.Delegation.Types](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Delegation/Types.hs)
 module. Format of delegation messages described in _Binary protocols_ section.
-
-Delegation comes in two flavours — per-epoch delegation and delegation
-with revokable long-lived certificates. Per-epoch delegation is called
-“lightweight”, long-lived is called “heavyweight”.
 
 | Message Name             | Commentaries                                                                           |
 |--------------------------+----------------------------------------------------------------------------------------|
