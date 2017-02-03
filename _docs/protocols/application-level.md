@@ -48,6 +48,50 @@ The way messages are serialized can be seen in
 [Pos.Binary.Communication](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Binary/Communication.hs)
 module.
 
+Every message should be instance of `Message` typeclass. See [Time-Warp-NT](/protocols/time-warp-nt/).
+
+## Inv/Req/Data and MessagePart
+
+In Cardano most of messages are generalized with Inv/Req/Data standard. Within this framework we define three data types:
+
+~~~ haskell
+
+-- | Inventory message. Can be used to announce the fact that you have
+-- some data.
+data InvMsg key tag = InvMsg
+    { imTag  :: !tag
+    , imKeys :: !(NonEmpty key)
+    }
+
+-- | Request message. Can be used to request data (ideally data which
+-- was previously announced by inventory message).
+data ReqMsg key tag = ReqMsg
+    { rmTag  :: !tag
+    , rmKeys :: !(NonEmpty key)
+    }
+
+-- | Data message. Can be used to send actual data.
+data DataMsg contents = DataMsg
+    { dmContents :: !contents
+    } deriving (Show, Eq)
+~~~
+
+Here:
+ + `key` is type representing node identifier.
+ + `tag` is used to describe data that are announced/requested. Should contain enough information for other nodes to check if they need these data and request them.
+ + `contents` is message payload.
+
+To introduce new message using Inv/Req/Data one should create two types: tag type and contents type for the message. And then implement `MessagePart` typeclass for both of them.
+
+~~~ haskell
+class MessagePart a where
+    pMessageName :: Proxy a -> MessageName
+~~~
+
+Here `pMessageName` is identifier for particular message type (e.g should be the same for tag and contents but should differ between messages).
+
+`Message` typeclass for `InvMsg key tag`, `ReqMsg key tag`, `DataMsg contents` is automatically derived from `MessagePart` for the concrete tag and contents.
+
 ## Block Exchange Messages
 
 This table explains [Pos.Block.Network.Types](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Types.hs) module.
