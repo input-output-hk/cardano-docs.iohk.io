@@ -274,7 +274,7 @@ Currently, everything is done to add hard-fork functionality via
 software update to then perform a hard-fork, as described in research
 section, and soft-forks (or software updates) are fully implemented.
 
-### Fields Updatable with a Soft-Fork
+## Fields Updatable with a Soft-Fork
 
 An
 [`UpdateProposal`](https://github.com/input-output-hk/cardano-sl/blob/22360aa45e5dd82d0c87872d8530217fc3d08f4a/src/Pos/Update/Core/Types.hs#L97-L108) contains
@@ -323,7 +323,7 @@ in the future. Their meaning is briefly described below:
     of issuers of blocks with some block version is bigger than this portion,
     this block version is adopted.
 
-### Proposal Accumulation
+## Proposal Accumulation
 
 Proposals are stored in mempool or gathered from the blockchain in
 order to figure out which proposal is adopted, and whether or not the current
@@ -332,14 +332,14 @@ proposal state comes from the network / mempool, or from loading
 blockchain, it is stored in the `PollModifier` data structure and applied
 appropriately.
 
-### Updating Mempool
+## Updating Mempool
 
 As nodes deserialize [payloads of update system
 messages](/protocols/binary-protocols/#update-system), they modify
 mempool as implemented
 [here](https://github.com/input-output-hk/cardano-sl/blob/22360aa45e5dd82d0c87872d8530217fc3d08f4a/src/Pos/Update/MemState/Functions.hs#L40).
 
-### Interaction With the Database
+## Interaction With the Database
 
 In order to verify update system data, we have to get this data from the
 global state (database). To provide such interface, a [well-documented
@@ -349,7 +349,7 @@ It is important that implementation of those relies on functions found
 in
 [Pos.DB.GState.Update](https://github.com/input-output-hk/cardano-sl/blob/22360aa45e5dd82d0c87872d8530217fc3d08f4a/src/Pos/DB/GState/Update.hs).
 
-### Core Types
+## Core Types
 
 Core types are mentioned in the Binary protocols document. Those types
 reflect concepts from the research section in a straight-forward way.
@@ -357,7 +357,7 @@ Please refer to the [core types
 module](https://github.com/input-output-hk/cardano-sl/blob/22360aa45e5dd82d0c87872d8530217fc3d08f4a/src/Pos/Update/Core/Types.hs)
 for more information.
 
-### Update Proposal Adoption
+## Update Proposal Adoption
 
 A very important part of implementation of the update mechanism is
 the part that works with genesis blocks for epochs and applies updates.
@@ -365,13 +365,13 @@ This logic resides
 [in this well-documented function](https://github.com/input-output-hk/cardano-sl/blob/22360aa45e5dd82d0c87872d8530217fc3d08f4a/src/Pos/Update/Poll/Logic/Softfork.hs#L67).
 Below we explain terminology related to this process.
 
-#### `softforkResolutionThreshold` Predicate
+### `softforkResolutionThreshold` Predicate
 
 `softforkResolutionThreshold` is a predicate (referred to as “threshold”
 in the code) which, for an update proposal with version `v`, says that
 it is a version of software ran by the network.
 
-#### Acceptable Proposal
+### Acceptable Proposal
 
 A proposal is called “acceptable” if it is:
 
@@ -379,20 +379,20 @@ A proposal is called “acceptable” if it is:
  + Its version is greater or equal to the currently adopted proposal
    (see below).
 
-#### Confirmed Proposal
+### Confirmed Proposal
 
 An acceptable proposal is called “confirmed” if it was voted for by the
 majority of stake, but `softforkResolutionThreshold` predicate isn't yet
 true for it.
 
-#### Adopted Proposal
+### Adopted Proposal
 
 A confirmed proposal is said to be “adopted” if its
 `softforkResolutionThreshold` predicate is true for it. For each
 blockchain state, there is exactly one adopted version. Blocks are
 checked honoring the currently adopted version.
 
-### Download New Version
+## Download New Version
 
 In the
 [Pos.Update.Download](https://github.com/input-output-hk/cardano-sl/blob/22360aa45e5dd82d0c87872d8530217fc3d08f4a/src/Pos/Update/Download.hs)
@@ -400,7 +400,7 @@ module, the following algorithms are implemeted. Downloaded updates are
 applied using a tool called
 [launcher](https://github.com/input-output-hk/cardano-sl/blob/22360aa45e5dd82d0c87872d8530217fc3d08f4a/src/launcher/Main.hs)
 
-#### Download Confirmed Update
+### Download Confirmed Update
 
 To download confirmed update, we extract update hash from
 `ConfirmedProposalState`. We extreact it depending on whether or not we're
@@ -408,7 +408,7 @@ using an installer on given platform. If update hash is extracted successfully,
 the “Download Update by Hash” algorithm to download and save
 confirmed update is invoked.
 
-#### Download Update by Hash
+### Download Update by Hash
 
 To download update by hash, we loop through known update servers trying
 to download update with given hash using `httpLBS` from HTTP. Simple. In

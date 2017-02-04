@@ -7,7 +7,7 @@ group: cardano
 
 # Addresses in Cardano SL
 
-To send and receive value, Addresses are used in virtually any cryptocurrency.
+To send and receive value, addresses are used in virtually any cryptocurrency.
 
 ## How Does an Address Look Like?
 
@@ -102,7 +102,7 @@ We are currently using two hash functions: `SHA3` with 256 digest and
 For example, for addresses, we wrap SHA3 digest into BLAKE2s, as shown
 in the code snippet below.
 
-```
+~~~ haskell
 type AddressHash = AbstractHash Blake2s_224
 
 addressHash :: Bi a => a -> AddressHash b
@@ -112,4 +112,4 @@ adressHash = AbstractHash . secondHash . firstHash
     firstHash = hashlazy . Bi.encode
     secondHash :: Digest SHA3_256 -> Digest Blake2s_224
     secondHash = CryptoHash.hash
-```
+~~~
