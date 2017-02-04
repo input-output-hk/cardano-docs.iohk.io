@@ -6,6 +6,8 @@ group: cardano
 visible: true
 ---
 
+[//]: # (Reviewed at ce9174612676717d935c8f0237019b9c8449c718)
+
 # Research Overview
 
 In the Update Mechanism research, we have managed to propose an update
@@ -14,267 +16,262 @@ software updates as well as providing stakeholders with an option to
 vote for hard forks (backwards-incompatible protocol updates) without
 the necessity to introduce any non-protocol-level tools.
 
-We propose to use stake for voting for soft- and hard-forks and show
+We propose to use stake for voting for soft and hard forks and show
 that it is possible to migrate value that exists on the unmaintained
 blockchain to the new blockchain using a modified proof of burn scheme.
 
 ## Update System Model
 
-For CSL, we decided to integrate some support for protocol updates on
-the protocol layer. It introduces some overhead on processing the
-blockchain, though having several distinguished benefits: 
+For CSL, we decided to add some support for protocol updates at
+the protocol layer itself. It introduces some overhead to blockchain
+processing, but has several important benefits:
 
- 1. For each client implementing protocol, we know it’s the latest
- version from blockchain 
+ 1. For each client implementing the protocol, we know it’s the latest
+ version from blockchain.
  2. There is no central entity responsible for maintaining or
  distributing updates, any such update is proposed under implicit or
- explicit agreement of the majority of stake and then is distributed in
- a decentralized way 
- 3. We do not rely upon clients updating software on their PCs in time:
- this would be done automatically, and an update would be alerted
- directly by the blockchain. 
- 4. If any security flaw would be detected in some version of the CSL
- protocol or in some particular implementation, there would be a
- mechanism to distribute update rapidly (still under agreement of the
- majority of stake)
+ explicit agreement of the majority of stake and then distributed in
+ a decentralized way.
+ 3. We do not rely upon clients updating the software on their PCs
+ in time; this is done automatically, and updates are announced directly
+ via the blockchain.
+ 4. If any security flaws are detected in some version of the CSL protocol
+ or in some particular implementation, there would be a mechanism to
+ distribute an update rapidly (but still under agreement of the majority
+ of stake).
 
 ## Application Update: Sign and Announce
 
 Here we consider ways to update the application securely. Protocol
-updates is a different topic, and it is covered in the relevant section
+updates are a separate issue which is covered in the relevant section
 of this document.
 
-For an update to be applied, at least the majority of a stake should put
+For an update to be applied, at least the majority of stake should put
 their signatures on it.
 
 This approach seems to fit really naturally into the CSL model, as in a
-PoS every stakeholder has responsibility for cryptocurrency maintenance
-proportionally to the relative size of their stake, and a blockchain is
-maintained via consensus among stakeholders.
+PoS cryptocurrency every stakeholder is responsible for maintaining the
+system proportionally to the relative size of their stake, and the blockchain
+is maintained via consensus among stakeholders.
 
-Software updates are also a part of this maintenance process, and the
-stakeholders should reach consensus on whether to consider this update
-trusted.
+Software updates are a part of this maintenance process too, so the
+stakeholders should agree on whether to consider this update trusted.
 
 ### Implicit Agreement
 
-Having stakeholders responsible for system updates doesn’t restrict us
-to the system where every single update requires a signature from the
-majority of a stake. We can introduce some concept of an implicit
+The fact that stakeholders are responsible for system updates does not
+restrict us to the system where every single update requires a signature
+from the majority of stake. We can introduce the concept of an implicit
 agreement.
 
 An update has to have at least T% of the stake signatures to be
-published on the blockchain. Stakeholders can not only sign the update,
-but vote for it, either positively or negatively The update is
-considered confirmed and to be adopted by nodes if: 
+published on the blockchain. It is not enough for stakeholders to sign
+the update — they should vote either for or against it. The update is
+considered confirmed and should be adopted by nodes if all of the
+following conditions are met:
 
- + At least 50% of the stake voted positively/negatively for the software update
- + It has been on the blockchain for U slots
- + The majority of the stake voted positively
+ + At least 50% of the stake voted for or against the software update.
+ + The majority of the stake voted for the update.
+ + It has been on the blockchain for U slots.
 
 ### Incorporation of Alternative Clients
 
-IOHK will maintain a single, “official” client. Yet, there is still some
-room for third-party “alternative” clients maintained by the community.
-One only needs to collect enough signatures from stakeholders to publish
-their system update. Actually it maybe not an update, but a separate
-client, developed from scratch, or a fork of an official client. As long
-as it collects enough signatures from stakeholders, it’s considered
-trusted by the network and will be updated via the same mechanisms used
-for an official client.
+IOHK will maintain a single official client. But there is also room for
+third-party alternative clients maintained by the community. One requires
+to collect enough signatures from stakeholders to publish their system
+update, which may be not an "update", but a different client developed
+from scratch, or a fork of the official client. As long as this update has
+enough signatures from stakeholders, the network considers it trusted, and
+it is updated via the same mechanisms as the official client.
 
 ## Application Update: Deliver and Apply
 
-Initially, a list of HTTP mirrors ran by IOHK is sufficient.
+А list of HTTP mirrors ran by IOHK shall be sufficient for a start.
 
-For later, our plan is to maintain a Bittorrent-based or a
+In process of time, we plan to maintain a Bittorrent-based or
 Bittorrent-like solution to distribute updates. In general, P2P update
 distribution is a crucial business requirement due to legal concerns.
-It is to be decided which particular Bittorrent-like solution we are to
-use.
+It is to be decided which Bittorrent-like solution particular we will use.
 
-Also, it’s interesting to note that an update itself doesn’t require
-a secure and trusted channel to be used for delivery, as it’s signed
-with some known in advance and trusted key/set of keys.
+Also, it’s interesting to note that the update itself does not require
+a secure and trusted channel to be used for delivery, as it is signed
+with some known in advance and trusted key (or set of keys).
 
 Application updates are prepared with bsdiff and applied either directly
-or via installer. We're considering to migrate to courgette in the
+or via an installer. We're considering migrating to courgette in the
 future.
 
 ## Protocol Update
 
 First, we need to distinguish hard and soft protocol updates.
 
-Softfork proposes modification of blockchain consensus rules in such a
-way that blocks with a new version are still compatible with old version
-clients.
-Hardfork is the one that doesn’t maintain backward compatibility with
+A soft fork proposes modifying blockchain consensus rules so that the
+new version blocks are still compatible with old version clients.
+A hard fork is one that doesn’t maintain backward compatibility with
 the previous version.
 
 BIP-99 provides an excellent criteria to distinguish between these two
 types of fork:
 
-##### Softfork
+##### Soft fork
 
 A consensus fork wherein everything that was previously invalid remains
-invalid while blocks that would have previously considered valid become
+invalid while blocks that would have been previously considered valid become
 invalid. A hashrate majority of miners can impose the new rules. They
 have some deployment advantages like backward compatibility.
 
-##### Hardfork
+##### Hard fork
 
-A consensus fork that makes previously invalid blocks valid. Hardforks
+A consensus fork that makes previously invalid blocks valid. Hard forks
 require all users to upgrade.
 
-In theory, hardfork may lead to a situation when network splits in two
-parts, each maintaining a separate chain: one from nodes that adopted
-the latest system update, and another from nodes that rejected to do
-that (because some blocks from the first part are considered invalid in
+In theory, a hard fork may lead to a situation when a network splits into two
+parts, each maintaining a separate chain: one from the nodes that adopted
+the latest system update, and another from the nodes that rejected to do
+that. This means some blocks from the first part are considered invalid by
 the other part, and vice versa).
 
 Protocol version is a tuple `(Maj, Min, Alt)`:
 
  + Major version (2 bytes): to be changed rarely, changes are not
-    backward-compatible and would produce hard fork
- + Minor version (2 bytes): integer to be adjusted on each update
-   + Change should be backward-compatible in a sense that a block generated
-      by new version shall be in some way accepted by old version
-   + A particular block may contain addresses of unknown type. Each such
-      case should be concisely workarounded in order not to affect the system
-      stability & correctness
+    backward-compatible and would produce a hard fork.
+ + Minor version (2 bytes): integer to be adjusted for each update.
+   + Changes should be backward-compatible in a sense that a block generated
+      by the new version shall be somehow accepted by old version.
+   + A particular block may contain addresses of unknown type. For each case
+   like this, a concise workaround should be found in order not to affect
+   stability and correctness of the system.
  + Alt version (1 byte): integer to manage several alternative clients
-    proposing concurrent updates to the protocol version
+    proposing concurrent updates to the protocol version.
 
 The protocol version is to be announced in the application update, and
 is to be put later into each block created by updated software.
 
-A major version change triggers future hard-fork.
-A minor version change simply notifies the network that the subsequent
-application update introduces modification of the protocol managed by
-softfork.
+A major version change triggers a hard fork in the future.
+A minor version change notifies the network that the subsequent
+application update modifies the protocol managed by a
+soft fork.
 
-Alt version is to make enable software providers to introduce
+Alt version is to enable software providers to introduce
 modifications to the protocol with some degree of concurrency.
 
-## Softfork update
+## Soft fork updates
 
-BIP-34 describes a strategy to handle a soft-fork protocol version
-adjustment (75% and 95% rules are useful). And also ”Treat transactions
+BIP-34 describes a strategy to handle a soft fork protocol version
+adjustment. The 75% and 95% rules are useful. And also ”Treat transactions
 with a version greater than 1 as non-standard (the official Satoshi
 client will not mine or relay them).”
 Deprecated in favor of BIP-09.
 
-BIP-09 describes usage of a version as not an indefinitely adjusting
-protocol version value, but as a dynamic set of current soft-fork
-updates, publicly known. E.g. for BTC, it’s maintained here. 
+BIP-09 describes using a version not as an indefinitely adjusting
+protocol version value, but as a dynamic set of current soft fork
+updates, publicly known. E.g. for BTC, it’s maintained here.
 
-This BIP is extremely useful for bitcoin because for soft-fork to be
+This BIP is extremely useful for bitcoin. For a soft fork to be
 regarded as applied, the majority of the software running the net should
-be updated with new features. Our case is slightly different, as we
-already distinguish verified software updates. Though it’s still may
-happen that different nodes run different versions of the official
-client or even some running alternative ones (also verified/approved by
-the stake).
+be updated with new features. Our case is slightly different: we
+distinguish verified software updates. Though it’s still may happen that
+different nodes run different versions of the official client — or even
+running alternative clients (also verified/approved by the stake).
 The threshold is ≥1916 blocks (95% of 2016), or ≥1512 for testnet (75%
 of 2016).
 
 For CSL with its update system considering application updates, we don’t
-need such sophisticated mechanism as the one proposed by BIP-9
-(versioning proposed in the previous sections should be sufficient for
-tracking softfork updates). Though, something like BIP-34 is needed
+need such a sophisticated mechanism as proposed by BIP-9
+(versioning described in the previous sections should be sufficient for
+tracking soft fork updates). But something like BIP-34 is needed
 here.
 
-There is a thin edge of what we can do within softfork and what we
+There is a thin line between what we can do within a soft fork and what we
 cannot:
-1. Whatever we do, even the oldest verifier updated 5 years ago should
-be able to take a valid chain (valid as for the latest version) and find
-it valid as well (this is what they coined under everything invalid
-remains invalid in BIP-99 fork taxonomy)
-2. Any block issued by software with an older version may be considered
+1. No matter what we do — even the oldest verifier which was updated 5 years
+ago should be able to take a valid chain ("valid" as for the latest version)
+and find it valid as well (this is what they meant under "everything invalid
+remains invalid" in BIP-99 fork taxonomy).
+2. Any blocks issued by the software with an older version may be considered
 invalid by software with a newer version.
 
-Obviously, imposing rule 2 as is may cause the network to be split into
-two parts: one miner with 40% hash power or a stakeholder with a stake
-large enough would update and maintain their own chain, rejecting blocks
-from others, but others would be still able to maintain their chain,
-rejecting blocks from this miner (because its blocks would chain upon
-not latest blocks).
-In BTC, they have a resolution rule: if 95% of the latest 2016 blocks
-have a newer block version, the blocks with the older version are
-rejected.
+Obviously, imposing rule 2 as it is may cause the network to be split into
+two parts: one miner with 40% of hash power, or a stakeholder with a stake
+large enough, would update and maintain their own chain, rejecting blocks
+from others, but others would be still able to maintain their chain, rejecting
+blocks from this miner (because blocks from this miner would chain upon the
+older blocks).
+There is a resolution rule: if 95% of the latest 2016 blocks have a newer
+block version, the blocks with the older version are rejected.
 
-It may seem not obvious why at all we would like to make some block
-version invalid at some moment. E.g. we have a chain functioning for
-1000 blocks, then why would we decide at some point to start rejecting
-blocks with an old version (apart from some philosophical views on a
-blockchain to share more or less the same version of protocol)?
+It may seem not at all obvious why we would like to make some block
+version invalid at some moment. For example, we have a chain functioning for
+1000 blocks; then why would we decide to start rejecting blocks with an old
+version at some point? (Apart from having some philosophical views that
+a blockchain should share version of protocol more or less the same.)
 
 The key insight here is that any new feature is actually a restriction
-on what we previously had. E.g. we had plain old transactions which may
-have contained either PublicKey-based addresses or Script-based ones.
-Then eventually we decide to include a third type of an  address (it
-doesn't matter  for which purpose). What is a strategy for verifying a
-block with a transaction with an address of unknown type? Obviously the
-only option is not verifying this address.
+on what we previously had. For example, we have plain old transactions which
+may contain either PublicKey-based addresses or Script-based ones.
+Then eventually we decide to include a third type of an address (no matter
+what the purpose is). Which strategy do we need for verifying a block
+with a transaction with an address of unknown type? Obviously the only option
+is not verifying this address.
 
-And then imagine somebody proposing a transaction to such address, doing
-that with probably an intention to secure funds from being spent until
-some conditions are met, and then watching them spent in some other
+And then imagine somebody proposing a transaction to this address, probably
+doing that with an intention to secure funds from being spent until some
+conditions are met — and then watching them spent in some other
 transaction in a block with version 1. This is the point. We cannot make
 use of a restriction without waiting for the network to start assuming
-the old version to be deprecated (blocks with which should be rejected).
+the old version to be deprecated (since we can only start rejecting blocks
+when their version is deprecated).
 
 Also, having `attributes` field, we may become attacked by someone
 stating he uses higher version of the protocol, polluting attributes
 with meaningless keys, and we would have to accept his block. For this
 reason, the blocks with the version x.y.z are rejected prior to
-application of the update with the protocol version x.y.z  approved by
+application of the update with the protocol version x.y.z approved by
 stake.
 
-That said, we propose the following default rule for version
-stabilization:
+That said, we propose the following default rule for version stabilization:
 
  > if 95%  of the latest 2000 blocks contain the version `>= (maj, min,
  > alt)`, then reject all blocks with lower versions. Let’s call it the
- > softfork stabilization point (or stabpoint).
+ > soft fork stabilization point (or stabpoint).
 
-So, gathering things up:
- 1. Once the update is approved, the protocol version (say v0.5) can be used
- 2. Before softfork is resolved (i.e. the resolution rule hit), the
+So, gathering everything up:
+ 1. Once the update is approved, the protocol version (say v0.5) can be used.
+ 2. Before a soft fork is resolved (i.e. the resolution rule hit), the
    updated nodes should issue blocks with the new version v5, but treat
-   and validate blocks of version v5 as version v4 blocks.
+   and validate blocks of version v5 as blocks of version v4.
  3. Non-updated updated nodes accept new blocks:
-   a. Before softfork is resolved, discarding as per v4
-   b. After softfork resolving, as per v5 (i.e. allowing a block to have
-      unknown attributes and so on)
+   a. Before the soft fork is resolved, discarding as per v4.
+   b. After the soft fork is resolved, as per v5 (i.e. allowing a block to
+  have unknown attributes, and so on).
 
-## Hardfork Updates
+## Hard fork Updates
 
 Hard forks are resolved using Modified Proof of Burn. As it is not
-implemented yet, we are omitting this section from this document and are
-publishing it as a separate document.
+implemented yet, we omit this section from this document and will
+publish it as a separate document.
 
 # Implementation Overview
 
 Implementation of the update system can be found in the
 [Pos.Update](https://github.com/input-output-hk/cardano-sl/tree/22360aa45e5dd82d0c87872d8530217fc3d08f4a/src/Pos/Update)
-family of modules. General approach to implementation is the same as
-with other subsystems of CSL, such as Txp, Ssc and Delegation. Update
-system has a global state, stored in the database. Global state can be
-unambiguously derived from the information that is in the blockchain.
-Local state, sometimes referred to as “mempool”, is stored in the memory.
-Mempool is used for data transfer and inclusion of transferred data into
+family of modules. The general approach to implementation is the same as
+in other subsystems of CSL, such as Txp, Ssc and Delegation. The update
+system has the global state, stored in the database. The global state can be
+unambiguously derived from the information that is in the blockchain. The local
+state, sometimes referred to as “mempool”, is stored in the memory.
+The mempool is used for data transfer and inclusion of transferred data into
 blocks. The network protocol (built with standard [Inv/Req/Data
 pattern](https://github.com/input-output-hk/cardano-sl/blob/22360aa45e5dd82d0c87872d8530217fc3d08f4a/src/Pos/Communication/Relay.hs))
 is described in [Application-level
 document](/protocols/csl-application-level/) with a binary protocol
 described in [Binary protocols document](/protocols/binary-protocols/).
 
-Currently, everything is done to add hard-fork functionality via
-software update to then perform a hard-fork, as described in research
-section, and soft-forks (or software updates) are fully implemented.
+Currently, everything is done to add hard fork functionality via
+software update and then perform a hard fork as described in research
+section; soft forks (or software updates) are fully implemented.
 
-### Fields Updatable with a Soft-Fork
+### Fields Updatable with a Soft Fork
 
 An
 [`UpdateProposal`](https://github.com/input-output-hk/cardano-sl/blob/22360aa45e5dd82d0c87872d8530217fc3d08f4a/src/Pos/Update/Core/Types.hs#L97-L108) contains
@@ -287,9 +284,9 @@ block version, the changes from `upBlockVersionData` will be applied.
 type
 [`BlockVersionData`](https://github.com/input-output-hk/cardano-sl/blob/22360aa45e5dd82d0c87872d8530217fc3d08f4a/src/Pos/Update/Core/Types.hs#L131-L142). Its fields are described below:
 
-  * `bvdScriptVersion` – script language version used to validate script
+  * `bvdScriptVersion` – a script language version used to validate script
     transactions. If the proposal increases `upBlockVersion`, it must also
-    increase `bvdScriptVersion` by 1 (and cannot leave it unchanged).
+    increase `bvdScriptVersion` by 1 (and can't leave it unchanged).
 
   * `bvdSlotDuration` – slot duration (in milliseconds).
 
@@ -301,7 +298,7 @@ The checks described above are done
 in
 [`verifyNextBVData`](https://github.com/input-output-hk/cardano-sl/blob/f77917a6a6a393bb3ef158500c147181fe21ed39/src/Pos/Update/Poll/Logic/Base.hs#L194-L221).
 
-In addition, there are some fields that are unused right now but will be used
+In addition, there are some fields that are unused right now, but will be used
 in the future. Their meaning is briefly described below:
 
   * `bvdMaxTxSize` – transaction size limit (in bytes).
@@ -325,14 +322,14 @@ in the future. Their meaning is briefly described below:
 
 ### Proposal Accumulation
 
-Proposals are stored in mempool or gathered from the blockchain in
+Proposals are stored in a mempool or gathered from the blockchain in
 order to figure out which proposal is adopted, and whether or not the current
 node has to participate in voting. No matter whether a change in
-proposal state comes from the network / mempool, or from loading
-blockchain, it is stored in the `PollModifier` data structure and applied
+proposal state comes from the network/mempool, or from loading
+the blockchain, it is stored in the `PollModifier` data structure and applied
 appropriately.
 
-### Updating Mempool
+### Updating the Mempool
 
 As nodes deserialize [payloads of update system
 messages](/protocols/binary-protocols/#update-system), they modify
@@ -343,16 +340,16 @@ mempool as implemented
 
 In order to verify update system data, we have to get this data from the
 global state (database). To provide such interface, a [well-documented
-set of typeclasses are
+set of typeclasses is
 presented](https://github.com/input-output-hk/cardano-sl/blob/22360aa45e5dd82d0c87872d8530217fc3d08f4a/src/Pos/Update/Poll/Class.hs).
-It is important that implementation of those relies on functions found
+It is important that their implementation relies on functions found
 in
 [Pos.DB.GState.Update](https://github.com/input-output-hk/cardano-sl/blob/22360aa45e5dd82d0c87872d8530217fc3d08f4a/src/Pos/DB/GState/Update.hs).
 
 ### Core Types
 
 Core types are mentioned in the Binary protocols document. Those types
-reflect concepts from the research section in a straight-forward way.
+reflect the concepts from the research section in a straightforward way.
 Please refer to the [core types
 module](https://github.com/input-output-hk/cardano-sl/blob/22360aa45e5dd82d0c87872d8530217fc3d08f4a/src/Pos/Update/Core/Types.hs)
 for more information.
@@ -363,7 +360,7 @@ A very important part of implementation of the update mechanism is
 the part that works with genesis blocks for epochs and applies updates.
 This logic resides
 [in this well-documented function](https://github.com/input-output-hk/cardano-sl/blob/22360aa45e5dd82d0c87872d8530217fc3d08f4a/src/Pos/Update/Poll/Logic/Softfork.hs#L67).
-Below we explain terminology related to this process.
+We explain terminology related to this process below.
 
 #### `softforkResolutionThreshold` Predicate
 
@@ -373,9 +370,9 @@ it is a version of software ran by the network.
 
 #### Acceptable Proposal
 
-A proposal is called “acceptable” if it is:
+A proposal is called “acceptable” if the following conditions are met:
 
- + Correctly formed, including necessary cryptographic signatures.
+ + It is correctly formed, including necessary cryptographic signatures.
  + Its version is greater or equal to the currently adopted proposal
    (see below).
 
@@ -390,27 +387,27 @@ true for it.
 A confirmed proposal is said to be “adopted” if its
 `softforkResolutionThreshold` predicate is true for it. For each
 blockchain state, there is exactly one adopted version. Blocks are
-checked honoring the currently adopted version.
+checked taking into consideration the currently adopted version.
 
 ### Download New Version
 
 In the
 [Pos.Update.Download](https://github.com/input-output-hk/cardano-sl/blob/22360aa45e5dd82d0c87872d8530217fc3d08f4a/src/Pos/Update/Download.hs)
-module, the following algorithms are implemeted. Downloaded updates are
+module, the following algorithms are implemented. Downloaded updates are
 applied using a tool called
 [launcher](https://github.com/input-output-hk/cardano-sl/blob/22360aa45e5dd82d0c87872d8530217fc3d08f4a/src/launcher/Main.hs)
 
 #### Download Confirmed Update
 
-To download confirmed update, we extract update hash from
-`ConfirmedProposalState`. We extreact it depending on whether or not we're
-using an installer on given platform. If update hash is extracted successfully,
-the “Download Update by Hash” algorithm to download and save
-confirmed update is invoked.
+To download a confirmed update, we extract the update hash from
+`ConfirmedProposalState`. We extract it depending on whether or not we're
+using an installer on given platform. If the update hash is extracted
+successfully, the “Download Update by Hash” algorithm to download and save
+the confirmed update is invoked.
 
 #### Download Update by Hash
 
-To download update by hash, we loop through known update servers trying
-to download update with given hash using `httpLBS` from HTTP. Simple. In
+To download an update by hash, we loop through known update servers trying
+to download the update with given hash using `httpLBS` from HTTP. Simple. In
 the end, we will either have the update completely downloaded or server list
 exhausted and an error reported.
