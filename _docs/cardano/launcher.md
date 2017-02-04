@@ -10,7 +10,9 @@ visible: true
 
 ## Overview
 
-An executable [`cardano-launcher`](https://github.com/input-output-hk/cardano-sl/blob/03510d04d243d1cb9ecb2a2bd1e5392d1b64bd33/cardano-sl.cabal#L1074) is a tool for launching Cardano SL. You can run it with `--help` flag to see this usage info:
+An executable [`cardano-launcher`](https://github.com/input-output-hk/cardano-sl/blob/03510d04d243d1cb9ecb2a2bd1e5392d1b64bd33/cardano-sl.cabal#L1074) is a tool for launching Cardano SL. Actually it runs the whole Cardano system (i.e. a node, a wallet) and handle an updates.
+
+You can run it with `--help` flag to see this usage info:
 
 ~~~
 $ cardano-launcher --help
@@ -41,15 +43,19 @@ For example (run via `stack`):
 $ stack exec cardano-launcher --                     \
     --node /tmp/blah-v000/node                       \
     --node-timeout 5                                 \
-    --updater "/bin/cardano-updater /tmp/n/ /tmp/n/" \
+    --updater /bin/cardano-updater -u dir -u /tmp/n
     --update-archive /tmp/cardano-update.tar
 ~~~
 
-`cardano-node` is a [node application](https://github.com/input-output-hk/cardano-sl/blob/03510d04d243d1cb9ecb2a2bd1e5392d1b64bd33/cardano-sl.cabal#L572). `cardano-updater` is a [separate application](https://github.com/input-output-hk/cardano-updater) for the node updates, see an explanation [below](#updater). Node timeout is explaned [below](#desktop-scenario).
+`cardano-node` is a [node application](https://github.com/input-output-hk/cardano-sl/blob/03510d04d243d1cb9ecb2a2bd1e5392d1b64bd33/cardano-sl.cabal#L572).
+
+`cardano-updater` is a [separate application](https://github.com/input-output-hk/cardano-updater) for the node updates, see an explanation [below](#updater). Arguments `-u` and `--update-archive` will be passed to the updater. Please note that `cardano-updater` is not the only allowed updater, so arguments `-u` and `--update-archive` may be unnecessary.
+
+Node timeout is explaned [below](#desktop-scenario).
 
 ## Scenarios
 
-There are two work scenarios for `cardano-launcher`: desktop and server. If you provide a path to the [wallet executable](https://github.com/input-output-hk/cardano-sl/blob/03510d04d243d1cb9ecb2a2bd1e5392d1b64bd33/cardano-sl.cabal#L677) using `--wallet` argument during start, `cardano-node` will run [in desktop](https://github.com/input-output-hk/cardano-sl/blob/03510d04d243d1cb9ecb2a2bd1e5392d1b64bd33/src/launcher/Main.hs#L108) scenario, otherwise [in server](https://github.com/input-output-hk/cardano-sl/blob/03510d04d243d1cb9ecb2a2bd1e5392d1b64bd33/src/launcher/Main.hs#L103) one.
+There are two work scenarios for `cardano-launcher`: desktop and server. If you provide a path to the wallet (e.g. Daedalus) using `--wallet` argument during start, `cardano-node` will run [in desktop](https://github.com/input-output-hk/cardano-sl/blob/03510d04d243d1cb9ecb2a2bd1e5392d1b64bd33/src/launcher/Main.hs#L108) scenario, otherwise [in server](https://github.com/input-output-hk/cardano-sl/blob/03510d04d243d1cb9ecb2a2bd1e5392d1b64bd33/src/launcher/Main.hs#L103) one.
 
 ### Server Scenario
 
@@ -60,9 +66,7 @@ There are 2 steps after start:
 
 Updater's work is explaned [below](#updater).
 
-Node is [spawning as a separate process](https://github.com/input-output-hk/cardano-sl/blob/03510d04d243d1cb9ecb2a2bd1e5392d1b64bd33/src/launcher/Main.hs#L219). Please note: we expect that node will be [actually started during 5 seconds](https://github.com/input-output-hk/cardano-sl/blob/03510d04d243d1cb9ecb2a2bd1e5392d1b64bd33/src/launcher/Main.hs#L220) after spawning. If not - we exit with panic.
-
-After that we just [wait until node stopped](https://github.com/input-output-hk/cardano-sl/blob/03510d04d243d1cb9ecb2a2bd1e5392d1b64bd33/src/launcher/Main.hs#L129). When node exited, we check its exit code. If it's equal to `20`, we [restart the launcher in the server scenario](https://github.com/input-output-hk/cardano-sl/blob/03510d04d243d1cb9ecb2a2bd1e5392d1b64bd33/src/launcher/Main.hs#L132), otherwise just [quit](https://github.com/input-output-hk/cardano-sl/blob/03510d04d243d1cb9ecb2a2bd1e5392d1b64bd33/src/launcher/Main.hs#L135).
+Node is [spawning as a separate process](https://github.com/input-output-hk/cardano-sl/blob/03510d04d243d1cb9ecb2a2bd1e5392d1b64bd33/src/launcher/Main.hs#L219). After that we just [wait until node stopped](https://github.com/input-output-hk/cardano-sl/blob/03510d04d243d1cb9ecb2a2bd1e5392d1b64bd33/src/launcher/Main.hs#L129). When node exited, we check its exit code. If it's equal to `20`, we [restart the launcher](https://github.com/input-output-hk/cardano-sl/blob/03510d04d243d1cb9ecb2a2bd1e5392d1b64bd33/src/launcher/Main.hs#L132), otherwise just quit.
 
 We can write log info in the log file before quitting. To do it, we must provide two additional arguments during launcher's start, `--report-server` and `--node-log`. First argument defines an URL of the report server, the second one defines a path to the log file. We asynchronously send log info to the report server [via `POST`-request](https://github.com/input-output-hk/cardano-sl/blob/03510d04d243d1cb9ecb2a2bd1e5392d1b64bd33/src/launcher/Main.hs#L242). Please note that file from the `--node-log` argument must exist.
 
