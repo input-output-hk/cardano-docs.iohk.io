@@ -4,6 +4,8 @@ title: Reward Era
 permalink: /timeline/reward/
 group: timeline
 ---
+[//]: # (Reviewed at 60033350e60408fc79f202491e6985b3b47acd90)
+
 # Reward Era
 
 Ninety days after the release, the reward era will start. This is part

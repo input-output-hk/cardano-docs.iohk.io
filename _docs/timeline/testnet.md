@@ -4,19 +4,22 @@ title: Testnet Era
 permalink: /timeline/testnet/
 group: timeline
 ---
+
+[//]: # (Reviewed at 60033350e60408fc79f202491e6985b3b47acd90)
+
 # Testnet Era
 
-In January 2017, a Cardano SL test network is launched the testnet is
-required to get community acquainted with the cryptocurrency and to
+In January 2017, a Cardano SL test network was launched. The testnet is
+required to get the community acquainted with the cryptocurrency and to
 polish the implementation, eliminating possible flaws or instabilities.
 
-During testnet era, all the functionality, including reward mechainsm
-will be activated and to get coin supply anyone will be able to redeem a
-private key from Cardano SL Testnet Faucet.
+During the Testnet era all functionality, including the reward mechanism,
+will be activated. Anyone will be able to redeem a private key from Cardano
+SL Testnet Faucet to get their coin supply.
 
-On January 21st 2017, testnet will be reset and users will be asked to
-download new, updated version of Cardano SL. This part of testnet era
-can be thought of beta testing, resulting in the
+On the 21st of January 2017, the testnet will be reset and users will be
+asked to download a new, updated version of Cardano SL. This part of the
+Testnet era can be thought of as beta testing, resulting in the
 [release](/timeline/bootstrap) of Cardano SL in February.
 
 We encourage everyone to download Cardano SL client for your platform,
