@@ -4,6 +4,7 @@ title: Network Transport Layer
 permalink: /protocols/network-transport/
 group: protocols
 ---
+[//]: # (Reviewed at 0f05d3b447d69ac640b033c169083288d26e5a19)
 
 # Network Transport Layer
 
@@ -15,12 +16,12 @@ nodes.
 The transport layer is a layer that sits between TCP and the application level
 protocol. It is in principle independent of the application protocol (indeed
 the reference implementation is used in multiple different applications with
-different application level protocols.)
+different application level protocols).
 
 The point of the transport layer is that it provides multiple lightweight
 logical connections multiplexed on a single TCP connection. Each lightweight
 connection is unidirectional and provides reliable ordered message transport
-(ie it provides framing on top of TCP).
+(i.e. it provides framing on top of TCP).
 
 Properties of the transport protocol:
 
@@ -49,11 +50,11 @@ Typical use of the transport involves:
 6. Closing lightweight connections
 4. Closing TCP connections.
 
-In Cardano SL the use of multiple lightweight connections is used to support
+In Cardano SL, multiple lightweight connections are used to support
 the application level messaging protocol. Multiple application level messages
 can be sent concurrently and multiple conversations can be in progress at once.
 Most application messages are sent on a newly created lightweight connection,
-and, if needed, larger application level message broken up into multiple
+and, if needed, larger application level message are broken into multiple
 transport level messages for transport. Other application level messages are
 sent as part of a conversation which is put together from a pair of
 unidirectional lightweight connections.
@@ -79,13 +80,13 @@ means it has an address and that connections are between endpoints. In practice
 it is just a thin abstraction over the TCP/IP notion of an endpoint, addressed
 via a hostname and port.
 
-Endpoint address are binary strings with the structure `HOST:PORT:LOCAL_ID`,
+Endpoint addresses are binary strings with the structure `HOST:PORT:LOCAL_ID`,
 for example, `192.168.0.1:3010:0`.
 
 Note that while a transport instance listens on a single port, in principle
 there can be multiple addressable endpoints within a single transport instance,
-and this is what the `LOCAL_ID` refers to. Cardano SL however does not
-currently make use of this feature so it always uses `LOCAL_ID` 0.
+and this is what the `LOCAL_ID` refers to. Cardano SL, however, does not
+currently make use of this feature, so it always uses `LOCAL_ID` 0.
 
 **Heavyweight connection** refers to a TCP connection between two endpoints.
 Two connected endpoints use one and _only one_ TCP-connection at once.
@@ -96,28 +97,28 @@ between endpoints are multiplexed on a single heavyweight connection (ie a
 single TCP connection).
 
 The lightweight connections are a logical concept layered on top of TCP.
-Every connection has an integer id. It is in principle possible to have
+Every connection has an integer ID. It is in principle possible to have
 thousands of lightweight connections multiplexed on a single heavyweight TCP
 connection.
 
 The typical style of operation is that the application layer wishes to
-establish a lightweight connection to an endpoint and if no heavyweight
-connection yet exists then one is created. Similarly, when the last lightweight
+establish a lightweight connection to an endpoint, and if no heavyweight
+connection yet exists, then one is created. Similarly, when the last lightweight
 connection is closed, real TCP connection is shut down cleanly.
 
 Lightweight connections are unidirectional: messages on a lightweight
-connection flow only in one direction. Lightweight connections can be
-established in either direction however. The same heavyweight connection is
+connection flow in one direction only. However, lightweight connections can be
+established in either direction. The same heavyweight connection is
 used for lightweight connections in either direction between peers; it does
 not matter which peer first established the heavyweight connection.
 
-A bi-directional conversation can be established by making use of a pair of
+A bidirectional conversation can be established by making use of a pair of
 unidirectional lightweight connections. Cardano SL follows this pattern.
 Refer to the `time-warp-nt` documentation for details. But note that this
 transport layer has no special concept of a bidirectional conversation, there
 are only collections of unidirectional connections.
 
-## Network byte order
+## Network Byte Order
 
 In the following descriptions of control messages, all integers are encoded in
 [network byte order](https://en.wikipedia.org/wiki/Endianness#Networking).
@@ -131,19 +132,19 @@ integer value in network byte order.
 Each transport instance must set up a TCP listening socket. The local interface
 and port number to use are determined by the application using the transport.
 
-The implementation should be prepared to accept new TCP connections at any time
+The implementation should be ready to accept new TCP connections at any time
 (perhaps limited by a resource policy), and then perform the initial steps for
 a new heavyweight connection described below.
 
-## Establishing heavyweight connections (initiating)
+## Establishing Heavyweight Connections (initiating)
 
 Assume that a heavyweight connection is to be established between endpoints
 labelled A and B, with endpoint A initiating the connection. Both endpoints
-have endpoint address, which as previously described, are of the form
+have endpoint address, which, as previously described, are of the form
 `HOST:PORT:LOCAL_ID`.
 
 Establishing a heavyweight connection from A to B proceeds as follows. First
-A must record in its local state that it is initialising a heavyweight
+A must record in its local state that it is initializing a heavyweight
 connection to B. This is needed in case of crossed connection requests (see
 below). A TCP connection is opened by endpoint A to the `HOST` and `PORT` of
 endpoint B.
@@ -157,17 +158,17 @@ Endpoint A sends a **connection request** message with the following structure:
 |   Int32   |   Int32     |       bytes        |
 ~~~
 
-where:
+Where
 
-- `B-LID` - `B`'s endpoint local id;
+- `B-LID` - `B`'s endpoint local ID;
 - `A-EIDlen` - length of `A`'s endpoint address;
 - `A-EID` - `A`'s endpoint address.
 
-Thus A sends the local endpoint id that it wishes to connect to, and its own
+Thus A sends the local endpoint ID that it wishes to connect to, and its own
 address to identify the initiating node. The address that A sends should be
 its canonical public address. The host part may be an IP address or DNS name.
 It is used to avoid establishing multiple TCP connections between endpoints.
-Within the Cardano SL protocol, the local endpoint id is always 0.
+Within the Cardano SL protocol, the local endpoint ID is always 0.
 
 Endpoint A then expects a **connection request response** message which is a
 single `Int32` encoding one of the following responses:
@@ -176,15 +177,15 @@ single `Int32` encoding one of the following responses:
 - `ConnectionRequestInvalid` (1)
 - `ConnectionRequestCrossed` (2)
 
-In the typical `ConnectionRequestAccepted` case then endpoint A must record in
+In the typical `ConnectionRequestAccepted` case, endpoint A must record in
 its local state that it now has an established (i.e. no longer initialising)
 heavyweight to B. It may then proceed to the main part of the protocol
 described below.
 
 A `ConnectionRequestInvalid` response occurs when the endpoint identified by
-the local endpoint id does not exist. For example if A sent to B that it
-wished to connect to local endpoint id 1, when only id 0 existed. In this case
-both endpoints must close the TCP connection.
+the local endpoint id does not exist. For example, it happens if A sends to B
+that it wishes to connect to local endpoint ID 1, when only ID 0 exists. In
+this case both endpoints must close the TCP connection.
 
 A `ConnectionRequestCrossed` response occurs when endpoint B determined that
 an existing TCP connection already exists between A and B, or connections
@@ -201,25 +202,25 @@ Both endpoints have endpoint address of the form `HOST:PORT:LOCAL_ID`. For
 concreteness, assume that B has only one endpoint, with `LOCAL_ID` of 0.
 
 The transport instance for B has a listening socket open on the host and port
-corresponding to the endpoint ids. It accepts a new TCP connection from some
+corresponding to the endpoint IDs. It accepts a new TCP connection from some
 peer. It now expects to receive on that TCP connection a **connection request**
 message (in the format described above).
 
-Transport instance B must now respond with a  **connection request response**
+Transport instance B must now respond with a **connection request response**
 message (in the format described above), based on the following rules.
 
-If the connection request asks for a local endpoint id that does not exist
-(ie anything other than 0 in our example) then it must respond with
+If the connection request asks for a local endpoint ID that does not exist
+(i.e. anything other than 0 in our example), it must respond with
 `ConnectionRequestInvalid` and close the TCP connection.
 
 The rules for `ConnectionRequestCrossed` are described below in more detail.
 
-Otherwise, when the endpoint id is valid and there is no existing TCP
-connection then it should reply with `ConnectionRequestAccepted`  and record in
+Otherwise, when the endpoint ID is valid and there is no existing TCP
+connection, it should reply with `ConnectionRequestAccepted` and record in
 its local state that it now has an established heavyweight with A. It may then
 proceed to the main part of the protocol.
 
-## Crossed connection request
+## Crossed Connection Request
 
 As mentioned previously, the protocol tries to ensure that only one TCP
 connection is used between any two endpoints at once. The typical case is that
@@ -232,7 +233,7 @@ initiate establishing heavyweight connections to each other _at the same time_
 Each endpoint will have recorded in its local state that it is in the process
 of initiating a heavyweight connection to the other endpoint. Each endpoint
 will send the connection request message as usual. When each endpoint accepts
-an incoming TCP connection, it checks the peer endpoint id from the connection
+an incoming TCP connection, it checks the peer endpoint ID from the connection
 request message.
 
 The additional rule is that it must lookup in its local state to see if a
@@ -240,7 +241,7 @@ connection to the peer endpoint was either 1. already _being_ established
 outbound or 2. already fully established. In the first case then we are in the
 crossed connection situation. The second case can also occur legitimately (i.e.
 not a protocol violation) when one peer has discovered that the existing TCP
-connection has failed (ie its end is closed) and is trying to establish a new
+connection has failed (i.e. its end is closed) and is trying to establish a new
 TCP connection, while the other peer has not yet discovered that the existing
 TCP connection is dead.
 
@@ -252,7 +253,7 @@ TCP connections to use, and which to close. The solution the protocol uses to
 break the symmetry is that the endpoint addresses can be ordered
 (lexicographically in their binary string form). Thus the rule each node must
 use to decide whether to accept or reject the incoming connection request is:
-reply with `ConnectionRequestAccepted` if the peer's endpoint id is less than
+reply with `ConnectionRequestAccepted` if the peer's endpoint ID is less than
 the local endpoint id, and otherwise reply with `ConnectionRequestCrossed` and
 close the TCP connection.
 
@@ -261,7 +262,7 @@ close the TCP connection.
 In the second case, where the endpoint handling the incoming TCP connection has
 determined that there already exists an established connection between the two
 endpoints, the protocol is as follows. A `ConnectionRequestCrossed` reply is
-sent and the TCP connection is closed. Additionally the endpoint tries to
+sent and the TCP connection is closed. Additionally, the endpoint tries to
 validate the liveness of the existing connection, with the purpose of either
 validating that it is live or determining that it is not in order to close the
 dead connection (which will then allow opening a new one).
@@ -275,7 +276,7 @@ endpoint.
 An endpoint that receives a ProbeSocket message should reply with a
 ProbeSocketAck.
 
-The encoding for these messages is simply:
+The encoding for these messages is simple:
 
 ~~~
 +-------------+
@@ -307,18 +308,18 @@ lightweight connections in each direction of the TCP connection. The lightweight
 connections in each direction are managed by the _sending_ side. The receiving
 side has no direct control over the allocation of lightweight connections.
 
-Lightweight connections are identified by a Lightweight connection id, which is
+Lightweight connections are identified by a Lightweight connection ID, which is
 a 32bit signed integer. Lightweight connection ids must be greater than 1024.
-Lightweight connection id numbers should be used sequentially.
+Lightweight connection ID numbers should be used sequentially.
 
 The control messages to create or close a lightweight connection simply
-identify the lightweight connection id that they act on. Similarly, data
-messages identify the id of the lightweight connection that the data is being
+identify the lightweight connection ID that they act on. Similarly, data
+messages identify the ID of the lightweight connection that the data is being
 sent on.
 
-Messages for different connection ids can be interleaved arbitrarily (enabling
+Messages for different connection ID can be interleaved arbitrarily (enabling
 the multiplexing of the different lightweight connections). The only constraints
-are the obvious ones: for any connection id the sequence of messages must be
+are the obvious ones: for any connection ID the sequence of messages must be
 a create connection message, any number of data messages and finally a close
 connection message.
 
@@ -347,11 +348,11 @@ where:
 - CloseCon control header is 1;
 - LWCId is the lightweight connection id, which is >= 1024.
 
-The header Int32 is alised between the control message headers and the
-lightweight connection ids of the data messages, which is why connection ids
+The header Int32 is aliased between the control message headers and the
+lightweight connection IDs of the data messages, which is why connection ids
 must be 1024 or greater.
 
-The data messages consist of the lightweight connection id and a length-prefixed
+The data messages consist of the lightweight connection ID and a length-prefixed
 frame of data. Implementations of this protocol may wish to impose a maximum
 size on these data frames, e.g. to ensure reasonable multiplexing between
 connections or for resource considerations.
@@ -366,7 +367,7 @@ message and connection close to be sent in a single write.
 Cleanly closing the heavyweight connection is not trivial. This is because the
 heavyweight connection should only be closed once lightweight connections in
 both directions are closed. Given that the allocation of lightweight connections
-is controlled independently by each endpoint then some synchronisation is
+is controlled independently by each endpoint then some synchronization is
 required for both endpoints to agree that there are no more lightweight
 connections in either direction.
 
@@ -374,8 +375,8 @@ When one endpoint determines that it has no more outgoing lightweight
 connections, and the set of incoming connections it knows of is empty, then it
 may initiate the protocol to close the heavyweight connection. It does so by
 sending a **CloseSocket** message. The message carries the maximum
-incoming lightweight connection id seen by the endpoint: ie the highest
-connection id that has been allocated by the remote endpoint that has so far
+incoming lightweight connection ID seen by the endpoint: i.e. the highest
+connection ID that has been allocated by the remote endpoint that has so far
 been seen by the local endpoint. The local endpoint now updates the state it
 uses to track the remote endpoint to note that it is now in the process of
 closing. If the local endpoint now receives a create connection message from
@@ -387,9 +388,9 @@ close the socket should be abandoned.
 
 When an endpoint receives a **CloseSocket** message it checks its local state
 to check the number of outbound lightweight connections and the maximum
-lightweight connection id it has used for outgoing connections. If there are
+lightweight connection ID it has used for outgoing connections. If there are
 still outbound connections then the close socket message is ignored.
-Additionally, if the maximum outbound lightweight connection id used thus far
+Additionally, if the maximum outbound lightweight connection ID used thus far
 by the local node is higher than the one received in the close socket message
 then the close socket message is ignored. This case can happen, even if the
 number of outbound connections is currently zero, if an outbound connection was
@@ -399,7 +400,7 @@ again while one side was trying to close it due to inactivity, and so it is
 appropriate to abandon the attempt to close it.
 
 If on the other hand there are no outbound connections and the last new
-connection id seen by the remote endpoint is the same as that locally, then
+connection ID seen by the remote endpoint is the same as that locally, then
 both sides agree and the TCP connection should be closed.
 
 The message structure is:
@@ -414,7 +415,7 @@ The message structure is:
 where:
 
 - `CloseSocket` - close connection control message, value `2`;
-- `LWCId` - maximum lightweight connection id used thus far.
+- `LWCId` - maximum lightweight connection ID used thus far.
 
 ## Flow control and back-pressure
 
@@ -432,4 +433,3 @@ multiplexed so small messages need not be blocked by large messages.
 Nevertheless it is still the case that the multiplexed stream of data for all
 connections must be received in order: it is not possible to push back on one
 lightweight connection vs another, only on the whole heavyweight connection.
-
