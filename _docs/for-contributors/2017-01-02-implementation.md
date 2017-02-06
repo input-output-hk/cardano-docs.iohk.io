@@ -26,22 +26,27 @@ into _slots_. Epochs and slots are numbered. Therefore, the slot `(3,5)`
 is read as "the fifth slot of the third epoch" (the 0th slot and the 0th
 epoch are also possible).
 
+Cardano SL uses a set of constants, special values defined in `.yaml` configuration
+files. We have two main configuration files: for development and for production,
+[`constants-dev.yaml`](https://github.com/input-output-hk/cardano-sl/blob/c30a68214f05367bb26388b58f76984034a564cd/constants-dev.yaml) and [`constants-prod.yaml`](https://github.com/input-output-hk/cardano-sl/blob/c30a68214f05367bb26388b58f76984034a564cd/constants-prod.yaml) correspondingly. Please note that particular values are not equal in these two configuration files.
+In this guide we'll refer to productions constants.
+
 The values for Cardano SL are:
 
-- Slot duration: 15 seconds
-- Security parameter *k*: 2
+- Slot duration: 120 seconds
+- Security parameter *k*: 60
 
 Please refer to the [last section](#constants) of this article to see all the
 constants and their values.
 
-In other words, **a slot lasts 15 seconds**, and an epoch has `6×k=12` slots
-in it, so it lasts **3 minutes**.
+In other words, **a slot lasts 120 seconds**, and an epoch has `10×k=600` slots
+in it, so it lasts **1200 minutes** or **20 hours**.
 
 On each slot, one *and only one* of the nodes generates a block to be added
 to the blockchain. During the epoch, nodes send each other MPC
 messages to come to the consensus as to who would be allowed to generate
-blocks in the next epoch. These messages (along with transactions) are included
-into blocks.
+blocks in the next epoch. Payloads from `Data` messages (along with transactions) are
+included into blocks.
 
 The more currency (or "stake") an address holds, the more likely it is to
 be chosen to generate a block. Please refer to [the pertinent
@@ -204,9 +209,9 @@ to neighbors, they will resend it to their neighbors, and so on. But sometimes
 we may need to not propagate messages across all network, but send it to neighbors
 only. Hence we have three types of sending messages:
 
-- Send to a node
-- Send to neighbors
-- Send to network
+- Send to a node;
+- Send to neighbors;
+- Send to network.
 
 #### Message types
 
@@ -230,19 +235,19 @@ recommended for alternative clients.
 | Constant name                 | Value         | Description                  |
 |-------------------------------|---------------|------------------------------|
 | **Protocol constants**        |               |                              |
-| k                             |             2 | Security parameter           |
-| slotDurationSec               |            10 | Duration of slots in seconds |
-| networkDiameter               |             3 | _Pending_                    |
-| neighboursSendThreshold       |             4 | _Pending_                    |
-| genesisN                      |            20 | _Pending_                    |
-| maxLocalTxs                   |         10000 | _Pending_                    |
+| k                             |            60 | Security parameter           |
+| slotDurationSec               |           120 | Duration of slots in seconds |
+| networkDiameter               |            45 | _Pending_                    |
+| neighboursSendThreshold       |             2 | _Pending_                    |
+| genesisN                      |         12014 | _Pending_                    |
+| maxLocalTxs                   |          1000 | _Pending_                    |
 | defaultPeers                  |            [] | _Pending_                    |
 | sysTimeBroadcastSlots         |             6 | _Pending_                    |
-| mpcSendInterval               |            12 | Must be less than `k * slotDuration - networkDiameter` |
-| mdNoBlocksSlotThreshold       |            10 | _Pending_                    |
+| mpcSendInterval               |           100 | Must be less than `k * slotDuration - networkDiameter` |
+| mdNoBlocksSlotThreshold       |            45 | _Pending_                    |
 | mdNoCommitmentsEpochThreshold |             3 | _Pending_                    |
-| vssMaxTTL                     |           100 | In Epochs                    |
-| protocolMagic                 |             0 | _Pending_                    |
+| vssMaxTTL                     |             6 | In Epochs                    |
+| protocolMagic                 |      50987833 | _Pending_                    |
 | enchancedMessageBroadcast     |             2 | _Pending_                    |
 | delegationThreshold           |         0.001 | 1% of the stake              |
 | **Update system constants**   |               |                              |
