@@ -10,6 +10,10 @@ visible: true
 
 # Differences Between the Paper and the Implementation
 
+This document is a work-in-progress. The goal of this document is to
+enumerate all the ways in which CSL implementation differs from
+specifications presented in the paper.
+
 ## Time, slots, and synchrony
 
 In basic model of *Ouroboros* time is divided into discrete units
@@ -31,8 +35,7 @@ certificate is valid. Initially all stakeholders with enough stake
 for participation in randomness generation have certificates. When new
 stakeholder with enough stake appears or when existing certificate
 expires, new certificate should be generated and submitted to the
-network. `VssCertificate`s are stored in blocks. **TODO**: refer to
-section or maybe write more details or throw away.
+network. `VssCertificate`s are stored in blocks. 
 
 ## Block generation time
 
@@ -75,14 +78,11 @@ a `(1 - p₁) … (1 - pⱼ₋₁) pⱼ`-biased coin to see whether `j`-th
 stakeholder is selected as leader of given slot. Here `pⱼ` is
 probability of selecting `j`-th stakeholder.
 
-In `cardano-sl` it is implemented slightly differently. **TODO**: refer
-to section or provide details here or throw away. Also, as paper
-suggests, short (32-bits) seed is used for initializing PRG instead of
-using `n ⌈log λ⌉` random bits.
+In `cardano-sl` it is implemented slightly differently.
 
 ## Commitments, openings, shares sending
 
-Time of sending is randomized a little bit. **TODO**: should it be here?
+Time of sending is randomized within ε.
 
 ## Multicommitments
 
