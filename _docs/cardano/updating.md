@@ -113,14 +113,14 @@ the previous version.
 BIP-99 provides an excellent criteria to distinguish between these two
 types of fork:
 
-### Softfork
+### Soft fork
 
 A consensus fork wherein everything that was previously invalid remains
 invalid while blocks that would have been previously considered valid become
 invalid. A hashrate majority of miners can impose the new rules. They
 have some deployment advantages like backward compatibility.
 
-### Hardfork
+### Hard fork
 
 A consensus fork that makes previously invalid blocks valid. Hard forks
 require all users to upgrade.
@@ -271,7 +271,7 @@ Currently, everything is done to add hard fork functionality via
 software update and then perform a hard fork as described in research
 section; soft forks (or software updates) are fully implemented.
 
-## Fields Updatable with a Softfork
+## Fields Updatable with a Soft fork
 
 An
 [`UpdateProposal`](https://github.com/input-output-hk/cardano-sl/blob/22360aa45e5dd82d0c87872d8530217fc3d08f4a/src/Pos/Update/Core/Types.hs#L97-L108) contains
