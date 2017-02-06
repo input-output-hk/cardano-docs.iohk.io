@@ -6,7 +6,7 @@ group: getting-started
 ---
 # Navigating in Daedalus User Interface
 
-Daedalus, the wallet of Cardano SL offers a multitude of functions, that
+Daedalus, the wallet of Cardano SL offers a multitude of functions that
 are easy and intuitive to use. Menu animations flow well and have a
 zero-distraction mode. UI is minimalistic, color scheme is neutral. The
 structure is concise and easy to follow. We've built Daedalus for your
@@ -24,10 +24,10 @@ changelogs and changes to this documentation!
 ## Layout
 ![Daedalus balance](/img/daedalus/balance.jpg)
 
-The general layout of the UI gives room to split into left, middle and
-right section, excluding the header, footer and margins used for
+The general layout of the UI gives room to split it into the left, middle and
+right sections, excluding the header, footer and margins used for
 composition. When referred to in the document, the left side refers to
-_the menu_, middle refers to _main contents_ of page in question, right
+_the menu_, the middle side refers to _main contents_ of page in question, and the right one
 holds _information and extra options_.
 
 ## Wallet
@@ -42,7 +42,7 @@ transaction history.
 ### Send Money
 ![Daedalus transaction](/img/daedalus/send.jpg)
 
-To send money you should click on “Send Money” button and fill in dialog
+To send money, you should click on “Send Money” button and fill in the dialog
 consisting of the following inputs:
 
  1. Receiver (Ada address)
@@ -85,7 +85,7 @@ dragging and dropping a file or clicking to upload.
 Password field shows when the password was last updated.
 
 On the right side more groups of settings can be seen (aside from the
-Profile that was already discussed previously):
+Profile that was already discussed):
 
  1. Security
  2. Identity and Verification
@@ -98,4 +98,4 @@ Profile that was already discussed previously):
 
 Staking information, delegation and Instant Buy options are something
 we're considering to add in the nearest future. For now, the process of
-staking is carried out autmatically on background.
+staking is carried out automatically on background.
