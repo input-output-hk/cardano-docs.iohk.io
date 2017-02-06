@@ -1,11 +1,11 @@
 ---
 layout: default
-title: Time-warp-NT
+title: Time-warp-NT Layer
 permalink: /protocols/time-warp-nt/
 group: protocols
 ---
 
-# Introduction
+# Time-Warp-NT Layer
 
 Time-warp is developed to provide reliable networking layer with different levels of abstractions. Its second big objective is to provide an easy way to write and run tests for distributed systems using emulation mode, which should be flexible enough to support different scenarios (tunable network delays, disconnects, other real-time conditions).
 
