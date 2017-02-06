@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Differences
+title: Differences Between the Paper and the Implementation
 permalink: /cardano/differences/
 group: cardano
 visible: true
@@ -8,7 +8,7 @@ visible: true
 
 [//]: # (Not reviewed at all)
 
-# Clarified things
+# Differences Between the Paper and the Implementation
 
 ## Time, slots, and synchrony
 
@@ -17,7 +17,7 @@ called *slots*. However, there are no details on how to obtain current
 time securely and with enough precision.
 
 In *cardano-sl* current time is obtained by querying predefined set of
-NTP servers. **TODO**: write more details or throw away.
+NTP servers.
 
 ## Coin Tossing and Verifiable Secret Sharing
 
@@ -33,10 +33,6 @@ stakeholder with enough stake appears or when existing certificate
 expires, new certificate should be generated and submitted to the
 network. `VssCertificate`s are stored in blocks. **TODO**: refer to
 section or maybe write more details or throw away.
-
-**TODO**: also write about openings and proofs (specifically, that
-`PVSS.Secret` is opening and `PVSS.Proof` is proof which is part of
-commitment), but I am not an expert in this area.
 
 ## Block generation time
 
@@ -69,11 +65,6 @@ blockchain. Contrary, lightweight delegation is available for
 everybody, but certificates are not stored within blockchain and
 aren't considered in checking eligibility threshold. As paper
 suggests, *delegation-by-proxy* scheme is used.
-**TODO**: describe in details or refer somewhere.
-
-## Transactions, UTXO, Scripts
-
-**TODO**: should it be here (in clarifications or in additions) at all?
 
 # Modified things
 
@@ -106,9 +97,6 @@ of stake, then adversary has full control over secret sharing.
 To overcome this problem, in *cardano-sl* each stakeholder is allowed
 to send number of commitments proportional to their stake.
 
-**TODO**: is it enough? If not, should I refer to section about
-GodTossing or provide details here?
-
 ## Randomness generation failure
 
 *Ouroboros* doesn't cover situation when commitments can't be
@@ -116,31 +104,18 @@ recovered. However, practical implementation should account for such
 scenarios. *cardano-sl* implementation uses seed consisting of all
 zeroes if there are no recovered commitments.
 
-**NOTE**: probably it's bad solution. It was a quick hacak before
-testnet launch to protect us from protocol stop.
-
-**NOTE**: we wanted to use previous seed if, for instance, commitments
-from more than half of stake can't be recovered. I don't know whether
-we will do it and when. These notes will be removed before pushing to
-master I suppose.
-
 # Added features
 
 ## Update System
 
-**TODO**: is it enough to put a link to page about US here?
+See the article on [update system](/cardano/update-mechanism/).
 
 ## Security of P2P
 
-**TODO**: should it be here? If yes, is it enough to only put a link?
-It addresses attacks from **8 Attacks Discussion**.
+See the article on [P2P implementation and hardening](/protocols/p2p/).
 
 # Missing things
 
-## Input Endorsers
-
-No.
-
-## Incentive Structure
-
-No.
+The sections on _Input Endorsers_ and _Incentive Structure_ aren't
+implemented yet. Those sections are to be implemented together with
+pending research on Side-chains and released in the Side-chains release.
