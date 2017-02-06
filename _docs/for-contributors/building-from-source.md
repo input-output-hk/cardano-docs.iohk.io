@@ -10,12 +10,12 @@ Cardano SL consists of a collection of binaries that constitutes
 backend, a PureScript API for the Electron-based wallet and the
 Electron-based wallet called “Daedalus”. You can read more about design
 and architecture of Cardano SL in the [Implementation
-Guide](/for-contributors/implementation.md).
+Guide](/for-contributors/implementation).
 
 ## Cardano SL and Daedalus Bridge
 
 Source code for both Cardano SL and Daedalus Bridge can be obtained
-(here)[https://github.com/input-output-hk/pos-haskell-prototype]
+in [official repository](https://github.com/input-output-hk/cardano-sl).
 
 We strongly suggest using [Nix package
 manager](https://nixos.org/nix/download.html) to get the right
@@ -236,7 +236,7 @@ Then execute the following command:
 npm install
 ```
 
-Now to run the wallet connected to the Cardano SL in dev-mode, call
+Now to run the wallet connected to the Cardano SL in dev-mode, run
 
 ```
 npm run dev
