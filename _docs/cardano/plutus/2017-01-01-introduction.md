@@ -4,14 +4,14 @@ title: Introduction
 permalink: /cardano/plutus/introduction/
 group: cardano-plutus
 ---
+
+# Introduction
+
 Plutus is a strictly typed pure functional programming language used for
 defining smart contracts in Cardano. The syntax is fairly Haskell-like, but
 unlike Haskell, the language is eagerly evaluated.
 
-
-
-Declaring Data Types
-====================
+## Declaring Data Types
 
 In Plutus, to define a data type, we give the name of the type, then any type
 parameters, together with a list of constructor alternatives like in Haskell.
@@ -19,11 +19,15 @@ Each constructor alternative has the types of its arguments.
 
 So, for instance, the type of Peano numerals would be defined as
 
-    data Nat = { Zero | Suc Nat }
+~~~
+data Nat = { Zero | Suc Nat }
+~~~
 
 whereas binary trees would be defined as
 
-    data Tree a = { Leaf | Branch (Tree a) a (Tree a) }
+~~~
+data Tree a = { Leaf | Branch (Tree a) a (Tree a) }
+~~~
 
 The type constructor `Tree` takes one parameter, `a`. It's inhabited by values
 constructed by two constructors, `Leaf`, which has no arguments, and `Branch`,
@@ -32,40 +36,40 @@ which has three arguments, a left subtree of type `Tree a`, a value of type
 
 We can inspect data using the `case` construct, like so:
 
-    case t of {
-      Leaf -> ... ;
-      Branch l x r -> ...
-    }
+~~~
+case t of {
+  Leaf -> ... ;
+  Branch l x r -> ...
+}
+~~~
 
-
-
-Declaring Values
-================
+## Declaring Values
 
 To declare a new value (whether it's a function or not), we give its type, and
 then specify its value. For instance, to define addition for natural numbers,
 we can give a recursive definition using `case`:
 
-    add : Nat -> Nat -> Nat {
-      add = \m n ->
-        case m of {
-          Zero -> n ;
-          Suc m' -> Suc (add m' n)
-        }
+~~~
+add : Nat -> Nat -> Nat {
+  add = \m n ->
+    case m of {
+      Zero -> n ;
+      Suc m' -> Suc (add m' n)
     }
+}
+~~~
 
 We can also use pattern matching equations like in Haskell, which makes the
 definition of functions like this much more elegant:
 
-    add : Nat -> Nat -> Nat {
-      add Zero n = n ;
-      add (Suc m) n = Suc (add m n)
-    }
+~~~
+add : Nat -> Nat -> Nat {
+  add Zero n = n ;
+  add (Suc m) n = Suc (add m n)
+}
+~~~
 
-
-
-Smart Contract Computations
-===========================
+## Smart Contract Computations
 
 Plutus has one important type built into the language specific for smart
 contract computations: the type constructor `Comp`, which takes one type
@@ -90,11 +94,7 @@ and a validator program of type `A -> Comp B`, which are then composed to form
 whatever data `validator` needs, and then that data is given to `redeemer`,
 which is run.
 
-
-
-
-More Detailed Overview
-======================
+## More Detailed Overview
 
 The other files in this directory provide a more detailed overview of the
 grammar, types, and programs of Plutus, including the built in types and

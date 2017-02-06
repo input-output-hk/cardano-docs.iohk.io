@@ -1,12 +1,12 @@
 ---
 layout: default
-title: Time-warp-NT
+title: Time-warp-NT Layer
 permalink: /protocols/time-warp-nt/
 group: protocols
 ---
 [//]: # (Reviewed at 5cdd60691c273047147865ddaf1bad9626adf5e9)
 
-# Introduction
+# Time-Warp-NT Layer
 
 Time-warp is developed to provide a reliable networking layer with different
 levels of abstractions. Another important objective of time-warp is to provide
