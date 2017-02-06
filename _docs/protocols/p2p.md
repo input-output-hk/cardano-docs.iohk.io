@@ -37,7 +37,7 @@ To learn more about how Kademlia is implemented, please refer to the paper [Kade
 
 **FIND\_NODE ID**: Request network address of node with given ID. After sending this message the node would expect to receive a *RETURN\_NODES* message with a list of nodes closest to the requested one (including the requested node itself).
 
-**FIND\_VALUE key**: Behaves just like *FIND\_NODE*, except that it can also receive a *RETURN\_VALUE* response in case of a successful lookup. Currently it's only used in Cardano SL for finding peers. When the node starts working, it generates a random key and asks Kademlia to find it; this search always fails, but it lets the node discover some initial peer addresses.
+**FIND\_VALUE key**: Behaves just like *FIND\_NODE*, except that it can also receive a *RETURN\_VALUE* response in the case of a successful lookup. Currently it's only used in Cardano SL for finding peers. When the node starts working, it generates a random key and asks Kademlia to find it; this search always fails, but it lets the node discover some initial peer addresses.
 
 **RETURN\_VALUE key value nodes**: A reply to a *STORE* request. This message is not used in Cardano SL because it does not store any values in Kademlia.
 
