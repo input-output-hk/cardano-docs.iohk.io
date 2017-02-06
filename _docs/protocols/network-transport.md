@@ -322,7 +322,8 @@ are the obvious ones: for any connection id the sequence of messages must be
 a create connection message, any number of data messages and finally a close
 connection message.
 
-The format of these messages is as follows
+The format of these messages is as follows:
+
 ~~~
 +-----------+-----------+
 | CreateCon |   LWCId   |
@@ -340,11 +341,11 @@ The format of these messages is as follows
 |   Int32   |   Int32   |     Len-bytes     |
 ~~~
 
-where
+where:
 
-- CreateCon control header is 0
-- CloseCon control header is 1
-- LWCId is the lightweight connection id, which is >= 1024
+- CreateCon control header is 0;
+- CloseCon control header is 1;
+- LWCId is the lightweight connection id, which is >= 1024.
 
 The header Int32 is alised between the control message headers and the
 lightweight connection ids of the data messages, which is why connection ids
@@ -412,7 +413,7 @@ The message structure is:
 
 where:
 
-- `CloseSocket` - close connection control message, value `2`,
+- `CloseSocket` - close connection control message, value `2`;
 - `LWCId` - maximum lightweight connection id used thus far.
 
 ## Flow control and back-pressure
