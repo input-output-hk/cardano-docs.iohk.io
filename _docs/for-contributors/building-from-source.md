@@ -97,7 +97,7 @@ mapping, the index of the secret key in this mapping can be provided
 using `--vss-genesis N` and `--spending-genesis N`, where `N` is index
 in this mapping.
 
-Example of a local invoaction connecting to HostID
+Example of a local invocation connecting to HostID
 `MHdtsP-oPf7UWly007QuXnLK5RD=`:
 
 ```
@@ -222,8 +222,8 @@ manually running `npm link daedalus-bridge`.
 
 ## Building Daedalus
 
-If the instructions of building Cardano SL and the Bridge have been followed,
-building Daedalus wallet is as simple as cloning Daedalus' repository:
+If the instructions of building of Cardano SL and the Bridge have been followed,
+building of the Daedalus wallet is as simple as cloning of the Daedalus' repository:
 
 ```
 git clone https://github.com/input-output-hk/daedalus.git
