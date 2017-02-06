@@ -48,6 +48,52 @@ The way messages are serialized can be seen in
 [Pos.Binary.Communication](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Binary/Communication.hs)
 module.
 
+Every message type should have an instance of the `Message` typeclass. Please see [Time-Warp-NT guide](/protocols/time-warp-nt/#messaging).
+
+## Inv/Req/Data and MessagePart
+
+Most of messages in Cardano are generalized with `Inv/Req/Data` standard, see [Pos.Communication.Relay](https://github.com/input-output-hk/cardano-sl/blob/3d695fd804814647f50abe452a81a678aad080cc/src/Pos/Communication/Types/Relay.hs) module. Within this framework we define three data types:
+
+~~~ haskell
+
+-- | Inventory message. Can be used to announce the fact that you have
+-- some data.
+data InvMsg key tag = InvMsg
+    { imTag  :: !tag
+    , imKeys :: !(NonEmpty key)
+    }
+
+-- | Request message. Can be used to request data (ideally data which
+-- was previously announced by inventory message).
+data ReqMsg key tag = ReqMsg
+    { rmTag  :: !tag
+    , rmKeys :: !(NonEmpty key)
+    }
+
+-- | Data message. Can be used to send actual data.
+data DataMsg contents = DataMsg
+    { dmContents :: !contents
+    } deriving (Show, Eq)
+~~~
+
+Here:
+ + `key` is a type representing the node identifier.
+ + `tag` is a type used to describe announced/requested data. Should contain enough information for other nodes to check if they need these data and request them.
+ + `contents` is a type representing actual message payload.
+
+To introduce a new message using `Inv/Req/Data` one should create two types: tag type and contents type for this message. And then implement `MessagePart` typeclass for both of them.
+
+~~~ haskell
+class MessagePart a where
+    pMessageName :: Proxy a -> MessageName
+~~~
+
+Here `pMessageName` is an identifier for particular message type (e.g. should be the same for tag and contents but should differ between messages).
+
+`Message` typeclass for `InvMsg key tag`, `ReqMsg key tag` and `DataMsg contents` is automatically derived from the `MessagePart` typeclass for the concrete tag and contents.
+
+Please see [Pos.Communication.Message](https://github.com/input-output-hk/cardano-sl/blob/3d695fd804814647f50abe452a81a678aad080cc/src/Pos/Communication/Message.hs) module for examples of messages that are using `Inv/Req/Data`.
+
 ## Block Exchange Messages
 
 This table explains [Pos.Block.Network.Types](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Types.hs) module.
@@ -78,13 +124,39 @@ Modules covered are:
 
 ## Delegation Messages
 
+*Delegation* is feature that allows one stakeholder called *issuer* to let another one called *delegate* generate blocks on her behalf.
+
+To do this issuer should create *proxy signing key* that allows delegate to sign blocks instead of issuer. Any stakeholder can verify that a proxy signing key was actually issued
+by a specific stakeholder to a specific delegate and that this key is valid at time.
+
+Delegation comes in two flavours — per-epoch delegation and delegation
+with revocable long-lived certificates. Per-epoch delegation is called
+“lightweight”, long-lived is called “heavyweight”.
+
+### Lightweight delegation
+
+Lightweight delegation allows delegate to sign blocks instead of issuer for some epochs (range [low, high] of epochs is specified for created signing key).
+
+To do this issuer should send message containing time range, issuer public key, delegate public key and certificate over network.
+Every node from network receives this message and can later check if one who generated the block have right for it.
+Lightweight delegation data is stored in memory and deleted after some time (500 seconds).
+
+This delegation type can be used to delegate blocks generating right to some trusted node when issuer knows she will be absent in some time range.
+
+### Heavyweight delegation
+
+Heavyweight delegation serves for two purposes:
+
+1. Delegate block generation right like lightweight delegation.
+2. Share stake with some delegate thus allowing delegate to take part in Follow-The-Satoshi. No real money is transfered, stake of issuer is just added to stake of delegate when calculating stakeholders for Follow-The-Satoshi.
+
+Every particular stakeholder can share stake with the only one delegate. To revoke certificate node should create new certificate and put itself as both issuer and delegate.
+
+### Messages table
+
 This table describes delegation-related messages, found in
 [Pos.Delegation.Types](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Delegation/Types.hs)
 module. Format of delegation messages described in _Binary protocols_ section.
-
-Delegation comes in two flavours — per-epoch delegation and delegation
-with revokable long-lived certificates. Per-epoch delegation is called
-“lightweight”, long-lived is called “heavyweight”.
 
 | Message Name             | Commentaries                                                                           |
 |--------------------------+----------------------------------------------------------------------------------------|
