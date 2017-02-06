@@ -4,10 +4,11 @@ title: Haddock
 permalink: /for-contributors/haddock/
 group: for-contributors
 ---
+[//]: # (Reviewed at 60033350e60408fc79f202491e6985b3b47acd90)
 
 # Haddock
 
-Here you can find Haddock-based documentation for Cardano SL.
+Here you can find the Haddock-based documentation for Cardano SL.
 
 ## Unstable
 
