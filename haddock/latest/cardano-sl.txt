@@ -5062,6 +5062,7 @@ newtype Opening
 Opening :: (AsBinary Secret) -> Opening
 [getOpening] :: Opening -> (AsBinary Secret)
 type OpeningsMap = HashMap StakeholderId Opening
+type InnerSharesMap = HashMap StakeholderId (AsBinary Share)
 
 -- | Each node generates a <tt>SharedSeed</tt>, breaks it into
 --   <a>Share</a>s, and sends those encrypted shares to other nodes. In a
@@ -5071,7 +5072,6 @@ type OpeningsMap = HashMap StakeholderId Opening
 --   Specifically, if node identified by <tt>Address</tt> X has received a
 --   share from node identified by key Y, this share will be at
 --   <tt>sharesMap ! X ! Y</tt>.
-type InnerSharesMap = HashMap StakeholderId (AsBinary Share)
 type SharesMap = HashMap StakeholderId InnerSharesMap
 
 -- | VssCertificate allows VssPublicKey to participate in MPC. Each
