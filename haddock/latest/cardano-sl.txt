@@ -3433,9 +3433,11 @@ getSlottingData :: MonadSlotsData m => m SlottingData
 getSlottingData :: (MonadSlotsData m, MonadTrans t, MonadSlotsData m', t m' ~ m) => m SlottingData
 
 -- | Type class providing information about current slot.
-class MonadSlotsData m => MonadSlots m where getCurrentSlot = lift getCurrentSlot
+class MonadSlotsData m => MonadSlots m where getCurrentSlot = lift getCurrentSlot slottingWorkers = map lift slottingWorkers
 getCurrentSlot :: MonadSlots m => m SlotId
+slottingWorkers :: MonadSlots m => [m ()]
 getCurrentSlot :: (MonadSlots m, MonadTrans t, MonadSlots m', t m' ~ m) => m SlotId
+slottingWorkers :: (MonadSlots m, MonadTrans t, MonadSlots m', t m' ~ m) => [m ()]
 
 -- | Monad transformer which provides <tt>SlottingData</tt> using DB.
 newtype DBSlotsData m a
@@ -3468,6 +3470,9 @@ getSlotStart :: MonadSlots m => SlotId -> m Timestamp
 --   This function uses Mockable and assumes consistency between MonadSlots
 --   and Mockable implementations.
 onNewSlot :: OnNewSlot ssc m => Bool -> (SlotId -> m ()) -> m ()
+
+-- | Same as onNewSlot, but also logs debug information.
+onNewSlotWithLogging :: OnNewSlot ssc m => Bool -> (SlotId -> m ()) -> m ()
 onNewSlotImpl :: OnNewSlot ssc m => Bool -> Bool -> (SlotId -> m ()) -> m ()
 
 
