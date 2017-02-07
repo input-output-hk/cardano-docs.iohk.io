@@ -26,22 +26,27 @@ into _slots_. Epochs and slots are numbered. Therefore, the slot `(3,5)`
 is read as "the fifth slot of the third epoch" (the 0th slot and the 0th
 epoch are also possible).
 
+Cardano SL uses a set of constants, special values defined in `.yaml` configuration
+files. We have two main configuration files: for development and for production,
+[`constants-dev.yaml`](https://github.com/input-output-hk/cardano-sl/blob/c30a68214f05367bb26388b58f76984034a564cd/constants-dev.yaml) and [`constants-prod.yaml`](https://github.com/input-output-hk/cardano-sl/blob/c30a68214f05367bb26388b58f76984034a564cd/constants-prod.yaml) correspondingly. Please note that particular values are not equal in these two configuration files.
+In this guide we'll refer to productions constants.
+
 The values for Cardano SL are:
 
-- Slot duration: 15 seconds
-- Security parameter *k*: 2
+- Slot duration: 120 seconds
+- Security parameter *k*: 60
 
 Please refer to the [last section](#constants) of this article to see all the
 constants and their values.
 
-In other words, **a slot lasts 15 seconds**, and an epoch has `6×k=12` slots
-in it, so it lasts **3 minutes**.
+In other words, **a slot lasts 120 seconds**, and an epoch has `10×k=600` slots
+in it, so it lasts **1200 minutes** or **20 hours**.
 
 On each slot, one *and only one* of the nodes generates a block to be added
 to the blockchain. During the epoch, nodes send each other MPC
 messages to come to the consensus as to who would be allowed to generate
-blocks in the next epoch. These messages (along with transactions) are included
-into blocks.
+blocks in the next epoch. Payloads from `Data` messages (along with transactions) are
+included into blocks.
 
 The more currency (or "stake") an address holds, the more likely it is to
 be chosen to generate a block. Please refer to [the pertinent
@@ -104,32 +109,6 @@ At the heart of Cardano SL sits the Ouroboros Proof of Stake protocol, as
 described in [the whitepaper](https://eprint.iacr.org/2016/889) of the same
 name.
 
-### Static state
-
-_Pending_
-
-### Dynamic state
-
-_Pending_
-
-#### Follow the Satoshi
-
-_Pending_
-
-#### Obtaining the same seed
-
-_Pending_
-
-## Blocks
-
-### `MainBlockchain`
-
-_Pending_
-
-### `GenesisBlockchain`
-
-_Pending_
-
 ## Forks
 
 Generally, one chain (the _main chain_) is maintained by a node, but eventually
@@ -147,26 +126,6 @@ are swapped, making the alternative chain the new main chain.
 
 ## Supplemental parts
 
-### SSC
-
-SSC stands for Shared Seed Calculation.
-
-_Pending: what to talk about here that is general enough for the original
-client and for alternative clients?_
-
-### Crypto
-
-_Pending: what to talk about here that is general enough for the original
-client and for alternative clients?_
-
-### Storage
-
-_Pending: what to talk about here that is general enough for the original
-client and for alternative clients? Storage is RocksDB for original client,
-but alternative clients may want to implement with different engine. Do we
-want to simply mention RocksDB and leave it as a recommendation, or expand
-further?_
-
 ### Slotting
 
 The consensus scheme we use relies on correct slotting. More specifically, it
@@ -177,8 +136,6 @@ actions in this slot.
 
 System start time is a timestamp of the (0,0) slot (i.e. the 0th slot of
 the 0th epoch).
-
-_Pending: Is the timelord-timeslave scheme still relevant?_
 
 ## P2P Network
 
@@ -204,17 +161,18 @@ to neighbors, they will resend it to their neighbors, and so on. But sometimes
 we may need to not propagate messages across all network, but send it to neighbors
 only. Hence we have three types of sending messages:
 
-- Send to a node
-- Send to neighbors
-- Send to network
+- Send to a node;
+- Send to neighbors;
+- Send to network.
 
 #### Message types
 
 To handle this, three kind of message headers are used, and there are two
 message types:
 
-- Simple: _Pending: Describes how a Simple message is implemented_
-- Broadcast:  _Pending: Describes how a Broadcast message is implemented_
+ - Simple: sending to a single peer
+ - Broadcast: attempting to send to the entire network, iteratively
+   sending messages to neighbors.
 
 Broadcast messages are resent to neighbors right after retrieval (before
 handling). Also, they are being checked against LRU cache, and messages
@@ -230,19 +188,19 @@ recommended for alternative clients.
 | Constant name                 | Value         | Description                  |
 |-------------------------------|---------------|------------------------------|
 | **Protocol constants**        |               |                              |
-| k                             |             2 | Security parameter           |
-| slotDurationSec               |            10 | Duration of slots in seconds |
-| networkDiameter               |             3 | _Pending_                    |
-| neighboursSendThreshold       |             4 | _Pending_                    |
-| genesisN                      |            20 | _Pending_                    |
-| maxLocalTxs                   |         10000 | _Pending_                    |
+| k                             |            60 | Security parameter           |
+| slotDurationSec               |           120 | Duration of slots in seconds |
+| networkDiameter               |            45 | _Pending_                    |
+| neighboursSendThreshold       |             2 | _Pending_                    |
+| genesisN                      |         12014 | _Pending_                    |
+| maxLocalTxs                   |          1000 | _Pending_                    |
 | defaultPeers                  |            [] | _Pending_                    |
 | sysTimeBroadcastSlots         |             6 | _Pending_                    |
-| mpcSendInterval               |            12 | Must be less than `k * slotDuration - networkDiameter` |
-| mdNoBlocksSlotThreshold       |            10 | _Pending_                    |
+| mpcSendInterval               |           100 | Must be less than `k * slotDuration - networkDiameter` |
+| mdNoBlocksSlotThreshold       |            45 | _Pending_                    |
 | mdNoCommitmentsEpochThreshold |             3 | _Pending_                    |
-| vssMaxTTL                     |           100 | In Epochs                    |
-| protocolMagic                 |             0 | _Pending_                    |
+| vssMaxTTL                     |             6 | In Epochs                    |
+| protocolMagic                 |      50987833 | _Pending_                    |
 | enchancedMessageBroadcast     |             2 | _Pending_                    |
 | delegationThreshold           |         0.001 | 1% of the stake              |
 | **Update system constants**   |               |                              |

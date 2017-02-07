@@ -3,6 +3,7 @@ layout: default
 title: Transactions in Cardano SL
 permalink: /cardano/transactions/
 group: cardano
+visible: false
 ---
 # Transactions in Cardano SL
 
