@@ -3,6 +3,7 @@ layout: default
 title: Ouroboros Proof of Stake Algorithm
 permalink: /cardano/proof-of-stake/
 group: cardano
+visible: true
 ---
 # Ouroboros Proof of Stake Algorithm
 
@@ -79,3 +80,5 @@ problem in itself. We're using Multi Party Computation approach when
 select nodes provide so called “commitments” and then those get
 “revealed”, producing a random value generated independently by
 participants of the network.
+
+[//]: # (TODO PVSS)
