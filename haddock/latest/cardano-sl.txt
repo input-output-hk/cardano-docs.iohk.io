@@ -245,10 +245,10 @@ WithHash :: a -> Hash a -> WithHash a
 [whData] :: WithHash a -> a
 [whHash] :: WithHash a -> Hash a
 withHash :: Bi a => a -> WithHash a
-_whData :: forall a_a1fz0. Lens' (WithHash a_a1fz0) a_a1fz0
+_whData :: forall a_a1g0n. Lens' (WithHash a_a1g0n) a_a1g0n
 
 -- | Lenses for <a>WithHash</a>
-_whHash :: forall a_a1fz0. Lens' (WithHash a_a1fz0) (Hash a_a1fz0)
+_whHash :: forall a_a1g0n. Lens' (WithHash a_a1g0n) (Hash a_a1g0n)
 
 -- | Hash wrapper with phantom type for more type-safety. Made abstract in
 --   order to support different algorithms in different situations
@@ -551,7 +551,7 @@ getAttributes :: (Word8 -> h -> Maybe (Get h)) -> Word32 -> h -> Get (Attributes
 --   into set of keys and values.
 putAttributes :: (h -> [(Word8, ByteString)]) -> Attributes h -> Put
 mkAttributes :: h -> Attributes h
-instance Control.DeepSeq.NFData h_6989586621679425383 => Control.DeepSeq.NFData (Pos.Data.Attributes.Attributes h_6989586621679425383)
+instance Control.DeepSeq.NFData h_6989586621679427080 => Control.DeepSeq.NFData (Pos.Data.Attributes.Attributes h_6989586621679427080)
 instance GHC.Generics.Generic (Pos.Data.Attributes.Attributes h)
 instance GHC.Classes.Ord h => GHC.Classes.Ord (Pos.Data.Attributes.Attributes h)
 instance GHC.Classes.Eq h => GHC.Classes.Eq (Pos.Data.Attributes.Attributes h)
@@ -812,16 +812,16 @@ GenericBlock :: !(GenericBlockHeader b) -> !(Body b) -> !(ExtraBodyData b) -> Ge
 [_gbExtra] :: GenericBlock b -> !(ExtraBodyData b)
 class HasPrevBlock s
 prevBlockL :: HasPrevBlock s => Lens' s HeaderHash
-gbBody :: forall b_a2Bdb. Lens' (GenericBlock b_a2Bdb) (Body b_a2Bdb)
-gbHeader :: forall b_a2Bdb. Lens' (GenericBlock b_a2Bdb) (GenericBlockHeader b_a2Bdb)
-gbExtra :: forall b_a2Bdb. Lens' (GenericBlock b_a2Bdb) (ExtraBodyData b_a2Bdb)
+gbBody :: forall b_a2BBH. Lens' (GenericBlock b_a2BBH) (Body b_a2BBH)
+gbHeader :: forall b_a2BBH. Lens' (GenericBlock b_a2BBH) (GenericBlockHeader b_a2BBH)
+gbExtra :: forall b_a2BBH. Lens' (GenericBlock b_a2BBH) (ExtraBodyData b_a2BBH)
 
 -- | Lens from <a>GenericBlock</a> to <a>BodyProof</a>.
 gbBodyProof :: Lens' (GenericBlock b) (BodyProof b)
-gbhConsensus :: forall b_a2Bdc. Lens' (GenericBlockHeader b_a2Bdc) (ConsensusData b_a2Bdc)
-gbhExtra :: forall b_a2Bdc. Lens' (GenericBlockHeader b_a2Bdc) (ExtraHeaderData b_a2Bdc)
-gbhPrevBlock :: forall b_a2Bdc. Lens' (GenericBlockHeader b_a2Bdc) (BHeaderHash b_a2Bdc)
-gbhBodyProof :: forall b_a2Bdc. Lens' (GenericBlockHeader b_a2Bdc) (BodyProof b_a2Bdc)
+gbhConsensus :: forall b_a2BBI. Lens' (GenericBlockHeader b_a2BBI) (ConsensusData b_a2BBI)
+gbhExtra :: forall b_a2BBI. Lens' (GenericBlockHeader b_a2BBI) (ExtraHeaderData b_a2BBI)
+gbhPrevBlock :: forall b_a2BBI. Lens' (GenericBlockHeader b_a2BBI) (BHeaderHash b_a2BBI)
+gbhBodyProof :: forall b_a2BBI. Lens' (GenericBlockHeader b_a2BBI) (BodyProof b_a2BBI)
 instance GHC.Generics.Generic (Pos.Types.Block.Class.GenericBlockHeader b)
 instance GHC.Generics.Generic (Pos.Types.Block.Class.GenericBlock b)
 instance (GHC.Show.Show (Pos.Types.Block.Class.BHeaderHash b), GHC.Show.Show (Pos.Types.Block.Class.BodyProof b), GHC.Show.Show (Pos.Types.Block.Class.ConsensusData b), GHC.Show.Show (Pos.Types.Block.Class.ExtraHeaderData b)) => GHC.Show.Show (Pos.Types.Block.Class.GenericBlockHeader b)
@@ -970,13 +970,6 @@ putSmallWithLength :: PutM a -> PutM a
 
 -- | Like <a>getWithLength</a> but for <a>putSmallWithLength</a>.
 getSmallWithLength :: Get a -> Get a
-
--- | Like <tt>isolate</tt>, but allows consuming less bytes than expected
---   (just not more).
-limitGet :: Int64 -> Get a -> Get a
-
--- | Like <tt>isolate</tt>, but works with Int64 only.
-isolate64 :: Int64 -> Get a -> Get a
 getRemainingByteString :: Get ByteString
 getAsciiString1b :: String -> Word8 -> Get String
 putAsciiString1b :: String -> Put
@@ -1350,7 +1343,7 @@ peekUserSecret :: (MonadIO m) => FilePath -> m UserSecret
 takeUserSecret :: (MonadIO m) => FilePath -> m UserSecret
 
 -- | Writes user secret .
-writeUserSecret :: (MonadIO m) => UserSecret -> m ()
+writeUserSecret :: (MonadFail m, MonadIO m) => UserSecret -> m ()
 
 -- | Writes user secret and releases the lock. UserSecret can't be used
 --   after this function call anymore.
@@ -2298,9 +2291,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679163415 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679163415)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679163867 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679163867)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679163868 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679163868)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679163436 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679163436)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679163888 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679163888)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679163889 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679163889)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Core.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Core.SoftwareVersion
@@ -2721,6 +2714,20 @@ ifNotShutdown :: (MonadIO m, WithNodeContext ssc m) => m () -> m ()
 triggerShutdown :: (MonadIO m, WithLogger m, WithNodeContext ssc m) => m ()
 waitForWorkers :: (MonadIO m, WithNodeContext ssc m) => Int -> m ()
 
+module Pos.DHT.Model.Neighbors
+
+-- | Send default message to neighbours in parallel. It's a broadcasting to
+--   the neighbours without sessions (i.e. we don't have to wait for reply
+--   from the listeners).
+sendToNeighbors :: (MonadDHT m, MonadMockable m, Bi body, WithLogger m, Message body) => SendActions m -> body -> m ()
+sendToNode :: (MonadMockable m, Bi body, Message body) => SendActions m -> DHTNode -> body -> m ()
+converseToNeighbors :: (MonadDHT m, MonadMockable m, WithLogger m, Bi rcv, Bi snd, Message snd, Message rcv) => SendActions m -> (NodeId -> ConversationActions snd rcv m -> m ()) -> m ()
+converseToNode :: (MonadMockable m, Bi rcv, Bi snd, Message snd, Message rcv) => SendActions m -> DHTNode -> (NodeId -> ConversationActions snd rcv m -> m t) -> m t
+
+
+-- | Distributed Hash Table for peer discovery.
+module Pos.DHT.Model
+
 
 -- | GState DB stores whole global state, i. e. result of application of
 --   all blocks up to <i>tip</i>.
@@ -2885,20 +2892,6 @@ runUtxoMapIterator :: forall v m ssc a. MonadDB ssc m => DBnMapIterator ssc Utxo
 -- | Get small sub-utxo containing only outputs of given address
 getFilteredUtxo :: MonadDB ssc m => Address -> m Utxo
 sanityCheckUtxo :: (MonadDB ssc m, WithLogger m) => Coin -> m ()
-
-module Pos.DHT.Model.Neighbors
-
--- | Send default message to neighbours in parallel. It's a broadcasting to
---   the neighbours without sessions (i.e. we don't have to wait for reply
---   from the listeners).
-sendToNeighbors :: (MonadDHT m, MonadMockable m, Bi body, WithLogger m, Message body) => SendActions m -> body -> m ()
-sendToNode :: (MonadMockable m, Bi body, Message body) => SendActions m -> DHTNode -> body -> m ()
-converseToNeighbors :: (MonadDHT m, MonadMockable m, WithLogger m, Bi rcv, Bi snd, Message snd, Message rcv) => SendActions m -> (NodeId -> ConversationActions snd rcv m -> m ()) -> m ()
-converseToNode :: (MonadMockable m, Bi rcv, Bi snd, Message snd, Message rcv) => SendActions m -> DHTNode -> (NodeId -> ConversationActions snd rcv m -> m t) -> m t
-
-
--- | Distributed Hash Table for peer discovery.
-module Pos.DHT.Model
 
 
 -- | Re-exports of Pos.DB functionality.
@@ -3092,11 +3085,11 @@ NodeDBs :: !(DB ssc) -> !(DB ssc) -> !(DB ssc) -> !(DB ssc) -> !RWLock -> NodeDB
 
 -- | Lock on misc db
 [_miscLock] :: NodeDBs ssc -> !RWLock
-blockDB :: forall ssc_a73Gm. Lens' (NodeDBs ssc_a73Gm) (DB ssc_a73Gm)
-gStateDB :: forall ssc_a73Gm. Lens' (NodeDBs ssc_a73Gm) (DB ssc_a73Gm)
-lrcDB :: forall ssc_a73Gm. Lens' (NodeDBs ssc_a73Gm) (DB ssc_a73Gm)
-miscDB :: forall ssc_a73Gm. Lens' (NodeDBs ssc_a73Gm) (DB ssc_a73Gm)
-miscLock :: forall ssc_a73Gm. Lens' (NodeDBs ssc_a73Gm) RWLock
+blockDB :: forall ssc_a71sc. Lens' (NodeDBs ssc_a71sc) (DB ssc_a71sc)
+gStateDB :: forall ssc_a71sc. Lens' (NodeDBs ssc_a71sc) (DB ssc_a71sc)
+lrcDB :: forall ssc_a71sc. Lens' (NodeDBs ssc_a71sc) (DB ssc_a71sc)
+miscDB :: forall ssc_a71sc. Lens' (NodeDBs ssc_a71sc) (DB ssc_a71sc)
+miscLock :: forall ssc_a71sc. Lens' (NodeDBs ssc_a71sc) RWLock
 newtype Snapshot
 Snapshot :: Snapshot -> Snapshot
 usingSnapshot :: (MonadIO m, MonadMask m) => DB ssc -> (Snapshot -> m a) -> m a
@@ -3187,6 +3180,13 @@ newtype FixedSizeInt a
 FixedSizeInt :: a -> FixedSizeInt a
 [getFixedSizeInt] :: FixedSizeInt a -> a
 
+-- | Like <tt>isolate</tt>, but allows consuming less bytes than expected
+--   (just not more).
+limitGet :: Int64 -> Get a -> Get a
+
+-- | Like <tt>isolate</tt>, but works with Int64 only.
+isolate64 :: Int64 -> Get a -> Get a
+
 
 -- | Module providing restoring from backup phrase functionality
 module Pos.Util.BackupPhrase
@@ -3276,7 +3276,10 @@ type LrcSyncData = (Bool, EpochIndex)
 
 -- | NodeContext contains runtime context of node.
 data NodeContext ssc
-NodeContext :: !(Maybe (MVar FilePath)) -> !(SscNodeContext ssc) -> !(MVar HeaderHash) -> !(TVar LrcSyncData) -> !(TVar UserSecret) -> !(TBQueue (NodeId, NewestFirst NE (BlockHeader ssc))) -> !(TMVar (NodeId, BlockHeader ssc)) -> !(MVar ConfirmedProposalState) -> !LoggerConfig -> !NodeParams -> !(TVar Bool) -> !(TBQueue ()) -> !(Maybe (MVar ())) -> NodeContext ssc
+NodeContext :: !(TVar SlottingState) -> !(Maybe (MVar FilePath)) -> !(SscNodeContext ssc) -> !(MVar HeaderHash) -> !(TVar LrcSyncData) -> !(TVar UserSecret) -> !(TBQueue (NodeId, NewestFirst NE (BlockHeader ssc))) -> !(TMVar (NodeId, BlockHeader ssc)) -> !(MVar ConfirmedProposalState) -> !LoggerConfig -> !NodeParams -> !(TVar Bool) -> !(TBQueue ()) -> !(Maybe (MVar ())) -> NodeContext ssc
+
+-- | Data needed for the slotting algorithm to work
+[ncSlottingState] :: NodeContext ssc -> !(TVar SlottingState)
 [ncJLFile] :: NodeContext ssc -> !(Maybe (MVar FilePath))
 [ncSscContext] :: NodeContext ssc -> !(SscNodeContext ssc)
 
@@ -3409,6 +3412,10 @@ takeBlkSemaphore :: (MonadIO m, WithNodeContext ssc m) => m HeaderHash
 waitLrc :: (MonadIO m, WithNodeContext ssc m) => EpochIndex -> m ()
 lrcActionOnEpoch :: (MonadIO m, WithNodeContext ssc m, MonadThrow m) => EpochIndex -> (EpochIndex -> m (Maybe a)) -> m a
 lrcActionOnEpochReason :: (MonadIO m, WithNodeContext ssc m, MonadThrow m) => EpochIndex -> Text -> (EpochIndex -> m (Maybe a)) -> m a
+setNtpLastSlot :: (MonadIO m, WithNodeContext ssc m) => SlotId -> m ()
+readNtpLastSlot :: (MonadIO m, WithNodeContext ssc m) => m SlotId
+readNtpMargin :: (MonadIO m, WithNodeContext ssc m) => m Microsecond
+readNtpData :: (MonadIO m, WithNodeContext ssc m) => m (Microsecond, Microsecond)
 
 -- | Wrapper for monadic action which brings <a>NodeContext</a>.
 newtype ContextHolder ssc m a
@@ -3421,59 +3428,6 @@ runContextHolder :: NodeContext ssc -> ContextHolder ssc m a -> m a
 module Pos.Security.Util
 shouldIgnoreAddress :: NodeContext ssc -> NetworkAddress -> Bool
 shouldIgnorePkAddress :: NodeContext ssc -> StakeholderId -> Bool
-
-
--- | Slotting functionality.
-module Pos.Slotting
-
--- | <a>MonadSlotsData</a> provides access to data necessary for slotting
---   to work.
-class Monad m => MonadSlotsData m where getSlottingData = lift getSlottingData
-getSlottingData :: MonadSlotsData m => m SlottingData
-getSlottingData :: (MonadSlotsData m, MonadTrans t, MonadSlotsData m', t m' ~ m) => m SlottingData
-
--- | Type class providing information about current slot.
-class MonadSlotsData m => MonadSlots m where getCurrentSlot = lift getCurrentSlot slottingWorkers = map lift slottingWorkers
-getCurrentSlot :: MonadSlots m => m SlotId
-slottingWorkers :: MonadSlots m => [m ()]
-getCurrentSlot :: (MonadSlots m, MonadTrans t, MonadSlots m', t m' ~ m) => m SlotId
-slottingWorkers :: (MonadSlots m, MonadTrans t, MonadSlots m', t m' ~ m) => [m ()]
-
--- | Monad transformer which provides <tt>SlottingData</tt> using DB.
-newtype DBSlotsData m a
-DBSlotsData :: m a -> DBSlotsData m a
-[runDBSlotsData] :: DBSlotsData m a -> m a
-
--- | Data needed for the slotting algorithm to work.
-data NtpSlottingState
-type NtpSlottingVar = TVar NtpSlottingState
-
--- | Monad transformer which implements NTP-based solution for slotting.
-newtype NtpSlotting m a
-NtpSlotting :: ReaderT NtpSlottingVar m a -> NtpSlotting m a
-[getNtpSlotting] :: NtpSlotting m a -> ReaderT NtpSlottingVar m a
-runNtpSlotting :: (Mockable CurrentTime m) => NtpSlotting m a -> m a
-runNtpSlottingFromVar :: NtpSlottingVar -> NtpSlotting m a -> m a
-data SlottingData
-SlottingData :: !EpochIndex -> !Millisecond -> !EpochIndex -> SlottingData
-[sdEpoch] :: SlottingData -> !EpochIndex
-[sdSlotDuration] :: SlottingData -> !Millisecond
-[sdEpochStart] :: SlottingData -> !EpochIndex
-
--- | Get flat id of current slot based on MonadSlots.
-getCurrentSlotFlat :: MonadSlots m => m FlatSlotId
-
--- | Get timestamp when given slot starts.
-getSlotStart :: MonadSlots m => SlotId -> m Timestamp
-
--- | Run given action as soon as new slot starts, passing SlotId to it.
---   This function uses Mockable and assumes consistency between MonadSlots
---   and Mockable implementations.
-onNewSlot :: OnNewSlot ssc m => Bool -> (SlotId -> m ()) -> m ()
-
--- | Same as onNewSlot, but also logs debug information.
-onNewSlotWithLogging :: OnNewSlot ssc m => Bool -> (SlotId -> m ()) -> m ()
-onNewSlotImpl :: OnNewSlot ssc m => Bool -> Bool -> (SlotId -> m ()) -> m ()
 
 
 -- | This module re-exports functionality from Pos.Ssc.Extra.* modules.
@@ -3769,7 +3723,7 @@ type MinWorkMode m = (WithLogger m, MonadMockable m, MonadDHT m, MonadIO m, With
 type ProductionMode ssc = NoStatsT (RawRealMode ssc)
 
 -- | RawRealMode is a basis for <a>WorkMode</a>s used to really run system.
-type RawRealMode ssc = PeerStateHolder (KademliaDHT (USHolder (DelegationT (TxpLDHolder ssc (SscHolder ssc (NtpSlotting (DBSlotsData (ContextHolder ssc (DBHolder ssc (LoggerNameBox Production))))))))))
+type RawRealMode ssc = PeerStateHolder (KademliaDHT (USHolder (DelegationT (TxpLDHolder ssc (SscHolder ssc (ContextHolder ssc (DBHolder ssc (LoggerNameBox Production))))))))
 
 -- | ServiceMode is the mode in which support nodes work.
 type ServiceMode = PeerStateHolder (KademliaDHT (LoggerNameBox Production))
@@ -3786,6 +3740,7 @@ instance Pos.Types.Utxo.Class.MonadUtxoRead m => Pos.Types.Utxo.Class.MonadUtxoR
 instance Pos.Types.Utxo.Class.MonadUtxo m => Pos.Types.Utxo.Class.MonadUtxo (Pos.Communication.PeerState.PeerStateHolder m)
 instance (GHC.Base.Monad m, Pos.Context.Class.WithNodeContext ssc m) => Pos.Context.Class.WithNodeContext ssc (Pos.Communication.PeerState.PeerStateHolder m)
 instance Pos.DB.Class.MonadDB ssc m => Pos.DB.Class.MonadDB ssc (Pos.Communication.PeerState.PeerStateHolder m)
+instance Pos.Slotting.Class.MonadSlots m => Pos.Slotting.Class.MonadSlots (Pos.Communication.PeerState.PeerStateHolder m)
 instance Pos.DHT.Model.Class.MonadDHT m => Pos.DHT.Model.Class.MonadDHT (Pos.Communication.PeerState.PeerStateHolder m)
 instance Pos.Ssc.Extra.Class.MonadSscMem ssc m => Pos.Ssc.Extra.Class.MonadSscMem ssc (Pos.Communication.PeerState.PeerStateHolder m)
 instance Pos.Delegation.Class.MonadDelegation m => Pos.Delegation.Class.MonadDelegation (Pos.Communication.PeerState.PeerStateHolder m)
@@ -4216,448 +4171,12 @@ SscPayloadDependsOnSlot :: (SlotId -> Gen (SscPayload ssc)) -> SscPayloadDepends
 instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Arbitrary.SscPayloadDependsOnSlot Pos.Ssc.NistBeacon.SscNistBeacon)
 
 
--- | Re-exports of GodTossing modules.
---   
---   GodTossing is a coin tossing with guaranteed output delivery. Nodes
---   exchange commitments, openings, and shares, and in the end arrive at a
---   shared seed.
---   
---   See <a>https://eprint.iacr.org/2015/889.pdf</a> (“A Provably Secure
---   Proof-of-Stake Blockchain Protocol”), section 4 for more details.
-module Pos.Ssc.GodTossing
-
--- | Pair of <a>Commitment</a> and <a>Opening</a>.
-data CommitmentOpening
-CommitmentOpening :: !Commitment -> !Opening -> CommitmentOpening
-[coCommitment] :: CommitmentOpening -> !Commitment
-[coOpening] :: CommitmentOpening -> !Opening
-
--- | Generate securely random SharedSeed.
-genCommitmentAndOpening :: (MonadFail m, MonadIO m) => Threshold -> NonEmpty (AsBinary VssPublicKey) -> m (Commitment, Opening)
-isCommitmentId :: SlotId -> Bool
-isCommitmentIdx :: LocalSlotIndex -> Bool
-isOpeningId :: SlotId -> Bool
-isOpeningIdx :: LocalSlotIndex -> Bool
-isSharesId :: SlotId -> Bool
-isSharesIdx :: LocalSlotIndex -> Bool
-
--- | Make signed commitment from commitment and epoch index using secret
---   key.
-mkSignedCommitment :: Bi Commitment => SecretKey -> EpochIndex -> Commitment -> SignedCommitment
-
--- | Convert Secret to SharedSeed.
-secretToSharedSeed :: Secret -> SharedSeed
-
--- | Safely insert <a>SignedCommitment</a> into <a>CommitmentsMap</a>.
-insertSignedCommitment :: SignedCommitment -> CommitmentsMap -> CommitmentsMap
-
--- | Safely delete <a>SignedCommitment</a> from <a>CommitmentsMap</a>.
-deleteSignedCommitment :: StakeholderId -> CommitmentsMap -> CommitmentsMap
-
--- | Compute difference of two <a>CommitmentsMap</a>s.
-diffCommMap :: CommitmentsMap -> CommitmentsMap -> CommitmentsMap
-
--- | Compute intersection of two <a>CommitmentsMap</a>s.
-intersectCommMap :: CommitmentsMap -> CommitmentsMap -> CommitmentsMap
-
--- | Generalized version of <a>intersectCommMap</a> which makes it possible
---   to intersect with different maps.
-intersectCommMapWith :: (map -> HashMap StakeholderId x) -> CommitmentsMap -> map -> CommitmentsMap
-
--- | Check that the VSS certificate has valid TTL: i. e. it is in
---   '[vssMinTTL, vssMaxTTL]'.
-checkCertTTL :: EpochIndex -> VssCertificate -> Bool
-
--- | Verify that Commitment is correct.
---   
---   #verifyEncShare
-verifyCommitment :: Commitment -> Bool
-
--- | Verify signature in SignedCommitment using epoch index.
---   
---   #checkSig
-verifyCommitmentSignature :: Bi Commitment => EpochIndex -> SignedCommitment -> Bool
-
--- | Verify SignedCommitment using public key and epoch index.
---   
---   #verifyCommitmentSignature #verifyCommitment
-verifySignedCommitment :: Bi Commitment => EpochIndex -> SignedCommitment -> VerificationRes
-
--- | Verify that Secret provided with Opening corresponds to given
---   commitment.
---   
---   #verifySecretProof
-verifyOpening :: Commitment -> Opening -> Bool
-_gpCertificates :: GtPayload -> VssCertificatesMap
-
--- | Construct <a>GtProof</a> from <a>GtPayload</a>.
-mkGtProof :: GtPayload -> GtProof
-
--- | Commitment is a message generated during the first stage of
---   GodTossing. It contains encrypted shares and proof of secret.
---   Invariant which must be ensured: commShares is not empty.
-data Commitment
-Commitment :: !(AsBinary SecretSharingExtra) -> !(AsBinary SecretProof) -> !(HashMap (AsBinary VssPublicKey) (AsBinary EncShare)) -> Commitment
-[commExtra] :: Commitment -> !(AsBinary SecretSharingExtra)
-[commProof] :: Commitment -> !(AsBinary SecretProof)
-[commShares] :: Commitment -> !(HashMap (AsBinary VssPublicKey) (AsBinary EncShare))
-
--- | Signature which ensures that commitment was generated by node with
---   given public key for given epoch.
-type CommitmentSignature = Signature (EpochIndex, Commitment)
-type SignedCommitment = (PublicKey, Commitment, CommitmentSignature)
-
--- | <a>CommitmentsMap</a> is a wrapper for 'HashMap StakeholderId
---   SignedCommitment' which ensures that keys are consistent with values,
---   i. e. <a>PublicKey</a> from <a>SignedCommitment</a> corresponds to key
---   which is <a>StakeholderId</a>.
-data CommitmentsMap
-
--- | Safe constructor of <a>CommitmentsMap</a>.
-mkCommitmentsMap :: [SignedCommitment] -> CommitmentsMap
-
--- | Unsafe straightforward constructor of <a>CommitmentsMap</a>.
-mkCommitmentsMapUnsafe :: HashMap StakeholderId SignedCommitment -> CommitmentsMap
-
--- | Opening reveals secret.
-newtype Opening
-Opening :: (AsBinary Secret) -> Opening
-[getOpening] :: Opening -> (AsBinary Secret)
-type OpeningsMap = HashMap StakeholderId Opening
-type InnerSharesMap = HashMap StakeholderId (AsBinary Share)
-
--- | Each node generates a <tt>SharedSeed</tt>, breaks it into
---   <a>Share</a>s, and sends those encrypted shares to other nodes. In a
---   <a>SharesMap</a>, for each node we collect shares which said node has
---   received and decrypted.
---   
---   Specifically, if node identified by <tt>Address</tt> X has received a
---   share from node identified by key Y, this share will be at
---   <tt>sharesMap ! X ! Y</tt>.
-type SharesMap = HashMap StakeholderId InnerSharesMap
-
--- | VssCertificate allows VssPublicKey to participate in MPC. Each
---   stakeholder should create a Vss keypair, sign VSS public key with
---   signing key and send it into blockchain.
---   
---   A public key of node is included in certificate in order to enable
---   validation of it using only node's P2PKH address. Expiry epoch is last
---   epoch when certificate is valid, expiry epoch is included in
---   certificate and signature.
---   
---   Other nodes accept this certificate if it is valid and if node has
---   enough stake.
---   
---   Invariant: 'checkSig vcSigningKey (vcVssKey, vcExpiryEpoch)
---   vcSignature'.
-data VssCertificate
-
--- | Make VssCertificate valid up to given epoch using <a>SecretKey</a> to
---   sign data.
-mkVssCertificate :: SecretKey -> AsBinary VssPublicKey -> EpochIndex -> VssCertificate
-
--- | Recreate <a>VssCertificate</a> from its contents. This function main
---   <a>fail</a> if data is invalid.
-recreateVssCertificate :: MonadFail m => AsBinary VssPublicKey -> EpochIndex -> Signature (AsBinary VssPublicKey, EpochIndex) -> PublicKey -> m VssCertificate
-getCertId :: VssCertificate -> StakeholderId
-
--- | VssCertificatesMap contains all valid certificates collected during
---   some period of time.
-type VssCertificatesMap = HashMap StakeholderId VssCertificate
-
--- | Safe constructor of <a>VssCertificatesMap</a>. TODO: wrap into
---   newtype.
-mkVssCertificatesMap :: [VssCertificate] -> VssCertificatesMap
-
--- | Payload included into blocks.
-data GtPayload
-CommitmentsPayload :: !CommitmentsMap -> !VssCertificatesMap -> GtPayload
-OpeningsPayload :: !OpeningsMap -> !VssCertificatesMap -> GtPayload
-SharesPayload :: !SharesMap -> !VssCertificatesMap -> GtPayload
-CertificatesPayload :: !VssCertificatesMap -> GtPayload
-
--- | Proof of GtPayload.
-data GtProof
-CommitmentsProof :: !(Hash CommitmentsMap) -> !(Hash VssCertificatesMap) -> GtProof
-OpeningsProof :: !(Hash OpeningsMap) -> !(Hash VssCertificatesMap) -> GtProof
-SharesProof :: !(Hash SharesMap) -> !(Hash VssCertificatesMap) -> GtProof
-CertificatesProof :: !(Hash VssCertificatesMap) -> GtProof
-type NodeSet = HashSet StakeholderId
-
--- | Data type for error during seed calculation.
-data SeedError
-
--- | Some nodes in the <tt>OpeningsMap</tt> aren't in the set of
---   participants
-ExtraneousOpenings :: (HashSet StakeholderId) -> SeedError
-
--- | Some nodes in the <tt>SharesMap</tt> aren't in the set of participants
-ExtraneousShares :: (HashSet StakeholderId) -> SeedError
-
--- | There were no participants so a random string couldn't be generated
-NoParticipants :: SeedError
-
--- | Commitment can't be deserialized or didn't match secret (either
---   recovered or in openings)
-BrokenCommitment :: StakeholderId -> SeedError
-
--- | Secret couldn't be recovered, or wasn't found in either
---   <tt>OpeningsMap</tt> or <tt>SharesMap</tt>
-NoSecretFound :: StakeholderId -> SeedError
-
--- | Secret can't be deserialized
-BrokenSecret :: StakeholderId -> SeedError
-
--- | Share can't be deserialized
-BrokenShare :: StakeholderId -> SeedError
-hasCommitment :: StakeholderId -> GtGlobalState -> Bool
-hasOpening :: StakeholderId -> GtGlobalState -> Bool
-hasShares :: StakeholderId -> GtGlobalState -> Bool
-hasVssCertificate :: StakeholderId -> GtGlobalState -> Bool
-verifyGtPayload :: MonadError TossVerFailure m => Either EpochIndex (MainBlockHeader ssc) -> GtPayload -> m ()
-
--- | Figure out the threshold (i.e. how many secret shares would be
---   required to recover each node's secret) using number of participants.
-vssThreshold :: Integral a => a -> Threshold
-getStableCertsPure :: EpochIndex -> VssCertData -> VssCertificatesMap
-
--- | Certificates in genesis represented as <a>VssCertificatesMap</a>.
-genesisCertificates :: VssCertificatesMap
-
--- | List of <a>VssKeyPair</a> in genesis.
-genesisVssKeyPairs :: [VssKeyPair]
-
--- | Check whether SSC data with given tag and public key can be added to
---   current local data.
-sscIsDataUseful :: (WithLogger m, MonadDB SscGodTossing m, WithNodeContext kek m, MonadSlots m, MonadSscMem SscGodTossing m) => GtTag -> StakeholderId -> m Bool
-
--- | Process <a>SignedCommitment</a> received from network, checking it
---   against current state (global + local) and adding to local state if
---   it's valid.
-sscProcessCommitment :: forall m. GtDataProcessingMode m => SignedCommitment -> m ()
-
--- | Process <a>Opening</a> received from network, checking it against
---   current state (global + local) and adding to local state if it's
---   valid.
-sscProcessOpening :: GtDataProcessingMode m => StakeholderId -> Opening -> m ()
-
--- | Process <a>InnerSharesMap</a> received from network, checking it
---   against current state (global + local) and adding to local state if
---   it's valid.
-sscProcessShares :: GtDataProcessingMode m => StakeholderId -> InnerSharesMap -> m ()
-
--- | Process <a>VssCertificate</a> received from network, checking it
---   against current state (global + local) and adding to local state if
---   it's valid.
-sscProcessCertificate :: GtDataProcessingMode m => VssCertificate -> m ()
-
--- | Clean-up some data when new slot starts. This function is only needed
---   for garbage collection, it doesn't affect validity of local data.
---   Currently it does nothing, but maybe later we'll decide to do
---   clean-up.
-localOnNewSlot :: MonadSscMem SscGodTossing m => SlotId -> m ()
-data GtLocalData
-GtLocalData :: !TossModifier -> !EpochIndex -> GtLocalData
-
--- | <a>TossModifier</a> which also serves as mempool of GT data, because
---   for GodTossing modifier and mempool are same.
-[_ldModifier] :: GtLocalData -> !TossModifier
-
--- | Epoch for which this mempool can be used to form payload.
-[_ldEpoch] :: GtLocalData -> !EpochIndex
-ldModifier :: Lens' GtLocalData TossModifier
-ldEpoch :: Lens' GtLocalData EpochIndex
-
--- | Get our commitment for given epoch if it's known.
-getOurCommitment :: MonadDB SscGodTossing m => EpochIndex -> m (Maybe SignedCommitment)
-
--- | Get our opening corresponding for given epoch if it's known.
-getOurOpening :: MonadDB SscGodTossing m => EpochIndex -> m (Maybe Opening)
-
--- | Put our secret for given epoch.
-putOurSecret :: MonadDB SscGodTossing m => SignedCommitment -> Opening -> EpochIndex -> m ()
-
--- | Calculate SharedSeed. SharedSeed is a random bytestring that all nodes
---   generate together and agree on.
---   
---   TODO: do we need to check secrets' lengths? Probably not.
-calculateSeed :: CommitmentsMap -> OpeningsMap -> SharesMap -> Either SeedError SharedSeed
-getGlobalCerts :: (MonadSscMem SscGodTossing m, MonadIO m) => SlotId -> m VssCertificatesMap
-gtGetGlobalState :: (MonadSscMem SscGodTossing m, MonadIO m) => m GtGlobalState
-
--- | Get stable VSS certificates for given epoch.
-getStableCerts :: (MonadSscMem SscGodTossing m, MonadIO m) => EpochIndex -> m VssCertificatesMap
-
--- | Data type which represents shared seed calculation tag in
---   -XTypeApplication hacks with type families.
-data SscGodTossing
-
--- | Tag corresponding to GodTossing data.
-data GtTag
-CommitmentMsg :: GtTag
-OpeningMsg :: GtTag
-SharesMsg :: GtTag
-VssCertificateMsg :: GtTag
-
--- | Data message. Can be used to send actual data.
-data GtMsgContents
-MCCommitment :: !SignedCommitment -> GtMsgContents
-MCOpening :: !StakeholderId -> !Opening -> GtMsgContents
-MCShares :: !StakeholderId -> !InnerSharesMap -> GtMsgContents
-MCVssCertificate :: !VssCertificate -> GtMsgContents
-
--- | GtTag appropriate for given DataMsg.
-msgContentsTag :: GtMsgContents -> GtTag
-
--- | Global state of GodTossing, contains relevant SSC data from blocks.
-data GtGlobalState
-GtGlobalState :: !CommitmentsMap -> !OpeningsMap -> !SharesMap -> !VssCertData -> GtGlobalState
-
--- | Commitments are added during the first phase of epoch.
-[_gsCommitments] :: GtGlobalState -> !CommitmentsMap
-
--- | Openings are added during the second phase of epoch.
-[_gsOpenings] :: GtGlobalState -> !OpeningsMap
-
--- | Decrypted shares to be used in the third phase.
-[_gsShares] :: GtGlobalState -> !SharesMap
-
--- | Vss certificates are added at any time if they are valid and received
---   from stakeholders.
-[_gsVssCertificates] :: GtGlobalState -> !VssCertData
-data GtContext
-GtContext :: !VssKeyPair -> !(TVar Bool) -> GtContext
-
--- | Vss key pair used for MPC.
-[gtcVssKeyPair] :: GtContext -> !VssKeyPair
-
--- | Flag which determines whether we want to participate in SSC.
-[gtcParticipateSsc] :: GtContext -> !(TVar Bool)
-data GtParams
-GtParams :: !Bool -> !VssKeyPair -> GtParams
-
--- | Whether node should participate in SSC in case SSC requires
---   participation.
-[gtpSscEnabled] :: GtParams -> !Bool
-
--- | Key pair used for secret sharing
-[gtpVssKeyPair] :: GtParams -> !VssKeyPair
-data GtSecretStorage
-GtSecretStorage :: !(SignedCommitment) -> !Opening -> !EpochIndex -> GtSecretStorage
-
--- | Our commitment.
-[gssCommitment] :: GtSecretStorage -> !(SignedCommitment)
-
--- | Corresponding opening
-[gssOpening] :: GtSecretStorage -> !Opening
-
--- | Epoch for which this secret were generated
-[gssEpoch] :: GtSecretStorage -> !EpochIndex
-gsCommitments :: Lens' GtGlobalState CommitmentsMap
-gsOpenings :: Lens' GtGlobalState OpeningsMap
-gsShares :: Lens' GtGlobalState SharesMap
-gsVssCertificates :: Lens' GtGlobalState VssCertData
-createGtContext :: MonadIO m => GtParams -> m GtContext
-
--- | Wrapper around <a>VssCertificate</a> with TTL. Every
---   <a>VssCertificate</a> has own TTL. Wrapper supports simple
---   <a>HashMap</a> operations. Wrapper holds <a>VssCertificatesMap</a> and
---   <a>Set</a> of certificates sorted by expiry epoch.
-data VssCertData
-VssCertData :: !EpochOrSlot -> !VssCertificatesMap -> !(HashMap StakeholderId EpochOrSlot) -> !(Set (EpochOrSlot, StakeholderId)) -> !(Set (EpochOrSlot, StakeholderId)) -> !(Set (EpochOrSlot, (StakeholderId, EpochOrSlot, VssCertificate))) -> VssCertData
-
--- | Last known slot, every element of expirySlotSet &gt; lastKnownEoS
-[lastKnownEoS] :: VssCertData -> !EpochOrSlot
-
--- | Not expired certificates
-[certs] :: VssCertData -> !VssCertificatesMap
-
--- | Slot when certs was inserted. It is needed for deletion from
---   <tt>insSlotSet</tt> (by <a>StakeholderId</a>).
-[whenInsMap] :: VssCertData -> !(HashMap StakeholderId EpochOrSlot)
-
--- | Set of pairs (insertion slot, address hash) Every element of
---   insSlotSet &lt;= lastKnownEoS
-[whenInsSet] :: VssCertData -> !(Set (EpochOrSlot, StakeholderId))
-
--- | Set of pairs (expiry slot, address hash). Expiry slot is first slot
---   when certificate expires. Pairs are sorted by expiry slot (in
---   increasing order, so the oldest certificate is first element).
-[whenExpire] :: VssCertData -> !(Set (EpochOrSlot, StakeholderId))
-
--- | Set of expired certs for current <a>lastKnownEoS</a>. We store only
---   certificates which expried no earlier than in previous epoch. Set
---   (full expired slot, (id, insertion slot, cert))
-[expiredCerts] :: VssCertData -> !(Set (EpochOrSlot, (StakeholderId, EpochOrSlot, VssCertificate)))
-
--- | Create empty <a>VssCertData</a>.
-empty :: VssCertData
-
--- | Remove old certificate corresponding to the specified
---   <a>StakeholderId</a> and insert new certificate.
-insert :: VssCertificate -> VssCertData -> VssCertData
-
--- | Lookup certificate corresponding to the specified
---   <a>StakeholderId</a>.
-lookup :: StakeholderId -> VssCertData -> Maybe VssCertificate
-
--- | Lookup expiry epoch of certificate corresponding to the specified
---   <a>StakeholderId</a>.
-lookupExpiryEpoch :: StakeholderId -> VssCertData -> Maybe EpochIndex
-setLastKnownSlot :: SlotId -> VssCertData -> VssCertData
-
--- | Set last known slot (lks). 1. If new lks is bigger than
---   <a>lastKnownEoS</a> then some expired certificates will be removed. 2.
---   If new lks is less than <a>lastKnownEoS</a> then some inserted after
---   <tt>nlks</tt> certificates will be removed (and <a>whenExpire</a>)
---   also will be updated.
-setLastKnownEoS :: EpochOrSlot -> VssCertData -> VssCertData
-
--- | Ids of stakeholders issued certificates.
-keys :: VssCertData -> [StakeholderId]
-
--- | Return True if the specified address hash is present in the map, False
---   otherwise.
-member :: StakeholderId -> VssCertData -> Bool
-
--- | Convert expiry epoch of certificate to <tt>FlatSlotId</tt>.
-expiryEpoch :: VssCertificate -> EpochIndex
-expiryEoS :: VssCertificate -> EpochOrSlot
-
--- | Delete certificate corresponding to the specified
---   <a>StakeholderId</a>. This function is dangerous, because after using
---   it you can't rollback deleted certificates. Use carefully.
-delete :: StakeholderId -> VssCertData -> VssCertData
-
--- | This function is dangerous, because after you using it you can't
---   rollback deleted certificates. Use carefully.
-difference :: VssCertData -> HashMap StakeholderId a -> VssCertData
-
--- | Filtering the certificates. This function is dangerous, because after
---   you using it you can't rollback deleted certificates. Use carefully.
-filter :: (StakeholderId -> Bool) -> VssCertData -> VssCertData
-
-
 -- | Server which handles transactions.
 module Pos.Txp.Listeners
 txListeners :: WorkMode ssc m => ([ListenerSpec m], OutSpecs)
 txStubListeners :: WithLogger m => ([ListenerSpec m], OutSpecs)
 processTx :: MinTxpWorkMode ssc m => (TxId, TxAux) -> m ProcessTxRes
 instance Pos.WorkMode.WorkMode ssc m => Pos.Communication.Relay.Relay m Pos.Txp.Types.Communication.TxMsgTag Pos.Types.Types.TxId Pos.Txp.Types.Communication.TxMsgContents
-
-
--- | Web-related part of cardano-sl.
-module Pos.Web
-baseDocsText :: Text
-gtDocsText :: Text
-type MyWorkMode ssc m = (WorkMode ssc m, SscConstraint ssc)
-type WebHandler ssc = TxpLDHolder ssc (ContextHolder ssc (DBHolder ssc Production))
-serveImpl :: MonadIO m => m Application -> Word16 -> m ()
-nat :: forall ssc m. (MyWorkMode ssc m) => m (WebHandler ssc :~> Handler)
-serveWebBase :: MyWorkMode ssc m => Word16 -> m ()
-applicationBase :: MyWorkMode ssc m => m Application
-serveWebGT :: MyWorkMode SscGodTossing m => Word16 -> m ()
-applicationGT :: MyWorkMode SscGodTossing m => m Application
 
 
 -- | Re-export of Pos.Block.Network.*
@@ -4761,12 +4280,6 @@ instance (Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Class.Types.SscProof ssc)
 instance Pos.Types.Block.Types.BiSsc ssc => Data.Text.Buildable.Buildable (Pos.Types.Block.Types.BlockHeader ssc, Pos.Crypto.Signing.PublicKey)
 instance Pos.Types.Block.Types.BiSsc ssc => GHC.Show.Show (Pos.Block.Arbitrary.BlockHeaderList ssc)
 instance (Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Class.Types.SscPayload ssc), Pos.Ssc.Class.Helpers.SscHelpersClass ssc) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Block.Arbitrary.BlockHeaderList ssc)
-
-module Pos.Security.Workers
-class Ssc ssc => SecurityWorkersClass ssc
-securityWorkers :: (SecurityWorkersClass ssc, WorkMode ssc m) => Tagged ssc ([WorkerSpec m], OutSpecs)
-instance Pos.Security.Class.SecurityWorkersClass Pos.Ssc.GodTossing.Type.SscGodTossing
-instance Pos.Security.Class.SecurityWorkersClass Pos.Ssc.NistBeacon.SscNistBeacon
 
 
 -- | Whole Update System in one module :)
@@ -5397,6 +4910,497 @@ usWorkers :: WorkMode ssc m => ([WorkerSpec m], OutSpecs)
 module Pos.Communication
 
 
+-- | Slotting functionality.
+module Pos.Slotting
+
+-- | Type class providing information about time when system started
+--   functioning.
+class Monad m => MonadSlots m where getSystemStartTime = lift getSystemStartTime getCurrentTime = lift getCurrentTime getCurrentSlot = lift getCurrentSlot getSlotDuration = lift getSlotDuration
+getSystemStartTime :: MonadSlots m => m Timestamp
+getCurrentTime :: MonadSlots m => m Timestamp
+getCurrentSlot :: MonadSlots m => m SlotId
+getSlotDuration :: MonadSlots m => m Millisecond
+getSystemStartTime :: (MonadSlots m, MonadTrans t, MonadSlots m', t m' ~ m) => m Timestamp
+getCurrentTime :: (MonadSlots m, MonadTrans t, MonadSlots m', t m' ~ m) => m Timestamp
+getCurrentSlot :: (MonadSlots m, MonadTrans t, MonadSlots m', t m' ~ m) => m SlotId
+getSlotDuration :: (MonadSlots m, MonadTrans t, MonadSlots m', t m' ~ m) => m Millisecond
+
+-- | Get flat id of current slot based on MonadSlots.
+getCurrentSlotFlat :: MonadSlots m => m FlatSlotId
+
+-- | Get timestamp when given slot starts.
+getSlotStart :: MonadSlots m => SlotId -> m Timestamp
+getCurrentSlotUsingNtp :: (MonadSlots m, Mockable CurrentTime m) => SlotId -> (Microsecond, Microsecond) -> m SlotId
+
+-- | Run given action as soon as new slot starts, passing SlotId to it.
+--   This function uses Mockable and assumes consistency between MonadSlots
+--   and Mockable implementations.
+onNewSlot :: OnNewSlot ssc m => Bool -> (SlotId -> m ()) -> m ()
+
+-- | Same as onNewSlot, but also logs debug information.
+onNewSlotWithLogging :: OnNewSlot ssc m => Bool -> (SlotId -> m ()) -> m ()
+onNewSlotImpl :: OnNewSlot ssc m => Bool -> Bool -> (SlotId -> m ()) -> m ()
+
+-- | Data needed for the slotting algorithm to work.
+data SlottingState
+SlottingState :: !SlotId -> !(Microsecond, Microsecond) -> SlottingState
+
+-- | Slot which was returned from getCurrentSlot in last time
+[_ssNtpLastSlot] :: SlottingState -> !SlotId
+
+-- | Data for the NTP Worker. First element: margin (difference between
+--   global time and local time) which we got from NTP server in last time.
+--   Second element: time (local) for which we got margin in last time.
+[_ssNtpData] :: SlottingState -> !(Microsecond, Microsecond)
+ssNtpLastSlot :: Lens' SlottingState SlotId
+ssNtpData :: Lens' SlottingState (Microsecond, Microsecond)
+
+-- | This worker is necessary for Slotting to work.
+slottingWorker :: WorkMode ssc m => (WorkerSpec m, OutSpecs)
+
+
+-- | Re-exports of GodTossing modules.
+--   
+--   GodTossing is a coin tossing with guaranteed output delivery. Nodes
+--   exchange commitments, openings, and shares, and in the end arrive at a
+--   shared seed.
+--   
+--   See <a>https://eprint.iacr.org/2015/889.pdf</a> (“A Provably Secure
+--   Proof-of-Stake Blockchain Protocol”), section 4 for more details.
+module Pos.Ssc.GodTossing
+
+-- | Pair of <a>Commitment</a> and <a>Opening</a>.
+data CommitmentOpening
+CommitmentOpening :: !Commitment -> !Opening -> CommitmentOpening
+[coCommitment] :: CommitmentOpening -> !Commitment
+[coOpening] :: CommitmentOpening -> !Opening
+
+-- | Generate securely random SharedSeed.
+genCommitmentAndOpening :: (MonadFail m, MonadIO m) => Threshold -> NonEmpty (AsBinary VssPublicKey) -> m (Commitment, Opening)
+isCommitmentId :: SlotId -> Bool
+isCommitmentIdx :: LocalSlotIndex -> Bool
+isOpeningId :: SlotId -> Bool
+isOpeningIdx :: LocalSlotIndex -> Bool
+isSharesId :: SlotId -> Bool
+isSharesIdx :: LocalSlotIndex -> Bool
+
+-- | Make signed commitment from commitment and epoch index using secret
+--   key.
+mkSignedCommitment :: Bi Commitment => SecretKey -> EpochIndex -> Commitment -> SignedCommitment
+
+-- | Convert Secret to SharedSeed.
+secretToSharedSeed :: Secret -> SharedSeed
+
+-- | Safely insert <a>SignedCommitment</a> into <a>CommitmentsMap</a>.
+insertSignedCommitment :: SignedCommitment -> CommitmentsMap -> CommitmentsMap
+
+-- | Safely delete <a>SignedCommitment</a> from <a>CommitmentsMap</a>.
+deleteSignedCommitment :: StakeholderId -> CommitmentsMap -> CommitmentsMap
+
+-- | Compute difference of two <a>CommitmentsMap</a>s.
+diffCommMap :: CommitmentsMap -> CommitmentsMap -> CommitmentsMap
+
+-- | Compute intersection of two <a>CommitmentsMap</a>s.
+intersectCommMap :: CommitmentsMap -> CommitmentsMap -> CommitmentsMap
+
+-- | Generalized version of <a>intersectCommMap</a> which makes it possible
+--   to intersect with different maps.
+intersectCommMapWith :: (map -> HashMap StakeholderId x) -> CommitmentsMap -> map -> CommitmentsMap
+
+-- | Check that the VSS certificate has valid TTL: i. e. it is in
+--   '[vssMinTTL, vssMaxTTL]'.
+checkCertTTL :: EpochIndex -> VssCertificate -> Bool
+
+-- | Verify that Commitment is correct.
+--   
+--   #verifyEncShare
+verifyCommitment :: Commitment -> Bool
+
+-- | Verify signature in SignedCommitment using epoch index.
+--   
+--   #checkSig
+verifyCommitmentSignature :: Bi Commitment => EpochIndex -> SignedCommitment -> Bool
+
+-- | Verify SignedCommitment using public key and epoch index.
+--   
+--   #verifyCommitmentSignature #verifyCommitment
+verifySignedCommitment :: Bi Commitment => EpochIndex -> SignedCommitment -> VerificationRes
+
+-- | Verify that Secret provided with Opening corresponds to given
+--   commitment.
+--   
+--   #verifySecretProof
+verifyOpening :: Commitment -> Opening -> Bool
+_gpCertificates :: GtPayload -> VssCertificatesMap
+
+-- | Construct <a>GtProof</a> from <a>GtPayload</a>.
+mkGtProof :: GtPayload -> GtProof
+
+-- | Commitment is a message generated during the first stage of
+--   GodTossing. It contains encrypted shares and proof of secret.
+--   Invariant which must be ensured: commShares is not empty.
+data Commitment
+Commitment :: !(AsBinary SecretSharingExtra) -> !(AsBinary SecretProof) -> !(HashMap (AsBinary VssPublicKey) (AsBinary EncShare)) -> Commitment
+[commExtra] :: Commitment -> !(AsBinary SecretSharingExtra)
+[commProof] :: Commitment -> !(AsBinary SecretProof)
+[commShares] :: Commitment -> !(HashMap (AsBinary VssPublicKey) (AsBinary EncShare))
+
+-- | Signature which ensures that commitment was generated by node with
+--   given public key for given epoch.
+type CommitmentSignature = Signature (EpochIndex, Commitment)
+type SignedCommitment = (PublicKey, Commitment, CommitmentSignature)
+
+-- | <a>CommitmentsMap</a> is a wrapper for 'HashMap StakeholderId
+--   SignedCommitment' which ensures that keys are consistent with values,
+--   i. e. <a>PublicKey</a> from <a>SignedCommitment</a> corresponds to key
+--   which is <a>StakeholderId</a>.
+data CommitmentsMap
+
+-- | Safe constructor of <a>CommitmentsMap</a>.
+mkCommitmentsMap :: [SignedCommitment] -> CommitmentsMap
+
+-- | Unsafe straightforward constructor of <a>CommitmentsMap</a>.
+mkCommitmentsMapUnsafe :: HashMap StakeholderId SignedCommitment -> CommitmentsMap
+
+-- | Opening reveals secret.
+newtype Opening
+Opening :: (AsBinary Secret) -> Opening
+[getOpening] :: Opening -> (AsBinary Secret)
+type OpeningsMap = HashMap StakeholderId Opening
+type InnerSharesMap = HashMap StakeholderId (AsBinary Share)
+
+-- | Each node generates a <tt>SharedSeed</tt>, breaks it into
+--   <a>Share</a>s, and sends those encrypted shares to other nodes. In a
+--   <a>SharesMap</a>, for each node we collect shares which said node has
+--   received and decrypted.
+--   
+--   Specifically, if node identified by <tt>Address</tt> X has received a
+--   share from node identified by key Y, this share will be at
+--   <tt>sharesMap ! X ! Y</tt>.
+type SharesMap = HashMap StakeholderId InnerSharesMap
+
+-- | VssCertificate allows VssPublicKey to participate in MPC. Each
+--   stakeholder should create a Vss keypair, sign VSS public key with
+--   signing key and send it into blockchain.
+--   
+--   A public key of node is included in certificate in order to enable
+--   validation of it using only node's P2PKH address. Expiry epoch is last
+--   epoch when certificate is valid, expiry epoch is included in
+--   certificate and signature.
+--   
+--   Other nodes accept this certificate if it is valid and if node has
+--   enough stake.
+--   
+--   Invariant: 'checkSig vcSigningKey (vcVssKey, vcExpiryEpoch)
+--   vcSignature'.
+data VssCertificate
+
+-- | Make VssCertificate valid up to given epoch using <a>SecretKey</a> to
+--   sign data.
+mkVssCertificate :: SecretKey -> AsBinary VssPublicKey -> EpochIndex -> VssCertificate
+
+-- | Recreate <a>VssCertificate</a> from its contents. This function main
+--   <a>fail</a> if data is invalid.
+recreateVssCertificate :: MonadFail m => AsBinary VssPublicKey -> EpochIndex -> Signature (AsBinary VssPublicKey, EpochIndex) -> PublicKey -> m VssCertificate
+getCertId :: VssCertificate -> StakeholderId
+
+-- | VssCertificatesMap contains all valid certificates collected during
+--   some period of time.
+type VssCertificatesMap = HashMap StakeholderId VssCertificate
+
+-- | Safe constructor of <a>VssCertificatesMap</a>. TODO: wrap into
+--   newtype.
+mkVssCertificatesMap :: [VssCertificate] -> VssCertificatesMap
+
+-- | Payload included into blocks.
+data GtPayload
+CommitmentsPayload :: !CommitmentsMap -> !VssCertificatesMap -> GtPayload
+OpeningsPayload :: !OpeningsMap -> !VssCertificatesMap -> GtPayload
+SharesPayload :: !SharesMap -> !VssCertificatesMap -> GtPayload
+CertificatesPayload :: !VssCertificatesMap -> GtPayload
+
+-- | Proof of GtPayload.
+data GtProof
+CommitmentsProof :: !(Hash CommitmentsMap) -> !(Hash VssCertificatesMap) -> GtProof
+OpeningsProof :: !(Hash OpeningsMap) -> !(Hash VssCertificatesMap) -> GtProof
+SharesProof :: !(Hash SharesMap) -> !(Hash VssCertificatesMap) -> GtProof
+CertificatesProof :: !(Hash VssCertificatesMap) -> GtProof
+type NodeSet = HashSet StakeholderId
+
+-- | Data type for error during seed calculation.
+data SeedError
+
+-- | Some nodes in the <tt>OpeningsMap</tt> aren't in the set of
+--   participants
+ExtraneousOpenings :: (HashSet StakeholderId) -> SeedError
+
+-- | Some nodes in the <tt>SharesMap</tt> aren't in the set of participants
+ExtraneousShares :: (HashSet StakeholderId) -> SeedError
+
+-- | There were no participants so a random string couldn't be generated
+NoParticipants :: SeedError
+
+-- | Commitment can't be deserialized or didn't match secret (either
+--   recovered or in openings)
+BrokenCommitment :: StakeholderId -> SeedError
+
+-- | Secret couldn't be recovered, or wasn't found in either
+--   <tt>OpeningsMap</tt> or <tt>SharesMap</tt>
+NoSecretFound :: StakeholderId -> SeedError
+
+-- | Secret can't be deserialized
+BrokenSecret :: StakeholderId -> SeedError
+
+-- | Share can't be deserialized
+BrokenShare :: StakeholderId -> SeedError
+hasCommitment :: StakeholderId -> GtGlobalState -> Bool
+hasOpening :: StakeholderId -> GtGlobalState -> Bool
+hasShares :: StakeholderId -> GtGlobalState -> Bool
+hasVssCertificate :: StakeholderId -> GtGlobalState -> Bool
+verifyGtPayload :: MonadError TossVerFailure m => Either EpochIndex (MainBlockHeader ssc) -> GtPayload -> m ()
+
+-- | Figure out the threshold (i.e. how many secret shares would be
+--   required to recover each node's secret) using number of participants.
+vssThreshold :: Integral a => a -> Threshold
+getStableCertsPure :: EpochIndex -> VssCertData -> VssCertificatesMap
+
+-- | Certificates in genesis represented as <a>VssCertificatesMap</a>.
+genesisCertificates :: VssCertificatesMap
+
+-- | List of <a>VssKeyPair</a> in genesis.
+genesisVssKeyPairs :: [VssKeyPair]
+
+-- | Check whether SSC data with given tag and public key can be added to
+--   current local data.
+sscIsDataUseful :: (WithLogger m, MonadDB SscGodTossing m, WithNodeContext kek m, MonadSlots m, MonadSscMem SscGodTossing m) => GtTag -> StakeholderId -> m Bool
+
+-- | Process <a>SignedCommitment</a> received from network, checking it
+--   against current state (global + local) and adding to local state if
+--   it's valid.
+sscProcessCommitment :: forall m. GtDataProcessingMode m => SignedCommitment -> m ()
+
+-- | Process <a>Opening</a> received from network, checking it against
+--   current state (global + local) and adding to local state if it's
+--   valid.
+sscProcessOpening :: GtDataProcessingMode m => StakeholderId -> Opening -> m ()
+
+-- | Process <a>InnerSharesMap</a> received from network, checking it
+--   against current state (global + local) and adding to local state if
+--   it's valid.
+sscProcessShares :: GtDataProcessingMode m => StakeholderId -> InnerSharesMap -> m ()
+
+-- | Process <a>VssCertificate</a> received from network, checking it
+--   against current state (global + local) and adding to local state if
+--   it's valid.
+sscProcessCertificate :: GtDataProcessingMode m => VssCertificate -> m ()
+
+-- | Clean-up some data when new slot starts. This function is only needed
+--   for garbage collection, it doesn't affect validity of local data.
+--   Currently it does nothing, but maybe later we'll decide to do
+--   clean-up.
+localOnNewSlot :: MonadSscMem SscGodTossing m => SlotId -> m ()
+data GtLocalData
+GtLocalData :: !TossModifier -> !EpochIndex -> GtLocalData
+
+-- | <a>TossModifier</a> which also serves as mempool of GT data, because
+--   for GodTossing modifier and mempool are same.
+[_ldModifier] :: GtLocalData -> !TossModifier
+
+-- | Epoch for which this mempool can be used to form payload.
+[_ldEpoch] :: GtLocalData -> !EpochIndex
+ldModifier :: Lens' GtLocalData TossModifier
+ldEpoch :: Lens' GtLocalData EpochIndex
+
+-- | Get our commitment for given epoch if it's known.
+getOurCommitment :: MonadDB SscGodTossing m => EpochIndex -> m (Maybe SignedCommitment)
+
+-- | Get our opening corresponding for given epoch if it's known.
+getOurOpening :: MonadDB SscGodTossing m => EpochIndex -> m (Maybe Opening)
+
+-- | Put our secret for given epoch.
+putOurSecret :: MonadDB SscGodTossing m => SignedCommitment -> Opening -> EpochIndex -> m ()
+
+-- | Calculate SharedSeed. SharedSeed is a random bytestring that all nodes
+--   generate together and agree on.
+--   
+--   TODO: do we need to check secrets' lengths? Probably not.
+calculateSeed :: CommitmentsMap -> OpeningsMap -> SharesMap -> Either SeedError SharedSeed
+getGlobalCerts :: (MonadSscMem SscGodTossing m, MonadIO m) => SlotId -> m VssCertificatesMap
+gtGetGlobalState :: (MonadSscMem SscGodTossing m, MonadIO m) => m GtGlobalState
+
+-- | Get stable VSS certificates for given epoch.
+getStableCerts :: (MonadSscMem SscGodTossing m, MonadIO m) => EpochIndex -> m VssCertificatesMap
+
+-- | Data type which represents shared seed calculation tag in
+--   -XTypeApplication hacks with type families.
+data SscGodTossing
+
+-- | Tag corresponding to GodTossing data.
+data GtTag
+CommitmentMsg :: GtTag
+OpeningMsg :: GtTag
+SharesMsg :: GtTag
+VssCertificateMsg :: GtTag
+
+-- | Data message. Can be used to send actual data.
+data GtMsgContents
+MCCommitment :: !SignedCommitment -> GtMsgContents
+MCOpening :: !StakeholderId -> !Opening -> GtMsgContents
+MCShares :: !StakeholderId -> !InnerSharesMap -> GtMsgContents
+MCVssCertificate :: !VssCertificate -> GtMsgContents
+
+-- | GtTag appropriate for given DataMsg.
+msgContentsTag :: GtMsgContents -> GtTag
+
+-- | Global state of GodTossing, contains relevant SSC data from blocks.
+data GtGlobalState
+GtGlobalState :: !CommitmentsMap -> !OpeningsMap -> !SharesMap -> !VssCertData -> GtGlobalState
+
+-- | Commitments are added during the first phase of epoch.
+[_gsCommitments] :: GtGlobalState -> !CommitmentsMap
+
+-- | Openings are added during the second phase of epoch.
+[_gsOpenings] :: GtGlobalState -> !OpeningsMap
+
+-- | Decrypted shares to be used in the third phase.
+[_gsShares] :: GtGlobalState -> !SharesMap
+
+-- | Vss certificates are added at any time if they are valid and received
+--   from stakeholders.
+[_gsVssCertificates] :: GtGlobalState -> !VssCertData
+data GtContext
+GtContext :: !VssKeyPair -> !(TVar Bool) -> GtContext
+
+-- | Vss key pair used for MPC.
+[gtcVssKeyPair] :: GtContext -> !VssKeyPair
+
+-- | Flag which determines whether we want to participate in SSC.
+[gtcParticipateSsc] :: GtContext -> !(TVar Bool)
+data GtParams
+GtParams :: !Bool -> !VssKeyPair -> GtParams
+
+-- | Whether node should participate in SSC in case SSC requires
+--   participation.
+[gtpSscEnabled] :: GtParams -> !Bool
+
+-- | Key pair used for secret sharing
+[gtpVssKeyPair] :: GtParams -> !VssKeyPair
+data GtSecretStorage
+GtSecretStorage :: !(SignedCommitment) -> !Opening -> !EpochIndex -> GtSecretStorage
+
+-- | Our commitment.
+[gssCommitment] :: GtSecretStorage -> !(SignedCommitment)
+
+-- | Corresponding opening
+[gssOpening] :: GtSecretStorage -> !Opening
+
+-- | Epoch for which this secret were generated
+[gssEpoch] :: GtSecretStorage -> !EpochIndex
+gsCommitments :: Lens' GtGlobalState CommitmentsMap
+gsOpenings :: Lens' GtGlobalState OpeningsMap
+gsShares :: Lens' GtGlobalState SharesMap
+gsVssCertificates :: Lens' GtGlobalState VssCertData
+createGtContext :: MonadIO m => GtParams -> m GtContext
+
+-- | Wrapper around <a>VssCertificate</a> with TTL. Every
+--   <a>VssCertificate</a> has own TTL. Wrapper supports simple
+--   <a>HashMap</a> operations. Wrapper holds <a>VssCertificatesMap</a> and
+--   <a>Set</a> of certificates sorted by expiry epoch.
+data VssCertData
+VssCertData :: !EpochOrSlot -> !VssCertificatesMap -> !(HashMap StakeholderId EpochOrSlot) -> !(Set (EpochOrSlot, StakeholderId)) -> !(Set (EpochOrSlot, StakeholderId)) -> !(Set (EpochOrSlot, (StakeholderId, EpochOrSlot, VssCertificate))) -> VssCertData
+
+-- | Last known slot, every element of expirySlotSet &gt; lastKnownEoS
+[lastKnownEoS] :: VssCertData -> !EpochOrSlot
+
+-- | Not expired certificates
+[certs] :: VssCertData -> !VssCertificatesMap
+
+-- | Slot when certs was inserted. It is needed for deletion from
+--   <tt>insSlotSet</tt> (by <a>StakeholderId</a>).
+[whenInsMap] :: VssCertData -> !(HashMap StakeholderId EpochOrSlot)
+
+-- | Set of pairs (insertion slot, address hash) Every element of
+--   insSlotSet &lt;= lastKnownEoS
+[whenInsSet] :: VssCertData -> !(Set (EpochOrSlot, StakeholderId))
+
+-- | Set of pairs (expiry slot, address hash). Expiry slot is first slot
+--   when certificate expires. Pairs are sorted by expiry slot (in
+--   increasing order, so the oldest certificate is first element).
+[whenExpire] :: VssCertData -> !(Set (EpochOrSlot, StakeholderId))
+
+-- | Set of expired certs for current <a>lastKnownEoS</a>. We store only
+--   certificates which expried no earlier than in previous epoch. Set
+--   (full expired slot, (id, insertion slot, cert))
+[expiredCerts] :: VssCertData -> !(Set (EpochOrSlot, (StakeholderId, EpochOrSlot, VssCertificate)))
+
+-- | Create empty <a>VssCertData</a>.
+empty :: VssCertData
+
+-- | Remove old certificate corresponding to the specified
+--   <a>StakeholderId</a> and insert new certificate.
+insert :: VssCertificate -> VssCertData -> VssCertData
+
+-- | Lookup certificate corresponding to the specified
+--   <a>StakeholderId</a>.
+lookup :: StakeholderId -> VssCertData -> Maybe VssCertificate
+
+-- | Lookup expiry epoch of certificate corresponding to the specified
+--   <a>StakeholderId</a>.
+lookupExpiryEpoch :: StakeholderId -> VssCertData -> Maybe EpochIndex
+setLastKnownSlot :: SlotId -> VssCertData -> VssCertData
+
+-- | Set last known slot (lks). 1. If new lks is bigger than
+--   <a>lastKnownEoS</a> then some expired certificates will be removed. 2.
+--   If new lks is less than <a>lastKnownEoS</a> then some inserted after
+--   <tt>nlks</tt> certificates will be removed (and <a>whenExpire</a>)
+--   also will be updated.
+setLastKnownEoS :: EpochOrSlot -> VssCertData -> VssCertData
+
+-- | Ids of stakeholders issued certificates.
+keys :: VssCertData -> [StakeholderId]
+
+-- | Return True if the specified address hash is present in the map, False
+--   otherwise.
+member :: StakeholderId -> VssCertData -> Bool
+
+-- | Convert expiry epoch of certificate to <tt>FlatSlotId</tt>.
+expiryEpoch :: VssCertificate -> EpochIndex
+expiryEoS :: VssCertificate -> EpochOrSlot
+
+-- | Delete certificate corresponding to the specified
+--   <a>StakeholderId</a>. This function is dangerous, because after using
+--   it you can't rollback deleted certificates. Use carefully.
+delete :: StakeholderId -> VssCertData -> VssCertData
+
+-- | This function is dangerous, because after you using it you can't
+--   rollback deleted certificates. Use carefully.
+difference :: VssCertData -> HashMap StakeholderId a -> VssCertData
+
+-- | Filtering the certificates. This function is dangerous, because after
+--   you using it you can't rollback deleted certificates. Use carefully.
+filter :: (StakeholderId -> Bool) -> VssCertData -> VssCertData
+
+module Pos.Security.Workers
+class Ssc ssc => SecurityWorkersClass ssc
+securityWorkers :: (SecurityWorkersClass ssc, WorkMode ssc m) => Tagged ssc ([WorkerSpec m], OutSpecs)
+instance Pos.Security.Class.SecurityWorkersClass Pos.Ssc.GodTossing.Type.SscGodTossing
+instance Pos.Security.Class.SecurityWorkersClass Pos.Ssc.NistBeacon.SscNistBeacon
+
+
+-- | Web-related part of cardano-sl.
+module Pos.Web
+baseDocsText :: Text
+gtDocsText :: Text
+type MyWorkMode ssc m = (WorkMode ssc m, SscConstraint ssc)
+type WebHandler ssc = ContextHolder ssc (TxpLDHolder ssc (DBHolder ssc Production))
+serveImpl :: MonadIO m => m Application -> Word16 -> m ()
+nat :: forall ssc m. (MyWorkMode ssc m) => m (WebHandler ssc :~> Handler)
+serveWebBase :: MyWorkMode ssc m => Word16 -> m ()
+applicationBase :: MyWorkMode ssc m => m Application
+serveWebGT :: MyWorkMode SscGodTossing m => Word16 -> m ()
+applicationGT :: MyWorkMode SscGodTossing m => m Application
+
+
 -- | High level workers.
 module Pos.Worker
 
@@ -5606,9 +5610,9 @@ waitForUpdate :: MonadUpdates m => m ConfirmedProposalState
 applyLastUpdate :: MonadUpdates m => m ()
 waitForUpdate :: (MonadUpdates m, MonadTrans t, MonadUpdates m', t m' ~ m) => m ConfirmedProposalState
 applyLastUpdate :: (MonadUpdates m, MonadTrans t, MonadUpdates m', t m' ~ m) => m ()
-type TxMode ssc m = (MinWorkMode m, MonadBalances m, MonadTxHistory m, MonadMockable m, MonadMask m)
+type TxMode ssc m = (MinWorkMode m, MonadBalances m, MonadTxHistory m, MonadMockable m, MonadFail m, MonadMask m)
 type WalletMode ssc m = (TxMode ssc m, MonadKeys m, MonadBlockchainInfo m, MonadUpdates m, WithWalletContext m, MonadDHT m, MonadSlots m, WithPeerState m)
-type WalletRealMode = PeerStateHolder (KademliaDHT (KeyStorage (NtpSlotting (WalletDBSlotsData (WalletDB (ContextHolder (LoggerNameBox Production)))))))
+type WalletRealMode = PeerStateHolder (KademliaDHT (KeyStorage (WalletDB (ContextHolder (LoggerNameBox Production)))))
 
 
 -- | Web part of wallet.
@@ -5759,11 +5763,10 @@ data WalletError
 
 -- | Some internal error.
 Internal :: !Text -> WalletError
-walletServeWebFull :: forall ssc. SscConstraint ssc => SendActions (RawRealMode ssc) -> Bool -> FilePath -> Bool -> Word16 -> RawRealMode ssc ()
+walletServeWebFull :: SscConstraint ssc => SendActions (RawRealMode ssc) -> Bool -> FilePath -> Bool -> Word16 -> RawRealMode ssc ()
 walletServerOuts :: OutSpecs
 walletServeWebLite :: SendActions WalletRealMode -> FilePath -> Bool -> Word16 -> WalletRealMode ()
 walletServerOuts :: OutSpecs
-type WalletWebHandler m = WalletWebSockets (WalletWebDB m)
 walletApplication :: WalletWebMode ssc m => m (Server WalletApi) -> m Application
 walletServer :: (Monad m, WalletWebMode ssc (WalletWebHandler m)) => SendActions m -> WalletWebHandler m (WalletWebHandler m :~> Handler) -> WalletWebHandler m (Server WalletApi)
 walletServeImpl :: (MonadIO m, MonadMask m, WalletWebMode ssc (WalletWebHandler m)) => WalletWebHandler m Application -> FilePath -> Bool -> Word16 -> m ()
