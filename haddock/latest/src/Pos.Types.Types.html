@@ -44,217 +44,138 @@
 </span><a name="line-44"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#ProxySigSimple"><span class="hs-identifier hs-type">ProxySigSimple</span></a><span>
 </span><a name="line-45"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#ProxySKSimple"><span class="hs-identifier hs-type">ProxySKSimple</span></a><span>
 </span><a name="line-46"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#ProxySKEither"><span class="hs-identifier hs-type">ProxySKEither</span></a><span>
-</span><a name="line-47"></a><span>
-</span><a name="line-48"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#Blockchain"><span class="hs-identifier hs-type">Blockchain</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
-</span><a name="line-49"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#BodyProof"><span class="hs-identifier hs-type">BodyProof</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
-</span><a name="line-50"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#ConsensusData"><span class="hs-identifier hs-type">ConsensusData</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
-</span><a name="line-51"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#Body"><span class="hs-identifier hs-type">Body</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
-</span><a name="line-52"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#GenericBlockHeader"><span class="hs-identifier hs-type">GenericBlockHeader</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
-</span><a name="line-53"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#GenericBlock"><span class="hs-identifier hs-type">GenericBlock</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
-</span><a name="line-54"></a><span>
-</span><a name="line-55"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#MainBlockchain"><span class="hs-identifier hs-type">MainBlockchain</span></a><span>
-</span><a name="line-56"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#MainBlockHeader"><span class="hs-identifier hs-type">MainBlockHeader</span></a><span>
-</span><a name="line-57"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#MainExtraBodyData"><span class="hs-identifier hs-type">MainExtraBodyData</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
-</span><a name="line-58"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#MainExtraHeaderData"><span class="hs-identifier hs-type">MainExtraHeaderData</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
-</span><a name="line-59"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#BlockHeaderAttributes"><span class="hs-identifier hs-type">BlockHeaderAttributes</span></a><span>
-</span><a name="line-60"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#BlockBodyAttributes"><span class="hs-identifier hs-type">BlockBodyAttributes</span></a><span>
-</span><a name="line-61"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#BiSsc"><span class="hs-identifier hs-type">BiSsc</span></a><span>
-</span><a name="line-62"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#BlockSignature"><span class="hs-identifier hs-type">BlockSignature</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
-</span><a name="line-63"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#MainToSign"><span class="hs-identifier hs-type">MainToSign</span></a><span>
-</span><a name="line-64"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#MainBlock"><span class="hs-identifier hs-type">MainBlock</span></a><span>
-</span><a name="line-65"></a><span>
-</span><a name="line-66"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#GenesisBlockchain"><span class="hs-identifier hs-type">GenesisBlockchain</span></a><span>
-</span><a name="line-67"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#GenesisBlockHeader"><span class="hs-identifier hs-type">GenesisBlockHeader</span></a><span>
-</span><a name="line-68"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#GenesisBlock"><span class="hs-identifier hs-type">GenesisBlock</span></a><span>
-</span><a name="line-69"></a><span>
-</span><a name="line-70"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#BlockHeader"><span class="hs-identifier hs-type">BlockHeader</span></a><span>
-</span><a name="line-71"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#Block"><span class="hs-identifier hs-type">Block</span></a><span>
-</span><a name="line-72"></a><span>
-</span><a name="line-73"></a><span>       </span><span class="hs-comment">-- * HeaderHash related functions</span><span>
-</span><a name="line-74"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#blockHeaderHash"><span class="hs-identifier hs-var">blockHeaderHash</span></a><span>
-</span><a name="line-75"></a><span>
-</span><a name="line-76"></a><span>       </span><span class="hs-comment">-- * Lenses</span><span>
-</span><a name="line-77"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#HasPrevBlock"><span class="hs-identifier hs-type">HasPrevBlock</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
-</span><a name="line-78"></a><span>
-</span><a name="line-79"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#blockHeader"><span class="hs-identifier hs-var">blockHeader</span></a><span>
-</span><a name="line-80"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#blockLeaderKey"><span class="hs-identifier hs-var">blockLeaderKey</span></a><span>
-</span><a name="line-81"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#blockLeaders"><span class="hs-identifier hs-var">blockLeaders</span></a><span>
-</span><a name="line-82"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#blockMpc"><span class="hs-identifier hs-var">blockMpc</span></a><span>
-</span><a name="line-83"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#blockSignature"><span class="hs-identifier hs-var">blockSignature</span></a><span>
-</span><a name="line-84"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#blockSlot"><span class="hs-identifier hs-var">blockSlot</span></a><span>
-</span><a name="line-85"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#blockTxs"><span class="hs-identifier hs-var">blockTxs</span></a><span>
-</span><a name="line-86"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#blockTxas"><span class="hs-identifier hs-var">blockTxas</span></a><span>
-</span><a name="line-87"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#blockProxySKs"><span class="hs-identifier hs-var">blockProxySKs</span></a><span>
-</span><a name="line-88"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#gbBody"><span class="hs-identifier hs-var">gbBody</span></a><span>
-</span><a name="line-89"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#gbBodyProof"><span class="hs-identifier hs-var">gbBodyProof</span></a><span>
-</span><a name="line-90"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#gbExtra"><span class="hs-identifier hs-var">gbExtra</span></a><span>
-</span><a name="line-91"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#gbHeader"><span class="hs-identifier hs-var">gbHeader</span></a><span>
-</span><a name="line-92"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#gcdDifficulty"><span class="hs-identifier hs-var">gcdDifficulty</span></a><span>
-</span><a name="line-93"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#gcdEpoch"><span class="hs-identifier hs-var">gcdEpoch</span></a><span>
-</span><a name="line-94"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#gbhConsensus"><span class="hs-identifier hs-var">gbhConsensus</span></a><span>
-</span><a name="line-95"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#gbhExtra"><span class="hs-identifier hs-var">gbhExtra</span></a><span>
-</span><a name="line-96"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#gbhPrevBlock"><span class="hs-identifier hs-var">gbhPrevBlock</span></a><span>
-</span><a name="line-97"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#gbhBodyProof"><span class="hs-identifier hs-var">gbhBodyProof</span></a><span>
-</span><a name="line-98"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#getBlockHeader"><span class="hs-identifier hs-var">getBlockHeader</span></a><span>
-</span><a name="line-99"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#headerLeaderKey"><span class="hs-identifier hs-var">headerLeaderKey</span></a><span>
-</span><a name="line-100"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#headerSignature"><span class="hs-identifier hs-var">headerSignature</span></a><span>
-</span><a name="line-101"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#headerSlot"><span class="hs-identifier hs-var">headerSlot</span></a><span>
-</span><a name="line-102"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#mbMpc"><span class="hs-identifier hs-var">mbMpc</span></a><span>
-</span><a name="line-103"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#mbTxs"><span class="hs-identifier hs-var">mbTxs</span></a><span>
-</span><a name="line-104"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#mbWitnesses"><span class="hs-identifier hs-var">mbWitnesses</span></a><span>
-</span><a name="line-105"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#mbProxySKs"><span class="hs-identifier hs-var">mbProxySKs</span></a><span>
-</span><a name="line-106"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#mbUpdatePayload"><span class="hs-identifier hs-var">mbUpdatePayload</span></a><span>
-</span><a name="line-107"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#mcdSlot"><span class="hs-identifier hs-var">mcdSlot</span></a><span>
-</span><a name="line-108"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#mcdLeaderKey"><span class="hs-identifier hs-var">mcdLeaderKey</span></a><span>
-</span><a name="line-109"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#mcdDifficulty"><span class="hs-identifier hs-var">mcdDifficulty</span></a><span>
-</span><a name="line-110"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#mcdSignature"><span class="hs-identifier hs-var">mcdSignature</span></a><span>
-</span><a name="line-111"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#mehBlockVersion"><span class="hs-identifier hs-var">mehBlockVersion</span></a><span>
-</span><a name="line-112"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#mehSoftwareVersion"><span class="hs-identifier hs-var">mehSoftwareVersion</span></a><span>
-</span><a name="line-113"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#mehAttributes"><span class="hs-identifier hs-var">mehAttributes</span></a><span>
-</span><a name="line-114"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Types.html#mebAttributes"><span class="hs-identifier hs-var">mebAttributes</span></a><span>
-</span><a name="line-115"></a><span>       </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
-</span><a name="line-116"></a><span>
-</span><a name="line-117"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Control</span><span class="hs-operator">.</span><span class="hs-identifier">Lens</span><span>           </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Getter</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">choosing</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">makeLenses</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">makeLensesFor</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">to</span><span class="hs-special">)</span><span>
-</span><a name="line-118"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">DeriveTH</span><span>          </span><span class="hs-special">(</span><span class="hs-identifier hs-var">derive</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">makeNFData</span><span class="hs-special">)</span><span>
-</span><a name="line-119"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Hashable</span><span>          </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Hashable</span><span class="hs-special">)</span><span>
-</span><a name="line-120"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Map</span><span>               </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">M</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">toList</span><span class="hs-special">)</span><span>
-</span><a name="line-121"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Tagged</span><span>            </span><span class="hs-special">(</span><span class="hs-identifier hs-var">untag</span><span class="hs-special">)</span><span>
-</span><a name="line-122"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Text</span><span class="hs-operator">.</span><span class="hs-identifier">Buildable</span><span>    </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Buildable</span><span class="hs-special">)</span><span>
-</span><a name="line-123"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Text</span><span class="hs-operator">.</span><span class="hs-identifier">Buildable</span><span>    </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">Buildable</span><span>
-</span><a name="line-124"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Text</span><span class="hs-operator">.</span><span class="hs-identifier">Lazy</span><span class="hs-operator">.</span><span class="hs-identifier">Builder</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Builder</span><span class="hs-special">)</span><span>
-</span><a name="line-125"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Vector</span><span>            </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Vector</span><span class="hs-special">)</span><span>
-</span><a name="line-126"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Formatting</span><span>             </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Format</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">bprint</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">build</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">int</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">later</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">sformat</span><span class="hs-special">,</span><span>
-</span><a name="line-127"></a><span>                                         </span><span class="hs-identifier hs-var">stext</span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="hs-operator hs-var">%</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
-</span><a name="line-128"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Serokell</span><span class="hs-operator">.</span><span class="hs-identifier">AcidState</span><span>     </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
-</span><a name="line-129"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Serokell</span><span class="hs-operator">.</span><span class="hs-identifier">Util</span><span class="hs-operator">.</span><span class="hs-identifier">Base16</span><span>   </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">B16</span><span>
-</span><a name="line-130"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Serokell</span><span class="hs-operator">.</span><span class="hs-identifier">Util</span><span class="hs-operator">.</span><span class="hs-identifier">Text</span><span>     </span><span class="hs-special">(</span><span class="hs-identifier hs-var">listBuilderJSON</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">listJson</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">listJsonIndent</span><span class="hs-special">,</span><span>
-</span><a name="line-131"></a><span>                                         </span><span class="hs-identifier hs-var">mapBuilderJson</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">pairBuilder</span><span class="hs-special">)</span><span>
-</span><a name="line-132"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Universum</span><span>
-</span><a name="line-133"></a><span>
-</span><a name="line-134"></a><span class="hs-keyword">import</span><span>           </span><a href="Pos.Binary.Address.html"><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Binary</span><span class="hs-operator">.</span><span class="hs-identifier">Address</span></a><span>     </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
-</span><a name="line-135"></a><span class="hs-keyword">import</span><span>           </span><a href="Pos.Binary.Class.html"><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Binary</span><span class="hs-operator">.</span><span class="hs-identifier">Class</span></a><span>       </span><span class="hs-special">(</span><a href="Pos.Binary.Class.html#Bi"><span class="hs-identifier hs-type">Bi</span></a><span class="hs-special">)</span><span>
-</span><a name="line-136"></a><span class="hs-keyword">import</span><span>           </span><a href="Pos.Binary.Script.html"><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Binary</span><span class="hs-operator">.</span><span class="hs-identifier">Script</span></a><span>      </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
-</span><a name="line-137"></a><span class="hs-keyword">import</span><span>           </span><a href="Pos.Crypto.html"><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Crypto</span></a><span>             </span><span class="hs-special">(</span><a href="Pos.Crypto.Hashing.html#Hash"><span class="hs-identifier hs-type">Hash</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Crypto.Signing.html#ProxySecretKey"><span class="hs-identifier hs-type">ProxySecretKey</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Crypto.Signing.html#ProxySignature"><span class="hs-identifier hs-type">ProxySignature</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Crypto.Signing.html#PublicKey"><span class="hs-identifier hs-type">PublicKey</span></a><span class="hs-special">,</span><span>
-</span><a name="line-138"></a><span>                                         </span><a href="Pos.Crypto.Signing.html#Signature"><span class="hs-identifier hs-type">Signature</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Crypto.Hashing.html#hash"><span class="hs-identifier hs-var">hash</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Crypto.Hashing.html#hashHexF"><span class="hs-identifier hs-var">hashHexF</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Crypto.Hashing.html#shortHashF"><span class="hs-identifier hs-var">shortHashF</span></a><span class="hs-special">,</span><span>
-</span><a name="line-139"></a><span>                                         </span><a href="Pos.Crypto.Hashing.html#unsafeHash"><span class="hs-identifier hs-var">unsafeHash</span></a><span class="hs-special">)</span><span>
-</span><a name="line-140"></a><span class="hs-keyword">import</span><span>           </span><a href="Pos.Data.Attributes.html"><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Attributes</span></a><span>    </span><span class="hs-special">(</span><a href="Pos.Data.Attributes.html#Attributes"><span class="hs-identifier hs-type">Attributes</span></a><span class="hs-special">)</span><span>
-</span><a name="line-141"></a><span class="hs-keyword">import</span><span>           </span><a href="Pos.Merkle.html"><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Merkle</span></a><span>             </span><span class="hs-special">(</span><a href="Pos.Merkle.html#MerkleRoot"><span class="hs-identifier hs-type">MerkleRoot</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Merkle.html#MerkleTree"><span class="hs-identifier hs-type">MerkleTree</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Merkle.html#mtRoot"><span class="hs-identifier hs-var">mtRoot</span></a><span class="hs-special">)</span><span>
-</span><a name="line-142"></a><span class="hs-keyword">import</span><span>           </span><a href="Pos.Script.Type.html"><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Script</span><span class="hs-operator">.</span><span class="hs-identifier">Type</span></a><span>        </span><span class="hs-special">(</span><a href="Pos.Script.Type.html#Script"><span class="hs-identifier hs-type">Script</span></a><span class="hs-special">)</span><span>
-</span><a name="line-143"></a><span class="hs-keyword">import</span><span>           </span><a href="Pos.Ssc.Class.Types.html"><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Ssc</span><span class="hs-operator">.</span><span class="hs-identifier">Class</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>    </span><span class="hs-special">(</span><a href="Pos.Ssc.Class.Types.html#Ssc"><span class="hs-identifier hs-type">Ssc</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
-</span><a name="line-144"></a><span class="hs-keyword">import</span><span>           </span><a href="Pos.Types.Core.html"><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span><span class="hs-operator">.</span><span class="hs-identifier">Core</span></a><span>         </span><span class="hs-special">(</span><a href="Pos.Types.Core.html#Address"><span class="hs-identifier hs-type">Address</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Core.html#BlockVersion"><span class="hs-identifier hs-type">BlockVersion</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Types.Core.html#ChainDifficulty"><span class="hs-identifier hs-type">ChainDifficulty</span></a><span class="hs-special">,</span><span>
-</span><a name="line-145"></a><span>                                         </span><a href="Pos.Types.Core.html#Coin"><span class="hs-identifier hs-type">Coin</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Types.Core.html#EpochIndex"><span class="hs-identifier hs-type">EpochIndex</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Types.Core.html#HasDifficulty"><span class="hs-identifier hs-type">HasDifficulty</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
-</span><a name="line-146"></a><span>                                         </span><a href="Pos.Types.Core.html#HasEpochIndex"><span class="hs-identifier hs-type">HasEpochIndex</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Core.html#HasEpochOrSlot"><span class="hs-identifier hs-type">HasEpochOrSlot</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
-</span><a name="line-147"></a><span>                                         </span><a href="Pos.Types.Core.html#HasHeaderHash"><span class="hs-identifier hs-type">HasHeaderHash</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Core.html#HeaderHash"><span class="hs-identifier hs-type">HeaderHash</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Types.Core.html#SlotId"><span class="hs-identifier hs-type">SlotId</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
-</span><a name="line-148"></a><span>                                         </span><a href="Pos.Types.Core.html#SoftwareVersion"><span class="hs-identifier hs-type">SoftwareVersion</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Types.Core.html#StakeholderId"><span class="hs-identifier hs-type">StakeholderId</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Types.Core.html#coinF"><span class="hs-identifier hs-var">coinF</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Types.Core.html#slotIdF"><span class="hs-identifier hs-var">slotIdF</span></a><span class="hs-special">)</span><span>
-</span><a name="line-149"></a><span class="hs-keyword">import</span><span>           </span><a href="Pos.Update.Core.Types.html"><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Update</span><span class="hs-operator">.</span><span class="hs-identifier">Core</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>  </span><span class="hs-special">(</span><a href="Pos.Update.Core.Types.html#UpdatePayload"><span class="hs-identifier hs-type">UpdatePayload</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Update.Core.Types.html#UpdateProof"><span class="hs-identifier hs-type">UpdateProof</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Update.Core.Types.html#UpdateProposal"><span class="hs-identifier hs-type">UpdateProposal</span></a><span class="hs-special">,</span><span>
-</span><a name="line-150"></a><span>                                         </span><a href="Pos.Update.Core.Types.html#mkUpdateProof"><span class="hs-identifier hs-var">mkUpdateProof</span></a><span class="hs-special">)</span><span>
-</span><a name="line-151"></a><span class="hs-keyword">import</span><span>           </span><a href="Pos.Util.html"><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Util</span></a><span>               </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Color</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">Magenta</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><a href="Pos.Util.html#colorize"><span class="hs-identifier hs-var">colorize</span></a><span class="hs-special">)</span><span>
-</span><a name="line-152"></a><span>
-</span><a name="line-153"></a><span class="hs-comment">----------------------------------------------------------------------------</span><span>
-</span><a name="line-154"></a><span class="hs-comment">-- Transaction</span><span>
-</span><a name="line-155"></a><span class="hs-comment">----------------------------------------------------------------------------</span><span>
-</span><a name="line-156"></a><span>
-</span><a name="line-157"></a><span class="hs-comment">-- | Represents transaction attributes: map from 1-byte integer to</span><span>
-</span><a name="line-158"></a><span class="hs-comment">-- arbitrary-type value. To be used for extending transaction with new</span><span>
-</span><a name="line-159"></a><span class="hs-comment">-- fields via softfork.</span><span>
-</span><a name="line-160"></a><span class="hs-keyword">type</span><span> </span><a name="TxAttributes"><a href="Pos.Types.Types.html#TxAttributes"><span class="hs-identifier">TxAttributes</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="Pos.Data.Attributes.html#Attributes"><span class="hs-identifier hs-type">Attributes</span></a><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
-</span><a name="line-161"></a><span>
-</span><a name="line-162"></a><span class="hs-comment">-- | Represents transaction identifier as 'Hash' of 'Tx'.</span><span>
-</span><a name="line-163"></a><span class="hs-keyword">type</span><span> </span><a name="TxId"><a href="Pos.Types.Types.html#TxId"><span class="hs-identifier">TxId</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="Pos.Crypto.Hashing.html#Hash"><span class="hs-identifier hs-type">Hash</span></a><span> </span><a href="Pos.Types.Types.html#Tx"><span class="hs-identifier hs-type">Tx</span></a><span>
-</span><a name="line-164"></a><span>
-</span><a name="line-165"></a><span class="hs-comment">-- | Data that is being signed when creating a TxSig.</span><span>
-</span><a name="line-166"></a><span class="hs-keyword">type</span><span> </span><a name="TxSigData"><a href="Pos.Types.Types.html#TxSigData"><span class="hs-identifier">TxSigData</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><a href="Pos.Types.Types.html#TxId"><span class="hs-identifier hs-type">TxId</span></a><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Word32</span><span class="hs-special">,</span><span> </span><a href="Pos.Crypto.Hashing.html#Hash"><span class="hs-identifier hs-type">Hash</span></a><span> </span><span class="hs-special">[</span><a href="Pos.Types.Types.html#TxOut"><span class="hs-identifier hs-type">TxOut</span></a><span class="hs-special">]</span><span class="hs-special">,</span><span> </span><a href="Pos.Crypto.Hashing.html#Hash"><span class="hs-identifier hs-type">Hash</span></a><span> </span><a href="Pos.Types.Types.html#TxDistribution"><span class="hs-identifier hs-type">TxDistribution</span></a><span class="hs-special">)</span><span>
+</span><a name="line-47"></a><span>       </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-48"></a><span>
+</span><a name="line-49"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Control</span><span class="hs-operator">.</span><span class="hs-identifier">Lens</span><span>           </span><span class="hs-special">(</span><span class="hs-identifier hs-var">makeLensesFor</span><span class="hs-special">)</span><span>
+</span><a name="line-50"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">DeriveTH</span><span>          </span><span class="hs-special">(</span><span class="hs-identifier hs-var">derive</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">makeNFData</span><span class="hs-special">)</span><span>
+</span><a name="line-51"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Hashable</span><span>          </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Hashable</span><span class="hs-special">)</span><span>
+</span><a name="line-52"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Map</span><span>               </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">M</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">toList</span><span class="hs-special">)</span><span>
+</span><a name="line-53"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Text</span><span class="hs-operator">.</span><span class="hs-identifier">Buildable</span><span>    </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Buildable</span><span class="hs-special">)</span><span>
+</span><a name="line-54"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Text</span><span class="hs-operator">.</span><span class="hs-identifier">Buildable</span><span>    </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">Buildable</span><span>
+</span><a name="line-55"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Text</span><span class="hs-operator">.</span><span class="hs-identifier">Lazy</span><span class="hs-operator">.</span><span class="hs-identifier">Builder</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Builder</span><span class="hs-special">)</span><span>
+</span><a name="line-56"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Vector</span><span>            </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Vector</span><span class="hs-special">)</span><span>
+</span><a name="line-57"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Formatting</span><span>             </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Format</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">bprint</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">build</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">int</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">later</span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="hs-operator hs-var">%</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><a name="line-58"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Serokell</span><span class="hs-operator">.</span><span class="hs-identifier">AcidState</span><span>     </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><a name="line-59"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Serokell</span><span class="hs-operator">.</span><span class="hs-identifier">Util</span><span class="hs-operator">.</span><span class="hs-identifier">Base16</span><span>   </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">B16</span><span>
+</span><a name="line-60"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Serokell</span><span class="hs-operator">.</span><span class="hs-identifier">Util</span><span class="hs-operator">.</span><span class="hs-identifier">Text</span><span>     </span><span class="hs-special">(</span><span class="hs-identifier hs-var">listBuilderJSON</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">listJson</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">listJsonIndent</span><span class="hs-special">,</span><span>
+</span><a name="line-61"></a><span>                                         </span><span class="hs-identifier hs-var">mapBuilderJson</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">pairBuilder</span><span class="hs-special">)</span><span>
+</span><a name="line-62"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Universum</span><span>
+</span><a name="line-63"></a><span>
+</span><a name="line-64"></a><span class="hs-keyword">import</span><span>           </span><a href="Pos.Binary.Address.html"><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Binary</span><span class="hs-operator">.</span><span class="hs-identifier">Address</span></a><span>     </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><a name="line-65"></a><span class="hs-keyword">import</span><span>           </span><a href="Pos.Binary.Class.html"><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Binary</span><span class="hs-operator">.</span><span class="hs-identifier">Class</span></a><span>       </span><span class="hs-special">(</span><a href="Pos.Binary.Class.html#Bi"><span class="hs-identifier hs-type">Bi</span></a><span class="hs-special">)</span><span>
+</span><a name="line-66"></a><span class="hs-keyword">import</span><span>           </span><a href="Pos.Binary.Script.html"><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Binary</span><span class="hs-operator">.</span><span class="hs-identifier">Script</span></a><span>      </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><a name="line-67"></a><span class="hs-keyword">import</span><span>           </span><a href="Pos.Crypto.html"><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Crypto</span></a><span>             </span><span class="hs-special">(</span><a href="Pos.Crypto.Hashing.html#Hash"><span class="hs-identifier hs-type">Hash</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Crypto.Signing.html#ProxySecretKey"><span class="hs-identifier hs-type">ProxySecretKey</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Crypto.Signing.html#ProxySignature"><span class="hs-identifier hs-type">ProxySignature</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Crypto.Signing.html#PublicKey"><span class="hs-identifier hs-type">PublicKey</span></a><span class="hs-special">,</span><span>
+</span><a name="line-68"></a><span>                                         </span><a href="Pos.Crypto.Signing.html#Signature"><span class="hs-identifier hs-type">Signature</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Crypto.Hashing.html#hash"><span class="hs-identifier hs-var">hash</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Crypto.Hashing.html#shortHashF"><span class="hs-identifier hs-var">shortHashF</span></a><span class="hs-special">)</span><span>
+</span><a name="line-69"></a><span class="hs-keyword">import</span><span>           </span><a href="Pos.Data.Attributes.html"><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Attributes</span></a><span>    </span><span class="hs-special">(</span><a href="Pos.Data.Attributes.html#Attributes"><span class="hs-identifier hs-type">Attributes</span></a><span class="hs-special">)</span><span>
+</span><a name="line-70"></a><span class="hs-keyword">import</span><span>           </span><a href="Pos.Script.Type.html"><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Script</span><span class="hs-operator">.</span><span class="hs-identifier">Type</span></a><span>        </span><span class="hs-special">(</span><a href="Pos.Script.Type.html#Script"><span class="hs-identifier hs-type">Script</span></a><span class="hs-special">)</span><span>
+</span><a name="line-71"></a><span class="hs-keyword">import</span><span>           </span><a href="Pos.Types.Core.html"><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span><span class="hs-operator">.</span><span class="hs-identifier">Core</span></a><span>         </span><span class="hs-special">(</span><a href="Pos.Types.Core.html#Address"><span class="hs-identifier hs-type">Address</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Core.html#Coin"><span class="hs-identifier hs-type">Coin</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Types.Core.html#EpochIndex"><span class="hs-identifier hs-type">EpochIndex</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Types.Core.html#StakeholderId"><span class="hs-identifier hs-type">StakeholderId</span></a><span class="hs-special">,</span><span>
+</span><a name="line-72"></a><span>                                         </span><a href="Pos.Types.Core.html#coinF"><span class="hs-identifier hs-var">coinF</span></a><span class="hs-special">)</span><span>
+</span><a name="line-73"></a><span>
+</span><a name="line-74"></a><span class="hs-comment">----------------------------------------------------------------------------</span><span>
+</span><a name="line-75"></a><span class="hs-comment">-- Transaction</span><span>
+</span><a name="line-76"></a><span class="hs-comment">----------------------------------------------------------------------------</span><span>
+</span><a name="line-77"></a><span>
+</span><a name="line-78"></a><span class="hs-comment">-- | Represents transaction attributes: map from 1-byte integer to</span><span>
+</span><a name="line-79"></a><span class="hs-comment">-- arbitrary-type value. To be used for extending transaction with new</span><span>
+</span><a name="line-80"></a><span class="hs-comment">-- fields via softfork.</span><span>
+</span><a name="line-81"></a><span class="hs-keyword">type</span><span> </span><a name="TxAttributes"><a href="Pos.Types.Types.html#TxAttributes"><span class="hs-identifier">TxAttributes</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="Pos.Data.Attributes.html#Attributes"><span class="hs-identifier hs-type">Attributes</span></a><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><a name="line-82"></a><span>
+</span><a name="line-83"></a><span class="hs-comment">-- | Represents transaction identifier as 'Hash' of 'Tx'.</span><span>
+</span><a name="line-84"></a><span class="hs-keyword">type</span><span> </span><a name="TxId"><a href="Pos.Types.Types.html#TxId"><span class="hs-identifier">TxId</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="Pos.Crypto.Hashing.html#Hash"><span class="hs-identifier hs-type">Hash</span></a><span> </span><a href="Pos.Types.Types.html#Tx"><span class="hs-identifier hs-type">Tx</span></a><span>
+</span><a name="line-85"></a><span>
+</span><a name="line-86"></a><span class="hs-comment">-- | Data that is being signed when creating a TxSig.</span><span>
+</span><a name="line-87"></a><span class="hs-keyword">type</span><span> </span><a name="TxSigData"><a href="Pos.Types.Types.html#TxSigData"><span class="hs-identifier">TxSigData</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><a href="Pos.Types.Types.html#TxId"><span class="hs-identifier hs-type">TxId</span></a><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Word32</span><span class="hs-special">,</span><span> </span><a href="Pos.Crypto.Hashing.html#Hash"><span class="hs-identifier hs-type">Hash</span></a><span> </span><span class="hs-special">[</span><a href="Pos.Types.Types.html#TxOut"><span class="hs-identifier hs-type">TxOut</span></a><span class="hs-special">]</span><span class="hs-special">,</span><span> </span><a href="Pos.Crypto.Hashing.html#Hash"><span class="hs-identifier hs-type">Hash</span></a><span> </span><a href="Pos.Types.Types.html#TxDistribution"><span class="hs-identifier hs-type">TxDistribution</span></a><span class="hs-special">)</span><span>
+</span><a name="line-88"></a><span>
+</span><a name="line-89"></a><span class="hs-comment">-- | 'Signature' of addrId.</span><span>
+</span><a name="line-90"></a><span class="hs-keyword">type</span><span> </span><a name="TxSig"><a href="Pos.Types.Types.html#TxSig"><span class="hs-identifier">TxSig</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="Pos.Crypto.Signing.html#Signature"><span class="hs-identifier hs-type">Signature</span></a><span> </span><a href="Pos.Types.Types.html#TxSigData"><span class="hs-identifier hs-type">TxSigData</span></a><span>
+</span><a name="line-91"></a><span>
+</span><a name="line-92"></a><span class="hs-comment">-- | A witness for a single input.</span><span>
+</span><a name="line-93"></a><span class="hs-keyword">data</span><span> </span><a name="TxInWitness"><a href="Pos.Types.Types.html#TxInWitness"><span class="hs-identifier">TxInWitness</span></a></a><span>
+</span><a name="line-94"></a><span>    </span><span class="hs-glyph">=</span><span> </span><a name="PkWitness"><a href="Pos.Types.Types.html#PkWitness"><span class="hs-identifier">PkWitness</span></a></a><span> </span><span class="hs-special">{</span><span> </span><a name="twKey"><a href="Pos.Types.Types.html#twKey"><span class="hs-identifier">twKey</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><a href="Pos.Crypto.Signing.html#PublicKey"><span class="hs-identifier hs-type">PublicKey</span></a><span>
+</span><a name="line-95"></a><span>                </span><span class="hs-special">,</span><span> </span><a name="twSig"><a href="Pos.Types.Types.html#twSig"><span class="hs-identifier">twSig</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><a href="Pos.Types.Types.html#TxSig"><span class="hs-identifier hs-type">TxSig</span></a><span class="hs-special">}</span><span>
+</span><a name="line-96"></a><span>    </span><span class="hs-glyph">|</span><span> </span><a name="ScriptWitness"><a href="Pos.Types.Types.html#ScriptWitness"><span class="hs-identifier">ScriptWitness</span></a></a><span> </span><span class="hs-special">{</span><span> </span><a name="twValidator"><a href="Pos.Types.Types.html#twValidator"><span class="hs-identifier">twValidator</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><a href="Pos.Script.Type.html#Script"><span class="hs-identifier hs-type">Script</span></a><span>
+</span><a name="line-97"></a><span>                    </span><span class="hs-special">,</span><span> </span><a name="twRedeemer"><a href="Pos.Types.Types.html#twRedeemer"><span class="hs-identifier">twRedeemer</span></a></a><span>  </span><span class="hs-glyph">::</span><span> </span><a href="Pos.Script.Type.html#Script"><span class="hs-identifier hs-type">Script</span></a><span class="hs-special">}</span><span>
+</span><a name="line-98"></a><span>    </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Eq</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Show</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Generic</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Typeable</span><span class="hs-special">)</span><span>
+</span><a name="line-99"></a><span>
+</span><a name="line-100"></a><span class="hs-keyword">instance</span><span> </span><span class="hs-identifier hs-type">Hashable</span><span> </span><a href="Pos.Types.Types.html#TxInWitness"><span class="hs-identifier hs-type">TxInWitness</span></a><span>
+</span><a name="line-101"></a><span>
+</span><a name="line-102"></a><span class="hs-keyword">instance</span><span> </span><a href="Pos.Binary.Class.html#Bi"><span class="hs-identifier hs-type">Bi</span></a><span> </span><a href="Pos.Script.Type.html#Script"><span class="hs-identifier hs-type">Script</span></a><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-identifier hs-type">Buildable</span><span> </span><a href="Pos.Types.Types.html#TxInWitness"><span class="hs-identifier hs-type">TxInWitness</span></a><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-103"></a><span>    </span><a name="local-8214565720323796758"><span class="hs-identifier">build</span></a><span> </span><span class="hs-special">(</span><a href="Pos.Types.Types.html#PkWitness"><span class="hs-identifier hs-var">PkWitness</span></a><span> </span><a name="local-6989586621679862015"><a href="#local-6989586621679862015"><span class="hs-identifier">key</span></a></a><span> </span><a name="local-6989586621679862016"><a href="#local-6989586621679862016"><span class="hs-identifier">sig</span></a></a><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><a name="line-104"></a><span>        </span><span class="hs-identifier hs-var">bprint</span><span> </span><span class="hs-special">(</span><span class="hs-string">&quot;PkWitness: key = &quot;</span><span class="hs-operator hs-var">%</span><span class="hs-identifier hs-var">build</span><span class="hs-operator hs-var">%</span><span class="hs-string">&quot;, sig = &quot;</span><span class="hs-operator hs-var">%</span><span class="hs-identifier hs-var">build</span><span class="hs-special">)</span><span> </span><a href="#local-6989586621679862015"><span class="hs-identifier hs-var">key</span></a><span> </span><a href="#local-6989586621679862016"><span class="hs-identifier hs-var">sig</span></a><span>
+</span><a name="line-105"></a><span>    </span><span class="hs-identifier">build</span><span> </span><span class="hs-special">(</span><a href="Pos.Types.Types.html#ScriptWitness"><span class="hs-identifier hs-var">ScriptWitness</span></a><span> </span><a name="local-6989586621679862017"><a href="#local-6989586621679862017"><span class="hs-identifier">val</span></a></a><span> </span><a name="local-6989586621679862018"><a href="#local-6989586621679862018"><span class="hs-identifier">red</span></a></a><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><a name="line-106"></a><span>        </span><span class="hs-identifier hs-var">bprint</span><span> </span><span class="hs-special">(</span><span class="hs-string">&quot;ScriptWitness: &quot;</span><span class="hs-operator hs-var">%</span><span>
+</span><a name="line-107"></a><span>                </span><span class="hs-string">&quot;validator hash = &quot;</span><span class="hs-operator hs-var">%</span><a href="Pos.Crypto.Hashing.html#shortHashF"><span class="hs-identifier hs-var">shortHashF</span></a><span class="hs-operator hs-var">%</span><span class="hs-string">&quot;, &quot;</span><span class="hs-operator hs-var">%</span><span>
+</span><a name="line-108"></a><span>                </span><span class="hs-string">&quot;redeemer hash = &quot;</span><span class="hs-operator hs-var">%</span><a href="Pos.Crypto.Hashing.html#shortHashF"><span class="hs-identifier hs-var">shortHashF</span></a><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><a href="Pos.Crypto.Hashing.html#hash"><span class="hs-identifier hs-var">hash</span></a><span> </span><a href="#local-6989586621679862017"><span class="hs-identifier hs-var">val</span></a><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><a href="Pos.Crypto.Hashing.html#hash"><span class="hs-identifier hs-var">hash</span></a><span> </span><a href="#local-6989586621679862018"><span class="hs-identifier hs-var">red</span></a><span class="hs-special">)</span><span>
+</span><a name="line-109"></a><span>
+</span><a name="line-110"></a><span class="hs-comment">-- | A witness is a proof that a transaction is allowed to spend the funds it</span><span>
+</span><a name="line-111"></a><span class="hs-comment">-- spends (by providing signatures, redeeming scripts, etc). A separate proof</span><span>
+</span><a name="line-112"></a><span class="hs-comment">-- is provided for each input.</span><span>
+</span><a name="line-113"></a><span class="hs-keyword">type</span><span> </span><a name="TxWitness"><a href="Pos.Types.Types.html#TxWitness"><span class="hs-identifier">TxWitness</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-type">Vector</span><span> </span><a href="Pos.Types.Types.html#TxInWitness"><span class="hs-identifier hs-type">TxInWitness</span></a><span>
+</span><a name="line-114"></a><span>
+</span><a name="line-115"></a><span class="hs-comment">-- | Distribution of &#8220;fake&#8221; stake that follow-the-satoshi would use for a</span><span>
+</span><a name="line-116"></a><span class="hs-comment">-- particular transaction.</span><span>
+</span><a name="line-117"></a><span class="hs-keyword">newtype</span><span> </span><a name="TxDistribution"><a href="Pos.Types.Types.html#TxDistribution"><span class="hs-identifier">TxDistribution</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a name="TxDistribution"><a href="Pos.Types.Types.html#TxDistribution"><span class="hs-identifier">TxDistribution</span></a></a><span> </span><span class="hs-special">{</span><span>
+</span><a name="line-118"></a><span>    </span><a name="getTxDistribution"><a href="Pos.Types.Types.html#getTxDistribution"><span class="hs-identifier">getTxDistribution</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="hs-special">[</span><span class="hs-special">(</span><a href="Pos.Types.Core.html#StakeholderId"><span class="hs-identifier hs-type">StakeholderId</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Types.Core.html#Coin"><span class="hs-identifier hs-type">Coin</span></a><span class="hs-special">)</span><span class="hs-special">]</span><span class="hs-special">]</span><span> </span><span class="hs-special">}</span><span>
+</span><a name="line-119"></a><span>    </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Eq</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Show</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Generic</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Typeable</span><span class="hs-special">)</span><span>
+</span><a name="line-120"></a><span>
+</span><a name="line-121"></a><span class="hs-keyword">instance</span><span> </span><span class="hs-identifier hs-type">Buildable</span><span> </span><a href="Pos.Types.Types.html#TxDistribution"><span class="hs-identifier hs-type">TxDistribution</span></a><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-122"></a><span>    </span><a name="local-8214565720323796758"><span class="hs-identifier">build</span></a><span> </span><span class="hs-special">(</span><a href="Pos.Types.Types.html#TxDistribution"><span class="hs-identifier hs-var">TxDistribution</span></a><span> </span><a name="local-6989586621679862014"><a href="#local-6989586621679862014"><span class="hs-identifier">x</span></a></a><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><a name="line-123"></a><span>        </span><span class="hs-identifier hs-var">listBuilderJSON</span><span> </span><span class="hs-operator hs-var">.</span><span> </span><span class="hs-identifier hs-var">map</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">listBuilderJSON</span><span> </span><span class="hs-operator hs-var">.</span><span> </span><span class="hs-identifier hs-var">map</span><span> </span><span class="hs-identifier hs-var">pairBuilder</span><span class="hs-special">)</span><span> </span><span class="hs-operator hs-var">$</span><span> </span><a href="#local-6989586621679862014"><span class="hs-identifier hs-var">x</span></a><span>
+</span><a name="line-124"></a><span>
+</span><a name="line-125"></a><span class="hs-comment">-- | Transaction input.</span><span>
+</span><a name="line-126"></a><span class="hs-keyword">data</span><span> </span><a name="TxIn"><a href="Pos.Types.Types.html#TxIn"><span class="hs-identifier">TxIn</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a name="TxIn"><a href="Pos.Types.Types.html#TxIn"><span class="hs-identifier">TxIn</span></a></a><span>
+</span><a name="line-127"></a><span>    </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | Which transaction's output is used</span><span>
+</span><a name="line-128"></a><span>      </span><a name="txInHash"><a href="Pos.Types.Types.html#txInHash"><span class="hs-identifier">txInHash</span></a></a><span>  </span><span class="hs-glyph">::</span><span> </span><span class="hs-glyph">!</span><a href="Pos.Types.Types.html#TxId"><span class="hs-identifier hs-type">TxId</span></a><span>
+</span><a name="line-129"></a><span>      </span><span class="hs-comment">-- | Index of the output in transaction's outputs</span><span>
+</span><a name="line-130"></a><span>    </span><span class="hs-special">,</span><span> </span><a name="txInIndex"><a href="Pos.Types.Types.html#txInIndex"><span class="hs-identifier">txInIndex</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-glyph">!</span><span class="hs-identifier hs-type">Word32</span><span>
+</span><a name="line-131"></a><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Eq</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Ord</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Show</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Generic</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Typeable</span><span class="hs-special">)</span><span>
+</span><a name="line-132"></a><span>
+</span><a name="line-133"></a><span class="hs-keyword">instance</span><span> </span><span class="hs-identifier hs-type">Hashable</span><span> </span><a href="Pos.Types.Types.html#TxIn"><span class="hs-identifier hs-type">TxIn</span></a><span>
+</span><a name="line-134"></a><span>
+</span><a name="line-135"></a><span class="hs-keyword">instance</span><span> </span><span class="hs-identifier hs-type">Buildable</span><span> </span><a href="Pos.Types.Types.html#TxIn"><span class="hs-identifier hs-type">TxIn</span></a><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-136"></a><span>    </span><a name="local-8214565720323796758"><span class="hs-identifier">build</span></a><span> </span><a href="Pos.Types.Types.html#TxIn"><span class="hs-identifier hs-var">TxIn</span></a><span> </span><span class="hs-special">{</span><span class="hs-glyph">..</span><span class="hs-special">}</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-var">bprint</span><span> </span><span class="hs-special">(</span><span class="hs-string">&quot;TxIn &quot;</span><span class="hs-operator hs-var">%</span><a href="Pos.Crypto.Hashing.html#shortHashF"><span class="hs-identifier hs-var">shortHashF</span></a><span class="hs-operator hs-var">%</span><span class="hs-string">&quot; #&quot;</span><span class="hs-operator hs-var">%</span><span class="hs-identifier hs-var">int</span><span class="hs-special">)</span><span> </span><a href="#local-6989586621679862012"><span class="hs-identifier hs-var">txInHash</span></a><span> </span><a href="#local-6989586621679862013"><span class="hs-identifier hs-var">txInIndex</span></a><span>
+</span><a name="line-137"></a><span>
+</span><a name="line-138"></a><span class="hs-comment">-- | Make pair from TxIn</span><span>
+</span><a name="line-139"></a><span class="hs-identifier">toPair</span><span> </span><span class="hs-glyph">::</span><span> </span><a href="Pos.Types.Types.html#TxIn"><span class="hs-identifier hs-type">TxIn</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><a href="Pos.Types.Types.html#TxId"><span class="hs-identifier hs-type">TxId</span></a><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Word32</span><span class="hs-special">)</span><span>
+</span><a name="line-140"></a><a name="toPair"><a href="Pos.Types.Types.html#toPair"><span class="hs-identifier">toPair</span></a></a><span> </span><span class="hs-special">(</span><a href="Pos.Types.Types.html#TxIn"><span class="hs-identifier hs-var">TxIn</span></a><span> </span><a name="local-6989586621679862002"><a href="#local-6989586621679862002"><span class="hs-identifier">h</span></a></a><span> </span><a name="local-6989586621679862003"><a href="#local-6989586621679862003"><span class="hs-identifier">i</span></a></a><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><a href="#local-6989586621679862002"><span class="hs-identifier hs-var">h</span></a><span class="hs-special">,</span><span> </span><a href="#local-6989586621679862003"><span class="hs-identifier hs-var">i</span></a><span class="hs-special">)</span><span>
+</span><a name="line-141"></a><span>
+</span><a name="line-142"></a><span class="hs-comment">-- | Transaction output.</span><span>
+</span><a name="line-143"></a><span class="hs-keyword">data</span><span> </span><a name="TxOut"><a href="Pos.Types.Types.html#TxOut"><span class="hs-identifier">TxOut</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a name="TxOut"><a href="Pos.Types.Types.html#TxOut"><span class="hs-identifier">TxOut</span></a></a><span>
+</span><a name="line-144"></a><span>    </span><span class="hs-special">{</span><span> </span><a name="txOutAddress"><a href="Pos.Types.Types.html#txOutAddress"><span class="hs-identifier">txOutAddress</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-glyph">!</span><a href="Pos.Types.Core.html#Address"><span class="hs-identifier hs-type">Address</span></a><span>
+</span><a name="line-145"></a><span>    </span><span class="hs-special">,</span><span> </span><a name="txOutValue"><a href="Pos.Types.Types.html#txOutValue"><span class="hs-identifier">txOutValue</span></a></a><span>   </span><span class="hs-glyph">::</span><span> </span><span class="hs-glyph">!</span><a href="Pos.Types.Core.html#Coin"><span class="hs-identifier hs-type">Coin</span></a><span>
+</span><a name="line-146"></a><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Eq</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Ord</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Generic</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Show</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Typeable</span><span class="hs-special">)</span><span>
+</span><a name="line-147"></a><span>
+</span><a name="line-148"></a><span class="hs-keyword">instance</span><span> </span><span class="hs-identifier hs-type">Hashable</span><span> </span><a href="Pos.Types.Types.html#TxOut"><span class="hs-identifier hs-type">TxOut</span></a><span>
+</span><a name="line-149"></a><span>
+</span><a name="line-150"></a><span class="hs-keyword">instance</span><span> </span><span class="hs-identifier hs-type">Buildable</span><span> </span><a href="Pos.Types.Types.html#TxOut"><span class="hs-identifier hs-type">TxOut</span></a><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-151"></a><span>    </span><a name="local-8214565720323796758"><span class="hs-identifier">build</span></a><span> </span><a href="Pos.Types.Types.html#TxOut"><span class="hs-identifier hs-var">TxOut</span></a><span> </span><span class="hs-special">{</span><span class="hs-glyph">..</span><span class="hs-special">}</span><span> </span><span class="hs-glyph">=</span><span>
+</span><a name="line-152"></a><span>        </span><span class="hs-identifier hs-var">bprint</span><span> </span><span class="hs-special">(</span><span class="hs-string">&quot;TxOut &quot;</span><span class="hs-operator hs-var">%</span><a href="Pos.Types.Core.html#coinF"><span class="hs-identifier hs-var">coinF</span></a><span class="hs-operator hs-var">%</span><span class="hs-string">&quot; -&gt; &quot;</span><span class="hs-operator hs-var">%</span><span class="hs-identifier hs-var">build</span><span class="hs-special">)</span><span> </span><a href="#local-6989586621679862011"><span class="hs-identifier hs-var">txOutValue</span></a><span> </span><a href="#local-6989586621679862010"><span class="hs-identifier hs-var">txOutAddress</span></a><span>
+</span><a name="line-153"></a><span>
+</span><a name="line-154"></a><span class="hs-keyword">type</span><span> </span><a name="TxOutAux"><a href="Pos.Types.Types.html#TxOutAux"><span class="hs-identifier">TxOutAux</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><a href="Pos.Types.Types.html#TxOut"><span class="hs-identifier hs-type">TxOut</span></a><span class="hs-special">,</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><a href="Pos.Types.Core.html#StakeholderId"><span class="hs-identifier hs-type">StakeholderId</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Types.Core.html#Coin"><span class="hs-identifier hs-type">Coin</span></a><span class="hs-special">)</span><span class="hs-special">]</span><span class="hs-special">)</span><span>
+</span><a name="line-155"></a><span>
+</span><a name="line-156"></a><span class="hs-keyword">instance</span><span> </span><span class="hs-identifier hs-type">Buildable</span><span> </span><a href="Pos.Types.Types.html#TxOutAux"><span class="hs-identifier hs-type">TxOutAux</span></a><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-157"></a><span>    </span><a name="local-8214565720323796758"><span class="hs-identifier">build</span></a><span> </span><span class="hs-special">(</span><a name="local-6989586621679862008"><a href="#local-6989586621679862008"><span class="hs-identifier">out</span></a></a><span class="hs-special">,</span><span> </span><a name="local-6989586621679862009"><a href="#local-6989586621679862009"><span class="hs-identifier">distr</span></a></a><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><a name="line-158"></a><span>        </span><span class="hs-identifier hs-var">bprint</span><span> </span><span class="hs-special">(</span><span class="hs-string">&quot;{txout = &quot;</span><span class="hs-operator hs-var">%</span><span class="hs-identifier hs-var">build</span><span class="hs-operator hs-var">%</span><span class="hs-string">&quot;, distr = &quot;</span><span class="hs-operator hs-var">%</span><span class="hs-identifier hs-var">listJson</span><span class="hs-operator hs-var">%</span><span class="hs-string">&quot;}&quot;</span><span class="hs-special">)</span><span>
+</span><a name="line-159"></a><span>               </span><a href="#local-6989586621679862008"><span class="hs-identifier hs-var">out</span></a><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">map</span><span> </span><span class="hs-identifier hs-var">pairBuilder</span><span> </span><a href="#local-6989586621679862009"><span class="hs-identifier hs-var">distr</span></a><span class="hs-special">)</span><span>
+</span><a name="line-160"></a><span>
+</span><a name="line-161"></a><span class="hs-comment">-- | Use this function if you need to know how a 'TxOut' distributes stake</span><span>
+</span><a name="line-162"></a><span class="hs-comment">-- (e.g. for the purpose of running follow-the-satoshi).</span><span>
+</span><a name="line-163"></a><span class="hs-identifier">txOutStake</span><span> </span><span class="hs-glyph">::</span><span> </span><a href="Pos.Types.Types.html#TxOutAux"><span class="hs-identifier hs-type">TxOutAux</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><a href="Pos.Types.Core.html#StakeholderId"><span class="hs-identifier hs-type">StakeholderId</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Types.Core.html#Coin"><span class="hs-identifier hs-type">Coin</span></a><span class="hs-special">)</span><span class="hs-special">]</span><span>
+</span><a name="line-164"></a><a name="txOutStake"><a href="Pos.Types.Types.html#txOutStake"><span class="hs-identifier">txOutStake</span></a></a><span> </span><span class="hs-special">(</span><a href="Pos.Types.Types.html#TxOut"><span class="hs-identifier hs-var">TxOut</span></a><span class="hs-special">{</span><span class="hs-glyph">..</span><span class="hs-special">}</span><span class="hs-special">,</span><span> </span><a name="local-6989586621679862006"><a href="#local-6989586621679862006"><span class="hs-identifier">mb</span></a></a><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><a href="#local-6989586621679862004"><span class="hs-identifier hs-var">txOutAddress</span></a><span> </span><span class="hs-keyword">of</span><span>
+</span><a name="line-165"></a><span>    </span><a href="Pos.Types.Core.html#PubKeyAddress"><span class="hs-identifier hs-var">PubKeyAddress</span></a><span> </span><a name="local-6989586621679862007"><a href="#local-6989586621679862007"><span class="hs-identifier">x</span></a></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><a href="#local-6989586621679862007"><span class="hs-identifier hs-var">x</span></a><span class="hs-special">,</span><span> </span><a href="#local-6989586621679862005"><span class="hs-identifier hs-var">txOutValue</span></a><span class="hs-special">)</span><span class="hs-special">]</span><span>
+</span><a name="line-166"></a><span>    </span><a href="Pos.Types.Core.html#ScriptAddress"><span class="hs-identifier hs-var">ScriptAddress</span></a><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="#local-6989586621679862006"><span class="hs-identifier hs-var">mb</span></a><span>
 </span><a name="line-167"></a><span>
-</span><a name="line-168"></a><span class="hs-comment">-- | 'Signature' of addrId.</span><span>
-</span><a name="line-169"></a><span class="hs-keyword">type</span><span> </span><a name="TxSig"><a href="Pos.Types.Types.html#TxSig"><span class="hs-identifier">TxSig</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="Pos.Crypto.Signing.html#Signature"><span class="hs-identifier hs-type">Signature</span></a><span> </span><a href="Pos.Types.Types.html#TxSigData"><span class="hs-identifier hs-type">TxSigData</span></a><span>
-</span><a name="line-170"></a><span>
-</span><a name="line-171"></a><span class="hs-comment">-- | A witness for a single input.</span><span>
-</span><a name="line-172"></a><span class="hs-keyword">data</span><span> </span><a name="TxInWitness"><a href="Pos.Types.Types.html#TxInWitness"><span class="hs-identifier">TxInWitness</span></a></a><span>
-</span><a name="line-173"></a><span>    </span><span class="hs-glyph">=</span><span> </span><a name="PkWitness"><a href="Pos.Types.Types.html#PkWitness"><span class="hs-identifier">PkWitness</span></a></a><span> </span><span class="hs-special">{</span><span> </span><a name="twKey"><a href="Pos.Types.Types.html#twKey"><span class="hs-identifier">twKey</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><a href="Pos.Crypto.Signing.html#PublicKey"><span class="hs-identifier hs-type">PublicKey</span></a><span>
-</span><a name="line-174"></a><span>                </span><span class="hs-special">,</span><span> </span><a name="twSig"><a href="Pos.Types.Types.html#twSig"><span class="hs-identifier">twSig</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><a href="Pos.Types.Types.html#TxSig"><span class="hs-identifier hs-type">TxSig</span></a><span class="hs-special">}</span><span>
-</span><a name="line-175"></a><span>    </span><span class="hs-glyph">|</span><span> </span><a name="ScriptWitness"><a href="Pos.Types.Types.html#ScriptWitness"><span class="hs-identifier">ScriptWitness</span></a></a><span> </span><span class="hs-special">{</span><span> </span><a name="twValidator"><a href="Pos.Types.Types.html#twValidator"><span class="hs-identifier">twValidator</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><a href="Pos.Script.Type.html#Script"><span class="hs-identifier hs-type">Script</span></a><span>
-</span><a name="line-176"></a><span>                    </span><span class="hs-special">,</span><span> </span><a name="twRedeemer"><a href="Pos.Types.Types.html#twRedeemer"><span class="hs-identifier">twRedeemer</span></a></a><span>  </span><span class="hs-glyph">::</span><span> </span><a href="Pos.Script.Type.html#Script"><span class="hs-identifier hs-type">Script</span></a><span class="hs-special">}</span><span>
-</span><a name="line-177"></a><span>    </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Eq</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Show</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Generic</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Typeable</span><span class="hs-special">)</span><span>
-</span><a name="line-178"></a><span>
-</span><a name="line-179"></a><span class="hs-keyword">instance</span><span> </span><span class="hs-identifier hs-type">Hashable</span><span> </span><a href="Pos.Types.Types.html#TxInWitness"><span class="hs-identifier hs-type">TxInWitness</span></a><span>
-</span><a name="line-180"></a><span>
-</span><a name="line-181"></a><span class="hs-keyword">instance</span><span> </span><a href="Pos.Binary.Class.html#Bi"><span class="hs-identifier hs-type">Bi</span></a><span> </span><a href="Pos.Script.Type.html#Script"><span class="hs-identifier hs-type">Script</span></a><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-identifier hs-type">Buildable</span><span> </span><a href="Pos.Types.Types.html#TxInWitness"><span class="hs-identifier hs-type">TxInWitness</span></a><span> </span><span class="hs-keyword">where</span><span>
-</span><a name="line-182"></a><span>    </span><a name="local-8214565720323796758"><span class="hs-identifier">build</span></a><span> </span><span class="hs-special">(</span><a href="Pos.Types.Types.html#PkWitness"><span class="hs-identifier hs-var">PkWitness</span></a><span> </span><a name="local-6989586621679827024"><a href="#local-6989586621679827024"><span class="hs-identifier">key</span></a></a><span> </span><a name="local-6989586621679827025"><a href="#local-6989586621679827025"><span class="hs-identifier">sig</span></a></a><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
-</span><a name="line-183"></a><span>        </span><span class="hs-identifier hs-var">bprint</span><span> </span><span class="hs-special">(</span><span class="hs-string">&quot;PkWitness: key = &quot;</span><span class="hs-operator hs-var">%</span><span class="hs-identifier hs-var">build</span><span class="hs-operator hs-var">%</span><span class="hs-string">&quot;, sig = &quot;</span><span class="hs-operator hs-var">%</span><span class="hs-identifier hs-var">build</span><span class="hs-special">)</span><span> </span><a href="#local-6989586621679827024"><span class="hs-identifier hs-var">key</span></a><span> </span><a href="#local-6989586621679827025"><span class="hs-identifier hs-var">sig</span></a><span>
-</span><a name="line-184"></a><span>    </span><span class="hs-identifier">build</span><span> </span><span class="hs-special">(</span><a href="Pos.Types.Types.html#ScriptWitness"><span class="hs-identifier hs-var">ScriptWitness</span></a><span> </span><a name="local-6989586621679827026"><a href="#local-6989586621679827026"><span class="hs-identifier">val</span></a></a><span> </span><a name="local-6989586621679827027"><a href="#local-6989586621679827027"><span class="hs-identifier">red</span></a></a><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
-</span><a name="line-185"></a><span>        </span><span class="hs-identifier hs-var">bprint</span><span> </span><span class="hs-special">(</span><span class="hs-string">&quot;ScriptWitness: &quot;</span><span class="hs-operator hs-var">%</span><span>
-</span><a name="line-186"></a><span>                </span><span class="hs-string">&quot;validator hash = &quot;</span><span class="hs-operator hs-var">%</span><a href="Pos.Crypto.Hashing.html#shortHashF"><span class="hs-identifier hs-var">shortHashF</span></a><span class="hs-operator hs-var">%</span><span class="hs-string">&quot;, &quot;</span><span class="hs-operator hs-var">%</span><span>
-</span><a name="line-187"></a><span>                </span><span class="hs-string">&quot;redeemer hash = &quot;</span><span class="hs-operator hs-var">%</span><a href="Pos.Crypto.Hashing.html#shortHashF"><span class="hs-identifier hs-var">shortHashF</span></a><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><a href="Pos.Crypto.Hashing.html#hash"><span class="hs-identifier hs-var">hash</span></a><span> </span><a href="#local-6989586621679827026"><span class="hs-identifier hs-var">val</span></a><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><a href="Pos.Crypto.Hashing.html#hash"><span class="hs-identifier hs-var">hash</span></a><span> </span><a href="#local-6989586621679827027"><span class="hs-identifier hs-var">red</span></a><span class="hs-special">)</span><span>
-</span><a name="line-188"></a><span>
-</span><a name="line-189"></a><span class="hs-comment">-- | A witness is a proof that a transaction is allowed to spend the funds it</span><span>
-</span><a name="line-190"></a><span class="hs-comment">-- spends (by providing signatures, redeeming scripts, etc). A separate proof</span><span>
-</span><a name="line-191"></a><span class="hs-comment">-- is provided for each input.</span><span>
-</span><a name="line-192"></a><span class="hs-keyword">type</span><span> </span><a name="TxWitness"><a href="Pos.Types.Types.html#TxWitness"><span class="hs-identifier">TxWitness</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-type">Vector</span><span> </span><a href="Pos.Types.Types.html#TxInWitness"><span class="hs-identifier hs-type">TxInWitness</span></a><span>
-</span><a name="line-193"></a><span>
-</span><a name="line-194"></a><span class="hs-comment">-- | Distribution of &#8220;fake&#8221; stake that follow-the-satoshi would use for a</span><span>
-</span><a name="line-195"></a><span class="hs-comment">-- particular transaction.</span><span>
-</span><a name="line-196"></a><span class="hs-keyword">newtype</span><span> </span><a name="TxDistribution"><a href="Pos.Types.Types.html#TxDistribution"><span class="hs-identifier">TxDistribution</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a name="TxDistribution"><a href="Pos.Types.Types.html#TxDistribution"><span class="hs-identifier">TxDistribution</span></a></a><span> </span><span class="hs-special">{</span><span>
-</span><a name="line-197"></a><span>    </span><a name="getTxDistribution"><a href="Pos.Types.Types.html#getTxDistribution"><span class="hs-identifier">getTxDistribution</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="hs-special">[</span><span class="hs-special">(</span><a href="Pos.Types.Core.html#StakeholderId"><span class="hs-identifier hs-type">StakeholderId</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Types.Core.html#Coin"><span class="hs-identifier hs-type">Coin</span></a><span class="hs-special">)</span><span class="hs-special">]</span><span class="hs-special">]</span><span> </span><span class="hs-special">}</span><span>
-</span><a name="line-198"></a><span>    </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Eq</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Show</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Generic</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Typeable</span><span class="hs-special">)</span><span>
-</span><a name="line-199"></a><span>
-</span><a name="line-200"></a><span class="hs-keyword">instance</span><span> </span><span class="hs-identifier hs-type">Buildable</span><span> </span><a href="Pos.Types.Types.html#TxDistribution"><span class="hs-identifier hs-type">TxDistribution</span></a><span> </span><span class="hs-keyword">where</span><span>
-</span><a name="line-201"></a><span>    </span><a name="local-8214565720323796758"><span class="hs-identifier">build</span></a><span> </span><span class="hs-special">(</span><a href="Pos.Types.Types.html#TxDistribution"><span class="hs-identifier hs-var">TxDistribution</span></a><span> </span><a name="local-6989586621679827023"><a href="#local-6989586621679827023"><span class="hs-identifier">x</span></a></a><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
-</span><a name="line-202"></a><span>        </span><span class="hs-identifier hs-var">listBuilderJSON</span><span> </span><span class="hs-operator hs-var">.</span><span> </span><span class="hs-identifier hs-var">map</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">listBuilderJSON</span><span> </span><span class="hs-operator hs-var">.</span><span> </span><span class="hs-identifier hs-var">map</span><span> </span><span class="hs-identifier hs-var">pairBuilder</span><span class="hs-special">)</span><span> </span><span class="hs-operator hs-var">$</span><span> </span><a href="#local-6989586621679827023"><span class="hs-identifier hs-var">x</span></a><span>
-</span><a name="line-203"></a><span>
-</span><a name="line-204"></a><span class="hs-comment">-- | Transaction input.</span><span>
-</span><a name="line-205"></a><span class="hs-keyword">data</span><span> </span><a name="TxIn"><a href="Pos.Types.Types.html#TxIn"><span class="hs-identifier">TxIn</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a name="TxIn"><a href="Pos.Types.Types.html#TxIn"><span class="hs-identifier">TxIn</span></a></a><span>
-</span><a name="line-206"></a><span>    </span><span class="hs-special">{</span><span> </span><span class="hs-comment">-- | Which transaction's output is used</span><span>
-</span><a name="line-207"></a><span>      </span><a name="txInHash"><a href="Pos.Types.Types.html#txInHash"><span class="hs-identifier">txInHash</span></a></a><span>  </span><span class="hs-glyph">::</span><span> </span><span class="hs-glyph">!</span><a href="Pos.Types.Types.html#TxId"><span class="hs-identifier hs-type">TxId</span></a><span>
-</span><a name="line-208"></a><span>      </span><span class="hs-comment">-- | Index of the output in transaction's outputs</span><span>
-</span><a name="line-209"></a><span>    </span><span class="hs-special">,</span><span> </span><a name="txInIndex"><a href="Pos.Types.Types.html#txInIndex"><span class="hs-identifier">txInIndex</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-glyph">!</span><span class="hs-identifier hs-type">Word32</span><span>
-</span><a name="line-210"></a><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Eq</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Ord</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Show</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Generic</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Typeable</span><span class="hs-special">)</span><span>
-</span><a name="line-211"></a><span>
-</span><a name="line-212"></a><span class="hs-keyword">instance</span><span> </span><span class="hs-identifier hs-type">Hashable</span><span> </span><a href="Pos.Types.Types.html#TxIn"><span class="hs-identifier hs-type">TxIn</span></a><span>
-</span><a name="line-213"></a><span>
-</span><a name="line-214"></a><span class="hs-keyword">instance</span><span> </span><span class="hs-identifier hs-type">Buildable</span><span> </span><a href="Pos.Types.Types.html#TxIn"><span class="hs-identifier hs-type">TxIn</span></a><span> </span><span class="hs-keyword">where</span><span>
-</span><a name="line-215"></a><span>    </span><a name="local-8214565720323796758"><span class="hs-identifier">build</span></a><span> </span><a href="Pos.Types.Types.html#TxIn"><span class="hs-identifier hs-var">TxIn</span></a><span> </span><span class="hs-special">{</span><span class="hs-glyph">..</span><span class="hs-special">}</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-var">bprint</span><span> </span><span class="hs-special">(</span><span class="hs-string">&quot;TxIn &quot;</span><span class="hs-operator hs-var">%</span><a href="Pos.Crypto.Hashing.html#shortHashF"><span class="hs-identifier hs-var">shortHashF</span></a><span class="hs-operator hs-var">%</span><span class="hs-string">&quot; #&quot;</span><span class="hs-operator hs-var">%</span><span class="hs-identifier hs-var">int</span><span class="hs-special">)</span><span> </span><a href="#local-6989586621679827021"><span class="hs-identifier hs-var">txInHash</span></a><span> </span><a href="#local-6989586621679827022"><span class="hs-identifier hs-var">txInIndex</span></a><span>
-</span><a name="line-216"></a><span>
-</span><a name="line-217"></a><span class="hs-comment">-- | Make pair from TxIn</span><span>
-</span><a name="line-218"></a><span class="hs-identifier">toPair</span><span> </span><span class="hs-glyph">::</span><span> </span><a href="Pos.Types.Types.html#TxIn"><span class="hs-identifier hs-type">TxIn</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><a href="Pos.Types.Types.html#TxId"><span class="hs-identifier hs-type">TxId</span></a><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Word32</span><span class="hs-special">)</span><span>
-</span><a name="line-219"></a><a name="toPair"><a href="Pos.Types.Types.html#toPair"><span class="hs-identifier">toPair</span></a></a><span> </span><span class="hs-special">(</span><a href="Pos.Types.Types.html#TxIn"><span class="hs-identifier hs-var">TxIn</span></a><span> </span><a name="local-6989586621679827011"><a href="#local-6989586621679827011"><span class="hs-identifier">h</span></a></a><span> </span><a name="local-6989586621679827012"><a href="#local-6989586621679827012"><span class="hs-identifier">i</span></a></a><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><a href="#local-6989586621679827011"><span class="hs-identifier hs-var">h</span></a><span class="hs-special">,</span><span> </span><a href="#local-6989586621679827012"><span class="hs-identifier hs-var">i</span></a><span class="hs-special">)</span><span>
-</span><a name="line-220"></a><span>
-</span><a name="line-221"></a><span class="hs-comment">-- | Transaction output.</span><span>
-</span><a name="line-222"></a><span class="hs-keyword">data</span><span> </span><a name="TxOut"><a href="Pos.Types.Types.html#TxOut"><span class="hs-identifier">TxOut</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a name="TxOut"><a href="Pos.Types.Types.html#TxOut"><span class="hs-identifier">TxOut</span></a></a><span>
-</span><a name="line-223"></a><span>    </span><span class="hs-special">{</span><span> </span><a name="txOutAddress"><a href="Pos.Types.Types.html#txOutAddress"><span class="hs-identifier">txOutAddress</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-glyph">!</span><a href="Pos.Types.Core.html#Address"><span class="hs-identifier hs-type">Address</span></a><span>
-</span><a name="line-224"></a><span>    </span><span class="hs-special">,</span><span> </span><a name="txOutValue"><a href="Pos.Types.Types.html#txOutValue"><span class="hs-identifier">txOutValue</span></a></a><span>   </span><span class="hs-glyph">::</span><span> </span><span class="hs-glyph">!</span><a href="Pos.Types.Core.html#Coin"><span class="hs-identifier hs-type">Coin</span></a><span>
-</span><a name="line-225"></a><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Eq</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Ord</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Generic</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Show</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Typeable</span><span class="hs-special">)</span><span>
-</span><a name="line-226"></a><span>
-</span><a name="line-227"></a><span class="hs-keyword">instance</span><span> </span><span class="hs-identifier hs-type">Hashable</span><span> </span><a href="Pos.Types.Types.html#TxOut"><span class="hs-identifier hs-type">TxOut</span></a><span>
-</span><a name="line-228"></a><span>
-</span><a name="line-229"></a><span class="hs-keyword">instance</span><span> </span><span class="hs-identifier hs-type">Buildable</span><span> </span><a href="Pos.Types.Types.html#TxOut"><span class="hs-identifier hs-type">TxOut</span></a><span> </span><span class="hs-keyword">where</span><span>
-</span><a name="line-230"></a><span>    </span><a name="local-8214565720323796758"><span class="hs-identifier">build</span></a><span> </span><a href="Pos.Types.Types.html#TxOut"><span class="hs-identifier hs-var">TxOut</span></a><span> </span><span class="hs-special">{</span><span class="hs-glyph">..</span><span class="hs-special">}</span><span> </span><span class="hs-glyph">=</span><span>
-</span><a name="line-231"></a><span>        </span><span class="hs-identifier hs-var">bprint</span><span> </span><span class="hs-special">(</span><span class="hs-string">&quot;TxOut &quot;</span><span class="hs-operator hs-var">%</span><a href="Pos.Types.Core.html#coinF"><span class="hs-identifier hs-var">coinF</span></a><span class="hs-operator hs-var">%</span><span class="hs-string">&quot; -&gt; &quot;</span><span class="hs-operator hs-var">%</span><span class="hs-identifier hs-var">build</span><span class="hs-special">)</span><span> </span><a href="#local-6989586621679827020"><span class="hs-identifier hs-var">txOutValue</span></a><span> </span><a href="#local-6989586621679827019"><span class="hs-identifier hs-var">txOutAddress</span></a><span>
-</span><a name="line-232"></a><span>
-</span><a name="line-233"></a><span class="hs-keyword">type</span><span> </span><a name="TxOutAux"><a href="Pos.Types.Types.html#TxOutAux"><span class="hs-identifier">TxOutAux</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><a href="Pos.Types.Types.html#TxOut"><span class="hs-identifier hs-type">TxOut</span></a><span class="hs-special">,</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><a href="Pos.Types.Core.html#StakeholderId"><span class="hs-identifier hs-type">StakeholderId</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Types.Core.html#Coin"><span class="hs-identifier hs-type">Coin</span></a><span class="hs-special">)</span><span class="hs-special">]</span><span class="hs-special">)</span><span>
-</span><a name="line-234"></a><span>
-</span><a name="line-235"></a><span class="hs-keyword">instance</span><span> </span><span class="hs-identifier hs-type">Buildable</span><span> </span><a href="Pos.Types.Types.html#TxOutAux"><span class="hs-identifier hs-type">TxOutAux</span></a><span> </span><span class="hs-keyword">where</span><span>
-</span><a name="line-236"></a><span>    </span><a name="local-8214565720323796758"><span class="hs-identifier">build</span></a><span> </span><span class="hs-special">(</span><a name="local-6989586621679827017"><a href="#local-6989586621679827017"><span class="hs-identifier">out</span></a></a><span class="hs-special">,</span><span> </span><a name="local-6989586621679827018"><a href="#local-6989586621679827018"><span class="hs-identifier">distr</span></a></a><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
-</span><a name="line-237"></a><span>        </span><span class="hs-identifier hs-var">bprint</span><span> </span><span class="hs-special">(</span><span class="hs-string">&quot;{txout = &quot;</span><span class="hs-operator hs-var">%</span><span class="hs-identifier hs-var">build</span><span class="hs-operator hs-var">%</span><span class="hs-string">&quot;, distr = &quot;</span><span class="hs-operator hs-var">%</span><span class="hs-identifier hs-var">listJson</span><span class="hs-operator hs-var">%</span><span class="hs-string">&quot;}&quot;</span><span class="hs-special">)</span><span>
-</span><a name="line-238"></a><span>               </span><a href="#local-6989586621679827017"><span class="hs-identifier hs-var">out</span></a><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">map</span><span> </span><span class="hs-identifier hs-var">pairBuilder</span><span> </span><a href="#local-6989586621679827018"><span class="hs-identifier hs-var">distr</span></a><span class="hs-special">)</span><span>
-</span><a name="line-239"></a><span>
-</span><a name="line-240"></a><span class="hs-comment">-- | Use this function if you need to know how a 'TxOut' distributes stake</span><span>
-</span><a name="line-241"></a><span class="hs-comment">-- (e.g. for the purpose of running follow-the-satoshi).</span><span>
-</span><a name="line-242"></a><span class="hs-identifier">txOutStake</span><span> </span><span class="hs-glyph">::</span><span> </span><a href="Pos.Types.Types.html#TxOutAux"><span class="hs-identifier hs-type">TxOutAux</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><a href="Pos.Types.Core.html#StakeholderId"><span class="hs-identifier hs-type">StakeholderId</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Types.Core.html#Coin"><span class="hs-identifier hs-type">Coin</span></a><span class="hs-special">)</span><span class="hs-special">]</span><span>
-</span><a name="line-243"></a><a name="txOutStake"><a href="Pos.Types.Types.html#txOutStake"><span class="hs-identifier">txOutStake</span></a></a><span> </span><span class="hs-special">(</span><a href="Pos.Types.Types.html#TxOut"><span class="hs-identifier hs-var">TxOut</span></a><span class="hs-special">{</span><span class="hs-glyph">..</span><span class="hs-special">}</span><span class="hs-special">,</span><span> </span><a name="local-6989586621679827015"><a href="#local-6989586621679827015"><span class="hs-identifier">mb</span></a></a><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><a href="#local-6989586621679827013"><span class="hs-identifier hs-var">txOutAddress</span></a><span> </span><span class="hs-keyword">of</span><span>
-</span><a name="line-244"></a><span>    </span><a href="Pos.Types.Core.html#PubKeyAddress"><span class="hs-identifier hs-var">PubKeyAddress</span></a><span> </span><a name="local-6989586621679827016"><a href="#local-6989586621679827016"><span class="hs-identifier">x</span></a></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><a href="#local-6989586621679827016"><span class="hs-identifier hs-var">x</span></a><span class="hs-special">,</span><span> </span><a href="#local-6989586621679827014"><span class="hs-identifier hs-var">txOutValue</span></a><span class="hs-special">)</span><span class="hs-special">]</span><span>
-</span><a name="line-245"></a><span>    </span><a href="Pos.Types.Core.html#ScriptAddress"><span class="hs-identifier hs-var">ScriptAddress</span></a><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="#local-6989586621679827015"><span class="hs-identifier hs-var">mb</span></a><span>
-</span><a name="line-246"></a><span>
-</span><a name="line-247"></a><span class="hs-comment">-- | Transaction.</span><span>
-</span><a name="line-248"></a><span class="hs-comment">--</span><span>
-</span><a name="line-249"></a><span class="hs-comment">-- NB: transaction witnesses are stored separately.</span><span>
-</span><a name="line-250"></a><span class="hs-keyword">data</span><span> </span><a name="Tx"><a href="Pos.Types.Types.html#Tx"><span class="hs-identifier">Tx</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a name="Tx"><a href="Pos.Types.Types.html#Tx"><span class="hs-identifier">Tx</span></a></a><span>
-</span><a name="line-251"></a><span>    </span><span class="hs-special">{</span><span> </span><a name="txInputs"><a href="Pos.Types.Types.html#txInputs"><span class="hs-identifier">txInputs</span></a></a><span>     </span><span class="hs-glyph">::</span><span> </span><span class="hs-glyph">!</span><span class="hs-special">[</span><a href="Pos.Types.Types.html#TxIn"><span class="hs-identifier hs-type">TxIn</span></a><span class="hs-special">]</span><span>   </span><span class="hs-comment">-- ^ Inputs of transaction.</span><span>
-</span><a name="line-252"></a><span>    </span><span class="hs-special">,</span><span> </span><a name="txOutputs"><a href="Pos.Types.Types.html#txOutputs"><span class="hs-identifier">txOutputs</span></a></a><span>    </span><span class="hs-glyph">::</span><span> </span><span class="hs-glyph">!</span><span class="hs-special">[</span><a href="Pos.Types.Types.html#TxOut"><span class="hs-identifier hs-type">TxOut</span></a><span class="hs-special">]</span><span>  </span><span class="hs-comment">-- ^ Outputs of transaction.</span><span>
-</span><a name="line-253"></a><span>    </span><span class="hs-special">,</span><span> </span><a name="txAttributes"><a href="Pos.Types.Types.html#txAttributes"><span class="hs-identifier">txAttributes</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-glyph">!</span><a href="Pos.Types.Types.html#TxAttributes"><span class="hs-identifier hs-type">TxAttributes</span></a><span> </span><span class="hs-comment">-- ^ Attributes of transaction</span><span>
-</span><a name="line-254"></a><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Eq</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Ord</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Generic</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Show</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Typeable</span><span class="hs-special">)</span><span>
-</span><a name="line-255"></a><span>
-</span><a name="line-256"></a><span class="hs-identifier hs-var">makeLensesFor</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="hs-string">&quot;txInputs&quot;</span><span class="hs-special">,</span><span> </span><span class="hs-string">&quot;_txInputs&quot;</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="hs-string">&quot;txOutputs&quot;</span><span class="hs-special">,</span><span> </span><span class="hs-string">&quot;_txOutputs&quot;</span><span class="hs-special">)</span><span>
-</span><a name="line-257"></a><span>              </span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="hs-string">&quot;txAttributes&quot;</span><span class="hs-special">,</span><span> </span><span class="hs-string">&quot;_txAttributes&quot;</span><span class="hs-special">)</span><span class="hs-special">]</span><span> </span><span class="hs-char">''Tx
+</span><a name="line-168"></a><span class="hs-comment">-- | Transaction.</span><span>
+</span><a name="line-169"></a><span class="hs-comment">--</span><span>
+</span><a name="line-170"></a><span class="hs-comment">-- NB: transaction witnesses are stored separately.</span><span>
+</span><a name="line-171"></a><span class="hs-keyword">data</span><span> </span><a name="Tx"><a href="Pos.Types.Types.html#Tx"><span class="hs-identifier">Tx</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a name="Tx"><a href="Pos.Types.Types.html#Tx"><span class="hs-identifier">Tx</span></a></a><span>
+</span><a name="line-172"></a><span>    </span><span class="hs-special">{</span><span> </span><a name="txInputs"><a href="Pos.Types.Types.html#txInputs"><span class="hs-identifier">txInputs</span></a></a><span>     </span><span class="hs-glyph">::</span><span> </span><span class="hs-glyph">!</span><span class="hs-special">[</span><a href="Pos.Types.Types.html#TxIn"><span class="hs-identifier hs-type">TxIn</span></a><span class="hs-special">]</span><span>   </span><span class="hs-comment">-- ^ Inputs of transaction.</span><span>
+</span><a name="line-173"></a><span>    </span><span class="hs-special">,</span><span> </span><a name="txOutputs"><a href="Pos.Types.Types.html#txOutputs"><span class="hs-identifier">txOutputs</span></a></a><span>    </span><span class="hs-glyph">::</span><span> </span><span class="hs-glyph">!</span><span class="hs-special">[</span><a href="Pos.Types.Types.html#TxOut"><span class="hs-identifier hs-type">TxOut</span></a><span class="hs-special">]</span><span>  </span><span class="hs-comment">-- ^ Outputs of transaction.</span><span>
+</span><a name="line-174"></a><span>    </span><span class="hs-special">,</span><span> </span><a name="txAttributes"><a href="Pos.Types.Types.html#txAttributes"><span class="hs-identifier">txAttributes</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-glyph">!</span><a href="Pos.Types.Types.html#TxAttributes"><span class="hs-identifier hs-type">TxAttributes</span></a><span> </span><span class="hs-comment">-- ^ Attributes of transaction</span><span>
+</span><a name="line-175"></a><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Eq</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Ord</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Generic</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Show</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Typeable</span><span class="hs-special">)</span><span>
+</span><a name="line-176"></a><span>
+</span><a name="line-177"></a><span class="hs-identifier hs-var">makeLensesFor</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="hs-string">&quot;txInputs&quot;</span><span class="hs-special">,</span><span> </span><span class="hs-string">&quot;_txInputs&quot;</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="hs-string">&quot;txOutputs&quot;</span><span class="hs-special">,</span><span> </span><span class="hs-string">&quot;_txOutputs&quot;</span><span class="hs-special">)</span><span>
+</span><a name="line-178"></a><span>              </span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="hs-string">&quot;txAttributes&quot;</span><span class="hs-special">,</span><span> </span><span class="hs-string">&quot;_txAttributes&quot;</span><span class="hs-special">)</span><span class="hs-special">]</span><span> </span><span class="hs-char">''Tx
 
 -- | Transaction + auxiliary data
 type TxAux = (Tx, TxWitness, TxDistribution)
@@ -342,632 +263,6 @@ type ProxySKSimple = ProxySecretKey ()
 
 -- | Some proxy secret key.
 type ProxySKEither = Either ProxySKEpoch ProxySKSimple
-
-----------------------------------------------------------------------------
--- GenericBlock
-----------------------------------------------------------------------------
-
--- | Blockchain type class generalizes some functionality common for
--- different blockchains.
-class Blockchain p where
-    -- | Proof of data stored in the body. Ensures immutability.
-    data BodyProof p :: *
-    -- | Consensus data which can be used to check consensus properties.
-    data ConsensusData p :: *
-    -- | Whatever extra data.
-    type ExtraHeaderData p :: *
-    type ExtraHeaderData p = ()
-    -- | Block header used in this blockchain.
-    type BBlockHeader p :: *
-    type BBlockHeader p = GenericBlockHeader p
-    -- | Hash of 'BBlockHeader'. This is something like @Hash (BBlockHeader p)@.
-    type BHeaderHash p :: *
-    type BHeaderHash p = HeaderHash
-
-    -- | Body contains payload and other heavy data.
-    data Body p :: *
-    -- | Whatever extra data.
-    type ExtraBodyData p :: *
-    type ExtraBodyData p = ()
-    -- | Block used in this blockchain.
-    type BBlock p :: *
-    type BBlock p = GenericBlock p
-
-    mkBodyProof :: Body p -&gt; BodyProof p
-    checkBodyProof :: Body p -&gt; BodyProof p -&gt; Bool
-    default checkBodyProof :: Eq (BodyProof p) =&gt; Body p -&gt; BodyProof p -&gt; Bool
-    checkBodyProof body proof = mkBodyProof body == proof
-
--- | Header of block contains some kind of summary. There are various
--- benefits which people get by separating header from other data.
-data GenericBlockHeader b = GenericBlockHeader
-    { -- | Pointer to the header of the previous block.
-      _gbhPrevBlock :: !(BHeaderHash b)
-    , -- | Proof of body.
-      _gbhBodyProof :: !(BodyProof b)
-    , -- | Consensus data to verify consensus algorithm.
-      _gbhConsensus :: !(ConsensusData b)
-    , -- | Any extra data.
-      _gbhExtra     :: !(ExtraHeaderData b)
-    } deriving (Generic)
-
-deriving instance ( Show (BHeaderHash b)
-                  , Show (BodyProof b)
-                  , Show (ConsensusData b)
-                  , Show (ExtraHeaderData b)
-                  ) =&gt; Show (GenericBlockHeader b)
-
-deriving instance ( Eq (BHeaderHash b)
-                  , Eq (BodyProof b)
-                  , Eq (ConsensusData b)
-                  , Eq (ExtraHeaderData b)
-                  ) =&gt; Eq (GenericBlockHeader b)
-
--- | In general Block consists of header and body. It may contain
--- extra data as well.
-data GenericBlock b = GenericBlock
-    { _gbHeader :: !(GenericBlockHeader b)
-    , _gbBody   :: !(Body b)
-    , _gbExtra  :: !(ExtraBodyData b)
-    } deriving (Generic)
-
-deriving instance
-         (Show (GenericBlockHeader b), Show (Body b),
-          Show (ExtraBodyData b)) =&gt;
-         Show (GenericBlock b)
-
-deriving instance ( Eq (BHeaderHash b)
-                  , Eq (Body b)
-                  , Eq (BodyProof b)
-                  , Eq (ConsensusData b)
-                  , Eq (ExtraBodyData b)
-                  , Eq (ExtraHeaderData b)
-                  ) =&gt; Eq (GenericBlock b)
-
-----------------------------------------------------------------------------
--- MainBlock
-----------------------------------------------------------------------------
-
--- | Represents blockchain consisting of main blocks, i. e. blocks
--- with transactions and MPC messages.
-data MainBlockchain ssc
-
--- | Data to be signed in main block.
-type MainToSign ssc = (HeaderHash, BodyProof (MainBlockchain ssc), SlotId, ChainDifficulty)
-
--- | Signature of the block. Can be either regular signature from the
--- issuer or delegated signature having a constraint on epoch indices
--- (it means the signature is valid only if block's slot id has epoch
--- inside the constrained interval).
-data BlockSignature ssc
-    = BlockSignature (Signature (MainToSign ssc))
-    | BlockPSignatureEpoch (ProxySigEpoch (MainToSign ssc))
-    | BlockPSignatureSimple (ProxySigSimple (MainToSign ssc))
-    deriving (Show, Eq)
-
-instance Buildable (BlockSignature ssc) where
-    build (BlockSignature s)        = bprint (&quot;BlockSignature: &quot;%build) s
-    build (BlockPSignatureEpoch s)  = bprint (&quot;BlockPSignatureEpoch: &quot;%build) s
-    build (BlockPSignatureSimple s) = bprint (&quot;BlockPSignatureSimple: &quot;%build) s
-
--- | Represents main block body attributes: map from 1-byte integer to
--- arbitrary-type value. To be used for extending block with new
--- fields via softfork.
-type BlockBodyAttributes = Attributes ()
-
--- | Represents main block header attributes: map from 1-byte integer to
--- arbitrary-type value. To be used for extending header with new
--- fields via softfork.
-type BlockHeaderAttributes = Attributes ()
-
--- | Represents main block header extra data
-data MainExtraHeaderData = MainExtraHeaderData
-    { -- | Version of block.
-      _mehBlockVersion    :: !BlockVersion
-    , -- | Software version.
-      _mehSoftwareVersion :: !SoftwareVersion
-    , -- | Header attributes
-      _mehAttributes      :: !BlockHeaderAttributes
-    }
-    deriving (Eq, Show, Generic)
-
-instance Buildable MainExtraHeaderData where
-    build MainExtraHeaderData {..} =
-      bprint ( &quot;    block: v&quot;%build%&quot;\n&quot;
-             % &quot;    software: &quot;%build%&quot;\n&quot;
-             )
-            _mehBlockVersion
-            _mehSoftwareVersion
-
--- | Represents main block extra data
-newtype MainExtraBodyData = MainExtraBodyData
-    { _mebAttributes  :: BlockBodyAttributes
-    } deriving (Eq, Show, Generic)
-
-instance Buildable MainExtraBodyData where
-    -- Currently there is no extra data in block body, attributes are empty.
-    build _ = bprint &quot;no extra data&quot;
-
-instance (Ssc ssc, Bi TxWitness, Bi UpdatePayload) =&gt;
-         Blockchain (MainBlockchain ssc) where
-    -- | Proof of transactions list and MPC data.
-    data BodyProof (MainBlockchain ssc) = MainProof
-        { mpNumber        :: !Word32
-        , mpRoot          :: !(MerkleRoot Tx)
-        , mpWitnessesHash :: !(Hash [TxWitness])
-        , mpMpcProof      :: !(SscProof ssc)
-        , mpProxySKsProof :: !(Hash [ProxySKSimple])
-        , mpUpdateProof   :: !UpdateProof
-        } deriving (Generic)
-    data ConsensusData (MainBlockchain ssc) = MainConsensusData
-        { -- | Id of the slot for which this block was generated.
-        _mcdSlot       :: !SlotId
-        , -- | Public key of slot leader. Maybe later we'll see it is redundant.
-        _mcdLeaderKey  :: !PublicKey
-        , -- | Difficulty of chain ending in this block.
-        _mcdDifficulty :: !ChainDifficulty
-        , -- | Signature given by slot leader.
-        _mcdSignature  :: !(BlockSignature ssc)
-        } deriving (Generic, Show, Eq)
-    type BBlockHeader (MainBlockchain ssc) = BlockHeader ssc
-    type ExtraHeaderData (MainBlockchain ssc) = MainExtraHeaderData
-
-    -- | In our cryptocurrency, body consists of a list of transactions
-    -- and MPC messages.
-    data Body (MainBlockchain ssc) = MainBody
-        { -- | Transactions are the main payload.
-          -- TODO: currently we don't know for sure whether it should be
-          -- serialized as a MerkleTree or something list-like.
-          _mbTxs :: !(MerkleTree Tx)
-        , -- | Distributions for P2SH addresses in transaction outputs.
-          --     * length mbTxAddrDistributions == length mbTxs
-          --     * i-th element is 'Just' if at least one output of i-th
-          --         transaction is P2SH
-          --     * n-th element of i-th element is 'Just' if n-th output
-          --         of i-th transaction is P2SH
-          -- Ask @neongreen if you don't understand wtf is going on.
-          -- Basically, address distributions are needed so that (potential)
-          -- receivers of P2SH funds would count as stakeholders.
-          _mbTxAddrDistributions :: ![TxDistribution]
-        , -- | Transaction witnesses. Invariant: there are as many witnesses
-          -- as there are transactions in the block. This is checked during
-          -- deserialisation. We can't put them into the same Merkle tree
-          -- with transactions, as the whole point of segwit is to separate
-          -- transactions and witnesses.
-          --
-          -- TODO: should they be put into a separate Merkle tree or left as
-          -- a list?
-          _mbWitnesses :: ![TxWitness]
-        , -- | Data necessary for MPC.
-          _mbMpc :: !(SscPayload ssc)
-        , -- | No-ttl heavyweight delegation certificates
-          _mbProxySKs :: ![ProxySKSimple]
-          -- | Additional update information for update system.
-        , _mbUpdatePayload :: !UpdatePayload
-        } deriving (Generic, Typeable)
-
-    type ExtraBodyData (MainBlockchain ssc) = MainExtraBodyData
-    type BBlock (MainBlockchain ssc) = Block ssc
-
-    mkBodyProof MainBody{..} =
-        MainProof
-        { mpNumber = fromIntegral (length _mbTxs)
-        , mpRoot = mtRoot _mbTxs
-        , mpWitnessesHash = hash _mbWitnesses
-        , mpMpcProof = untag @ssc mkSscProof _mbMpc
-        , mpProxySKsProof = hash _mbProxySKs
-        , mpUpdateProof = mkUpdateProof _mbUpdatePayload
-        }
-
-
---deriving instance Ssc ssc =&gt; Show (SscProof ssc)
---deriving instance Ssc ssc =&gt; Eq (SscProof ssc)
-deriving instance Ssc ssc =&gt; Show (BodyProof (MainBlockchain ssc))
-deriving instance Ssc ssc =&gt; Eq (BodyProof (MainBlockchain ssc))
-deriving instance Ssc ssc =&gt; Show (Body (MainBlockchain ssc))
-deriving instance (Eq (SscPayload ssc), Ssc ssc) =&gt; Eq (Body (MainBlockchain ssc))
-
--- | Header of generic main block.
-type MainBlockHeader ssc = GenericBlockHeader (MainBlockchain ssc)
-
--- | Ssc w/ buildable blockchain
-type BiSsc ssc =
-    ( Ssc ssc
-    , Bi (GenericBlockHeader (GenesisBlockchain ssc))
-    , Bi (GenericBlockHeader (MainBlockchain ssc)))
-
-instance BiSsc ssc =&gt; Buildable (MainBlockHeader ssc) where
-    build gbh@GenericBlockHeader {..} =
-        bprint
-            (&quot;MainBlockHeader:\n&quot;%
-             &quot;    hash: &quot;%hashHexF%&quot;\n&quot;%
-             &quot;    previous block: &quot;%hashHexF%&quot;\n&quot;%
-             &quot;    slot: &quot;%slotIdF%&quot;\n&quot;%
-             &quot;    leader: &quot;%build%&quot;\n&quot;%
-             &quot;    difficulty: &quot;%int%&quot;\n&quot;%
-             build
-            )
-            gbhHeaderHash
-            _gbhPrevBlock
-            _mcdSlot
-            _mcdLeaderKey
-            _mcdDifficulty
-            _gbhExtra
-      where
-        gbhHeaderHash :: HeaderHash
-        gbhHeaderHash = blockHeaderHash $ Right gbh
-        MainConsensusData {..} = _gbhConsensus
-
--- | MainBlock is a block with transactions and MPC messages. It's the
--- main part of our consensus algorithm.
-type MainBlock ssc = GenericBlock (MainBlockchain ssc)
-
-instance (Bi UpdateProposal, BiSsc ssc) =&gt; Buildable (MainBlock ssc) where
-    build GenericBlock {..} =
-        bprint
-            (stext%&quot;:\n&quot;%
-             &quot;  &quot;%build%
-             &quot;  transactions (&quot;%int%&quot; items): &quot;%listJson%&quot;\n&quot;%
-             &quot;  certificates (&quot;%int%&quot; items): &quot;%listJson%&quot;\n&quot;%
-             build%&quot;\n&quot;%
-             &quot;  update payload: &quot;%build%&quot;\n&quot;%
-             &quot;  &quot;%build
-            )
-            (colorize Magenta &quot;MainBlock&quot;)
-            _gbHeader
-            (length _mbTxs)
-            _mbTxs
-            (length _mbProxySKs)
-            _mbProxySKs
-            _mbMpc
-            _mbUpdatePayload
-            _gbExtra
-      where
-        MainBody {..} = _gbBody
-
-----------------------------------------------------------------------------
--- GenesisBlock
-----------------------------------------------------------------------------
-
--- | Represents blockchain consisting of genesis blocks.  Genesis
--- block doesn't have any special payload and is not strictly
--- necessary. However, it is good idea to store list of leaders
--- explicitly, because calculating it may be expensive operation. For
--- example, it is useful for SPV-clients.
-data GenesisBlockchain ssc
-
--- | Header of Genesis block.
-type GenesisBlockHeader ssc = GenericBlockHeader (GenesisBlockchain ssc)
-
-instance Blockchain (GenesisBlockchain ssc) where
-    -- [CSL-199]: maybe we should use ADS.
-    -- | Proof of GenesisBody is just a hash of slot leaders list.
-    data BodyProof (GenesisBlockchain ssc) = GenesisProof
-        !(Hash SlotLeaders)
-        deriving (Eq, Generic, Show)
-    data ConsensusData (GenesisBlockchain ssc) = GenesisConsensusData
-        { -- | Index of the slot for which this genesis block is relevant.
-          _gcdEpoch :: !EpochIndex
-        , -- | Difficulty of the chain ending in this genesis block.
-          _gcdDifficulty :: !ChainDifficulty
-        } deriving (Generic, Show, Eq)
-    type BBlockHeader (GenesisBlockchain ssc) = BlockHeader ssc
-
-    -- | Body of genesis block consists of slot leaders for epoch
-    -- associated with this block.
-    data Body (GenesisBlockchain ssc) = GenesisBody
-        { _gbLeaders :: !SlotLeaders
-        } deriving (Generic, Show, Eq)
-    type BBlock (GenesisBlockchain ssc) = Block ssc
-
-    mkBodyProof = GenesisProof . hash . _gbLeaders
-
--- | Genesis block parametrized by 'GenesisBlockchain'.
-type GenesisBlock ssc = GenericBlock (GenesisBlockchain ssc)
-
-instance BiSsc ssc =&gt; Buildable (GenesisBlock ssc) where
-    build GenericBlock {..} =
-        bprint
-            (stext%&quot;:\n&quot;%
-             &quot;  &quot;%build%
-             stext
-            )
-            (colorize Magenta &quot;GenesisBlock&quot;)
-            _gbHeader
-            formatLeaders
-      where
-        GenesisBody {..} = _gbBody
-        formatIfNotNull formatter l = if null l then mempty else sformat formatter l
-        formatLeaders = formatIfNotNull
-            (&quot;  leaders: &quot;%listJson%&quot;\n&quot;) _gbLeaders
-
-instance BiSsc ssc =&gt; Buildable (GenesisBlockHeader ssc) where
-    build gbh@GenericBlockHeader {..} =
-        bprint
-            (&quot;GenesisBlockHeader:\n&quot;%
-             &quot;    hash: &quot;%hashHexF%&quot;\n&quot;%
-             &quot;    previous block: &quot;%hashHexF%&quot;\n&quot;%
-             &quot;    epoch: &quot;%build%&quot;\n&quot;%
-             &quot;    difficulty: &quot;%int%&quot;\n&quot;
-            )
-            gbhHeaderHash
-            _gbhPrevBlock
-            _gcdEpoch
-            _gcdDifficulty
-      where
-        gbhHeaderHash :: HeaderHash
-        gbhHeaderHash = blockHeaderHash $ Left gbh
-        GenesisConsensusData {..} = _gbhConsensus
-
-----------------------------------------------------------------------------
--- GenesisBlock &#8746; MainBlock
-----------------------------------------------------------------------------
-
--- | Either header of ordinary main block or genesis block.
-type BlockHeader ssc = Either (GenesisBlockHeader ssc) (MainBlockHeader ssc)
-
-instance BiSsc ssc =&gt; Buildable (BlockHeader ssc) where
-    build = either Buildable.build Buildable.build
-
--- | Lens from 'Block' to 'BlockHeader'.
---
--- This gives a &#8220;redundant constraint&#8221; message warning which will be fixed in
--- lens-4.15 (not in LTS yet).
-blockHeader :: Getter (Block ssc) (BlockHeader ssc)
-blockHeader = to getBlockHeader
-
--- | Take 'BlockHeader' from either 'GenesisBlock' or 'MainBlock'.
-getBlockHeader :: Block ssc -&gt; BlockHeader ssc
-getBlockHeader = bimap _gbHeader _gbHeader
-
-type BiHeader ssc = Bi (BlockHeader ssc)
-
--- | This function is required because type inference fails in attempts to
--- hash only @Right@ or @Left@.
-blockHeaderHash :: BiHeader ssc =&gt; BlockHeader ssc -&gt; HeaderHash
-blockHeaderHash = headerHash
-
-instance HasHeaderHash HeaderHash where
-    headerHash = identity
-
-instance BiHeader ssc =&gt;
-         HasHeaderHash (MainBlockHeader ssc) where
-    headerHash = blockHeaderHash . Right
-
-instance BiHeader ssc =&gt;
-         HasHeaderHash (GenesisBlockHeader ssc) where
-    headerHash = blockHeaderHash . Left
-
-instance BiHeader ssc =&gt;
-         HasHeaderHash (BlockHeader ssc) where
-    headerHash = unsafeHash
-
-instance BiHeader ssc =&gt;
-         HasHeaderHash (MainBlock ssc) where
-    headerHash = blockHeaderHash . Right . _gbHeader
-
-instance BiHeader ssc =&gt;
-         HasHeaderHash (GenesisBlock ssc) where
-    headerHash = blockHeaderHash . Left . _gbHeader
-
-instance BiHeader ssc =&gt;
-         HasHeaderHash (Block ssc) where
-    headerHash = blockHeaderHash . getBlockHeader
-
--- | Block.
-type Block ssc = Either (GenesisBlock ssc) (MainBlock ssc)
-
-----------------------------------------------------------------------------
--- Lenses. [CSL-193]: move to Block.hs and other modules or leave them here?
-----------------------------------------------------------------------------
-
-makeLenses ''GenericBlockHeader
-makeLenses ''GenericBlock
-
-makeLenses ''MainExtraHeaderData
-makeLenses ''MainExtraBodyData
-
--- !!! Create issue about this on lens github or give link on existing issue !!!
--- 'makeLensesData' doesn't work with types with parameters. I don't
--- know how to design a 'makeLensesData' which would work with them (in fact,
--- I don't even know how an invocation of 'makeLensesData' would look like)
-
-#define MAKE_LENS(l, field) l f s = (\y -&gt; s {field = y}) &lt;$&gt; f (field s)
-
--- makeLensesData ''ConsensusData ''(MainBlockchain ssc)
-
--- | Lens for 'SlotId' of 'MainBlockchain' in 'ConsensusData'.
-mcdSlot :: Lens' (ConsensusData (MainBlockchain ssc)) SlotId
-MAKE_LENS(mcdSlot, _mcdSlot)
-
--- | Lens for 'PublicKey' of 'MainBlockchain' in 'ConsensusData'.
-mcdLeaderKey :: Lens' (ConsensusData (MainBlockchain ssc)) PublicKey
-MAKE_LENS(mcdLeaderKey, _mcdLeaderKey)
-
--- | Lens for 'ChainDifficulty' of 'MainBlockchain' in 'ConsensusData'.
-mcdDifficulty :: Lens' (ConsensusData (MainBlockchain ssc)) ChainDifficulty
-MAKE_LENS(mcdDifficulty, _mcdDifficulty)
-
--- | Lens for 'Signature' of 'MainBlockchain' in 'ConsensusData'.
-mcdSignature :: Lens' (ConsensusData (MainBlockchain ssc)) (BlockSignature ssc)
-MAKE_LENS(mcdSignature, _mcdSignature)
-
--- makeLensesData ''ConsensusData ''(GenesisBlockchain ssc)
-
--- | Lens for 'EpochIndex' of 'GenesisBlockchain' in 'ConsensusData'.
-gcdEpoch :: Lens' (ConsensusData (GenesisBlockchain ssc)) EpochIndex
-MAKE_LENS(gcdEpoch, _gcdEpoch)
-
--- | Lens for 'ChainDifficulty' of 'GenesisBlockchain' in 'ConsensusData'.
-gcdDifficulty :: Lens' (ConsensusData (GenesisBlockchain ssc)) ChainDifficulty
-MAKE_LENS(gcdDifficulty, _gcdDifficulty)
-
--- makeLensesData ''Body ''(MainBlockchain ssc)
-
--- | Lens for transaction tree in main block body.
-mbTxs :: Lens' (Body (MainBlockchain ssc)) (MerkleTree Tx)
-MAKE_LENS(mbTxs, _mbTxs)
-
--- | Lens for witness list in main block body.
-mbWitnesses :: Lens' (Body (MainBlockchain ssc)) [TxWitness]
-MAKE_LENS(mbWitnesses, _mbWitnesses)
-
--- | Lens for distributions list in main block body.
-mbTxAddrDistributions :: Lens' (Body (MainBlockchain ssc)) [TxDistribution]
-MAKE_LENS(mbTxAddrDistributions, _mbTxAddrDistributions)
-
--- | Lens for 'SscPayload' in main block body.
-mbMpc :: Lens' (Body (MainBlockchain ssc)) (SscPayload ssc)
-MAKE_LENS(mbMpc, _mbMpc)
-
--- | Lens for ProxySKs in main block body.
-mbProxySKs :: Lens' (Body (MainBlockchain ssc)) [ProxySKSimple]
-MAKE_LENS(mbProxySKs, _mbProxySKs)
-
--- | Lens for 'UpdatePayload' in main block body.
-mbUpdatePayload :: Lens' (Body (MainBlockchain ssc)) UpdatePayload
-MAKE_LENS(mbUpdatePayload, _mbUpdatePayload)
-
--- makeLensesData ''Body ''(GenesisBlockchain ssc)
-
--- | Lens for 'SlotLeaders' in 'Body' of 'GenesisBlockchain'.
-gbLeaders :: Lens' (Body (GenesisBlockchain ssc)) SlotLeaders
-MAKE_LENS(gbLeaders, _gbLeaders)
-
--- | Lens from 'GenericBlock' to 'BodyProof'.
-gbBodyProof :: Lens' (GenericBlock b) (BodyProof b)
-gbBodyProof = gbHeader . gbhBodyProof
-
--- | Lens from 'MainBlockHeader' to 'SlotId'.
-headerSlot :: Lens' (MainBlockHeader ssc) SlotId
-headerSlot = gbhConsensus . mcdSlot
-
--- | Lens from 'MainBlockHeader' to 'PublicKey'.
-headerLeaderKey :: Lens' (MainBlockHeader ssc) PublicKey
-headerLeaderKey = gbhConsensus . mcdLeaderKey
-
--- | Lens from 'MainBlockHeader' to 'Signature'.
-headerSignature :: Lens' (MainBlockHeader ssc) (BlockSignature ssc)
-headerSignature = gbhConsensus . mcdSignature
-
-instance HasDifficulty (ConsensusData (MainBlockchain ssc)) where
-    difficultyL = mcdDifficulty
-
-instance HasDifficulty (ConsensusData (GenesisBlockchain ssc)) where
-    difficultyL = gcdDifficulty
-
-instance HasDifficulty (MainBlockHeader ssc) where
-    difficultyL = gbhConsensus . difficultyL
-
-instance HasDifficulty (GenesisBlockHeader ssc) where
-    difficultyL = gbhConsensus . difficultyL
-
-instance HasDifficulty (BlockHeader ssc) where
-    difficultyL = choosing difficultyL difficultyL
-
-instance HasDifficulty (MainBlock ssc) where
-    difficultyL = gbHeader . difficultyL
-
-instance HasDifficulty (GenesisBlock ssc) where
-    difficultyL = gbHeader . difficultyL
-
-instance HasDifficulty (Block ssc) where
-    difficultyL = choosing difficultyL difficultyL
-
--- | Class for something that has previous block (lens to 'Hash' for this block).
-class HasPrevBlock s where
-    prevBlockL :: Lens' s HeaderHash
-
-instance HasPrevBlock s =&gt; HasPrevBlock (s, z) where
-    prevBlockL = _1 . prevBlockL
-
-instance (BHeaderHash b ~ HeaderHash) =&gt;
-         HasPrevBlock (GenericBlockHeader b) where
-    prevBlockL = gbhPrevBlock
-
-instance (BHeaderHash b ~ HeaderHash) =&gt;
-         HasPrevBlock (GenericBlock b) where
-    prevBlockL = gbHeader . gbhPrevBlock
-
-instance (HasPrevBlock s, HasPrevBlock s') =&gt;
-         HasPrevBlock (Either s s') where
-    prevBlockL = choosing prevBlockL prevBlockL
-
-instance HasEpochIndex SlotId where
-    epochIndexL f SlotId {..} = (\a -&gt; SlotId {siEpoch = a, ..}) &lt;$&gt; f siEpoch
-
-instance HasEpochIndex (MainBlock ssc) where
-    epochIndexL = gbHeader . gbhConsensus . mcdSlot . epochIndexL
-
-instance HasEpochIndex (MainBlockHeader ssc) where
-    epochIndexL = gbhConsensus . mcdSlot . epochIndexL
-
-instance HasEpochIndex (GenesisBlock ssc) where
-    epochIndexL = gbHeader . gbhConsensus . gcdEpoch
-
-instance HasEpochIndex (GenesisBlockHeader ssc) where
-    epochIndexL = gbhConsensus . gcdEpoch
-
-instance (HasEpochIndex a, HasEpochIndex b) =&gt;
-         HasEpochIndex (Either a b) where
-    epochIndexL = choosing epochIndexL epochIndexL
-
--- | Lens from 'MainBlock' to 'SlotId'.
-blockSlot :: Lens' (MainBlock ssc) SlotId
-blockSlot = gbHeader . headerSlot
-
--- | Lens from 'MainBlock' to 'PublicKey'.
-blockLeaderKey :: Lens' (MainBlock ssc) PublicKey
-blockLeaderKey = gbHeader . headerLeaderKey
-
--- | Lens from 'MainBlock' to 'Signature'.
-blockSignature :: Lens' (MainBlock ssc) (BlockSignature ssc)
-blockSignature = gbHeader . headerSignature
-
--- | Lens from 'MainBlock' to 'SscPayload'.
-blockMpc :: Lens' (MainBlock ssc) (SscPayload ssc)
-blockMpc = gbBody . mbMpc
-
--- | Lens from 'MainBlock' to 'MerkleTree'.
-blockTxs :: Lens' (MainBlock ssc) (MerkleTree Tx)
-blockTxs = gbBody . mbTxs
-
--- | Getter from 'MainBlock' to a list of transactions together with
--- auxiliary data.
-blockTxas :: Getter (MainBlock ssc) [TxAux]
-blockTxas =
-    gbBody .
-    to (\b -&gt; zip3 (toList (b ^. mbTxs))
-                   (b ^. mbWitnesses)
-                   (b ^. mbTxAddrDistributions))
-
--- | Lens from 'MainBlock' to 'ProxySKSimple' list.
-blockProxySKs :: Lens' (MainBlock ssc) [ProxySKSimple]
-blockProxySKs = gbBody . mbProxySKs
-
--- | Lens from 'GenesisBlock' to 'SlotLeaders'.
-blockLeaders :: Lens' (GenesisBlock ssc) SlotLeaders
-blockLeaders = gbBody . gbLeaders
-
-instance HasEpochOrSlot (MainBlockHeader ssc) where
-    _getEpochOrSlot = Right . _mcdSlot . _gbhConsensus
-
-instance HasEpochOrSlot (GenesisBlockHeader ssc) where
-    _getEpochOrSlot = Left . _gcdEpoch . _gbhConsensus
-
-instance HasEpochOrSlot (MainBlock ssc) where
-    _getEpochOrSlot = _getEpochOrSlot . _gbHeader
-
-instance HasEpochOrSlot (GenesisBlock ssc) where
-    _getEpochOrSlot = _getEpochOrSlot . _gbHeader
-
-instance (HasEpochOrSlot a, HasEpochOrSlot b) =&gt;
-         HasEpochOrSlot (Either a b) where
-    _getEpochOrSlot = either _getEpochOrSlot _getEpochOrSlot
-
-----------------------------------------------------------------------------
--- Other derived instances
-----------------------------------------------------------------------------
 
 derive makeNFData ''TxIn
 derive makeNFData ''TxInWitness
