@@ -109,32 +109,6 @@ At the heart of Cardano SL sits the Ouroboros Proof of Stake protocol, as
 described in [the whitepaper](https://eprint.iacr.org/2016/889) of the same
 name.
 
-### Static state
-
-_Pending_
-
-### Dynamic state
-
-_Pending_
-
-#### Follow the Satoshi
-
-_Pending_
-
-#### Obtaining the same seed
-
-_Pending_
-
-## Blocks
-
-### `MainBlockchain`
-
-_Pending_
-
-### `GenesisBlockchain`
-
-_Pending_
-
 ## Forks
 
 Generally, one chain (the _main chain_) is maintained by a node, but eventually
@@ -152,26 +126,6 @@ are swapped, making the alternative chain the new main chain.
 
 ## Supplemental parts
 
-### SSC
-
-SSC stands for Shared Seed Calculation.
-
-_Pending: what to talk about here that is general enough for the original
-client and for alternative clients?_
-
-### Crypto
-
-_Pending: what to talk about here that is general enough for the original
-client and for alternative clients?_
-
-### Storage
-
-_Pending: what to talk about here that is general enough for the original
-client and for alternative clients? Storage is RocksDB for original client,
-but alternative clients may want to implement with different engine. Do we
-want to simply mention RocksDB and leave it as a recommendation, or expand
-further?_
-
 ### Slotting
 
 The consensus scheme we use relies on correct slotting. More specifically, it
@@ -182,8 +136,6 @@ actions in this slot.
 
 System start time is a timestamp of the (0,0) slot (i.e. the 0th slot of
 the 0th epoch).
-
-_Pending: Is the timelord-timeslave scheme still relevant?_
 
 ## P2P Network
 
@@ -218,8 +170,9 @@ only. Hence we have three types of sending messages:
 To handle this, three kind of message headers are used, and there are two
 message types:
 
-- Simple: _Pending: Describes how a Simple message is implemented_
-- Broadcast:  _Pending: Describes how a Broadcast message is implemented_
+ - Simple: sending to a single peer
+ - Broadcast: attempting to send to the entire network, iteratively
+   sending messages to neighbors.
 
 Broadcast messages are resent to neighbors right after retrieval (before
 handling). Also, they are being checked against LRU cache, and messages
