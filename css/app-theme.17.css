@@ -29,7 +29,7 @@ table td+td{border-left:1px solid #eee}
 a{outline: 0 !important;}
 hr{border-color: #222}
 
-.navbar {min-height:70px;background:transparent;margin:0;border:0;border-bottom:1px solid rgba(255,255,255,0.1);border-radius: 0 ;background-size:cover;   background-repeat: no-repeat;color:#fff;	font-weight:200;letter-spacing: 0.05em}
+.navbar {min-height:70px;background:transparent;margin:0;border:0;border-bottom:1px solid rgba(255,255,255,0.4);border-radius: 0 ;background-size:cover;   background-repeat: no-repeat;color:#fff;	font-weight:200;letter-spacing: 0.05em}
 .navbar-brand {padding: 14px 15px;font-size: 11px;line-height:20px;font-weight:500}
 .navbar-brand img{margin:-7px 0 0 0}
 .navbar-brand span{line-height:42px;display: inline-block;}
@@ -64,16 +64,16 @@ hr{border-color: #222}
 -moz-border-radius:4px;-webkit-border-radius:4px;border-radius:4px;
 }
 .navbar-form input,
-.navbar-form input:focus{padding:8px 15px;border:0;
+.navbar-form input:focus{padding:8px 15px;border:0;color:#fff;
 box-shadow:0 0 0 transparent;
 -o-box-shadow:0 0 0 transparent;
 -moz-box-shadow:0 0 0 transparent;
 -webkit-box-shadow:0 0 0 transparent;
 }
-.navbar-form button{background:transparent;border:0;}
+.navbar-form button{background:transparent;border:0;color:#fff}
 
 .top {background: url('http://static.iohk.io/cardano/images/cardano-bg-3.jpg') no-repeat center;color:#fff}
-.top .banner{padding:0px 0 50px 0;text-align:center}
+.top .banner{padding:20px 0 50px 0;text-align:center}
 .top h1{text-transform: uppercase;letter-spacing:0.1em;color:#fff;font-family: 'Montserrat', sans-serif;margin:0;line-height: 1.1}
 .top h1 span{font-family: 'montserratextralight', sans-serif;display:block;font-size:65%}
 
@@ -107,7 +107,7 @@ box-shadow:0 0 0 transparent;
 .top .cardano.logo a span{color:#fff;}
 
 .info{padding:50px 0 50px 0}
-.foot{font-size: 85%;color:#aaa;background:#F0F0F0;padding:0px 0;clear:both}
+.foot{font-size: 85%;color:#aaa;background:#0C1723;padding:0px 0;clear:both}
 .foot .note {	color:#555;padding:10px 0;margin:0px 0 0 0;border-top:1px solid #222;font-size: 85%;font-weight:bold; text-align: center;text-transform: uppercase;}
 
 
@@ -121,28 +121,28 @@ box-shadow:0 0 0 transparent;
 .foot .logo a{text-decoration: none;}
 .foot .logo a img{margin:-3px 0 0 0;}
 .foot .logo a.cardano img{opacity:0.7;margin:-5px 0 0 0;}
-.foot .logo a span{font-family: 'Montserrat', sans-serif;text-transform: uppercase;color:#fff;font-size:160%;letter-spacing: .1em;display: inline-block;padding:0 0 0 5px;color:#555 !important;}
+.foot .logo a span{font-family: 'Montserrat', sans-serif;text-transform: uppercase;font-size:160%;letter-spacing: .1em;display: inline-block;padding:0 0 0 5px;color:#fff;}
 
-.foot .logo a{	color:#555 !important;text-transform: uppercase;}
+.foot .logo a{	color:#aaa !important;text-transform: uppercase;}
 .foot .logo .support{margin:0 5px 0 20px;font-size:90%}
 
-.foot .logo .split{display:inline-block;background: #bbb;width:1px;height: 50px;margin:-31px 0 -25px 20px}
+.foot .logo .split{display:inline-block;background: #444;width:1px;height: 50px;margin:-31px 0 -25px 20px}
 
 
 
 .foot .grad{ height:30px;
-background: rgb(206,206,206); /* Old browsers background-size:cover; */
-background: -moz-linear-gradient(top, rgba(206,206,206,1) 0%, rgba(240,240,240,1) 100%); /* FF3.6-15 */
-background: -webkit-linear-gradient(top, rgba(206,206,206,1) 0%,rgba(240,240,240,1) 100%); /* Chrome10-25,Safari5.1-6 */
-background: linear-gradient(to bottom, rgba(206,206,206,1) 0%,rgba(240,240,240,1) 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
-filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#cecece', endColorstr='#f0f0f0',GradientType=0 ); /* IE6-9 */;
+background: rgb(12,23,35); /* Old browsers background-size:cover; */
+background: -moz-linear-gradient(top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%); /* FF3.6-15 */
+background: -webkit-linear-gradient(top, rgba(0,0,0,1) 0%,rgba(0,0,0,0) 100%); /* Chrome10-25,Safari5.1-6 */
+background: linear-gradient(to bottom, rgba(0,0,0,1) 0%,rgba(0,0,0,0) 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#0C1723', endColorstr='#f0f0f0',GradientType=0 ); /* IE6-9 */;
 }
 
 
 
 
 .links {color:#aaa}
-.links a{padding:0 10px;color:#555}
+.links a{padding:0 10px;color:#eee}
 .links a:hover{text-decoration: none}
 .links.network a:hover{color:#00C3FF !important;}
 
@@ -152,7 +152,7 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#cecece', end
 #foot .footer{font-size:85%;font-weight:400;text-transform:uppercase;padding:45px 0 40px 0;}
 #foot h4{font-size:150%;font-weight:500}
 
-#foot hr{margin: 0 0 10px 0;border-color:#ccc !important}
+#foot hr{margin: 0 0 10px 0;border-color:#333 !important}
 #foot .footer .links{margin:10px 0 0 0;}
 
 
