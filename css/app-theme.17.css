@@ -29,8 +29,8 @@ table td+td{border-left:1px solid #eee}
 a{outline: 0 !important;}
 hr{border-color: #222}
 
-.navbar {background:transparent;margin:0;border:0;border-bottom:1px solid rgba(255,255,255,0.3);border-radius: 0 ;background-size:cover;   background-repeat: no-repeat;color:#fff;	font-weight:200;letter-spacing: 0.05em}
-.navbar-brand {padding: 12px 15px;font-size: 11px;line-height:20px;font-weight:500}
+.navbar {min-height:70px;background:transparent;margin:0;border:0;border-bottom:1px solid rgba(255,255,255,0.1);border-radius: 0 ;background-size:cover;   background-repeat: no-repeat;color:#fff;	font-weight:200;letter-spacing: 0.05em}
+.navbar-brand {padding: 14px 15px;font-size: 11px;line-height:20px;font-weight:500}
 .navbar-brand img{margin:-7px 0 0 0}
 .navbar-brand span{line-height:42px;display: inline-block;}
 
@@ -52,7 +52,7 @@ hr{border-color: #222}
 .navbar-side ul{padding:0 0 0 10px;}
 .navbar-side ul ul{padding:0 0 0 10px;}
 
-.navbar-grad{height:2px;margin: 0 0 30px 0;
+.navbar-grad{height:2px;margin: 0 0 40px 0;
   background: rgb(0,0,0); /* Old browsers */
   background: -moz-linear-gradient(top, rgba(230,230,230,1) 0%, rgba(255,255,255,1) 100%); /* FF3.6-15 */
   background: -webkit-linear-gradient(top, rgba(230,230,230,1) 0%,rgba(255,255,255,1) 100%); /* Chrome10-25,Safari5.1-6 */
@@ -60,7 +60,7 @@ hr{border-color: #222}
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#eeeeee', endColorstr='#ffffff',GradientType=0 );
 }
 
-.navbar-form {padding:0px 0px;margin:14px 15px;border:1px solid rgba(255,255,255,0.3) !important;background:transparent;
+.navbar-form {padding:0px 0px;margin:17px 15px;border:1px solid rgba(255,255,255,0.3) !important;background:transparent;
 -moz-border-radius:4px;-webkit-border-radius:4px;border-radius:4px;
 }
 .navbar-form input,
@@ -72,9 +72,10 @@ box-shadow:0 0 0 transparent;
 }
 .navbar-form button{background:transparent;border:0;}
 
-.top {background: url('http://static.iohk.io/cardano/images/cardano-bg-2.jpg') no-repeat center;color:#fff}
-.top .banner{padding:0px 0 20px 0;text-align:center}
-.top h1{text-transform: uppercase;letter-spacing:0em;color:#fff}
+.top {background: url('http://static.iohk.io/cardano/images/cardano-bg-3.jpg') no-repeat center;color:#fff}
+.top .banner{padding:0px 0 50px 0;text-align:center}
+.top h1{text-transform: uppercase;letter-spacing:0.1em;color:#fff;font-family: 'Montserrat', sans-serif;margin:0;line-height: 1.1}
+.top h1 span{font-family: 'montserratextralight', sans-serif;display:block;font-size:65%}
 
 .form-control {background:transparent;border-color: #555;}
 .input-group .btn {background: #333;color:#fff;border-color: #555;}
