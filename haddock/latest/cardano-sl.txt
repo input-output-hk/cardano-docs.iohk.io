@@ -3085,11 +3085,11 @@ NodeDBs :: !(DB ssc) -> !(DB ssc) -> !(DB ssc) -> !(DB ssc) -> !RWLock -> NodeDB
 
 -- | Lock on misc db
 [_miscLock] :: NodeDBs ssc -> !RWLock
-blockDB :: forall ssc_a73QU. Lens' (NodeDBs ssc_a73QU) (DB ssc_a73QU)
-gStateDB :: forall ssc_a73QU. Lens' (NodeDBs ssc_a73QU) (DB ssc_a73QU)
-lrcDB :: forall ssc_a73QU. Lens' (NodeDBs ssc_a73QU) (DB ssc_a73QU)
-miscDB :: forall ssc_a73QU. Lens' (NodeDBs ssc_a73QU) (DB ssc_a73QU)
-miscLock :: forall ssc_a73QU. Lens' (NodeDBs ssc_a73QU) RWLock
+blockDB :: forall ssc_a73QS. Lens' (NodeDBs ssc_a73QS) (DB ssc_a73QS)
+gStateDB :: forall ssc_a73QS. Lens' (NodeDBs ssc_a73QS) (DB ssc_a73QS)
+lrcDB :: forall ssc_a73QS. Lens' (NodeDBs ssc_a73QS) (DB ssc_a73QS)
+miscDB :: forall ssc_a73QS. Lens' (NodeDBs ssc_a73QS) (DB ssc_a73QS)
+miscLock :: forall ssc_a73QS. Lens' (NodeDBs ssc_a73QS) RWLock
 newtype Snapshot
 Snapshot :: Snapshot -> Snapshot
 usingSnapshot :: (MonadIO m, MonadMask m) => DB ssc -> (Snapshot -> m a) -> m a
@@ -5035,10 +5035,6 @@ _gpCertificates :: GtPayload -> VssCertificatesMap
 
 -- | Construct <a>GtProof</a> from <a>GtPayload</a>.
 mkGtProof :: GtPayload -> GtProof
-
--- | This type identifies commitment, corresponding opening and
---   commitment's shares.
-type GtDataId = (StakeholderId, Word16)
 
 -- | Commitment is a message generated during the first stage of
 --   GodTossing. It contains encrypted shares and proof of secret.
