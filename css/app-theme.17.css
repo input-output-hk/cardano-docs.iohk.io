@@ -73,9 +73,9 @@ box-shadow:0 0 0 transparent;
 .navbar-form button{background:transparent;border:0;color:#fff}
 
 .top {background: url('http://static.iohk.io/cardano/images/cardano-bg-3.jpg') no-repeat center;color:#fff}
-.top .banner{padding:20px 0 50px 0;text-align:center}
-.top h1{text-transform: uppercase;letter-spacing:0.1em;color:#fff;font-family: 'Montserrat', sans-serif;margin:0;line-height: 1.1}
-.top h1 span{font-family: 'montserratextralight', sans-serif;display:block;font-size:65%}
+.top .banner{padding:40px 0 50px 0;text-align:center}
+.top h1{letter-spacing:0em;color:rgba(255,255,255,0.8);font-family: 'montserratlight', sans-serif;margin:0;font-weight: normal;line-height: 1.4;font-size:220%}
+.top h1 span{display:block;font-size:55%;color:rgba(255,255,255,0.3)}
 
 .form-control {background:transparent;border-color: #555;}
 .input-group .btn {background: #333;color:#fff;border-color: #555;}
