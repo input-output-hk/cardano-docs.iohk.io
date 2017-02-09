@@ -3454,11 +3454,32 @@ NtpSlotting :: ReaderT NtpSlottingVar m a -> NtpSlotting m a
 [getNtpSlotting] :: NtpSlotting m a -> ReaderT NtpSlottingVar m a
 mkNtpSlottingVar :: (MonadIO m, Mockable CurrentTime m) => m NtpSlottingVar
 runNtpSlotting :: NtpSlottingVar -> NtpSlotting m a -> m a
+
+-- | Data which is necessary for slotting and corresponds to a particular
+--   epoch.
+data EpochSlottingData
+EpochSlottingData :: !Millisecond -> !Timestamp -> EpochSlottingData
+
+-- | Slot duration actual for given epoch.
+[esdSlotDuration] :: EpochSlottingData -> !Millisecond
+
+-- | Time when epoch starts.
+[esdStart] :: EpochSlottingData -> !Timestamp
+
+-- | Data necessary for slotting to work which is basically part of GState.
 data SlottingData
-SlottingData :: !EpochIndex -> !Millisecond -> !EpochIndex -> SlottingData
-[sdEpoch] :: SlottingData -> !EpochIndex
-[sdSlotDuration] :: SlottingData -> !Millisecond
-[sdEpochStart] :: SlottingData -> !EpochIndex
+SlottingData :: !EpochSlottingData -> !EpochSlottingData -> !EpochIndex -> SlottingData
+
+-- | <a>EpochSlottingData</a> for penult (i. e. <a>sdPenultEpoch</a>)
+--   epoch.
+[sdPenult] :: SlottingData -> !EpochSlottingData
+
+-- | <a>EpochSlottingData</a> for last epoch. Last means 'sdPenultEpoch +
+--   1'.
+[sdLast] :: SlottingData -> !EpochSlottingData
+
+-- | Penult epoch for which <a>EpochSlottingData</a> is known.
+[sdPenultEpoch] :: SlottingData -> !EpochIndex
 
 -- | Get flat id of current slot based on MonadSlots.
 getCurrentSlotFlat :: MonadSlots m => m (Maybe FlatSlotId)
