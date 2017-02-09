@@ -27,8 +27,8 @@ associated with the address. The address itself contains the hash of the seriali
 
 Addresses are `base58`-encoded bytestrings, consisting of:
 
-* 1 byte: version;
-* 28 bytes: hash of some data structure (different for each version);
+* 1 byte: address type;
+* 28 bytes: hash of some data structure (different for each type);
 * 4 bytes: CRC32 checksum.
 
 All addresses are 33 bytes long.
@@ -44,12 +44,10 @@ the data manually, copying it from some visual source, and also
 allows easy copy and paste because a double-click will usually select
 the whole string.
 
-`version` might be an unfortunate name: we use it not just for versioning,
-but also for distinguishing completely different types of addresses, such as
-`PubKeyAddress` and `ScriptAddress` mentioned before. In fact, currently only
-those two are used. Here are the `version`s for each:
+Currently there are only two types of addresses in Cardano: `PubKeyAddress`
+and `ScriptAddress`. Here are the `type`s for each:
 
-| `version` | Address type    |
+| `type`  | Address type    |
 |---------|-----------------|
 | [0](https://github.com/input-output-hk/cardano-sl/blob/2f3c7df7d324bc056fefe0fce856e39a692f6d9f/src/Pos/Binary/Address.hs#L18)       | `PubKeyAddress` |
 | [1](https://github.com/input-output-hk/cardano-sl/blob/2f3c7df7d324bc056fefe0fce856e39a692f6d9f/src/Pos/Binary/Address.hs#L22)       | `ScriptAddress` |
@@ -68,7 +66,7 @@ the end of the address. This way, the full address is
 [generated](https://github.com/input-output-hk/cardano-sl/blob/2f3c7df7d324bc056fefe0fce856e39a692f6d9f/src/Pos/Binary/Address.hs#L50)
 with the following rule, where `+` is concatenation:
 
-    address' ← version + address_hash(x)
+    address' ← type + address_hash(x)
     address ← toBase58(address' + crc32(address'))
 
 Here is an example of a valid address:
@@ -76,7 +74,7 @@ Here is an example of a valid address:
     1EWYSJnvgnSUmp8Gi4mADvU2zkJgVAA7McgFRXiqwDBs8
 
 which can be decoded into the following byte string (with spaces separating
-version, hash and checksum):
+type, hash and checksum):
 
     00 C8B9519459F5D4E42B002EF06AE94DC9C0A5B87E52D0D0375FD83ECE C52CEB43
 
@@ -126,7 +124,7 @@ To quote Bitcoin Wiki,
 ## Other address types
 
 In the future, we may use the update system to introduce other address types
-with different values in the `version` field.
+with different values in the `type` field.
 [See more](/update-mechanism/#soft-fork-updates) on extending the system
 in non-breaking fashion.
 
