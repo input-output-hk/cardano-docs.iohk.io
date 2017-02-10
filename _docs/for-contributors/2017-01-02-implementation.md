@@ -141,17 +141,23 @@ the 0th epoch).
 
 ### Peer discovery
 
-For peer discovery, Kademlia DHT is used. It is a general solution for distributed
-hash tables, based on [a whitepaper by Petar Maymounkov and David Mazières,
-2002.](https://pdos.csail.mit.edu/~petar/papers/maymounkov-kademlia-lncs.pdf)
+We use Kademlia DHT for peer discovery. It is a general solution for distributed
+hash tables, based on [a whitepaper by Petar Maymounkov and David Mazières, 2002.](https://pdos.csail.mit.edu/~petar/papers/maymounkov-kademlia-lncs.pdf)
 
-However, it's not used as a table — only its peer discovery mechanism is used.
+However, we only take advantage of its peer discovery mechanism, and use none of
+its hash table capabilities.
 
 In short, each node in the Kademlia network is provided a `160`-bit ID which is
-generated randomly. The distance between nodes is defined by `XOR` metric. The
+generated randomly. The distance between the nodes is defined by `XOR` metric. The
 network is organized in such way that node knows no more than `K` (`K=7` in the
 original client implementation) nodes for each relative distance range:
 `2^i < d <= 2^(i+1)`.
+
+Initial peer discovery is done by [sending](https://github.com/serokell/kademlia/blob/d4a33089523d63bc53fbc2bec38d1dd24b9ad07a/src/Network/Kademlia/Implementation.hs#L182) a Kademlia `FIND_NODE` message with our own node ID as a parameter to
+[a hardcoded set of nodes and/or the nodes passed by the user on the command line](https://github.com/input-output-hk/cardano-sl/blob/f37c6cf6a43f42cd7c0a0477e33ae95155d50450/src/Pos/Launcher/Runner.hs#L409). While the client runs, it collects peers per Kademlia protocol.
+The list of known peers is preserved and [restored](https://github.com/serokell/kademlia/blob/d4a33089523d63bc53fbc2bec38d1dd24b9ad07a/src/Network/Kademlia.hs#L191)
+between subsequent launches. For each peer, we keep their [host & port number](https://github.com/serokell/kademlia/blob/d4a33089523d63bc53fbc2bec38d1dd24b9ad07a/src/Network/Kademlia/Types.hs#L37),
+as well as their [node ID](https://github.com/serokell/kademlia/blob/d4a33089523d63bc53fbc2bec38d1dd24b9ad07a/src/Network/Kademlia/Types.hs#L52).
 
 ### Messaging
 
