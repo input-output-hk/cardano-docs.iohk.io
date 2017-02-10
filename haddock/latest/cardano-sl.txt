@@ -3453,12 +3453,18 @@ waitPenultEpochEquals :: (MonadSlotsData m, MonadTrans t, MonadSlotsData m', t m
 putSlottingData :: (MonadSlotsData m, MonadTrans t, MonadSlotsData m', t m' ~ m) => SlottingData -> m ()
 
 -- | Type class providing information about current slot.
-class MonadSlotsData m => MonadSlots m where getCurrentSlot = lift getCurrentSlot getCurrentSlotBlocking = lift getCurrentSlotBlocking currentTimeSlotting = lift currentTimeSlotting slottingWorkers = map lift slottingWorkers
+class MonadSlotsData m => MonadSlots m where getCurrentSlot = lift getCurrentSlot getCurrentSlotBlocking = lift getCurrentSlotBlocking currentTimeSlotting = lift currentTimeSlotting slottingWorkers = map lift slottingWorkers getCurrentSlotInaccurate = lift getCurrentSlotInaccurate
 getCurrentSlot :: MonadSlots m => m (Maybe SlotId)
 
 -- | Blocking version of <a>getCurrentSlot</a>. This function doesn't
 --   return until current slot is known.
 getCurrentSlotBlocking :: MonadSlots m => m SlotId
+
+-- | This function tries predict current slot as accurate as it can. If
+--   <tt>getCurrentTime</tt> returns unreliable time, then function returns
+--   last known slot If our slotting data into DB is outdated, then
+--   function try interpolate slot using last know slotting data
+getCurrentSlotInaccurate :: MonadSlots m => m SlotId
 currentTimeSlotting :: MonadSlots m => m Timestamp
 slottingWorkers :: MonadSlots m => [m ()]
 getCurrentSlot :: (MonadSlots m, MonadTrans t, MonadSlots m', t m' ~ m) => m (Maybe SlotId)
@@ -3468,6 +3474,12 @@ getCurrentSlot :: (MonadSlots m, MonadTrans t, MonadSlots m', t m' ~ m) => m (Ma
 getCurrentSlotBlocking :: (MonadSlots m, MonadTrans t, MonadSlots m', t m' ~ m) => m SlotId
 currentTimeSlotting :: (MonadSlots m, MonadTrans t, MonadSlots m', t m' ~ m) => m Timestamp
 slottingWorkers :: (MonadSlots m, MonadTrans t, MonadSlots m', t m' ~ m) => [m ()]
+
+-- | This function tries predict current slot as accurate as it can. If
+--   <tt>getCurrentTime</tt> returns unreliable time, then function returns
+--   last known slot If our slotting data into DB is outdated, then
+--   function try interpolate slot using last know slotting data
+getCurrentSlotInaccurate :: (MonadSlots m, MonadTrans t, MonadSlots m', t m' ~ m) => m SlotId
 
 -- | Type aggregating run-time errors related to Slotting.
 data SlottingError
@@ -5695,7 +5707,7 @@ waitForUpdate :: (MonadUpdates m, MonadTrans t, MonadUpdates m', t m' ~ m) => m 
 applyLastUpdate :: (MonadUpdates m, MonadTrans t, MonadUpdates m', t m' ~ m) => m ()
 type TxMode ssc m = (MinWorkMode m, MonadBalances m, MonadTxHistory m, MonadMockable m, MonadMask m)
 type WalletMode ssc m = (TxMode ssc m, MonadKeys m, MonadBlockchainInfo m, MonadUpdates m, WithWalletContext m, MonadDHT m, MonadSlots m, WithPeerState m)
-type WalletRealMode = PeerStateHolder (KademliaDHT (KeyStorage (NtpSlotting (WalletDBSlotsData (WalletDB (ContextHolder (LoggerNameBox Production)))))))
+type WalletRealMode = PeerStateHolder (KademliaDHT (KeyStorage (NtpSlotting (SlottingHolder (WalletDB (ContextHolder (LoggerNameBox Production)))))))
 
 
 -- | Web part of wallet.

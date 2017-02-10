@@ -49,7 +49,7 @@
 </span><a name="line-49"></a><span class="hs-keyword">import</span><span>           </span><a href="Pos.Slotting.Class.html"><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Slotting</span><span class="hs-operator">.</span><span class="hs-identifier">Class</span></a><span>          </span><span class="hs-special">(</span><a href="Pos.Slotting.Class.html#MonadSlots"><span class="hs-identifier hs-type">MonadSlots</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><a href="Pos.Slotting.Class.html#MonadSlotsData"><span class="hs-identifier hs-type">MonadSlotsData</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
 </span><a name="line-50"></a><span class="hs-keyword">import</span><span>           </span><a href="Pos.Slotting.Types.html"><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Slotting</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>          </span><span class="hs-special">(</span><a href="Pos.Slotting.Types.html#EpochSlottingData"><span class="hs-identifier hs-type">EpochSlottingData</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><a href="Pos.Slotting.Types.html#SlottingData"><span class="hs-identifier hs-type">SlottingData</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
 </span><a name="line-51"></a><span class="hs-keyword">import</span><span>           </span><a href="Pos.Types.html"><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>                   </span><span class="hs-special">(</span><a href="Pos.Types.Core.html#EpochIndex"><span class="hs-identifier hs-type">EpochIndex</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Types.Core.html#SlotId"><span class="hs-identifier hs-type">SlotId</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><a href="Pos.Types.Core.html#Timestamp"><span class="hs-identifier hs-type">Timestamp</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
-</span><a name="line-52"></a><span>                                              </span><a href="Pos.Types.Slotting.html#unflattenSlotId"><span class="hs-identifier hs-var">unflattenSlotId</span></a><span class="hs-special">)</span><span>
+</span><a name="line-52"></a><span>                                              </span><a href="Pos.Types.Slotting.html#flattenEpochIndex"><span class="hs-identifier hs-var">flattenEpochIndex</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Types.Slotting.html#unflattenSlotId"><span class="hs-identifier hs-var">unflattenSlotId</span></a><span class="hs-special">)</span><span>
 </span><a name="line-53"></a><span class="hs-keyword">import</span><span>           </span><a href="Pos.Util.JsonLog.html"><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Util</span><span class="hs-operator">.</span><span class="hs-identifier">JsonLog</span></a><span>            </span><span class="hs-special">(</span><a href="Pos.Util.JsonLog.html#MonadJL"><span class="hs-identifier hs-type">MonadJL</span></a><span class="hs-special">)</span><span>
 </span><a name="line-54"></a><span>
 </span><a name="line-55"></a><span class="hs-comment">----------------------------------------------------------------------------</span><span>
@@ -154,6 +154,7 @@ instance SlottingConstraint m =&gt;
          MonadSlots (NtpSlotting m) where
     getCurrentSlot = ntpGetCurrentSlot
     getCurrentSlotBlocking = ntpGetCurrentSlotBlocking
+    getCurrentSlotInaccurate = ntpGetCurrentSlotInaccurate
     currentTimeSlotting = ntpCurrentTime
     slottingWorkers = [ntpSyncWorker]
 
@@ -173,6 +174,27 @@ ntpGetCurrentSlot = do
     ntpGetCurrentSlotImpl &lt;&amp;&gt; \case
         CurrentSlot slot -&gt; Just slot
         _                -&gt; Nothing
+
+ntpGetCurrentSlotInaccurate :: SlottingConstraint m =&gt; NtpSlotting m SlotId
+ntpGetCurrentSlotInaccurate = do
+    res &lt;- ntpGetCurrentSlotImpl
+    case res of
+        CurrentSlot slot -&gt; pure slot
+        CantTrust        -&gt; do
+            var &lt;- NtpSlotting ask
+            _nssLastSlot &lt;$&gt; atomically (STM.readTVar var)
+        OutdatedSlottingData penult -&gt; do
+            var &lt;- NtpSlotting ask
+            margin &lt;- _nssLastMargin &lt;$&gt; atomically (STM.readTVar var)
+            t &lt;- Timestamp . (+ margin) &lt;$&gt; currentTime
+            SlottingData {..} &lt;- getSlottingData
+            pure $ outdatedEpoch t (penult + 1) sdLast
+  where
+    outdatedEpoch (Timestamp curTime) epoch EpochSlottingData {..} =
+        let duration = convertUnit esdSlotDuration
+            start = getTimestamp esdStart in
+        unflattenSlotId $
+        flattenEpochIndex epoch + fromIntegral ((curTime - start) `div` duration)
 
 ntpGetCurrentSlotImpl :: SlottingConstraint m =&gt; NtpSlotting m SlotStatus
 ntpGetCurrentSlotImpl = do
