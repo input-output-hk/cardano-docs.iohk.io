@@ -184,11 +184,11 @@ ntpGetCurrentSlotInaccurate = do
             var &lt;- NtpSlotting ask
             _nssLastSlot &lt;$&gt; atomically (STM.readTVar var)
         OutdatedSlottingData penult -&gt; do
-            var &lt;- NtpSlotting ask
-            margin &lt;- _nssLastMargin &lt;$&gt; atomically (STM.readTVar var)
-            t &lt;- Timestamp . (+ margin) &lt;$&gt; currentTime
+            t &lt;- ntpCurrentTime
             SlottingData {..} &lt;- getSlottingData
-            pure $ outdatedEpoch t (penult + 1) sdLast
+            pure $
+                if | t &lt; esdStart sdLast -&gt; SlotId (penult + 1) 0
+                   | otherwise -&gt;           outdatedEpoch t (penult + 1) sdLast
   where
     outdatedEpoch (Timestamp curTime) epoch EpochSlottingData {..} =
         let duration = convertUnit esdSlotDuration
