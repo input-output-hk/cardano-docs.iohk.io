@@ -39,9 +39,9 @@ to encode data, hence the name. Here is the alphabet we are using:
     123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz
 
 It avoids both non-alphanumeric characters and letters which might look
-ambiguous when printed; therefore it is suitable for human users who enter
-the data manually, copying it from some visual source, and also
-allows easy copy and paste because a double-click will usually select
+ambiguous when printed (`0`, `O`, `I`, `l`); therefore it is suitable for
+human users who enter the data manually, copying it from some visual source,
+and also allows easy copy and paste because a double-click will usually select
 the whole string.
 
 Currently there are only two types of addresses in Cardano: `PubKeyAddress`
