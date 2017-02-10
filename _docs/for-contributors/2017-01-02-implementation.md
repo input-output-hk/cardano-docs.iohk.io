@@ -155,7 +155,7 @@ original client implementation) nodes for each relative distance range:
 
 Initial peer discovery is done by [sending](https://github.com/serokell/kademlia/blob/d4a33089523d63bc53fbc2bec38d1dd24b9ad07a/src/Network/Kademlia/Implementation.hs#L182)
 a Kademlia `FIND_NODE` message with our own node ID as a parameter to
-[a hardcoded set of nodes](https://github.com/input-output-hk/cardano-sl/blob/f37c6cf6a43f42cd7c0a0477e33ae95155d50450/src/Pos/Constants.hs#L264) and
+[a pre-configured set of nodes](https://github.com/input-output-hk/cardano-sl/blob/f37c6cf6a43f42cd7c0a0477e33ae95155d50450/src/Pos/Constants.hs#L264) and
 [the nodes passed by the user on the command line](https://github.com/input-output-hk/cardano-sl/blob/f37c6cf6a43f42cd7c0a0477e33ae95155d50450/src/node/Main.hs#L88).
 Our implementation [sends](https://github.com/input-output-hk/cardano-sl/blob/2e935011548cd59a52004799e94e81ad827ce7f7/src/Pos/DHT/Real/Real.hs#L194)
 this request to all known peers at once and then waits for the first reply.
