@@ -161,7 +161,12 @@ instance SlottingConstraint m =&gt;
 -- Getting current slot
 ----------------------------------------------------------------------------
 
-data SlotStatus = CantTrust | OutdatedSlottingData | CurrentSlot SlotId
+data SlotStatus
+    = CantTrust  -- ^ We can't trust local time.
+    | OutdatedSlottingData !EpochIndex  -- ^ We don't know recent
+                                        -- slotting data, last known
+                                        -- penult epoch is attached.
+    | CurrentSlot !SlotId -- ^ Slot is calculated successfully.
 
 ntpGetCurrentSlot :: SlottingConstraint m =&gt; NtpSlotting m (Maybe SlotId)
 ntpGetCurrentSlot = do
@@ -175,11 +180,12 @@ ntpGetCurrentSlotImpl = do
     NtpSlottingState {..} &lt;- atomically $ STM.readTVar var
     t &lt;- Timestamp . (+ _nssLastMargin) &lt;$&gt; currentTime
     if | canWeTrustLocalTime _nssLastLocalTime t -&gt;
-           do res &lt;- fmap (max _nssLastSlot) &lt;$&gt; ntpGetCurrentSlotDo t
+           do penult &lt;- sdPenultEpoch &lt;$&gt; getSlottingData
+              res &lt;- fmap (max _nssLastSlot) &lt;$&gt; ntpGetCurrentSlotDo t
               let setLastSlot s =
                       atomically $ STM.modifyTVar' var (nssLastSlot %~ max s)
               whenJust res setLastSlot
-              maybe (pure OutdatedSlottingData) (pure . CurrentSlot) res
+              pure $ maybe (OutdatedSlottingData penult) CurrentSlot res
        | otherwise -&gt; return CantTrust
   where
     -- We can trust getCurrentTime if it is:
@@ -222,8 +228,8 @@ ntpGetCurrentSlotBlocking = do
         CantTrust -&gt; do
             delay C.ntpPollDelay
             ntpGetCurrentSlotBlocking
-        OutdatedSlottingData -&gt; do
-            waitSlottingData
+        OutdatedSlottingData penult -&gt; do
+            waitPenultEpochEquals (penult + 1)
             ntpGetCurrentSlotBlocking
         CurrentSlot slot -&gt; pure slot
 

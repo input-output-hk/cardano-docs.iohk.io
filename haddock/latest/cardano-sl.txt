@@ -3444,12 +3444,12 @@ module Pos.Slotting
 
 -- | <a>MonadSlotsData</a> provides access to data necessary for slotting
 --   to work.
-class Monad m => MonadSlotsData m where getSlottingData = lift getSlottingData waitSlottingData = lift waitSlottingData putSlottingData = lift . putSlottingData
+class Monad m => MonadSlotsData m where getSlottingData = lift getSlottingData waitPenultEpochEquals = lift . waitPenultEpochEquals putSlottingData = lift . putSlottingData
 getSlottingData :: MonadSlotsData m => m SlottingData
-waitSlottingData :: MonadSlotsData m => m ()
+waitPenultEpochEquals :: MonadSlotsData m => EpochIndex -> m ()
 putSlottingData :: MonadSlotsData m => SlottingData -> m ()
 getSlottingData :: (MonadSlotsData m, MonadTrans t, MonadSlotsData m', t m' ~ m) => m SlottingData
-waitSlottingData :: (MonadSlotsData m, MonadTrans t, MonadSlotsData m', t m' ~ m) => m ()
+waitPenultEpochEquals :: (MonadSlotsData m, MonadTrans t, MonadSlotsData m', t m' ~ m) => EpochIndex -> m ()
 putSlottingData :: (MonadSlotsData m, MonadTrans t, MonadSlotsData m', t m' ~ m) => SlottingData -> m ()
 
 -- | Type class providing information about current slot.
@@ -3469,14 +3469,21 @@ getCurrentSlotBlocking :: (MonadSlots m, MonadTrans t, MonadSlots m', t m' ~ m) 
 currentTimeSlotting :: (MonadSlots m, MonadTrans t, MonadSlots m', t m' ~ m) => m Timestamp
 slottingWorkers :: (MonadSlots m, MonadTrans t, MonadSlots m', t m' ~ m) => [m ()]
 
--- | Monad transformer which provides <tt>SlottingData</tt> using DB.
-newtype DBSlotsData m a
-DBSlotsData :: m a -> DBSlotsData m a
-[runDBSlotsData] :: DBSlotsData m a -> m a
-
 -- | Type aggregating run-time errors related to Slotting.
 data SlottingError
 SEUnknownSlotStart :: !SlotId -> SlottingError
+
+-- | Monad transformer which provides <a>SlottingData</a> using DB.
+newtype SlottingHolder m a
+SlottingHolder :: ReaderT SlottingVar m a -> SlottingHolder m a
+[getSlottingHolder] :: SlottingHolder m a -> ReaderT SlottingVar m a
+type SlottingVar = TVar SlottingData
+
+-- | Run USHolder using existing <a>SlottingVar</a>.
+runSlottingHolder :: SlottingVar -> SlottingHolder m a -> m a
+
+-- | Create new <a>SlottingVar</a> using data from DB.
+mkSlottingVar :: MonadDB ε m => m SlottingVar
 
 -- | Data needed for the slotting algorithm to work.
 data NtpSlottingState
@@ -3830,7 +3837,7 @@ type MinWorkMode m = (WithLogger m, MonadMockable m, MonadDHT m, MonadIO m, With
 type ProductionMode ssc = NoStatsT (RawRealMode ssc)
 
 -- | RawRealMode is a basis for <a>WorkMode</a>s used to really run system.
-type RawRealMode ssc = PeerStateHolder (KademliaDHT (USHolder (DelegationT (TxpLDHolder ssc (SscHolder ssc (NtpSlotting (DBSlotsData (ContextHolder ssc (DBHolder ssc (LoggerNameBox Production))))))))))
+type RawRealMode ssc = PeerStateHolder (KademliaDHT (USHolder (DelegationT (TxpLDHolder ssc (SscHolder ssc (NtpSlotting (SlottingHolder (ContextHolder ssc (DBHolder ssc (LoggerNameBox Production))))))))))
 
 -- | ServiceMode is the mode in which support nodes work.
 type ServiceMode = PeerStateHolder (KademliaDHT (LoggerNameBox Production))
