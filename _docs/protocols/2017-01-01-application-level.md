@@ -79,10 +79,13 @@ data DataMsg contents = DataMsg
 ~~~
 
 Here:
+
  + `key` is a type representing the node identifier.
+
  + `tag` is a type used to describe announced/requested data. It should contain
    enough information for other nodes to check if they need these data and request
    them.
+
  + `contents` is a type representing actual message payload.
 
 To introduce a new message using `Inv/Req/Data` one should create two types: tag
