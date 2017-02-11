@@ -205,13 +205,13 @@ Rich men are also computed in the beginning of current epoch.
 Rich men are also important for other components, for instance Update system uses rich men for checking that
 node can publish update proposal and vote.
 
-There are two types of computation of rich men: 
+There are two ways of computing who the rich men will be:
  - with considering common stake
  
- - with considering delegated stake. 
- Ouroboros provides opportunity to delegate own stake to other node, see more in Delegation section.
+ - with considering delegated stake. Ouroboros provides opportunity to delegate own stake to other node, see more in 
+ [Delegation section](/cardano/differences/#stake-delegation).
 
-Some component need rich men with delegated stake, but other with usual stake.
+Some components need rich men with delegated stake, but other with common stake.
 
 ## Constants
 
