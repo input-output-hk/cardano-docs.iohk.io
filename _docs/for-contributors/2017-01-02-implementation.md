@@ -69,9 +69,9 @@ Mostly listeners use *Relay* framework, which inludes three type of messages:
   - `Data` message: node replies with this message on `Request` message. `Data` message contains concrete data.
 
 For instance, when user creates a new transaction, wallet sends `Inventory` message with
-transaction id to network, if node which recieved `Inventory` doesn't know transaction with such id, 
+transaction id to network, if node which received `Inventory` doesn't know transaction with such id, 
 then it replies with `Request` message, after that wallet sends this transaction in `Data` message.
-After node recieved `Data` message it can send `Inventroy` message
+After node recieved `Data` message it can send `Inventory` message
 to their neighbors in DHT network and repeat previous iterations again.
 
 Other example is:
