@@ -1342,6 +1342,10 @@ getUSPath :: UserSecret -> FilePath
 -- | Create a simple UserSecret from secret key and file path
 simpleUserSecret :: SecretKey -> FilePath -> UserSecret
 
+-- | Create user secret file at the given path, but only when one doesn't
+--   already exist.
+initializeUserSecret :: (MonadIO m) => FilePath -> m ()
+
 -- | Reads user secret from the given file. If the file does not exist/is
 --   empty, returns empty user secret
 peekUserSecret :: (MonadIO m) => FilePath -> m UserSecret
@@ -3098,11 +3102,11 @@ NodeDBs :: !(DB ssc) -> !(DB ssc) -> !(DB ssc) -> !(DB ssc) -> !RWLock -> NodeDB
 
 -- | Lock on misc db
 [_miscLock] :: NodeDBs ssc -> !RWLock
-blockDB :: forall ssc_a79rP. Lens' (NodeDBs ssc_a79rP) (DB ssc_a79rP)
-gStateDB :: forall ssc_a79rP. Lens' (NodeDBs ssc_a79rP) (DB ssc_a79rP)
-lrcDB :: forall ssc_a79rP. Lens' (NodeDBs ssc_a79rP) (DB ssc_a79rP)
-miscDB :: forall ssc_a79rP. Lens' (NodeDBs ssc_a79rP) (DB ssc_a79rP)
-miscLock :: forall ssc_a79rP. Lens' (NodeDBs ssc_a79rP) RWLock
+blockDB :: forall ssc_a7a4W. Lens' (NodeDBs ssc_a7a4W) (DB ssc_a7a4W)
+gStateDB :: forall ssc_a7a4W. Lens' (NodeDBs ssc_a7a4W) (DB ssc_a7a4W)
+lrcDB :: forall ssc_a7a4W. Lens' (NodeDBs ssc_a7a4W) (DB ssc_a7a4W)
+miscDB :: forall ssc_a7a4W. Lens' (NodeDBs ssc_a7a4W) (DB ssc_a7a4W)
+miscLock :: forall ssc_a7a4W. Lens' (NodeDBs ssc_a7a4W) RWLock
 newtype Snapshot
 Snapshot :: Snapshot -> Snapshot
 usingSnapshot :: (MonadIO m, MonadMask m) => DB ssc -> (Snapshot -> m a) -> m a
@@ -3289,7 +3293,7 @@ type LrcSyncData = (Bool, EpochIndex)
 
 -- | NodeContext contains runtime context of node.
 data NodeContext ssc
-NodeContext :: !(TVar SlottingState) -> !(Maybe (MVar FilePath)) -> !(SscNodeContext ssc) -> !(MVar HeaderHash) -> !(TVar LrcSyncData) -> !(TVar UserSecret) -> !(TBQueue (NodeId, NewestFirst NE (BlockHeader ssc))) -> !(TMVar (NodeId, BlockHeader ssc)) -> !(MVar ConfirmedProposalState) -> !LoggerConfig -> !NodeParams -> !(TVar Bool) -> !(TBQueue ()) -> !(Maybe (MVar ())) -> !UTCTime -> NodeContext ssc
+NodeContext :: !(TVar SlottingState) -> !(Maybe (MVar FilePath)) -> !(SscNodeContext ssc) -> !(MVar HeaderHash) -> !(TVar LrcSyncData) -> !(TVar UserSecret) -> !(TBQueue (NodeId, NewestFirst NE (BlockHeader ssc))) -> !(TMVar (NodeId, BlockHeader ssc)) -> !(MVar ConfirmedProposalState) -> !LoggerConfig -> !NodeParams -> !(TVar Bool) -> !(TBQueue ()) -> !(Maybe (MVar ())) -> NodeContext ssc
 
 -- | Data needed for the slotting algorithm to work
 [ncSlottingState] :: NodeContext ssc -> !(TVar SlottingState)
@@ -3338,9 +3342,6 @@ NodeContext :: !(TVar SlottingState) -> !(Maybe (MVar FilePath)) -> !(SscNodeCon
 -- | Exclusive lock for sending messages to other nodes (if Nothing, no
 --   lock used)
 [ncSendLock] :: NodeContext ssc -> !(Maybe (MVar ()))
-
--- | Time when node was started (<a>NodeContext</a> initialized).
-[ncStartTime] :: NodeContext ssc -> !UTCTime
 
 -- | Generate <a>PublicKey</a> from <tt>SecretKey</tt> of
 --   <a>NodeContext</a>.
@@ -3432,13 +3433,6 @@ setNtpLastSlot :: (MonadIO m, WithNodeContext ssc m) => SlotId -> m ()
 readNtpLastSlot :: (MonadIO m, WithNodeContext ssc m) => m SlotId
 readNtpMargin :: (MonadIO m, WithNodeContext ssc m) => m Microsecond
 readNtpData :: (MonadIO m, WithNodeContext ssc m) => m (Microsecond, Microsecond)
-
--- | Returns node uptime based on current time and <a>ncStartTime</a>.
-getUptime :: (MonadIO m, WithNodeContext ssc m) => m Microsecond
-
--- | Returns if <a>ncRecoveryHeader</a> is <a>Just</a> which is equivalent
---   to "we're in recovery mode".
-isRecoveryMode :: (MonadIO m, WithNodeContext ssc m) => m Bool
 
 -- | Wrapper for monadic action which brings <a>NodeContext</a>.
 newtype ContextHolder ssc m a
@@ -4192,6 +4186,10 @@ newtype SscPayloadDependsOnSlot ssc
 SscPayloadDependsOnSlot :: (SlotId -> Gen (SscPayload ssc)) -> SscPayloadDependsOnSlot ssc
 [genPayloadDependsOnSlot] :: SscPayloadDependsOnSlot ssc -> SlotId -> Gen (SscPayload ssc)
 instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Arbitrary.SscPayloadDependsOnSlot Pos.Ssc.NistBeacon.SscNistBeacon)
+
+module Pos.Genesis.Arbitrary
+instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Genesis.Types.GenesisData
+instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Genesis.Types.StakeDistribution
 
 
 -- | Server which handles transactions.
@@ -5408,6 +5406,12 @@ difference :: VssCertData -> HashMap StakeholderId a -> VssCertData
 --   you using it you can't rollback deleted certificates. Use carefully.
 filter :: (StakeholderId -> Bool) -> VssCertData -> VssCertData
 
+module Pos.Security.Workers
+class Ssc ssc => SecurityWorkersClass ssc
+securityWorkers :: (SecurityWorkersClass ssc, WorkMode ssc m) => Tagged ssc ([WorkerSpec m], OutSpecs)
+instance Pos.Security.Class.SecurityWorkersClass Pos.Ssc.GodTossing.Type.SscGodTossing
+instance Pos.Security.Class.SecurityWorkersClass Pos.Ssc.NistBeacon.SscNistBeacon
+
 
 -- | Web-related part of cardano-sl.
 module Pos.Web
@@ -5421,6 +5425,220 @@ serveWebBase :: MyWorkMode ssc m => Word16 -> m ()
 applicationBase :: MyWorkMode ssc m => m Application
 serveWebGT :: MyWorkMode SscGodTossing m => Word16 -> m ()
 applicationGT :: MyWorkMode SscGodTossing m => m Application
+
+
+-- | High level workers.
+module Pos.Worker
+
+-- | All, but in reality not all, workers used by full node.
+allWorkers :: (SscWorkersClass ssc, SecurityWorkersClass ssc, WorkMode ssc m) => ([WorkerSpec m], OutSpecs)
+allWorkersCount :: Int
+
+
+-- | High-level code capable of running various scenarios in various modes.
+module Pos.Launcher
+
+-- | Run full node in real mode.
+runNodeProduction :: forall ssc. SscConstraint ssc => RealModeResources -> ([WorkerSpec (ProductionMode ssc)], OutSpecs) -> NodeParams -> SscParams ssc -> Production ()
+
+-- | Run full node in benchmarking node
+runNodeStats :: forall ssc. SscConstraint ssc => RealModeResources -> ([WorkerSpec (StatsMode ssc)], OutSpecs) -> NodeParams -> SscParams ssc -> Production ()
+stakesDistr :: DistrOption -> DistrOption -> Bool -> StakeDistribution
+
+-- | Contains all parameters required for hierarchical logger
+--   initialization.
+data LoggingParams
+LoggingParams :: !LoggerName -> !(Maybe FilePath) -> !(Maybe FilePath) -> !(Maybe Int) -> LoggingParams
+
+-- | Prefix for logger, like "time-slave"
+[lpRunnerTag] :: LoggingParams -> !LoggerName
+
+-- | Prefix of path for all logs
+[lpHandlerPrefix] :: LoggingParams -> !(Maybe FilePath)
+
+-- | Path to logger configuration
+[lpConfigPath] :: LoggingParams -> !(Maybe FilePath)
+[lpEkgPort] :: LoggingParams -> !(Maybe Int)
+
+-- | Contains basic &amp; networking parameters for running node.
+data BaseParams
+BaseParams :: !NetworkAddress -> ![DHTNode] -> !(Maybe DHTKey) -> !Bool -> !LoggingParams -> !FilePath -> BaseParams
+
+-- | Port to run on
+[bpIpPort] :: BaseParams -> !NetworkAddress
+
+-- | Peers passed from CLI
+[bpDHTPeers] :: BaseParams -> ![DHTNode]
+[bpDHTKey] :: BaseParams -> !(Maybe DHTKey)
+[bpDHTExplicitInitial] :: BaseParams -> !Bool
+
+-- | Logger parameters
+[bpLoggingParams] :: BaseParams -> !LoggingParams
+
+-- | Path to kademlia dump file
+[bpKademliaDump] :: BaseParams -> !FilePath
+
+-- | Contains algorithm specific &amp; storage parameters for Node.
+data NodeParams
+NodeParams :: !FilePath -> !Bool -> !Timestamp -> !SecretKey -> !UserSecret -> !BaseParams -> !Utxo -> !Bool -> !(Maybe FilePath) -> ![AttackType] -> ![AttackTarget] -> !Bool -> !FilePath -> !Bool -> ![Text] -> ![Text] -> NodeParams
+
+-- | Path to node's database.
+[npDbPathM] :: NodeParams -> !FilePath
+
+-- | <tt>True</tt> if data-base should be rebuilt
+[npRebuildDb] :: NodeParams -> !Bool
+
+-- | System start
+[npSystemStart] :: NodeParams -> !Timestamp
+
+-- | Primary secret key of node
+[npSecretKey] :: NodeParams -> !SecretKey
+
+-- | All node secret keys
+[npUserSecret] :: NodeParams -> !UserSecret
+
+-- | See <a>BaseParams</a>
+[npBaseParams] :: NodeParams -> !BaseParams
+
+-- | predefined custom utxo
+[npCustomUtxo] :: NodeParams -> !Utxo
+
+-- | <tt>True</tt> if node started as time-lord
+[npTimeLord] :: NodeParams -> !Bool
+[npJLFile] :: NodeParams -> !(Maybe FilePath)
+
+-- | List of attack types used by malicious emulation
+[npAttackTypes] :: NodeParams -> ![AttackType]
+
+-- | List of targets to attack by malicious emulation
+[npAttackTargets] :: NodeParams -> ![AttackTarget]
+
+-- | Whether to propagate txs, ssc data, blocks to neighbors
+[npPropagation] :: NodeParams -> !Bool
+
+-- | Path to update installer executable, downloaded by update system
+[npUpdatePath] :: NodeParams -> !FilePath
+
+-- | If <a>True</a> then use installer update mechanism
+[npUpdateWithPkg] :: NodeParams -> !Bool
+
+-- | List of update server URLs
+[npUpdateServers] :: NodeParams -> ![Text]
+
+-- | List of report server URLs
+[npReportServers] :: NodeParams -> ![Text]
+
+-- | RawRealMode runner.
+runRawRealMode :: forall ssc a. SscConstraint ssc => RealModeResources -> NodeParams -> SscParams ssc -> ListenersWithOut (RawRealMode ssc) -> OutSpecs -> ActionSpec (RawRealMode ssc) a -> Production a
+
+-- | ProductionMode runner.
+runProductionMode :: forall ssc a. (SscConstraint ssc) => RealModeResources -> NodeParams -> SscParams ssc -> (ActionSpec (ProductionMode ssc) a, OutSpecs) -> Production a
+
+-- | StatsMode runner. [CSL-169]: spawn here additional listener, which
+--   would accept stat queries can be done as part of refactoring (or
+--   someone who will refactor will create new issue).
+runStatsMode :: forall ssc a. (SscConstraint ssc) => RealModeResources -> NodeParams -> SscParams ssc -> (ActionSpec (StatsMode ssc) a, OutSpecs) -> Production a
+
+-- | ServiceMode runner.
+runServiceMode :: RealModeResources -> BaseParams -> ListenersWithOut ServiceMode -> OutSpecs -> ActionSpec ServiceMode a -> Production a
+
+-- | Runs node as time-slave inside IO monad.
+runTimeSlaveReal :: (SscListenersClass ssc, SscHelpersClass ssc) => Proxy ssc -> RealModeResources -> BaseParams -> Production Timestamp
+
+-- | Runs time-lord to acquire system start.
+runTimeLordReal :: LoggingParams -> Production Timestamp
+addDevListeners :: MinWorkMode m => Timestamp -> ListenersWithOut m -> ListenersWithOut m
+setupLoggers :: MonadIO m => LoggingParams -> m ()
+bracketDHTInstance :: BaseParams -> (KademliaDHTInstance -> Production a) -> Production a
+runServer :: (MonadIO m, MonadMockable m, MonadFix m, WithLogger m, MonadDHT m) => Transport -> ListenersWithOut m -> OutSpecs -> (Node m -> m t) -> (t -> m ()) -> ActionSpec m b -> m b
+runServer_ :: (MonadIO m, MonadMockable m, MonadFix m, WithLogger m, MonadDHT m) => Transport -> ListenersWithOut m -> OutSpecs -> ActionSpec m b -> m b
+
+-- | RAII for node starter.
+loggerBracket :: LoggingParams -> IO a -> IO a
+createTransport :: (MonadIO m, WithLogger m, Mockable Throw m) => String -> Word16 -> m Transport
+bracketTransport :: BaseParams -> (Transport -> Production a) -> Production a
+bracketResources :: BaseParams -> (RealModeResources -> Production a) -> IO a
+data RealModeResources
+RealModeResources :: Transport -> KademliaDHTInstance -> RealModeResources
+[rmTransport] :: RealModeResources -> Transport
+[rmDHT] :: RealModeResources -> KademliaDHTInstance
+
+-- | Run full node in any WorkMode.
+runNode :: (SscConstraint ssc, WorkMode ssc m) => ([WorkerSpec m], OutSpecs) -> (WorkerSpec m, OutSpecs)
+initSemaphore :: (WorkMode ssc m) => m ()
+initLrc :: WorkMode ssc m => m ()
+
+-- | Run full node in any WorkMode.
+runNode' :: (SscConstraint ssc, WorkMode ssc m) => [WorkerSpec m] -> WorkerSpec m
+
+module Pos.Wallet
+data WalletParams
+WalletParams :: !(Maybe FilePath) -> !Bool -> !FilePath -> !Timestamp -> !Bool -> !BaseParams -> WalletParams
+[wpDbPath] :: WalletParams -> !(Maybe FilePath)
+[wpRebuildDb] :: WalletParams -> !Bool
+[wpKeyFilePath] :: WalletParams -> !FilePath
+[wpSystemStart] :: WalletParams -> !Timestamp
+[wpGenesisKeys] :: WalletParams -> !Bool
+[wpBaseParams] :: WalletParams -> !BaseParams
+runRawRealWallet :: RealModeResources -> WalletParams -> ListenersWithOut WalletRealMode -> (ActionSpec WalletRealMode a, OutSpecs) -> Production a
+
+-- | WalletMode runner
+runWalletRealMode :: RealModeResources -> WalletParams -> (ActionSpec WalletRealMode a, OutSpecs) -> Production a
+runWalletReal :: RealModeResources -> WalletParams -> ([WorkerSpec WalletRealMode], OutSpecs) -> Production ()
+runWallet :: WalletMode ssc m => ([WorkerSpec m], OutSpecs) -> (WorkerSpec m, OutSpecs)
+
+-- | Makes a transaction which use P2PKH addresses as a source
+makePubKeyTx :: SecretKey -> TxInputs -> TxOutputs -> TxAux
+makeMOfNTx :: Script -> [Maybe SecretKey] -> TxInputs -> TxOutputs -> TxAux
+
+-- | Construct Tx using secret key and given list of desired outputs
+submitTx :: TxMode ssc m => SendActions m -> SecretKey -> [DHTNode] -> [TxOutAux] -> m (Either TxError TxAux)
+
+-- | Send the ready-to-use transaction
+submitTxRaw :: MinWorkMode m => SendActions m -> [DHTNode] -> TxAux -> m ()
+
+-- | Make a multi-transaction using given secret key and info for outputs
+createTx :: Utxo -> SecretKey -> TxOutputs -> Either TxError TxAux
+
+-- | Make a transaction, using M-of-N script as a source
+createMOfNTx :: Utxo -> [(PublicKey, Maybe SecretKey)] -> TxOutputs -> Either TxError TxAux
+sendTxOuts :: OutSpecs
+
+-- | Send UpdateVote to given addresses
+submitVote :: MinWorkMode m => SendActions m -> [DHTNode] -> UpdateVote -> m ()
+
+-- | Send UpdateProposal with one positive vote to given addresses
+submitUpdateProposal :: MinWorkMode m => SendActions m -> SecretKey -> [DHTNode] -> UpdateProposal -> m ()
+sendVoteOuts :: OutSpecs
+sendProposalOuts :: OutSpecs
+
+-- | A class which have the methods to get state of address' balance
+class Monad m => MonadBalances m where getBalance addr = unsafeIntegerToCoin . sumCoins . map (txOutValue . fst) . toList <$> getOwnUtxo addr getOwnUtxo = lift . getOwnUtxo
+getOwnUtxo :: MonadBalances m => Address -> m Utxo
+getBalance :: MonadBalances m => Address -> m Coin
+getOwnUtxo :: (MonadBalances m, MonadTrans t, MonadBalances m', t m' ~ m) => Address -> m Utxo
+
+-- | A class which have methods to get transaction history
+class Monad m => MonadTxHistory m where getTxHistory = lift . getTxHistory saveTx = lift . saveTx
+getTxHistory :: MonadTxHistory m => Address -> m [TxHistoryEntry]
+saveTx :: MonadTxHistory m => (TxId, TxAux) -> m ()
+getTxHistory :: (MonadTxHistory m, MonadTrans t, MonadTxHistory m', t m' ~ m) => Address -> m [TxHistoryEntry]
+saveTx :: (MonadTxHistory m, MonadTrans t, MonadTxHistory m', t m' ~ m) => (TxId, TxAux) -> m ()
+class Monad m => MonadBlockchainInfo m where networkChainDifficulty = lift networkChainDifficulty localChainDifficulty = lift localChainDifficulty
+networkChainDifficulty :: MonadBlockchainInfo m => m ChainDifficulty
+localChainDifficulty :: MonadBlockchainInfo m => m ChainDifficulty
+networkChainDifficulty :: (MonadBlockchainInfo m, MonadTrans t, MonadBlockchainInfo m', t m' ~ m) => m ChainDifficulty
+localChainDifficulty :: (MonadBlockchainInfo m, MonadTrans t, MonadBlockchainInfo m', t m' ~ m) => m ChainDifficulty
+
+-- | Abstraction over getting update proposals
+class Monad m => MonadUpdates m where waitForUpdate = lift waitForUpdate applyLastUpdate = lift applyLastUpdate
+waitForUpdate :: MonadUpdates m => m ConfirmedProposalState
+applyLastUpdate :: MonadUpdates m => m ()
+waitForUpdate :: (MonadUpdates m, MonadTrans t, MonadUpdates m', t m' ~ m) => m ConfirmedProposalState
+applyLastUpdate :: (MonadUpdates m, MonadTrans t, MonadUpdates m', t m' ~ m) => m ()
+type TxMode ssc m = (MinWorkMode m, MonadBalances m, MonadTxHistory m, MonadMockable m, MonadFail m, MonadMask m)
+type WalletMode ssc m = (TxMode ssc m, MonadKeys m, MonadBlockchainInfo m, MonadUpdates m, WithWalletContext m, MonadDHT m, MonadSlots m, WithPeerState m)
+type WalletRealMode = PeerStateHolder (KademliaDHT (KeyStorage (WalletDB (ContextHolder (LoggerNameBox Production)))))
 
 
 -- | Web part of wallet.
@@ -5649,14 +5867,6 @@ module Pos.Reporting.Methods
 --   servers is also taken from node's configuration.
 sendReportNode :: (MonadIO m, MonadCatch m, WithNodeContext її m) => ReportType -> m ()
 
--- | Retrieves node info that we would like to know when analyzing
---   malicious behavior of node.
-getNodeInfo :: (MonadDHT m, MonadIO m) => m Text
-
--- | Reports misbehaviour given reason string. Efficiently works in
---   <tt>WorkMode</tt> context.
-reportMisbehaviour :: (MonadIO m, MonadCatch m, MonadDHT m, WithNodeContext її m, HasLoggerName m, CanLog m) => Text -> m ()
-
 -- | Given logs files list and report type, sends reports to URI asked. All
 --   files _must_ exist. Report server URI should be in form like
 --   "http(s):/<i>host:port</i>" without specified endpoint.
@@ -5671,223 +5881,3 @@ retrieveLogFiles :: LoggerTree -> [([Text], FilePath)]
 --   this function will return <tt>[component.log.122,
 --   component.log.123]</tt>.
 chooseLogFiles :: (MonadIO m) => FilePath -> m [FilePath]
-
-module Pos.Security.Workers
-class Ssc ssc => SecurityWorkersClass ssc
-securityWorkers :: (SecurityWorkersClass ssc, WorkMode ssc m) => Tagged ssc ([WorkerSpec m], OutSpecs)
-instance Pos.Security.Class.SecurityWorkersClass Pos.Ssc.GodTossing.Type.SscGodTossing
-instance Pos.Security.Class.SecurityWorkersClass Pos.Ssc.NistBeacon.SscNistBeacon
-
-
--- | High level workers.
-module Pos.Worker
-
--- | All, but in reality not all, workers used by full node.
-allWorkers :: (SscWorkersClass ssc, SecurityWorkersClass ssc, WorkMode ssc m) => ([WorkerSpec m], OutSpecs)
-allWorkersCount :: Int
-
-
--- | High-level code capable of running various scenarios in various modes.
-module Pos.Launcher
-
--- | Run full node in real mode.
-runNodeProduction :: forall ssc. SscConstraint ssc => RealModeResources -> ([WorkerSpec (ProductionMode ssc)], OutSpecs) -> NodeParams -> SscParams ssc -> Production ()
-
--- | Run full node in benchmarking node
-runNodeStats :: forall ssc. SscConstraint ssc => RealModeResources -> ([WorkerSpec (StatsMode ssc)], OutSpecs) -> NodeParams -> SscParams ssc -> Production ()
-stakesDistr :: DistrOption -> DistrOption -> Bool -> StakeDistribution
-
--- | Contains all parameters required for hierarchical logger
---   initialization.
-data LoggingParams
-LoggingParams :: !LoggerName -> !(Maybe FilePath) -> !(Maybe FilePath) -> !(Maybe Int) -> LoggingParams
-
--- | Prefix for logger, like "time-slave"
-[lpRunnerTag] :: LoggingParams -> !LoggerName
-
--- | Prefix of path for all logs
-[lpHandlerPrefix] :: LoggingParams -> !(Maybe FilePath)
-
--- | Path to logger configuration
-[lpConfigPath] :: LoggingParams -> !(Maybe FilePath)
-[lpEkgPort] :: LoggingParams -> !(Maybe Int)
-
--- | Contains basic &amp; networking parameters for running node.
-data BaseParams
-BaseParams :: !NetworkAddress -> ![DHTNode] -> !(Maybe DHTKey) -> !Bool -> !LoggingParams -> !FilePath -> BaseParams
-
--- | Port to run on
-[bpIpPort] :: BaseParams -> !NetworkAddress
-
--- | Peers passed from CLI
-[bpDHTPeers] :: BaseParams -> ![DHTNode]
-[bpDHTKey] :: BaseParams -> !(Maybe DHTKey)
-[bpDHTExplicitInitial] :: BaseParams -> !Bool
-
--- | Logger parameters
-[bpLoggingParams] :: BaseParams -> !LoggingParams
-
--- | Path to kademlia dump file
-[bpKademliaDump] :: BaseParams -> !FilePath
-
--- | Contains algorithm specific &amp; storage parameters for Node.
-data NodeParams
-NodeParams :: !FilePath -> !Bool -> !Timestamp -> !SecretKey -> !UserSecret -> !BaseParams -> !Utxo -> !Bool -> !(Maybe FilePath) -> ![AttackType] -> ![AttackTarget] -> !Bool -> !FilePath -> !Bool -> ![Text] -> ![Text] -> NodeParams
-
--- | Path to node's database.
-[npDbPathM] :: NodeParams -> !FilePath
-
--- | <tt>True</tt> if data-base should be rebuilt
-[npRebuildDb] :: NodeParams -> !Bool
-
--- | System start
-[npSystemStart] :: NodeParams -> !Timestamp
-
--- | Primary secret key of node
-[npSecretKey] :: NodeParams -> !SecretKey
-
--- | All node secret keys
-[npUserSecret] :: NodeParams -> !UserSecret
-
--- | See <a>BaseParams</a>
-[npBaseParams] :: NodeParams -> !BaseParams
-
--- | predefined custom utxo
-[npCustomUtxo] :: NodeParams -> !Utxo
-
--- | <tt>True</tt> if node started as time-lord
-[npTimeLord] :: NodeParams -> !Bool
-[npJLFile] :: NodeParams -> !(Maybe FilePath)
-
--- | List of attack types used by malicious emulation
-[npAttackTypes] :: NodeParams -> ![AttackType]
-
--- | List of targets to attack by malicious emulation
-[npAttackTargets] :: NodeParams -> ![AttackTarget]
-
--- | Whether to propagate txs, ssc data, blocks to neighbors
-[npPropagation] :: NodeParams -> !Bool
-
--- | Path to update installer executable, downloaded by update system
-[npUpdatePath] :: NodeParams -> !FilePath
-
--- | If <a>True</a> then use installer update mechanism
-[npUpdateWithPkg] :: NodeParams -> !Bool
-
--- | List of update server URLs
-[npUpdateServers] :: NodeParams -> ![Text]
-
--- | List of report server URLs
-[npReportServers] :: NodeParams -> ![Text]
-
--- | RawRealMode runner.
-runRawRealMode :: forall ssc a. SscConstraint ssc => RealModeResources -> NodeParams -> SscParams ssc -> ListenersWithOut (RawRealMode ssc) -> OutSpecs -> ActionSpec (RawRealMode ssc) a -> Production a
-
--- | ProductionMode runner.
-runProductionMode :: forall ssc a. (SscConstraint ssc) => RealModeResources -> NodeParams -> SscParams ssc -> (ActionSpec (ProductionMode ssc) a, OutSpecs) -> Production a
-
--- | StatsMode runner. [CSL-169]: spawn here additional listener, which
---   would accept stat queries can be done as part of refactoring (or
---   someone who will refactor will create new issue).
-runStatsMode :: forall ssc a. (SscConstraint ssc) => RealModeResources -> NodeParams -> SscParams ssc -> (ActionSpec (StatsMode ssc) a, OutSpecs) -> Production a
-
--- | ServiceMode runner.
-runServiceMode :: RealModeResources -> BaseParams -> ListenersWithOut ServiceMode -> OutSpecs -> ActionSpec ServiceMode a -> Production a
-
--- | Runs node as time-slave inside IO monad.
-runTimeSlaveReal :: (SscListenersClass ssc, SscHelpersClass ssc) => Proxy ssc -> RealModeResources -> BaseParams -> Production Timestamp
-
--- | Runs time-lord to acquire system start.
-runTimeLordReal :: LoggingParams -> Production Timestamp
-addDevListeners :: MinWorkMode m => Timestamp -> ListenersWithOut m -> ListenersWithOut m
-setupLoggers :: MonadIO m => LoggingParams -> m ()
-bracketDHTInstance :: BaseParams -> (KademliaDHTInstance -> Production a) -> Production a
-runServer :: (MonadIO m, MonadMockable m, MonadFix m, WithLogger m, MonadDHT m) => Transport -> ListenersWithOut m -> OutSpecs -> (Node m -> m t) -> (t -> m ()) -> ActionSpec m b -> m b
-runServer_ :: (MonadIO m, MonadMockable m, MonadFix m, WithLogger m, MonadDHT m) => Transport -> ListenersWithOut m -> OutSpecs -> ActionSpec m b -> m b
-
--- | RAII for node starter.
-loggerBracket :: LoggingParams -> IO a -> IO a
-createTransport :: (MonadIO m, WithLogger m, Mockable Throw m) => String -> Word16 -> m Transport
-bracketTransport :: BaseParams -> (Transport -> Production a) -> Production a
-bracketResources :: BaseParams -> (RealModeResources -> Production a) -> IO a
-data RealModeResources
-RealModeResources :: Transport -> KademliaDHTInstance -> RealModeResources
-[rmTransport] :: RealModeResources -> Transport
-[rmDHT] :: RealModeResources -> KademliaDHTInstance
-
--- | Run full node in any WorkMode.
-runNode :: (SscConstraint ssc, WorkMode ssc m) => ([WorkerSpec m], OutSpecs) -> (WorkerSpec m, OutSpecs)
-initSemaphore :: (WorkMode ssc m) => m ()
-initLrc :: WorkMode ssc m => m ()
-
--- | Run full node in any WorkMode.
-runNode' :: (SscConstraint ssc, WorkMode ssc m) => [WorkerSpec m] -> WorkerSpec m
-
-module Pos.Wallet
-data WalletParams
-WalletParams :: !(Maybe FilePath) -> !Bool -> !FilePath -> !Timestamp -> !Bool -> !BaseParams -> WalletParams
-[wpDbPath] :: WalletParams -> !(Maybe FilePath)
-[wpRebuildDb] :: WalletParams -> !Bool
-[wpKeyFilePath] :: WalletParams -> !FilePath
-[wpSystemStart] :: WalletParams -> !Timestamp
-[wpGenesisKeys] :: WalletParams -> !Bool
-[wpBaseParams] :: WalletParams -> !BaseParams
-runRawRealWallet :: RealModeResources -> WalletParams -> ListenersWithOut WalletRealMode -> (ActionSpec WalletRealMode a, OutSpecs) -> Production a
-
--- | WalletMode runner
-runWalletRealMode :: RealModeResources -> WalletParams -> (ActionSpec WalletRealMode a, OutSpecs) -> Production a
-runWalletReal :: RealModeResources -> WalletParams -> ([WorkerSpec WalletRealMode], OutSpecs) -> Production ()
-runWallet :: WalletMode ssc m => ([WorkerSpec m], OutSpecs) -> (WorkerSpec m, OutSpecs)
-
--- | Makes a transaction which use P2PKH addresses as a source
-makePubKeyTx :: SecretKey -> TxInputs -> TxOutputs -> TxAux
-makeMOfNTx :: Script -> [Maybe SecretKey] -> TxInputs -> TxOutputs -> TxAux
-
--- | Construct Tx using secret key and given list of desired outputs
-submitTx :: TxMode ssc m => SendActions m -> SecretKey -> [DHTNode] -> [TxOutAux] -> m (Either TxError TxAux)
-
--- | Send the ready-to-use transaction
-submitTxRaw :: MinWorkMode m => SendActions m -> [DHTNode] -> TxAux -> m ()
-
--- | Make a multi-transaction using given secret key and info for outputs
-createTx :: Utxo -> SecretKey -> TxOutputs -> Either TxError TxAux
-
--- | Make a transaction, using M-of-N script as a source
-createMOfNTx :: Utxo -> [(PublicKey, Maybe SecretKey)] -> TxOutputs -> Either TxError TxAux
-sendTxOuts :: OutSpecs
-
--- | Send UpdateVote to given addresses
-submitVote :: MinWorkMode m => SendActions m -> [DHTNode] -> UpdateVote -> m ()
-
--- | Send UpdateProposal with one positive vote to given addresses
-submitUpdateProposal :: MinWorkMode m => SendActions m -> SecretKey -> [DHTNode] -> UpdateProposal -> m ()
-sendVoteOuts :: OutSpecs
-sendProposalOuts :: OutSpecs
-
--- | A class which have the methods to get state of address' balance
-class Monad m => MonadBalances m where getBalance addr = unsafeIntegerToCoin . sumCoins . map (txOutValue . fst) . toList <$> getOwnUtxo addr getOwnUtxo = lift . getOwnUtxo
-getOwnUtxo :: MonadBalances m => Address -> m Utxo
-getBalance :: MonadBalances m => Address -> m Coin
-getOwnUtxo :: (MonadBalances m, MonadTrans t, MonadBalances m', t m' ~ m) => Address -> m Utxo
-
--- | A class which have methods to get transaction history
-class Monad m => MonadTxHistory m where getTxHistory = lift . getTxHistory saveTx = lift . saveTx
-getTxHistory :: MonadTxHistory m => Address -> m [TxHistoryEntry]
-saveTx :: MonadTxHistory m => (TxId, TxAux) -> m ()
-getTxHistory :: (MonadTxHistory m, MonadTrans t, MonadTxHistory m', t m' ~ m) => Address -> m [TxHistoryEntry]
-saveTx :: (MonadTxHistory m, MonadTrans t, MonadTxHistory m', t m' ~ m) => (TxId, TxAux) -> m ()
-class Monad m => MonadBlockchainInfo m where networkChainDifficulty = lift networkChainDifficulty localChainDifficulty = lift localChainDifficulty
-networkChainDifficulty :: MonadBlockchainInfo m => m ChainDifficulty
-localChainDifficulty :: MonadBlockchainInfo m => m ChainDifficulty
-networkChainDifficulty :: (MonadBlockchainInfo m, MonadTrans t, MonadBlockchainInfo m', t m' ~ m) => m ChainDifficulty
-localChainDifficulty :: (MonadBlockchainInfo m, MonadTrans t, MonadBlockchainInfo m', t m' ~ m) => m ChainDifficulty
-
--- | Abstraction over getting update proposals
-class Monad m => MonadUpdates m where waitForUpdate = lift waitForUpdate applyLastUpdate = lift applyLastUpdate
-waitForUpdate :: MonadUpdates m => m ConfirmedProposalState
-applyLastUpdate :: MonadUpdates m => m ()
-waitForUpdate :: (MonadUpdates m, MonadTrans t, MonadUpdates m', t m' ~ m) => m ConfirmedProposalState
-applyLastUpdate :: (MonadUpdates m, MonadTrans t, MonadUpdates m', t m' ~ m) => m ()
-type TxMode ssc m = (MinWorkMode m, MonadBalances m, MonadTxHistory m, MonadMockable m, MonadFail m, MonadMask m)
-type WalletMode ssc m = (TxMode ssc m, MonadKeys m, MonadBlockchainInfo m, MonadUpdates m, WithWalletContext m, MonadDHT m, MonadSlots m, WithPeerState m)
-type WalletRealMode = PeerStateHolder (KademliaDHT (KeyStorage (WalletDB (ContextHolder (LoggerNameBox Production)))))
