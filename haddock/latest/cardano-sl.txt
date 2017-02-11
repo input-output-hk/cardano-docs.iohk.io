@@ -3289,7 +3289,7 @@ type LrcSyncData = (Bool, EpochIndex)
 
 -- | NodeContext contains runtime context of node.
 data NodeContext ssc
-NodeContext :: !(TVar SlottingState) -> !(Maybe (MVar FilePath)) -> !(SscNodeContext ssc) -> !(MVar HeaderHash) -> !(TVar LrcSyncData) -> !(TVar UserSecret) -> !(TBQueue (NodeId, NewestFirst NE (BlockHeader ssc))) -> !(TMVar (NodeId, BlockHeader ssc)) -> !(MVar ConfirmedProposalState) -> !LoggerConfig -> !NodeParams -> !(TVar Bool) -> !(TBQueue ()) -> !(Maybe (MVar ())) -> NodeContext ssc
+NodeContext :: !(TVar SlottingState) -> !(Maybe (MVar FilePath)) -> !(SscNodeContext ssc) -> !(MVar HeaderHash) -> !(TVar LrcSyncData) -> !(TVar UserSecret) -> !(TBQueue (NodeId, NewestFirst NE (BlockHeader ssc))) -> !(TMVar (NodeId, BlockHeader ssc)) -> !(MVar ConfirmedProposalState) -> !LoggerConfig -> !NodeParams -> !(TVar Bool) -> !(TBQueue ()) -> !(Maybe (MVar ())) -> !UTCTime -> NodeContext ssc
 
 -- | Data needed for the slotting algorithm to work
 [ncSlottingState] :: NodeContext ssc -> !(TVar SlottingState)
@@ -3338,6 +3338,9 @@ NodeContext :: !(TVar SlottingState) -> !(Maybe (MVar FilePath)) -> !(SscNodeCon
 -- | Exclusive lock for sending messages to other nodes (if Nothing, no
 --   lock used)
 [ncSendLock] :: NodeContext ssc -> !(Maybe (MVar ()))
+
+-- | Time when node was started (<a>NodeContext</a> initialized).
+[ncStartTime] :: NodeContext ssc -> !UTCTime
 
 -- | Generate <a>PublicKey</a> from <tt>SecretKey</tt> of
 --   <a>NodeContext</a>.
@@ -3429,6 +3432,13 @@ setNtpLastSlot :: (MonadIO m, WithNodeContext ssc m) => SlotId -> m ()
 readNtpLastSlot :: (MonadIO m, WithNodeContext ssc m) => m SlotId
 readNtpMargin :: (MonadIO m, WithNodeContext ssc m) => m Microsecond
 readNtpData :: (MonadIO m, WithNodeContext ssc m) => m (Microsecond, Microsecond)
+
+-- | Returns node uptime based on current time and <a>ncStartTime</a>.
+getUptime :: (MonadIO m, WithNodeContext ssc m) => m Microsecond
+
+-- | Returns if <a>ncRecoveryHeader</a> is <a>Just</a> which is equivalent
+--   to "we're in recovery mode".
+isRecoveryMode :: (MonadIO m, WithNodeContext ssc m) => m Bool
 
 -- | Wrapper for monadic action which brings <a>NodeContext</a>.
 newtype ContextHolder ssc m a
