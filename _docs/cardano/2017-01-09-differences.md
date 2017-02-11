@@ -83,7 +83,7 @@ In `cardano-sl` it is implemented in a slightly different way.
 
 Time of sending is randomized within ε.
 
-## Multicommitments
+## Multishares
 
 In *Ouroboros* each stakeholder is presented as exactly one
 participant of the underlying VSS scheme. However, it's natural that
@@ -94,7 +94,10 @@ controls 20%) and there are 40 adversary stakeholders each having 1%
 of stake, then adversary has full control over secret sharing.
 
 To overcome this problem, in *cardano-sl* each stakeholder is allowed
-to send number of commitments proportional to their stake.
+to send number of commitment shares proportional to their stake. 
+So each node must decrypt each encrypted share of commitment and send 
+all these decrypted shares during *Reveal phase*.
+
 
 ## Randomness Generation Failure
 

@@ -1,6 +1,6 @@
 # Cardano SL documentation
 
-Build on [Jekyll](https://jekyllrb.com/) for [Github Pages](https://pages.github.com/).
+[Official website](https://cardano-docs.iohk.io/). Build on [Jekyll](https://jekyllrb.com/) for [Github Pages](https://pages.github.com/).
 
 ## Where is it?
 
@@ -34,5 +34,5 @@ anchors:
 
 ## Menu order
 
-Items in menu can be reordered by its date prefix in the filename eg: 2017-01-01-filename.md.
+Items in menu can be reordered by its date prefix in the filename eg: `2017-01-01-filename.md`.
 For now. Can be sorted otherwise later.

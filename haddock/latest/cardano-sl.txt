@@ -245,10 +245,10 @@ WithHash :: a -> Hash a -> WithHash a
 [whData] :: WithHash a -> a
 [whHash] :: WithHash a -> Hash a
 withHash :: Bi a => a -> WithHash a
-_whData :: forall a_a1g0n. Lens' (WithHash a_a1g0n) a_a1g0n
+_whData :: forall a_a1gv1. Lens' (WithHash a_a1gv1) a_a1gv1
 
 -- | Lenses for <a>WithHash</a>
-_whHash :: forall a_a1g0n. Lens' (WithHash a_a1g0n) (Hash a_a1g0n)
+_whHash :: forall a_a1gv1. Lens' (WithHash a_a1gv1) (Hash a_a1gv1)
 
 -- | Hash wrapper with phantom type for more type-safety. Made abstract in
 --   order to support different algorithms in different situations
@@ -545,16 +545,19 @@ Attributes :: h -> ByteString -> Attributes h
 -- | Generate <a>Attributes</a> reader given mapper from keys to
 --   <a>Get</a>, maximum input length and the attribute value <tt>h</tt>
 --   itself.
-getAttributes :: (Word8 -> h -> Maybe (Get h)) -> Word32 -> h -> Get (Attributes h)
+--   
+--   The mapper will be applied until it returns <a>Nothing</a>.
+getAttributes :: (Word8 -> h -> Maybe (Get h)) -> Maybe Word32 -> h -> Get (Attributes h)
 
 -- | Generate <a>Put</a> given the way to serialize inner attribute value
 --   into set of keys and values.
-putAttributes :: (h -> [(Word8, ByteString)]) -> Attributes h -> Put
+putAttributes :: (h -> [(Word8, Put)]) -> Attributes h -> Put
 mkAttributes :: h -> Attributes h
-instance Control.DeepSeq.NFData h_6989586621679427080 => Control.DeepSeq.NFData (Pos.Data.Attributes.Attributes h_6989586621679427080)
+instance Control.DeepSeq.NFData h_6989586621679428098 => Control.DeepSeq.NFData (Pos.Data.Attributes.Attributes h_6989586621679428098)
 instance GHC.Generics.Generic (Pos.Data.Attributes.Attributes h)
 instance GHC.Classes.Ord h => GHC.Classes.Ord (Pos.Data.Attributes.Attributes h)
 instance GHC.Classes.Eq h => GHC.Classes.Eq (Pos.Data.Attributes.Attributes h)
+instance Data.Default.Class.Default h => Data.Default.Class.Default (Pos.Data.Attributes.Attributes h)
 instance GHC.Show.Show h => GHC.Show.Show (Pos.Data.Attributes.Attributes h)
 instance Data.Text.Buildable.Buildable h => Data.Text.Buildable.Buildable (Pos.Data.Attributes.Attributes h)
 instance Data.Hashable.Class.Hashable h => Data.Hashable.Class.Hashable (Pos.Data.Attributes.Attributes h)
@@ -704,11 +707,15 @@ module Pos.Types.Address
 
 -- | Address is where you can send coins.
 data Address
-PubKeyAddress :: !(AddressHash PublicKey) -> Address
+PubKeyAddress :: !(AddressHash PublicKey) -> !(Attributes AddrPkAttrs) -> Address
 [addrKeyHash] :: Address -> !(AddressHash PublicKey)
+[addrPkAttributes] :: Address -> !(Attributes AddrPkAttrs)
 ScriptAddress :: !(AddressHash Script) -> Address
 [addrScriptHash] :: Address -> !(AddressHash Script)
 UnknownAddressType :: !Word8 -> !ByteString -> Address
+data AddrPkAttrs
+AddrPkAttrs :: Maybe [Word32] -> AddrPkAttrs
+[addrPkDerivationPath] :: AddrPkAttrs -> Maybe [Word32]
 
 -- | Specialized formatter for <a>Address</a>.
 addressF :: Bi Address => Format r (Address -> r)
@@ -728,6 +735,9 @@ checkUnknownAddressType :: Word8 -> Address -> Bool
 -- | A function for making an address from PublicKey
 makePubKeyAddress :: PublicKey -> Address
 
+-- | A function for making an HDW address
+makePubKeyHdwAddress :: PublicKey -> [Word32] -> Address
+
 -- | A function for making an address from a validation script
 makeScriptAddress :: Bi Script => Script -> Address
 decodeTextAddress :: Bi Address => Text -> Either Text Address
@@ -739,10 +749,8 @@ type AddressHash = AbstractHash Blake2s_224
 addressHash :: Bi a => a -> AddressHash a
 unsafeAddressHash :: Bi a => a -> AddressHash b
 instance Pos.Binary.Class.Bi Pos.Types.Core.Address => Data.Hashable.Class.Hashable Pos.Types.Core.Address
-instance Pos.Binary.Class.Bi Pos.Types.Core.Address => GHC.Show.Show Pos.Types.Core.Address
 instance Pos.Binary.Class.Bi Pos.Types.Core.Address => Data.Text.Buildable.Buildable Pos.Types.Core.Address
-instance Control.DeepSeq.NFData Pos.Types.Core.Address
-instance Pos.Binary.Class.Bi Pos.Types.Core.Address => GHC.Read.Read Pos.Types.Core.Address
+instance Data.Text.Buildable.Buildable Pos.Types.Core.AddrPkAttrs
 
 module Pos.Security.CLI
 data AttackType
@@ -812,16 +820,16 @@ GenericBlock :: !(GenericBlockHeader b) -> !(Body b) -> !(ExtraBodyData b) -> Ge
 [_gbExtra] :: GenericBlock b -> !(ExtraBodyData b)
 class HasPrevBlock s
 prevBlockL :: HasPrevBlock s => Lens' s HeaderHash
-gbBody :: forall b_a2BBH. Lens' (GenericBlock b_a2BBH) (Body b_a2BBH)
-gbHeader :: forall b_a2BBH. Lens' (GenericBlock b_a2BBH) (GenericBlockHeader b_a2BBH)
-gbExtra :: forall b_a2BBH. Lens' (GenericBlock b_a2BBH) (ExtraBodyData b_a2BBH)
+gbBody :: forall b_a2G1v. Lens' (GenericBlock b_a2G1v) (Body b_a2G1v)
+gbHeader :: forall b_a2G1v. Lens' (GenericBlock b_a2G1v) (GenericBlockHeader b_a2G1v)
+gbExtra :: forall b_a2G1v. Lens' (GenericBlock b_a2G1v) (ExtraBodyData b_a2G1v)
 
 -- | Lens from <a>GenericBlock</a> to <a>BodyProof</a>.
 gbBodyProof :: Lens' (GenericBlock b) (BodyProof b)
-gbhConsensus :: forall b_a2BBI. Lens' (GenericBlockHeader b_a2BBI) (ConsensusData b_a2BBI)
-gbhExtra :: forall b_a2BBI. Lens' (GenericBlockHeader b_a2BBI) (ExtraHeaderData b_a2BBI)
-gbhPrevBlock :: forall b_a2BBI. Lens' (GenericBlockHeader b_a2BBI) (BHeaderHash b_a2BBI)
-gbhBodyProof :: forall b_a2BBI. Lens' (GenericBlockHeader b_a2BBI) (BodyProof b_a2BBI)
+gbhConsensus :: forall b_a2G1w. Lens' (GenericBlockHeader b_a2G1w) (ConsensusData b_a2G1w)
+gbhExtra :: forall b_a2G1w. Lens' (GenericBlockHeader b_a2G1w) (ExtraHeaderData b_a2G1w)
+gbhPrevBlock :: forall b_a2G1w. Lens' (GenericBlockHeader b_a2G1w) (BHeaderHash b_a2G1w)
+gbhBodyProof :: forall b_a2G1w. Lens' (GenericBlockHeader b_a2G1w) (BodyProof b_a2G1w)
 instance GHC.Generics.Generic (Pos.Types.Block.Class.GenericBlockHeader b)
 instance GHC.Generics.Generic (Pos.Types.Block.Class.GenericBlock b)
 instance (GHC.Show.Show (Pos.Types.Block.Class.BHeaderHash b), GHC.Show.Show (Pos.Types.Block.Class.BodyProof b), GHC.Show.Show (Pos.Types.Block.Class.ConsensusData b), GHC.Show.Show (Pos.Types.Block.Class.ExtraHeaderData b)) => GHC.Show.Show (Pos.Types.Block.Class.GenericBlockHeader b)
@@ -2133,7 +2141,8 @@ appSystemTag :: SystemTag
 --   sec)
 ntpMaxError :: Microsecond
 
--- | How often request to NTP server and response collection
+-- | After making request to NTP servers, how long to wait for their
+--   response
 ntpResponseTimeout :: Microsecond
 
 -- | How often send request to NTP server
@@ -2291,9 +2300,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679163436 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679163436)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679163888 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679163888)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679163889 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679163889)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679163490 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679163490)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679163942 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679163942)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679163943 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679163943)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Core.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Core.SoftwareVersion
@@ -2552,11 +2561,15 @@ epochOrSlot :: (EpochIndex -> a) -> (SlotId -> a) -> EpochOrSlot -> a
 
 -- | Address is where you can send coins.
 data Address
-PubKeyAddress :: !(AddressHash PublicKey) -> Address
+PubKeyAddress :: !(AddressHash PublicKey) -> !(Attributes AddrPkAttrs) -> Address
 [addrKeyHash] :: Address -> !(AddressHash PublicKey)
+[addrPkAttributes] :: Address -> !(Attributes AddrPkAttrs)
 ScriptAddress :: !(AddressHash Script) -> Address
 [addrScriptHash] :: Address -> !(AddressHash Script)
 UnknownAddressType :: !Word8 -> !ByteString -> Address
+data AddrPkAttrs
+AddrPkAttrs :: Maybe [Word32] -> AddrPkAttrs
+[addrPkDerivationPath] :: AddrPkAttrs -> Maybe [Word32]
 type AddressHash = AbstractHash Blake2s_224
 
 -- | Stakeholder identifier (stakeholders are identified by their public
@@ -2710,7 +2723,7 @@ instance Data.Default.Class.Default Pos.Genesis.Types.StakeDistribution
 
 -- | Utility functions for graceful shutdown of workers
 module Pos.Util.Shutdown
-ifNotShutdown :: (MonadIO m, WithNodeContext ssc m) => m () -> m ()
+ifNotShutdown :: (MonadIO m, WithNodeContext ssc m, WithLogger m) => m () -> m ()
 triggerShutdown :: (MonadIO m, WithLogger m, WithNodeContext ssc m) => m ()
 waitForWorkers :: (MonadIO m, WithNodeContext ssc m) => Int -> m ()
 
@@ -3085,11 +3098,11 @@ NodeDBs :: !(DB ssc) -> !(DB ssc) -> !(DB ssc) -> !(DB ssc) -> !RWLock -> NodeDB
 
 -- | Lock on misc db
 [_miscLock] :: NodeDBs ssc -> !RWLock
-blockDB :: forall ssc_a71sc. Lens' (NodeDBs ssc_a71sc) (DB ssc_a71sc)
-gStateDB :: forall ssc_a71sc. Lens' (NodeDBs ssc_a71sc) (DB ssc_a71sc)
-lrcDB :: forall ssc_a71sc. Lens' (NodeDBs ssc_a71sc) (DB ssc_a71sc)
-miscDB :: forall ssc_a71sc. Lens' (NodeDBs ssc_a71sc) (DB ssc_a71sc)
-miscLock :: forall ssc_a71sc. Lens' (NodeDBs ssc_a71sc) RWLock
+blockDB :: forall ssc_a79rP. Lens' (NodeDBs ssc_a79rP) (DB ssc_a79rP)
+gStateDB :: forall ssc_a79rP. Lens' (NodeDBs ssc_a79rP) (DB ssc_a79rP)
+lrcDB :: forall ssc_a79rP. Lens' (NodeDBs ssc_a79rP) (DB ssc_a79rP)
+miscDB :: forall ssc_a79rP. Lens' (NodeDBs ssc_a79rP) (DB ssc_a79rP)
+miscLock :: forall ssc_a79rP. Lens' (NodeDBs ssc_a79rP) RWLock
 newtype Snapshot
 Snapshot :: Snapshot -> Snapshot
 usingSnapshot :: (MonadIO m, MonadMask m) => DB ssc -> (Snapshot -> m a) -> m a
@@ -3276,7 +3289,7 @@ type LrcSyncData = (Bool, EpochIndex)
 
 -- | NodeContext contains runtime context of node.
 data NodeContext ssc
-NodeContext :: !(TVar SlottingState) -> !(Maybe (MVar FilePath)) -> !(SscNodeContext ssc) -> !(MVar HeaderHash) -> !(TVar LrcSyncData) -> !(TVar UserSecret) -> !(TBQueue (NodeId, NewestFirst NE (BlockHeader ssc))) -> !(TMVar (NodeId, BlockHeader ssc)) -> !(MVar ConfirmedProposalState) -> !LoggerConfig -> !NodeParams -> !(TVar Bool) -> !(TBQueue ()) -> !(Maybe (MVar ())) -> NodeContext ssc
+NodeContext :: !(TVar SlottingState) -> !(Maybe (MVar FilePath)) -> !(SscNodeContext ssc) -> !(MVar HeaderHash) -> !(TVar LrcSyncData) -> !(TVar UserSecret) -> !(TBQueue (NodeId, NewestFirst NE (BlockHeader ssc))) -> !(TMVar (NodeId, BlockHeader ssc)) -> !(MVar ConfirmedProposalState) -> !LoggerConfig -> !NodeParams -> !(TVar Bool) -> !(TBQueue ()) -> !(Maybe (MVar ())) -> !UTCTime -> NodeContext ssc
 
 -- | Data needed for the slotting algorithm to work
 [ncSlottingState] :: NodeContext ssc -> !(TVar SlottingState)
@@ -3325,6 +3338,9 @@ NodeContext :: !(TVar SlottingState) -> !(Maybe (MVar FilePath)) -> !(SscNodeCon
 -- | Exclusive lock for sending messages to other nodes (if Nothing, no
 --   lock used)
 [ncSendLock] :: NodeContext ssc -> !(Maybe (MVar ()))
+
+-- | Time when node was started (<a>NodeContext</a> initialized).
+[ncStartTime] :: NodeContext ssc -> !UTCTime
 
 -- | Generate <a>PublicKey</a> from <tt>SecretKey</tt> of
 --   <a>NodeContext</a>.
@@ -3416,6 +3432,13 @@ setNtpLastSlot :: (MonadIO m, WithNodeContext ssc m) => SlotId -> m ()
 readNtpLastSlot :: (MonadIO m, WithNodeContext ssc m) => m SlotId
 readNtpMargin :: (MonadIO m, WithNodeContext ssc m) => m Microsecond
 readNtpData :: (MonadIO m, WithNodeContext ssc m) => m (Microsecond, Microsecond)
+
+-- | Returns node uptime based on current time and <a>ncStartTime</a>.
+getUptime :: (MonadIO m, WithNodeContext ssc m) => m Microsecond
+
+-- | Returns if <a>ncRecoveryHeader</a> is <a>Just</a> which is equivalent
+--   to "we're in recovery mode".
+isRecoveryMode :: (MonadIO m, WithNodeContext ssc m) => m Bool
 
 -- | Wrapper for monadic action which brings <a>NodeContext</a>.
 newtype ContextHolder ssc m a
@@ -4093,7 +4116,7 @@ sscGetLocalPayloadQ :: SscLocalDataClass ssc => SlotId -> LocalQuery ssc (SscPay
 
 -- | Make <a>SscLocalData</a> valid for given epoch, richmen and global
 --   state. of best known chain).
-sscNormalizeU :: SscLocalDataClass ssc => EpochIndex -> RichmenSet -> SscGlobalState ssc -> LocalUpdate ssc ()
+sscNormalizeU :: SscLocalDataClass ssc => EpochIndex -> RichmenStake -> SscGlobalState ssc -> LocalUpdate ssc ()
 
 -- | Create new (empty) local data. We are using this function instead of
 --   <tt>Default</tt> class, because it gives more flexibility. For
@@ -4109,7 +4132,7 @@ sscRollbackU :: SscGStateClass ssc => NewestFirst NE (Block ssc) -> SscGlobalUpd
 
 -- | Verify SSC-related part of given blocks with respect to current GState
 --   and apply them on success. Blocks must be from the same epoch.
-sscVerifyAndApplyBlocks :: SscGStateClass ssc => RichmenSet -> OldestFirst NE (Block ssc) -> SscVerifier ssc ()
+sscVerifyAndApplyBlocks :: SscGStateClass ssc => RichmenStake -> OldestFirst NE (Block ssc) -> SscVerifier ssc ()
 
 -- | Calculate <a>SharedSeed</a> for given epoch using
 --   <a>SscGlobalState</a>.
@@ -4177,109 +4200,6 @@ txListeners :: WorkMode ssc m => ([ListenerSpec m], OutSpecs)
 txStubListeners :: WithLogger m => ([ListenerSpec m], OutSpecs)
 processTx :: MinTxpWorkMode ssc m => (TxId, TxAux) -> m ProcessTxRes
 instance Pos.WorkMode.WorkMode ssc m => Pos.Communication.Relay.Relay m Pos.Txp.Types.Communication.TxMsgTag Pos.Types.Types.TxId Pos.Txp.Types.Communication.TxMsgContents
-
-
--- | Re-export of Pos.Block.Network.*
-module Pos.Block.Network
-announceBlock :: WorkMode ssc m => SendActions m -> MainBlockHeader ssc -> m ()
-announceBlockOuts :: OutSpecs
-handleHeadersCommunication :: WorkMode ssc m => ConversationActions (MsgHeaders ssc) MsgGetHeaders m -> m ()
-blockListeners :: (WorkMode ssc m) => ([ListenerSpec m], OutSpecs)
-blockStubListeners :: (SscHelpersClass ssc, WithLogger m) => Tagged ssc ([ListenerSpec m], OutSpecs)
-retrievalWorker :: forall ssc m. (SscWorkersClass ssc, WorkMode ssc m) => (WorkerSpec m, OutSpecs)
-handleUnsolicitedHeaders :: forall ssc m. (WorkMode ssc m) => NonEmpty (BlockHeader ssc) -> NodeId -> ConversationActions MsgGetHeaders (MsgHeaders ssc) m -> m ()
-requestTip :: forall ssc m. (WorkMode ssc m) => NodeId -> ConversationActions MsgGetHeaders (MsgHeaders ssc) m -> m ()
-requestHeaders :: forall ssc m. (WorkMode ssc m) => MsgGetHeaders -> Maybe (BlockHeader ssc) -> NodeId -> ConversationActions MsgGetHeaders (MsgHeaders ssc) m -> m ()
-
--- | Given nonempty list of valid blockheaders and nodeid, this function
---   will put them into download queue and they will be processed later.
---   Second argument is optional recovery mode tip -- after pack of blocks
---   is processed, next pack of headers will be requested until this header
---   hash is received.
-addToBlockRequestQueue :: forall ssc m. (WorkMode ssc m) => NewestFirst NE (BlockHeader ssc) -> Maybe (BlockHeader ssc) -> NodeId -> m ()
-
--- | Make <tt>GetHeaders</tt> message using our main chain. This function
---   chooses appropriate <tt>from</tt> hashes and puts them into
---   <tt>GetHeaders</tt> message.
-mkHeadersRequest :: WorkMode ssc m => Maybe HeaderHash -> m (Maybe MsgGetHeaders)
-requestTipOuts :: OutSpecs
-
--- | <tt>GetHeaders</tt> message. Behaviour of the response depends on
---   particular combination of <a>mghFrom</a> and <a>mghTo</a>.
---   
---   <ul>
---   <li><a>mghTo</a> resolves to some header (let's call it <tt>top</tt>
---   for convenience) -- node's tip if it's <tt>Nothing</tt>, header with
---   hash in <tt>Just</tt> if it's <tt>Just</tt>.</li>
---   <li>If <a>mghFrom</a> is empty, then semantics is "request to return
---   header of block <tt>top</tt>".</li>
---   <li>Otherwise (if <a>mghFrom</a> isn't empty) it represents the set of
---   checkpoints. Responding node will try to iterate headers from
---   <tt>top</tt> to older until it reaches any checkpoint. If it finds
---   checkpoint <tt>c</tt>, it returns all headers in range
---   <tt>[c.next..top]</tt>. If it doesn't find any checkpoint or depth of
---   searching exceeds <tt>recoveryHeadersMessage</tt>, it will try to find
---   the newest checkpoint <tt>cc</tt> from <a>mghFrom</a> that's in main
---   chain of responding node and then return at most
---   <tt>recoveryHeadersMessage</tt> headers starting with <tt>cc</tt> as
---   the oldest one, returning headers in range <tt>l2 = [cc.next..x]</tt>
---   where <tt>x</tt> is either <tt>top</tt> (in case <tt>length l2 &lt;
---   recoveryHeadersMessage</tt>) or some arbitrary header (and length is
---   precisely <tt>recoveryHeadersMessage</tt>).</li>
---   </ul>
-data MsgGetHeaders
-MsgGetHeaders :: ![HeaderHash] -> !(Maybe HeaderHash) -> MsgGetHeaders
-[mghFrom] :: MsgGetHeaders -> ![HeaderHash]
-[mghTo] :: MsgGetHeaders -> !(Maybe HeaderHash)
-
--- | <tt>GetHeaders</tt> message (see protocol specification).
-data MsgGetBlocks
-MsgGetBlocks :: !HeaderHash -> !HeaderHash -> MsgGetBlocks
-[mgbFrom] :: MsgGetBlocks -> !HeaderHash
-[mgbTo] :: MsgGetBlocks -> !HeaderHash
-
--- | <tt>Headers</tt> message (see protocol specification).
-newtype MsgHeaders ssc
-MsgHeaders :: (NewestFirst NE (BlockHeader ssc)) -> MsgHeaders ssc
-
--- | <a>Block</a> message (see protocol specification).
---   
---   The <tt>s</tt> parameter is used for passing block size limit to
---   deserialization instances (using <a>Data.Reflection</a>). Grep for
---   <tt>reify</tt> and <tt>reflect</tt> to see usage examples.
-newtype MsgBlock s ssc
-MsgBlock :: (Block ssc) -> MsgBlock s ssc
-
-module Pos.Block.Arbitrary
-newtype BlockHeaderList ssc
-BHL :: ([BlockHeader ssc], [PublicKey]) -> BlockHeaderList ssc
-[getHeaderList] :: BlockHeaderList ssc -> ([BlockHeader ssc], [PublicKey])
-instance Pos.Ssc.Class.Types.Ssc ssc => GHC.Classes.Eq (Pos.Block.Arbitrary.BlockHeaderList ssc)
-instance (Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Class.Types.SscProof ssc), Pos.Binary.Class.Bi Pos.Util.Binary.Raw, Pos.Ssc.Class.Types.Ssc ssc) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Types.Block.Types.BlockSignature ssc)
-instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Types.Block.Types.GenesisBlockHeader ssc)
-instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Types.Block.Class.BodyProof (Pos.Types.Block.Types.GenesisBlockchain ssc))
-instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Types.Block.Class.ConsensusData (Pos.Types.Block.Types.GenesisBlockchain ssc))
-instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Block.Arbitrary.BodyDependsOnConsensus (Pos.Types.Block.Types.GenesisBlockchain ssc))
-instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Types.Block.Class.Body (Pos.Types.Block.Types.GenesisBlockchain ssc))
-instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Types.Block.Class.GenericBlock (Pos.Types.Block.Types.GenesisBlockchain ssc))
-instance Pos.Binary.Class.Bi Pos.Util.Binary.Raw => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Merkle.MerkleRoot Pos.Types.Types.Tx)
-instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Merkle.MerkleTree Pos.Types.Types.Tx)
-instance (Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Class.Types.SscProof ssc), Pos.Binary.Class.Bi Pos.Util.Binary.Raw, Pos.Ssc.Class.Types.Ssc ssc) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Types.Block.Types.MainBlockHeader ssc)
-instance Test.QuickCheck.Arbitrary.Arbitrary h => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Data.Attributes.Attributes h)
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Block.Types.MainExtraHeaderData
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Block.Types.MainExtraBodyData
-instance (Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Class.Types.SscProof ssc), Pos.Binary.Class.Bi Pos.Util.Binary.Raw) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Types.Block.Class.BodyProof (Pos.Types.Block.Types.MainBlockchain ssc))
-instance (Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Class.Types.SscProof ssc), Pos.Binary.Class.Bi Pos.Util.Binary.Raw, Pos.Ssc.Class.Types.Ssc ssc) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Types.Block.Class.ConsensusData (Pos.Types.Block.Types.MainBlockchain ssc))
-instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Arbitrary.SscPayloadDependsOnSlot ssc) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Block.Arbitrary.BodyDependsOnConsensus (Pos.Types.Block.Types.MainBlockchain ssc))
-instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Class.Types.SscPayload ssc) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Types.Block.Class.Body (Pos.Types.Block.Types.MainBlockchain ssc))
-instance (Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Class.Types.SscProof ssc), Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Arbitrary.SscPayloadDependsOnSlot ssc), Pos.Ssc.Class.Helpers.SscHelpersClass ssc) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Types.Block.Class.GenericBlock (Pos.Types.Block.Types.MainBlockchain ssc))
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Block.Network.Types.MsgGetHeaders
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Block.Network.Types.MsgGetBlocks
-instance (Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Class.Types.SscProof ssc), Pos.Binary.Class.Bi Pos.Util.Binary.Raw, Pos.Ssc.Class.Types.Ssc ssc) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Block.Network.Types.MsgHeaders ssc)
-instance (Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Class.Types.SscProof ssc), Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Arbitrary.SscPayloadDependsOnSlot ssc), Pos.Ssc.Class.Helpers.SscHelpersClass ssc) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Block.Network.Types.MsgBlock s ssc)
-instance Pos.Types.Block.Types.BiSsc ssc => Data.Text.Buildable.Buildable (Pos.Types.Block.Types.BlockHeader ssc, Pos.Crypto.Signing.PublicKey)
-instance Pos.Types.Block.Types.BiSsc ssc => GHC.Show.Show (Pos.Block.Arbitrary.BlockHeaderList ssc)
-instance (Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Class.Types.SscPayload ssc), Pos.Ssc.Class.Helpers.SscHelpersClass ssc) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Block.Arbitrary.BlockHeaderList ssc)
 
 
 -- | Whole Update System in one module :)
@@ -4906,6 +4826,145 @@ unChangedConfPropsL :: Lens' USUndo (HashMap SoftwareVersion (PrevValue Confirme
 usWorkers :: WorkMode ssc m => ([WorkerSpec m], OutSpecs)
 
 
+-- | Module for exposing JSON instances for Cardano types
+module Pos.Aeson
+
+
+-- | Methods of reporting different unhealthy behaviour to server.
+module Pos.Reporting.Methods
+
+-- | Sends node's logs, taking <a>LoggerConfig</a> from
+--   <tt>NodeContext</tt>, retrieving all logger files from it. List of
+--   servers is also taken from node's configuration.
+sendReportNode :: (MonadIO m, MonadCatch m, WithNodeContext її m) => (([Text], FilePath) -> Bool) -> ReportType -> m ()
+
+-- | Retrieves node info that we would like to know when analyzing
+--   malicious behavior of node.
+getNodeInfo :: (MonadDHT m, MonadIO m) => m Text
+
+-- | Reports misbehaviour given reason string. Effectively designed for
+--   <tt>WorkMode</tt> context.
+reportMisbehaviour :: (MonadIO m, MonadCatch m, MonadDHT m, WithNodeContext її m, HasLoggerName m, CanLog m) => Text -> m ()
+
+-- | Given logs files list and report type, sends reports to URI asked. All
+--   files _must_ exist. Report server URI should be in form like
+--   "http(s):/<i>host:port</i>" without specified endpoint.
+sendReport :: (MonadIO m, MonadCatch m) => [FilePath] -> ReportType -> Text -> Version -> String -> m ()
+
+-- | Given logger config, retrieves all (logger name, filepath) for every
+--   logger that has file handle.
+retrieveLogFiles :: LoggerConfig -> [([Text], FilePath)]
+
+-- | Retrieves real filepathes of logs given filepathes from log
+--   description. Example: there's <tt>component.log</tt> in config, but
+--   this function will return <tt>[component.log.122,
+--   component.log.123]</tt>.
+chooseLogFiles :: (MonadIO m) => FilePath -> m [FilePath]
+
+
+-- | Re-export of Pos.Block.Network.*
+module Pos.Block.Network
+announceBlock :: WorkMode ssc m => SendActions m -> MainBlockHeader ssc -> m ()
+announceBlockOuts :: OutSpecs
+handleHeadersCommunication :: WorkMode ssc m => ConversationActions (MsgHeaders ssc) MsgGetHeaders m -> m ()
+blockListeners :: (WorkMode ssc m) => ([ListenerSpec m], OutSpecs)
+blockStubListeners :: (SscHelpersClass ssc, WithLogger m) => Tagged ssc ([ListenerSpec m], OutSpecs)
+retrievalWorker :: forall ssc m. (SscWorkersClass ssc, WorkMode ssc m) => (WorkerSpec m, OutSpecs)
+handleUnsolicitedHeaders :: forall ssc m. (WorkMode ssc m) => NonEmpty (BlockHeader ssc) -> NodeId -> ConversationActions MsgGetHeaders (MsgHeaders ssc) m -> m ()
+requestTip :: forall ssc m. (WorkMode ssc m) => NodeId -> ConversationActions MsgGetHeaders (MsgHeaders ssc) m -> m ()
+requestHeaders :: forall ssc m. (WorkMode ssc m) => MsgGetHeaders -> Maybe (BlockHeader ssc) -> NodeId -> ConversationActions MsgGetHeaders (MsgHeaders ssc) m -> m ()
+
+-- | Given nonempty list of valid blockheaders and nodeid, this function
+--   will put them into download queue and they will be processed later.
+--   Second argument is optional recovery mode tip -- after pack of blocks
+--   is processed, next pack of headers will be requested until this header
+--   hash is received.
+addToBlockRequestQueue :: forall ssc m. (WorkMode ssc m) => NewestFirst NE (BlockHeader ssc) -> Maybe (BlockHeader ssc) -> NodeId -> m ()
+
+-- | Make <tt>GetHeaders</tt> message using our main chain. This function
+--   chooses appropriate <tt>from</tt> hashes and puts them into
+--   <tt>GetHeaders</tt> message.
+mkHeadersRequest :: WorkMode ssc m => Maybe HeaderHash -> m (Maybe MsgGetHeaders)
+requestTipOuts :: OutSpecs
+
+-- | <tt>GetHeaders</tt> message. Behaviour of the response depends on
+--   particular combination of <a>mghFrom</a> and <a>mghTo</a>.
+--   
+--   <ul>
+--   <li><a>mghTo</a> resolves to some header (let's call it <tt>top</tt>
+--   for convenience) -- node's tip if it's <tt>Nothing</tt>, header with
+--   hash in <tt>Just</tt> if it's <tt>Just</tt>.</li>
+--   <li>If <a>mghFrom</a> is empty, then semantics is "request to return
+--   header of block <tt>top</tt>".</li>
+--   <li>Otherwise (if <a>mghFrom</a> isn't empty) it represents the set of
+--   checkpoints. Responding node will try to iterate headers from
+--   <tt>top</tt> to older until it reaches any checkpoint. If it finds
+--   checkpoint <tt>c</tt>, it returns all headers in range
+--   <tt>[c.next..top]</tt>. If it doesn't find any checkpoint or depth of
+--   searching exceeds <tt>recoveryHeadersMessage</tt>, it will try to find
+--   the newest checkpoint <tt>cc</tt> from <a>mghFrom</a> that's in main
+--   chain of responding node and then return at most
+--   <tt>recoveryHeadersMessage</tt> headers starting with <tt>cc</tt> as
+--   the oldest one, returning headers in range <tt>l2 = [cc.next..x]</tt>
+--   where <tt>x</tt> is either <tt>top</tt> (in case <tt>length l2 &lt;
+--   recoveryHeadersMessage</tt>) or some arbitrary header (and length is
+--   precisely <tt>recoveryHeadersMessage</tt>).</li>
+--   </ul>
+data MsgGetHeaders
+MsgGetHeaders :: ![HeaderHash] -> !(Maybe HeaderHash) -> MsgGetHeaders
+[mghFrom] :: MsgGetHeaders -> ![HeaderHash]
+[mghTo] :: MsgGetHeaders -> !(Maybe HeaderHash)
+
+-- | <tt>GetHeaders</tt> message (see protocol specification).
+data MsgGetBlocks
+MsgGetBlocks :: !HeaderHash -> !HeaderHash -> MsgGetBlocks
+[mgbFrom] :: MsgGetBlocks -> !HeaderHash
+[mgbTo] :: MsgGetBlocks -> !HeaderHash
+
+-- | <tt>Headers</tt> message (see protocol specification).
+newtype MsgHeaders ssc
+MsgHeaders :: (NewestFirst NE (BlockHeader ssc)) -> MsgHeaders ssc
+
+-- | <a>Block</a> message (see protocol specification).
+--   
+--   The <tt>s</tt> parameter is used for passing block size limit to
+--   deserialization instances (using <a>Data.Reflection</a>). Grep for
+--   <tt>reify</tt> and <tt>reflect</tt> to see usage examples.
+newtype MsgBlock s ssc
+MsgBlock :: (Block ssc) -> MsgBlock s ssc
+
+module Pos.Block.Arbitrary
+newtype BlockHeaderList ssc
+BHL :: ([BlockHeader ssc], [PublicKey]) -> BlockHeaderList ssc
+[getHeaderList] :: BlockHeaderList ssc -> ([BlockHeader ssc], [PublicKey])
+instance Pos.Ssc.Class.Types.Ssc ssc => GHC.Classes.Eq (Pos.Block.Arbitrary.BlockHeaderList ssc)
+instance (Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Class.Types.SscProof ssc), Pos.Binary.Class.Bi Pos.Util.Binary.Raw, Pos.Ssc.Class.Types.Ssc ssc) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Types.Block.Types.BlockSignature ssc)
+instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Types.Block.Types.GenesisBlockHeader ssc)
+instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Types.Block.Class.BodyProof (Pos.Types.Block.Types.GenesisBlockchain ssc))
+instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Types.Block.Class.ConsensusData (Pos.Types.Block.Types.GenesisBlockchain ssc))
+instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Block.Arbitrary.BodyDependsOnConsensus (Pos.Types.Block.Types.GenesisBlockchain ssc))
+instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Types.Block.Class.Body (Pos.Types.Block.Types.GenesisBlockchain ssc))
+instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Types.Block.Class.GenericBlock (Pos.Types.Block.Types.GenesisBlockchain ssc))
+instance Pos.Binary.Class.Bi Pos.Util.Binary.Raw => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Merkle.MerkleRoot Pos.Types.Types.Tx)
+instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Merkle.MerkleTree Pos.Types.Types.Tx)
+instance (Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Class.Types.SscProof ssc), Pos.Binary.Class.Bi Pos.Util.Binary.Raw, Pos.Ssc.Class.Types.Ssc ssc) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Types.Block.Types.MainBlockHeader ssc)
+instance Test.QuickCheck.Arbitrary.Arbitrary h => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Data.Attributes.Attributes h)
+instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Block.Types.MainExtraHeaderData
+instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Block.Types.MainExtraBodyData
+instance (Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Class.Types.SscProof ssc), Pos.Binary.Class.Bi Pos.Util.Binary.Raw) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Types.Block.Class.BodyProof (Pos.Types.Block.Types.MainBlockchain ssc))
+instance (Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Class.Types.SscProof ssc), Pos.Binary.Class.Bi Pos.Util.Binary.Raw, Pos.Ssc.Class.Types.Ssc ssc) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Types.Block.Class.ConsensusData (Pos.Types.Block.Types.MainBlockchain ssc))
+instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Arbitrary.SscPayloadDependsOnSlot ssc) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Block.Arbitrary.BodyDependsOnConsensus (Pos.Types.Block.Types.MainBlockchain ssc))
+instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Class.Types.SscPayload ssc) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Types.Block.Class.Body (Pos.Types.Block.Types.MainBlockchain ssc))
+instance (Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Class.Types.SscProof ssc), Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Arbitrary.SscPayloadDependsOnSlot ssc), Pos.Ssc.Class.Helpers.SscHelpersClass ssc) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Types.Block.Class.GenericBlock (Pos.Types.Block.Types.MainBlockchain ssc))
+instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Block.Network.Types.MsgGetHeaders
+instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Block.Network.Types.MsgGetBlocks
+instance (Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Class.Types.SscProof ssc), Pos.Binary.Class.Bi Pos.Util.Binary.Raw, Pos.Ssc.Class.Types.Ssc ssc) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Block.Network.Types.MsgHeaders ssc)
+instance (Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Class.Types.SscProof ssc), Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Arbitrary.SscPayloadDependsOnSlot ssc), Pos.Ssc.Class.Helpers.SscHelpersClass ssc) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Block.Network.Types.MsgBlock s ssc)
+instance Pos.Types.Block.Types.BiSsc ssc => Data.Text.Buildable.Buildable (Pos.Types.Block.Types.BlockHeader ssc, Pos.Crypto.Signing.PublicKey)
+instance Pos.Types.Block.Types.BiSsc ssc => GHC.Show.Show (Pos.Block.Arbitrary.BlockHeaderList ssc)
+instance (Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Class.Types.SscPayload ssc), Pos.Ssc.Class.Helpers.SscHelpersClass ssc) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Block.Arbitrary.BlockHeaderList ssc)
+
+
 -- | Re-exports of Pos.Communication.*
 module Pos.Communication
 
@@ -5011,11 +5070,6 @@ intersectCommMapWith :: (map -> HashMap StakeholderId x) -> CommitmentsMap -> ma
 --   '[vssMinTTL, vssMaxTTL]'.
 checkCertTTL :: EpochIndex -> VssCertificate -> Bool
 
--- | Verify that Commitment is correct.
---   
---   #verifyEncShare
-verifyCommitment :: Commitment -> Bool
-
 -- | Verify signature in SignedCommitment using epoch index.
 --   
 --   #checkSig
@@ -5025,6 +5079,11 @@ verifyCommitmentSignature :: Bi Commitment => EpochIndex -> SignedCommitment -> 
 --   
 --   #verifyCommitmentSignature #verifyCommitment
 verifySignedCommitment :: Bi Commitment => EpochIndex -> SignedCommitment -> VerificationRes
+
+-- | Verify that Commitment is correct.
+--   
+--   #verifyEncShare
+verifyCommitment :: Commitment -> Bool
 
 -- | Verify that Secret provided with Opening corresponds to given
 --   commitment.
@@ -5040,10 +5099,10 @@ mkGtProof :: GtPayload -> GtProof
 --   GodTossing. It contains encrypted shares and proof of secret.
 --   Invariant which must be ensured: commShares is not empty.
 data Commitment
-Commitment :: !(AsBinary SecretSharingExtra) -> !(AsBinary SecretProof) -> !(HashMap (AsBinary VssPublicKey) (AsBinary EncShare)) -> Commitment
+Commitment :: !(AsBinary SecretSharingExtra) -> !(AsBinary SecretProof) -> !(HashMap (AsBinary VssPublicKey) (NonEmpty (AsBinary EncShare))) -> Commitment
 [commExtra] :: Commitment -> !(AsBinary SecretSharingExtra)
 [commProof] :: Commitment -> !(AsBinary SecretProof)
-[commShares] :: Commitment -> !(HashMap (AsBinary VssPublicKey) (AsBinary EncShare))
+[commShares] :: Commitment -> !(HashMap (AsBinary VssPublicKey) (NonEmpty (AsBinary EncShare)))
 
 -- | Signature which ensures that commitment was generated by node with
 --   given public key for given epoch.
@@ -5067,17 +5126,19 @@ newtype Opening
 Opening :: (AsBinary Secret) -> Opening
 [getOpening] :: Opening -> (AsBinary Secret)
 type OpeningsMap = HashMap StakeholderId Opening
-type InnerSharesMap = HashMap StakeholderId (AsBinary Share)
 
--- | Each node generates a <tt>SharedSeed</tt>, breaks it into
---   <a>Share</a>s, and sends those encrypted shares to other nodes. In a
---   <a>SharesMap</a>, for each node we collect shares which said node has
---   received and decrypted.
+-- | Each node generates several <tt>SharedSeed</tt>s, breaks every
+--   <tt>SharedSeed</tt> into <a>Share</a>s, and sends those encrypted
+--   shares to other nodes (for i-th commitment at i-th element of NonEmpty
+--   list) In a <a>SharesMap</a>, for each node we collect shares which
+--   said node has received and decrypted.
 --   
---   Specifically, if node identified by <tt>Address</tt> X has received a
---   share from node identified by key Y, this share will be at
---   <tt>sharesMap ! X ! Y</tt>.
+--   Specifically, if node identified by <tt>Address</tt> X has received
+--   NonEmpty list of shares from node identified by key Y, this NonEmpty
+--   list will be at <tt>sharesMap ! X ! Y</tt>.
+type InnerSharesMap = HashMap StakeholderId (NonEmpty (AsBinary Share))
 type SharesMap = HashMap StakeholderId InnerSharesMap
+type SharesDistribution = HashMap StakeholderId Word16
 
 -- | VssCertificate allows VssPublicKey to participate in MPC. Each
 --   stakeholder should create a Vss keypair, sign VSS public key with
@@ -5132,10 +5193,10 @@ data SeedError
 
 -- | Some nodes in the <tt>OpeningsMap</tt> aren't in the set of
 --   participants
-ExtraneousOpenings :: (HashSet StakeholderId) -> SeedError
+ExtraneousOpenings :: !(HashSet StakeholderId) -> SeedError
 
 -- | Some nodes in the <tt>SharesMap</tt> aren't in the set of participants
-ExtraneousShares :: (HashSet StakeholderId) -> SeedError
+ExtraneousShares :: !(HashSet StakeholderId) -> SeedError
 
 -- | There were no participants so a random string couldn't be generated
 NoParticipants :: SeedError
@@ -5153,6 +5214,9 @@ BrokenSecret :: StakeholderId -> SeedError
 
 -- | Share can't be deserialized
 BrokenShare :: StakeholderId -> SeedError
+
+-- | Some errors during computation of commitment distribution
+CommitmentDistrError :: !Text -> SeedError
 hasCommitment :: StakeholderId -> GtGlobalState -> Bool
 hasOpening :: StakeholderId -> GtGlobalState -> Bool
 hasShares :: StakeholderId -> GtGlobalState -> Bool
@@ -5286,10 +5350,10 @@ GtParams :: !Bool -> !VssKeyPair -> GtParams
 -- | Key pair used for secret sharing
 [gtpVssKeyPair] :: GtParams -> !VssKeyPair
 data GtSecretStorage
-GtSecretStorage :: !(SignedCommitment) -> !Opening -> !EpochIndex -> GtSecretStorage
+GtSecretStorage :: !SignedCommitment -> !Opening -> !EpochIndex -> GtSecretStorage
 
 -- | Our commitment.
-[gssCommitment] :: GtSecretStorage -> !(SignedCommitment)
+[gssCommitment] :: GtSecretStorage -> !SignedCommitment
 
 -- | Corresponding opening
 [gssOpening] :: GtSecretStorage -> !Opening
@@ -5380,11 +5444,219 @@ difference :: VssCertData -> HashMap StakeholderId a -> VssCertData
 --   you using it you can't rollback deleted certificates. Use carefully.
 filter :: (StakeholderId -> Bool) -> VssCertData -> VssCertData
 
-module Pos.Security.Workers
-class Ssc ssc => SecurityWorkersClass ssc
-securityWorkers :: (SecurityWorkersClass ssc, WorkMode ssc m) => Tagged ssc ([WorkerSpec m], OutSpecs)
-instance Pos.Security.Class.SecurityWorkersClass Pos.Ssc.GodTossing.Type.SscGodTossing
-instance Pos.Security.Class.SecurityWorkersClass Pos.Ssc.NistBeacon.SscNistBeacon
+
+-- | Web part of wallet.
+module Pos.Wallet.Web
+
+-- | Servant API which provides access to wallet.
+type WalletApi = ("api" :> ("get_wallet" :> (Capture "address" CAddress :> Get '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("get_wallets" :> Get '[JSON] (Either WalletError [CWallet]))) :<|> (("api" :> ("send" :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> Post '[JSON] (Either WalletError CTx)))))) :<|> (("api" :> ("send" :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> (Capture "currency" CCurrency :> (Capture "title" Text :> (Capture "description" Text :> Post '[JSON] (Either WalletError CTx))))))))) :<|> (("api" :> ("txhistory" :> (Capture "address" CAddress :> (Capture "skip" Word :> (Capture "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word))))))) :<|> (("api" :> ("search_txhistory" :> (Capture "address" CAddress :> (Capture "search" Text :> (Capture "skip" Word :> (Capture "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word)))))))) :<|> (("api" :> ("update_transaction" :> (Capture "address" CAddress :> (Capture "transaction" CTxId :> (ReqBody '[JSON] CTxMeta :> Post '[JSON] (Either WalletError ())))))) :<|> (("api" :> ("new_wallet" :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("restore_wallet" :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("update_wallet" :> (Capture "address" CAddress :> (ReqBody '[JSON] CWalletMeta :> Post '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("delete_wallet" :> (Capture "address" CAddress :> Post '[JSON] (Either WalletError ())))) :<|> (("api" :> ("valid_address" :> (Capture "currency" CCurrency :> (Capture "address" Text :> Get '[JSON] (Either WalletError Bool))))) :<|> (("api" :> ("get_profile" :> Get '[JSON] (Either WalletError CProfile))) :<|> (("api" :> ("update_profile" :> (ReqBody '[JSON] CProfile :> Post '[JSON] (Either WalletError CProfile)))) :<|> (("api" :> ("redeem_ada" :> (ReqBody '[JSON] CWalletRedeem :> Post '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("next_update" :> Get '[JSON] (Either WalletError CUpdateInfo))) :<|> (("api" :> ("apply_update" :> Post '[JSON] (Either WalletError ()))) :<|> (("api" :> ("slot_duration" :> Get '[JSON] (Either WalletError Word))) :<|> (("api" :> ("system_version" :> Get '[JSON] (Either WalletError SoftwareVersion))) :<|> ("api" :> ("postpone_update" :> (Capture "time" POSIXTime :> Post '[JSON] (Either WalletError ()))))))))))))))))))))))
+
+-- | Helper Proxy.
+walletApi :: Proxy WalletApi
+
+-- | Client address
+data CAddress
+
+-- | currencies handled by client Note: Cardano does not deal with other
+--   currency than ADA yet
+data CCurrency
+ADA :: CCurrency
+BTC :: CCurrency
+ETH :: CCurrency
+
+-- | Client hash
+data CHash
+
+-- | type of transactions It can be an input <i> output </i> exchange
+--   transaction CTInOut CTExMeta -- Ex == exchange
+data CTType
+CTIn :: CTxMeta -> CTType
+CTOut :: CTxMeta -> CTType
+
+-- | Client profile (CP) all data of client are "meta data" - that is not
+--   provided by Cardano (Flow type: accountType)
+data CProfile
+CProfile :: Text -> Text -> Text -> CPwHash -> POSIXTime -> Text -> Text -> CProfile
+[cpName] :: CProfile -> Text
+[cpEmail] :: CProfile -> Text
+[cpPhoneNumber] :: CProfile -> Text
+[cpPwHash] :: CProfile -> CPwHash
+[cpPwCreated] :: CProfile -> POSIXTime
+[cpLocale] :: CProfile -> Text
+[cpPicture] :: CProfile -> Text
+
+-- | Password hash of client profile
+type CPwHash = Text
+
+-- | Client transaction (CTx) Provides all Data about a transaction needed
+--   by client. It includes meta data which are not part of Cardano, too
+--   (Flow type: transactionType)
+data CTx
+CTx :: CTxId -> Coin -> Word -> CTType -> CTx
+[ctId] :: CTx -> CTxId
+[ctAmount] :: CTx -> Coin
+[ctConfirmations] :: CTx -> Word
+[ctType] :: CTx -> CTType
+
+-- | Client transaction id
+data CTxId
+
+-- | meta data of transactions
+data CTxMeta
+CTxMeta :: CCurrency -> Text -> Text -> POSIXTime -> CTxMeta
+[ctmCurrency] :: CTxMeta -> CCurrency
+[ctmTitle] :: CTxMeta -> Text
+[ctmDescription] :: CTxMeta -> Text
+[ctmDate] :: CTxMeta -> POSIXTime
+
+-- | meta data of exchanges
+data CTExMeta
+CTExMeta :: CCurrency -> Text -> Text -> POSIXTime -> Text -> Text -> CAddress -> CTExMeta
+[cexCurrency] :: CTExMeta -> CCurrency
+[cexTitle] :: CTExMeta -> Text
+[cexDescription] :: CTExMeta -> Text
+[cexDate] :: CTExMeta -> POSIXTime
+[cexRate] :: CTExMeta -> Text
+[cexLabel] :: CTExMeta -> Text
+[cexAddress] :: CTExMeta -> CAddress
+
+-- | Client Wallet (CW) (Flow type: walletType)
+data CWallet
+CWallet :: !CAddress -> !Coin -> !CWalletMeta -> CWallet
+[cwAddress] :: CWallet -> !CAddress
+[cwAmount] :: CWallet -> !Coin
+[cwMeta] :: CWallet -> !CWalletMeta
+
+-- | A wallet can be used as personal or shared wallet
+data CWalletType
+CWTPersonal :: CWalletType
+CWTShared :: CWalletType
+
+-- | Meta data of CWallet Includes data which are not provided by Cardano
+data CWalletMeta
+CWalletMeta :: !CWalletType -> !CCurrency -> !Text -> CWalletMeta
+[cwType] :: CWalletMeta -> !CWalletType
+[cwCurrency] :: CWalletMeta -> !CCurrency
+[cwName] :: CWalletMeta -> !Text
+
+-- | Query data for wallet creation (wallet meta + backup phrase)
+data CWalletInit
+CWalletInit :: !BackupPhrase -> !CWalletMeta -> CWalletInit
+[cwBackupPhrase] :: CWalletInit -> !BackupPhrase
+[cwInitMeta] :: CWalletInit -> !CWalletMeta
+
+-- | Update system data
+data CUpdateInfo
+CUpdateInfo :: !SoftwareVersion -> !BlockVersion -> !ScriptVersion -> !Bool -> !Int -> !Int -> !Coin -> !Coin -> CUpdateInfo
+[cuiSoftwareVersion] :: CUpdateInfo -> !SoftwareVersion
+[cuiBlockVesion] :: CUpdateInfo -> !BlockVersion
+[cuiScriptVersion] :: CUpdateInfo -> !ScriptVersion
+[cuiImplicit] :: CUpdateInfo -> !Bool
+[cuiVotesFor] :: CUpdateInfo -> !Int
+[cuiVotesAgainst] :: CUpdateInfo -> !Int
+[cuiPositiveStake] :: CUpdateInfo -> !Coin
+[cuiNegativeStake] :: CUpdateInfo -> !Coin
+
+-- | Query data for redeem
+data CWalletRedeem
+CWalletRedeem :: !CAddress -> !Text -> CWalletRedeem
+[crWalletId] :: CWalletRedeem -> !CAddress
+[crSeed] :: CWalletRedeem -> !Text
+data NotifyEvent
+ConnectionOpened :: NotifyEvent
+
+-- | NewWalletTransaction CAddress | NewTransaction
+NetworkDifficultyChanged :: ChainDifficulty -> NotifyEvent
+LocalDifficultyChanged :: ChainDifficulty -> NotifyEvent
+UpdateAvailable :: NotifyEvent
+ConnectionClosed :: NotifyEvent
+
+-- | transform Address into CAddress TODO: this is not complitely safe. If
+--   someone changes implementation of Buildable Address. It should be
+--   probably more safe to introduce `class PSSimplified` that would have
+--   the same implementation has it is with Buildable Address but then
+--   person will know it will probably change something for purescript.
+addressToCAddress :: Address -> CAddress
+cAddressToAddress :: CAddress -> Either Text Address
+mkCTx :: Address -> ChainDifficulty -> TxHistoryEntry -> CTxMeta -> CTx
+mkCTxId :: Text -> CTxId
+
+-- | transform TxId into CTxId
+txIdToCTxId :: TxId -> CTxId
+ctTypeMeta :: CTType -> CTxMeta
+txContainsTitle :: Text -> CTx -> Bool
+
+-- | Creates <tt>CTUpdateInfo</tt> from <a>ConfirmedProposalState</a>
+toCUpdateInfo :: ConfirmedProposalState -> CUpdateInfo
+walletDocsText :: Text
+data WalletError
+
+-- | Some internal error.
+Internal :: !Text -> WalletError
+walletServeWebFull :: SscConstraint ssc => SendActions (RawRealMode ssc) -> Bool -> FilePath -> Bool -> Word16 -> RawRealMode ssc ()
+walletServerOuts :: OutSpecs
+walletServeWebLite :: SendActions WalletRealMode -> FilePath -> Bool -> Word16 -> WalletRealMode ()
+walletServerOuts :: OutSpecs
+walletApplication :: WalletWebMode ssc m => m (Server WalletApi) -> m Application
+walletServer :: (Monad m, WalletWebMode ssc (WalletWebHandler m)) => SendActions m -> WalletWebHandler m (WalletWebHandler m :~> Handler) -> WalletWebHandler m (Server WalletApi)
+walletServeImpl :: (MonadIO m, MonadMask m, WalletWebMode ssc (WalletWebHandler m)) => WalletWebHandler m Application -> FilePath -> Bool -> Word16 -> m ()
+walletServerOuts :: OutSpecs
+
+-- | Holder for web wallet data
+data WalletWebSockets m a
+type WebWalletSockets m = (MonadWalletWebSockets m, MonadIO m)
+
+-- | MonadWalletWebSockets stands for monad which is able to get web wallet
+--   sockets
+class Monad m => MonadWalletWebSockets m
+getWalletWebSockets :: MonadWalletWebSockets m => m ConnectionsVar
+type ConnectionsVar = TVar (Maybe Connection)
+initWSConnection :: MonadIO m => m ConnectionsVar
+closeWSConnection :: MonadIO m => ConnectionsVar -> m ()
+upgradeApplicationWS :: ConnectionsVar -> Application -> Application
+notify :: WebWalletSockets m => NotifyEvent -> m ()
+runWalletWS :: ConnectionsVar -> WalletWebSockets m a -> m a
+getWalletWebSocketsState :: Monad m => WalletWebSockets m ConnectionsVar
+
+-- | Holder for web wallet data
+newtype WalletWebDB m a
+WalletWebDB :: ReaderT WalletState m a -> WalletWebDB m a
+[getWalletWebDB] :: WalletWebDB m a -> ReaderT WalletState m a
+
+-- | Execute <a>WalletWebDB</a> action with given <a>WalletState</a>
+runWalletWebDB :: WalletState -> WalletWebDB m a -> m a
+getWalletState :: Monad m => WalletWebDB m WalletState
+type WalletState = ExtendedState WalletStorage
+
+-- | MonadWalletWebDB stands for monad which is able to get web wallet
+--   state
+class Monad m => MonadWalletWebDB m
+getWalletWebState :: MonadWalletWebDB m => m WalletState
+
+-- | Constraint for working with web wallet DB
+type WebWalletModeDB m = (MonadWalletWebDB m, MonadIO m, MonadMockable m)
+openState :: MonadIO m => Bool -> FilePath -> m WalletState
+openMemState :: MonadIO m => m WalletState
+closeState :: MonadIO m => WalletState -> m ()
+getProfile :: WebWalletModeDB m => m (Maybe CProfile)
+getWalletMetas :: WebWalletModeDB m => m [CWalletMeta]
+getWalletMeta :: WebWalletModeDB m => CAddress -> m (Maybe CWalletMeta)
+getTxMeta :: WebWalletModeDB m => CAddress -> CTxId -> m (Maybe CTxMeta)
+getWalletHistory :: WebWalletModeDB m => CAddress -> m (Maybe [CTxMeta])
+getUpdates :: WebWalletModeDB m => m [CUpdateInfo]
+getNextUpdate :: WebWalletModeDB m => m (Maybe CUpdateInfo)
+getPostponeUpdateUntil :: WebWalletModeDB m => m (Maybe POSIXTime)
+createWallet :: WebWalletModeDB m => CAddress -> CWalletMeta -> m ()
+setProfile :: WebWalletModeDB m => CProfile -> m ()
+setWalletMeta :: WebWalletModeDB m => CAddress -> CWalletMeta -> m ()
+setWalletTransactionMeta :: WebWalletModeDB m => CAddress -> CTxId -> CTxMeta -> m ()
+setWalletHistory :: WebWalletModeDB m => CAddress -> [(CTxId, CTxMeta)] -> m ()
+addOnlyNewTxMeta :: WebWalletModeDB m => CAddress -> CTxId -> CTxMeta -> m ()
+removeWallet :: WebWalletModeDB m => CAddress -> m ()
+addUpdate :: WebWalletModeDB m => CUpdateInfo -> m ()
+removeNextUpdate :: WebWalletModeDB m => m ()
+setPostponeUpdateUntil :: WebWalletModeDB m => POSIXTime -> m ()
+removePostponeUpdateUntil :: WebWalletModeDB m => m ()
 
 
 -- | Web-related part of cardano-sl.
@@ -5399,6 +5671,12 @@ serveWebBase :: MyWorkMode ssc m => Word16 -> m ()
 applicationBase :: MyWorkMode ssc m => m Application
 serveWebGT :: MyWorkMode SscGodTossing m => Word16 -> m ()
 applicationGT :: MyWorkMode SscGodTossing m => m Application
+
+module Pos.Security.Workers
+class Ssc ssc => SecurityWorkersClass ssc
+securityWorkers :: (SecurityWorkersClass ssc, WorkMode ssc m) => Tagged ssc ([WorkerSpec m], OutSpecs)
+instance Pos.Security.Class.SecurityWorkersClass Pos.Ssc.GodTossing.Type.SscGodTossing
+instance Pos.Security.Class.SecurityWorkersClass Pos.Ssc.NistBeacon.SscNistBeacon
 
 
 -- | High level workers.
@@ -5613,242 +5891,3 @@ applyLastUpdate :: (MonadUpdates m, MonadTrans t, MonadUpdates m', t m' ~ m) => 
 type TxMode ssc m = (MinWorkMode m, MonadBalances m, MonadTxHistory m, MonadMockable m, MonadFail m, MonadMask m)
 type WalletMode ssc m = (TxMode ssc m, MonadKeys m, MonadBlockchainInfo m, MonadUpdates m, WithWalletContext m, MonadDHT m, MonadSlots m, WithPeerState m)
 type WalletRealMode = PeerStateHolder (KademliaDHT (KeyStorage (WalletDB (ContextHolder (LoggerNameBox Production)))))
-
-
--- | Web part of wallet.
-module Pos.Wallet.Web
-
--- | Servant API which provides access to wallet.
-type WalletApi = ("api" :> ("get_wallet" :> (Capture "address" CAddress :> Get '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("get_wallets" :> Get '[JSON] (Either WalletError [CWallet]))) :<|> (("api" :> ("send" :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> Post '[JSON] (Either WalletError CTx)))))) :<|> (("api" :> ("send" :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> (Capture "currency" CCurrency :> (Capture "title" Text :> (Capture "description" Text :> Post '[JSON] (Either WalletError CTx))))))))) :<|> (("api" :> ("txhistory" :> (Capture "address" CAddress :> (Capture "skip" Word :> (Capture "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word))))))) :<|> (("api" :> ("search_txhistory" :> (Capture "address" CAddress :> (Capture "search" Text :> (Capture "skip" Word :> (Capture "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word)))))))) :<|> (("api" :> ("update_transaction" :> (Capture "address" CAddress :> (Capture "transaction" CTxId :> (ReqBody '[JSON] CTxMeta :> Post '[JSON] (Either WalletError ())))))) :<|> (("api" :> ("new_wallet" :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("restore_wallet" :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("update_wallet" :> (Capture "address" CAddress :> (ReqBody '[JSON] CWalletMeta :> Post '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("delete_wallet" :> (Capture "address" CAddress :> Post '[JSON] (Either WalletError ())))) :<|> (("api" :> ("valid_address" :> (Capture "currency" CCurrency :> (Capture "address" Text :> Get '[JSON] (Either WalletError Bool))))) :<|> (("api" :> ("get_profile" :> Get '[JSON] (Either WalletError CProfile))) :<|> (("api" :> ("update_profile" :> (ReqBody '[JSON] CProfile :> Post '[JSON] (Either WalletError CProfile)))) :<|> (("api" :> ("redeem_ada" :> (ReqBody '[JSON] CWalletRedeem :> Post '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("next_update" :> Get '[JSON] (Either WalletError CUpdateInfo))) :<|> (("api" :> ("apply_update" :> Post '[JSON] (Either WalletError ()))) :<|> (("api" :> ("slot_duration" :> Get '[JSON] (Either WalletError Word))) :<|> ("api" :> ("system_version" :> Get '[JSON] (Either WalletError SoftwareVersion))))))))))))))))))))
-
--- | Helper Proxy.
-walletApi :: Proxy WalletApi
-
--- | Client address
-data CAddress
-
--- | currencies handled by client Note: Cardano does not deal with other
---   currency than ADA yet
-data CCurrency
-ADA :: CCurrency
-BTC :: CCurrency
-ETH :: CCurrency
-
--- | Client hash
-data CHash
-
--- | type of transactions It can be an input <i> output </i> exchange
---   transaction CTInOut CTExMeta -- Ex == exchange
-data CTType
-CTIn :: CTxMeta -> CTType
-CTOut :: CTxMeta -> CTType
-
--- | Client profile (CP) all data of client are "meta data" - that is not
---   provided by Cardano (Flow type: accountType)
-data CProfile
-CProfile :: Text -> Text -> Text -> CPwHash -> POSIXTime -> Text -> Text -> CProfile
-[cpName] :: CProfile -> Text
-[cpEmail] :: CProfile -> Text
-[cpPhoneNumber] :: CProfile -> Text
-[cpPwHash] :: CProfile -> CPwHash
-[cpPwCreated] :: CProfile -> POSIXTime
-[cpLocale] :: CProfile -> Text
-[cpPicture] :: CProfile -> Text
-
--- | Password hash of client profile
-type CPwHash = Text
-
--- | Client transaction (CTx) Provides all Data about a transaction needed
---   by client. It includes meta data which are not part of Cardano, too
---   (Flow type: transactionType)
-data CTx
-CTx :: CTxId -> Coin -> Word -> CTType -> CTx
-[ctId] :: CTx -> CTxId
-[ctAmount] :: CTx -> Coin
-[ctConfirmations] :: CTx -> Word
-[ctType] :: CTx -> CTType
-
--- | Client transaction id
-data CTxId
-
--- | meta data of transactions
-data CTxMeta
-CTxMeta :: CCurrency -> Text -> Text -> POSIXTime -> CTxMeta
-[ctmCurrency] :: CTxMeta -> CCurrency
-[ctmTitle] :: CTxMeta -> Text
-[ctmDescription] :: CTxMeta -> Text
-[ctmDate] :: CTxMeta -> POSIXTime
-
--- | meta data of exchanges
-data CTExMeta
-CTExMeta :: CCurrency -> Text -> Text -> Text -> Text -> Text -> CAddress -> CTExMeta
-[cexCurrency] :: CTExMeta -> CCurrency
-[cexTitle] :: CTExMeta -> Text
-[cexDescription] :: CTExMeta -> Text
-[cexDate] :: CTExMeta -> Text
-[cexRate] :: CTExMeta -> Text
-[cexLabel] :: CTExMeta -> Text
-[cexAddress] :: CTExMeta -> CAddress
-
--- | Client Wallet (CW) (Flow type: walletType)
-data CWallet
-CWallet :: !CAddress -> !Coin -> !CWalletMeta -> CWallet
-[cwAddress] :: CWallet -> !CAddress
-[cwAmount] :: CWallet -> !Coin
-[cwMeta] :: CWallet -> !CWalletMeta
-
--- | A wallet can be used as personal or shared wallet
-data CWalletType
-CWTPersonal :: CWalletType
-CWTShared :: CWalletType
-
--- | Meta data of CWallet Includes data which are not provided by Cardano
-data CWalletMeta
-CWalletMeta :: !CWalletType -> !CCurrency -> !Text -> CWalletMeta
-[cwType] :: CWalletMeta -> !CWalletType
-[cwCurrency] :: CWalletMeta -> !CCurrency
-[cwName] :: CWalletMeta -> !Text
-
--- | Query data for wallet creation (wallet meta + backup phrase)
-data CWalletInit
-CWalletInit :: !BackupPhrase -> !CWalletMeta -> CWalletInit
-[cwBackupPhrase] :: CWalletInit -> !BackupPhrase
-[cwInitMeta] :: CWalletInit -> !CWalletMeta
-
--- | Update system data
-data CUpdateInfo
-CUpdateInfo :: !SoftwareVersion -> !BlockVersion -> !ScriptVersion -> !Bool -> !Int -> !Int -> !Coin -> !Coin -> CUpdateInfo
-[cuiSoftwareVersion] :: CUpdateInfo -> !SoftwareVersion
-[cuiBlockVesion] :: CUpdateInfo -> !BlockVersion
-[cuiScriptVersion] :: CUpdateInfo -> !ScriptVersion
-[cuiImplicit] :: CUpdateInfo -> !Bool
-[cuiVotesFor] :: CUpdateInfo -> !Int
-[cuiVotesAgainst] :: CUpdateInfo -> !Int
-[cuiPositiveStake] :: CUpdateInfo -> !Coin
-[cuiNegativeStake] :: CUpdateInfo -> !Coin
-
--- | Query data for redeem
-data CWalletRedeem
-CWalletRedeem :: !CAddress -> !Text -> CWalletRedeem
-[crWalletId] :: CWalletRedeem -> !CAddress
-[crSeed] :: CWalletRedeem -> !Text
-data NotifyEvent
-ConnectionOpened :: NotifyEvent
-
--- | NewWalletTransaction CAddress | NewTransaction
-NetworkDifficultyChanged :: ChainDifficulty -> NotifyEvent
-LocalDifficultyChanged :: ChainDifficulty -> NotifyEvent
-UpdateAvailable :: NotifyEvent
-ConnectionClosed :: NotifyEvent
-
--- | transform Address into CAddress TODO: this is not complitely safe. If
---   someone changes implementation of Buildable Address. It should be
---   probably more safe to introduce `class PSSimplified` that would have
---   the same implementation has it is with Buildable Address but then
---   person will know it will probably change something for purescript.
-addressToCAddress :: Address -> CAddress
-cAddressToAddress :: CAddress -> Either Text Address
-mkCTx :: Address -> ChainDifficulty -> TxHistoryEntry -> CTxMeta -> CTx
-mkCTxId :: Text -> CTxId
-
--- | transform TxId into CTxId
-txIdToCTxId :: TxId -> CTxId
-ctTypeMeta :: CTType -> CTxMeta
-txContainsTitle :: Text -> CTx -> Bool
-
--- | Creates <tt>CTUpdateInfo</tt> from <a>ConfirmedProposalState</a>
-toCUpdateInfo :: ConfirmedProposalState -> CUpdateInfo
-walletDocsText :: Text
-data WalletError
-
--- | Some internal error.
-Internal :: !Text -> WalletError
-walletServeWebFull :: SscConstraint ssc => SendActions (RawRealMode ssc) -> Bool -> FilePath -> Bool -> Word16 -> RawRealMode ssc ()
-walletServerOuts :: OutSpecs
-walletServeWebLite :: SendActions WalletRealMode -> FilePath -> Bool -> Word16 -> WalletRealMode ()
-walletServerOuts :: OutSpecs
-walletApplication :: WalletWebMode ssc m => m (Server WalletApi) -> m Application
-walletServer :: (Monad m, WalletWebMode ssc (WalletWebHandler m)) => SendActions m -> WalletWebHandler m (WalletWebHandler m :~> Handler) -> WalletWebHandler m (Server WalletApi)
-walletServeImpl :: (MonadIO m, MonadMask m, WalletWebMode ssc (WalletWebHandler m)) => WalletWebHandler m Application -> FilePath -> Bool -> Word16 -> m ()
-walletServerOuts :: OutSpecs
-
--- | Holder for web wallet data
-data WalletWebSockets m a
-type WebWalletSockets m = (MonadWalletWebSockets m, MonadIO m)
-
--- | MonadWalletWebSockets stands for monad which is able to get web wallet
---   sockets
-class Monad m => MonadWalletWebSockets m
-getWalletWebSockets :: MonadWalletWebSockets m => m ConnectionsVar
-type ConnectionsVar = TVar (Maybe Connection)
-initWSConnection :: MonadIO m => m ConnectionsVar
-closeWSConnection :: MonadIO m => ConnectionsVar -> m ()
-upgradeApplicationWS :: ConnectionsVar -> Application -> Application
-notify :: WebWalletSockets m => NotifyEvent -> m ()
-runWalletWS :: ConnectionsVar -> WalletWebSockets m a -> m a
-getWalletWebSocketsState :: Monad m => WalletWebSockets m ConnectionsVar
-
--- | Holder for web wallet data
-newtype WalletWebDB m a
-WalletWebDB :: ReaderT WalletState m a -> WalletWebDB m a
-[getWalletWebDB] :: WalletWebDB m a -> ReaderT WalletState m a
-
--- | Execute <a>WalletWebDB</a> action with given <a>WalletState</a>
-runWalletWebDB :: WalletState -> WalletWebDB m a -> m a
-getWalletState :: Monad m => WalletWebDB m WalletState
-type WalletState = ExtendedState WalletStorage
-
--- | MonadWalletWebDB stands for monad which is able to get web wallet
---   state
-class Monad m => MonadWalletWebDB m
-getWalletWebState :: MonadWalletWebDB m => m WalletState
-
--- | Constraint for working with web wallet DB
-type WebWalletModeDB m = (MonadWalletWebDB m, MonadIO m, MonadMockable m)
-openState :: MonadIO m => Bool -> FilePath -> m WalletState
-openMemState :: MonadIO m => m WalletState
-closeState :: MonadIO m => WalletState -> m ()
-getProfile :: WebWalletModeDB m => m (Maybe CProfile)
-getWalletMetas :: WebWalletModeDB m => m [CWalletMeta]
-getWalletMeta :: WebWalletModeDB m => CAddress -> m (Maybe CWalletMeta)
-getTxMeta :: WebWalletModeDB m => CAddress -> CTxId -> m (Maybe CTxMeta)
-getWalletHistory :: WebWalletModeDB m => CAddress -> m (Maybe [CTxMeta])
-getUpdates :: WebWalletModeDB m => m [CUpdateInfo]
-getNextUpdate :: WebWalletModeDB m => m (Maybe CUpdateInfo)
-createWallet :: WebWalletModeDB m => CAddress -> CWalletMeta -> m ()
-setProfile :: WebWalletModeDB m => CProfile -> m ()
-setWalletMeta :: WebWalletModeDB m => CAddress -> CWalletMeta -> m ()
-setWalletTransactionMeta :: WebWalletModeDB m => CAddress -> CTxId -> CTxMeta -> m ()
-setWalletHistory :: WebWalletModeDB m => CAddress -> [(CTxId, CTxMeta)] -> m ()
-addOnlyNewTxMeta :: WebWalletModeDB m => CAddress -> CTxId -> CTxMeta -> m ()
-removeWallet :: WebWalletModeDB m => CAddress -> m ()
-addUpdate :: WebWalletModeDB m => CUpdateInfo -> m ()
-removeNextUpdate :: WebWalletModeDB m => m ()
-
-
--- | Module for exposing JSON instances for Cardano types
-module Pos.Aeson
-
-
--- | Methods of reporting different unhealthy behaviour to server.
-module Pos.Reporting.Methods
-
--- | Sends node's logs, taking <tt>LoggerConfig</tt> from
---   <tt>NodeContext</tt>, retrieving all logger files from it. List of
---   servers is also taken from node's configuration.
-sendReportNode :: (MonadIO m, MonadCatch m, WithNodeContext її m) => ReportType -> m ()
-
--- | Given logs files list and report type, sends reports to URI asked. All
---   files _must_ exist. Report server URI should be in form like
---   "http(s):/<i>host:port</i>" without specified endpoint.
-sendReport :: (MonadIO m, MonadCatch m) => [FilePath] -> ReportType -> Text -> Version -> String -> m ()
-
--- | Given logger config, retrieves all (logger name, filepath) for every
---   logger that has file handle.
-retrieveLogFiles :: LoggerTree -> [([Text], FilePath)]
-
--- | Retrieves real filepathes of logs given filepathes from log
---   description. Example: there's <tt>component.log</tt> in config, but
---   this function will return <tt>[component.log.122,
---   component.log.123]</tt>.
-chooseLogFiles :: (MonadIO m) => FilePath -> m [FilePath]
