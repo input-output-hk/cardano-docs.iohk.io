@@ -1342,6 +1342,10 @@ getUSPath :: UserSecret -> FilePath
 -- | Create a simple UserSecret from secret key and file path
 simpleUserSecret :: SecretKey -> FilePath -> UserSecret
 
+-- | Create user secret file at the given path, but only when one doesn't
+--   already exist.
+initializeUserSecret :: (MonadIO m) => FilePath -> m ()
+
 -- | Reads user secret from the given file. If the file does not exist/is
 --   empty, returns empty user secret
 peekUserSecret :: (MonadIO m) => FilePath -> m UserSecret
@@ -3098,11 +3102,11 @@ NodeDBs :: !(DB ssc) -> !(DB ssc) -> !(DB ssc) -> !(DB ssc) -> !RWLock -> NodeDB
 
 -- | Lock on misc db
 [_miscLock] :: NodeDBs ssc -> !RWLock
-blockDB :: forall ssc_a79rP. Lens' (NodeDBs ssc_a79rP) (DB ssc_a79rP)
-gStateDB :: forall ssc_a79rP. Lens' (NodeDBs ssc_a79rP) (DB ssc_a79rP)
-lrcDB :: forall ssc_a79rP. Lens' (NodeDBs ssc_a79rP) (DB ssc_a79rP)
-miscDB :: forall ssc_a79rP. Lens' (NodeDBs ssc_a79rP) (DB ssc_a79rP)
-miscLock :: forall ssc_a79rP. Lens' (NodeDBs ssc_a79rP) RWLock
+blockDB :: forall ssc_a7a4W. Lens' (NodeDBs ssc_a7a4W) (DB ssc_a7a4W)
+gStateDB :: forall ssc_a7a4W. Lens' (NodeDBs ssc_a7a4W) (DB ssc_a7a4W)
+lrcDB :: forall ssc_a7a4W. Lens' (NodeDBs ssc_a7a4W) (DB ssc_a7a4W)
+miscDB :: forall ssc_a7a4W. Lens' (NodeDBs ssc_a7a4W) (DB ssc_a7a4W)
+miscLock :: forall ssc_a7a4W. Lens' (NodeDBs ssc_a7a4W) RWLock
 newtype Snapshot
 Snapshot :: Snapshot -> Snapshot
 usingSnapshot :: (MonadIO m, MonadMask m) => DB ssc -> (Snapshot -> m a) -> m a
@@ -4182,6 +4186,10 @@ newtype SscPayloadDependsOnSlot ssc
 SscPayloadDependsOnSlot :: (SlotId -> Gen (SscPayload ssc)) -> SscPayloadDependsOnSlot ssc
 [genPayloadDependsOnSlot] :: SscPayloadDependsOnSlot ssc -> SlotId -> Gen (SscPayload ssc)
 instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Arbitrary.SscPayloadDependsOnSlot Pos.Ssc.NistBeacon.SscNistBeacon)
+
+module Pos.Genesis.Arbitrary
+instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Genesis.Types.GenesisData
+instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Genesis.Types.StakeDistribution
 
 
 -- | Server which handles transactions.
@@ -5858,10 +5866,6 @@ module Pos.Reporting.Methods
 --   <tt>NodeContext</tt>, retrieving all logger files from it. List of
 --   servers is also taken from node's configuration.
 sendReportNode :: (MonadIO m, MonadCatch m, WithNodeContext її m) => ReportType -> m ()
-
--- | Retrieves node info that we would like to know whne analyzing
---   malicious behavior of node.
-getNodeInfo :: WorkMode ssc m => m Text
 
 -- | Given logs files list and report type, sends reports to URI asked. All
 --   files _must_ exist. Report server URI should be in form like
