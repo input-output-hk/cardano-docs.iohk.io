@@ -32,7 +32,7 @@ exports, among other important functions and types we'll use, the `mkSumType`
 function. This function works for any Haskell type that has an equivalent in
 PureScript, like Haskell's `Int` and PureScript's `Number`, Haskell's strings
 and PureScript's `String`, Haskell's tuple, `(,)`, and PureScript's
-`Tuple`, Haskell's records, and PureScript's, which only have a slight
+`Tuple`, Haskell's records, and PureScript's records, which only have a slight
 difference in syntax, and so on.
 
 In these cases, all that one needs to write is, for example,
