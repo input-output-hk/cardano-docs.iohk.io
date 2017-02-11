@@ -63,14 +63,14 @@ Listeners handle incoming messages and respond to them.
 Various supplemental listeners will not be covered, focusing on the main ones instead.
 
 Mostly listeners use *Relay* framework, which inludes three type of messages:
-  - `Inventory` message: node publishes message to network when known a new data.
+  - `Inventory` message: node publishes message to network when gets a new data.
   - `Request` message: node requests a new data which  was published in `Inventory` message.
-  (from other node), if this data is not yet known by this node
-  - `Data` message: node replies by this message on `Request` message. `Data` message contains concrete data.
+  (from other node), if this data is not known yet by this node
+  - `Data` message: node replies with this message on `Request` message. `Data` message contains concrete data.
 
 For instance, when user creates a new transaction, wallet sends `Inventory` message with
 transaction id to network, if node which recieved `Inventory` doesn't know transaction with such id, 
-then it replies `Request` message, after that wallet sends this transaction in `Data` message.
+then it replies with `Request` message, after that wallet sends this transaction in `Data` message.
 After node recieved `Data` message it can send `Inventroy` message
 to their neighbors in DHT network and repeat previous iterations again.
 
