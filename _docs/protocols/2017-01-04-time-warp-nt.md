@@ -19,7 +19,7 @@ Time-warp is split up into two parts:
 1. `Mockable` interfaces.
 2. Network functionality.
 
-# Mockable
+## Mockable
 
 `Mockable` interfaces allow to abstract from language-specific details of
 implementation of the basic functions.
@@ -35,14 +35,14 @@ environment, where the latter allows to emulate time, threads, networking, etc.
 prototypes of the functions.
 
 
-# Networking
+## Networking
 
 This layer is written on top of _network-transport_ and provides network
 capabilities for the application layer. It is split up into two sub-layers:
 **lower** and **upper**.
 
 
-## Lower Layer
+### Lower Layer
 
 This sub-layer is a direct wrapper over _network-transport_, and it provides
 a convenient interface which allows to initiate lightweight connection and
@@ -51,7 +51,7 @@ for more info.
 
 It supports two types of connections, **unidirectional** and **bidirectional**.
 
-### Unidirectional Connections
+#### Unidirectional Connections
 
 Unidirectional connections allow to send a stream of bytes without waiting for
 peer's response.
@@ -71,7 +71,7 @@ Upon connection initialization, a node sends `UNI`:
 
 `Word8` represents 8-bit unsigned integer value.
 
-### Bidirectional Сonnections
+#### Bidirectional Сonnections
 
 Bidirectional connections allow both nodes to send and receive bytes to each other.
 
@@ -113,7 +113,7 @@ The opposite case could take place if the node never sent request on that nonce
 normal, and the node should ignore this acknowledgement.
 
 
-## Messaging
+### Messaging
 
 Before talking about upper layer, let's describe messaging.
 
@@ -123,7 +123,7 @@ function. It returns unique message identifier, which is sent along with the
 message itself and allows receiver to select correct handler to process this message.
 
 
-## Upper Layer
+### Upper Layer
 
 This sub-layer enables message exchange. It provides two styles of communication:
 
@@ -152,10 +152,10 @@ related message, and several listeners with non-overlapping message types
 could be defined. Listeners could be of two types:
 
 1. `ListenerActionOneMsg`, for *one-message style*.
-2. `ListenerActionConversation`, for *conversation style*.
+2. `ListenerActionConversation`, for *conversabtion style*.
 
 
-## Serialization
+### Serialization
 
 Time-warp doesn't rely on any predefined serialization strategy, but rather
 allows users to use their own.
