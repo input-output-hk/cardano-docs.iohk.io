@@ -59,25 +59,32 @@ block (if you're the selected stakeholder), repeat.
 
 ### Listeners
 
-Listeners handle incoming messages and respond to them. Various
-supplemental listeners will not be covered, focusing on the main ones
-instead:
+Listeners handle incoming messages and respond to them. 
+Various supplemental listeners will not be covered, focusing on the main ones instead.
+
+Mostly listeners use *Relay* framework, which inludes three type of messages:
+  - `Inventory` message: node publishes message to network when known a new data.
+  - `Request` message: node requests a new data which  was published in `Inventory` message.
+  (from other node), if this data is not yet known by this node
+  - `Data` message: node replies by this message on `Request` message. `Data` message contains concrete data.
+
+For instance, when user creates a new transaction, wallet sends `Inventory` message with
+transaction id to network, if node which recieved `Inventory` doesn't know transaction with such id, 
+then it replies `Request` message, after that wallet sends this transaction in `Data` message.
+After node recieved `Data` message it can send `Inventroy` message
+to their neighbors in DHT network and repeat previous iterations again.
+
+Other example is:
 
 - Block listeners:
-    - `handleBlock`: Handles an incoming block. Takes transactions from it,
-    sends the block header to other nodes, etc.
     - `handleBlockHeader`: Handles an incoming block header. Decides whether
     the block is needed; if it is needed, requests the block.
+    
     - `handleBlockRequest`: Handles an incoming block request. If the block is
     in possession, sends it to the other node.
-
-- Transaction listeners:
-    - `handleTx`: Processes a single transaction.
-    - `handleTxs`: Processes multiple transactions and relays ones
-    that have validated successfully to other nodes.
-
-- SSC Listeners:
-    - `handleSsc`: Handles consensus-related messages and responds to them.
+    
+    - `handleBlock`: Handles an incoming block. Takes transactions from it,
+    sends the block header to other nodes, etc.
 
 ### Workers
 
