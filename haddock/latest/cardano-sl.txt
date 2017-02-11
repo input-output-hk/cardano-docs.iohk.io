@@ -5859,6 +5859,10 @@ module Pos.Reporting.Methods
 --   servers is also taken from node's configuration.
 sendReportNode :: (MonadIO m, MonadCatch m, WithNodeContext її m) => ReportType -> m ()
 
+-- | Retrieves node info that we would like to know whne analyzing
+--   malicious behavior of node.
+getNodeInfo :: WorkMode ssc m => m Text
+
 -- | Given logs files list and report type, sends reports to URI asked. All
 --   files _must_ exist. Report server URI should be in form like
 --   "http(s):/<i>host:port</i>" without specified endpoint.
