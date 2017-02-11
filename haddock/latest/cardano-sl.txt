@@ -3086,11 +3086,11 @@ NodeDBs :: !(DB ssc) -> !(DB ssc) -> !(DB ssc) -> !(DB ssc) -> !RWLock -> NodeDB
 
 -- | Lock on misc db
 [_miscLock] :: NodeDBs ssc -> !RWLock
-blockDB :: forall ssc_a7dhn. Lens' (NodeDBs ssc_a7dhn) (DB ssc_a7dhn)
-gStateDB :: forall ssc_a7dhn. Lens' (NodeDBs ssc_a7dhn) (DB ssc_a7dhn)
-lrcDB :: forall ssc_a7dhn. Lens' (NodeDBs ssc_a7dhn) (DB ssc_a7dhn)
-miscDB :: forall ssc_a7dhn. Lens' (NodeDBs ssc_a7dhn) (DB ssc_a7dhn)
-miscLock :: forall ssc_a7dhn. Lens' (NodeDBs ssc_a7dhn) RWLock
+blockDB :: forall ssc_a7daj. Lens' (NodeDBs ssc_a7daj) (DB ssc_a7daj)
+gStateDB :: forall ssc_a7daj. Lens' (NodeDBs ssc_a7daj) (DB ssc_a7daj)
+lrcDB :: forall ssc_a7daj. Lens' (NodeDBs ssc_a7daj) (DB ssc_a7daj)
+miscDB :: forall ssc_a7daj. Lens' (NodeDBs ssc_a7daj) (DB ssc_a7daj)
+miscLock :: forall ssc_a7daj. Lens' (NodeDBs ssc_a7daj) RWLock
 newtype Snapshot
 Snapshot :: Snapshot -> Snapshot
 usingSnapshot :: (MonadIO m, MonadMask m) => DB ssc -> (Snapshot -> m a) -> m a
@@ -5188,6 +5188,73 @@ newtype DBPoll m a
 DBPoll :: m a -> DBPoll m a
 [runDBPoll] :: DBPoll m a -> m a
 
+-- | PollVerFailure represents all possible errors which can appear in Poll
+--   data verification.
+data PollVerFailure
+PollWrongScriptVersion :: !ScriptVersion -> !ScriptVersion -> !UpId -> PollVerFailure
+[pwsvExpected] :: PollVerFailure -> !ScriptVersion
+[pwsvFound] :: PollVerFailure -> !ScriptVersion
+[pwsvUpId] :: PollVerFailure -> !UpId
+
+-- | Slot duration for this block version is already known and the one we
+--   saw doesn't match it
+PollWrongSlotDuration :: !Millisecond -> !Millisecond -> !UpId -> PollVerFailure
+[pwsdExpected] :: PollVerFailure -> !Millisecond
+[pwsdFound] :: PollVerFailure -> !Millisecond
+[pwsdUpId] :: PollVerFailure -> !UpId
+
+-- | Max block size for this block version is already known and the one we
+--   saw doesn't match it
+PollWrongMaxBlockSize :: !Byte -> !Byte -> !UpId -> PollVerFailure
+[pwmbsExpected] :: PollVerFailure -> !Byte
+[pwmbsFound] :: PollVerFailure -> !Byte
+[pwmbsUpId] :: PollVerFailure -> !UpId
+
+-- | A proposal tried to increase the block size limit more than it was
+--   allowed to
+PollLargeMaxBlockSize :: !Byte -> !Byte -> !UpId -> PollVerFailure
+[plmbsMaxPossible] :: PollVerFailure -> !Byte
+[plmbsFound] :: PollVerFailure -> !Byte
+[plmbsUpId] :: PollVerFailure -> !UpId
+PollNotFoundScriptVersion :: !BlockVersion -> PollVerFailure
+PollSmallProposalStake :: !Coin -> !Coin -> !UpId -> PollVerFailure
+[pspsThreshold] :: PollVerFailure -> !Coin
+[pspsActual] :: PollVerFailure -> !Coin
+[pspsUpId] :: PollVerFailure -> !UpId
+PollNotRichman :: !StakeholderId -> !Coin -> !(Maybe Coin) -> PollVerFailure
+[pnrStakeholder] :: PollVerFailure -> !StakeholderId
+[pnrThreshold] :: PollVerFailure -> !Coin
+[pnrStake] :: PollVerFailure -> !(Maybe Coin)
+PollUnknownProposal :: !StakeholderId -> !UpId -> PollVerFailure
+[pupStakeholder] :: PollVerFailure -> !StakeholderId
+[pupProposal] :: PollVerFailure -> !UpId
+PollUnknownStakes :: !EpochIndex -> PollVerFailure
+Poll2ndActiveProposal :: !SoftwareVersion -> PollVerFailure
+PollWrongSoftwareVersion :: !(Maybe NumSoftwareVersion) -> !ApplicationName -> !NumSoftwareVersion -> !UpId -> PollVerFailure
+[pwsvStored] :: PollVerFailure -> !(Maybe NumSoftwareVersion)
+[pwsvApp] :: PollVerFailure -> !ApplicationName
+[pwsvGiven] :: PollVerFailure -> !NumSoftwareVersion
+[pwsvUpId] :: PollVerFailure -> !UpId
+PollProposalIsDecided :: !UpId -> !StakeholderId -> PollVerFailure
+[ppidUpId] :: PollVerFailure -> !UpId
+[ppidStakeholder] :: PollVerFailure -> !StakeholderId
+PollExtraRevote :: !UpId -> !StakeholderId -> !Bool -> PollVerFailure
+[perUpId] :: PollVerFailure -> !UpId
+[perStakeholder] :: PollVerFailure -> !StakeholderId
+[perDecision] :: PollVerFailure -> !Bool
+PollWrongHeaderBlockVersion :: !BlockVersion -> !BlockVersion -> PollVerFailure
+[pwhpvGiven] :: PollVerFailure -> !BlockVersion
+[pwhpvAdopted] :: PollVerFailure -> !BlockVersion
+PollBadBlockVersion :: !UpId -> !BlockVersion -> !BlockVersion -> PollVerFailure
+[pbpvUpId] :: PollVerFailure -> !UpId
+[pbpvGiven] :: PollVerFailure -> !BlockVersion
+[pbpvAdopted] :: PollVerFailure -> !BlockVersion
+PollTooBigBlock :: !HeaderHash -> !Byte -> !Byte -> PollVerFailure
+[ptbbHash] :: PollVerFailure -> !HeaderHash
+[ptbbSize] :: PollVerFailure -> !Byte
+[ptbbLimit] :: PollVerFailure -> !Byte
+PollInternalError :: !Text -> PollVerFailure
+
 -- | Verify UpdatePayload with respect to data provided by MonadPoll. If
 --   data is valid it is also applied. Otherwise PollVerificationFailure is
 --   thrown using MonadError type class. When first flag is true and
@@ -5400,73 +5467,6 @@ pmDelActivePropsL :: Lens' PollModifier (HashSet UpId)
 pmNewActivePropsIdxL :: Lens' PollModifier (HashMap ApplicationName UpId)
 pmDelActivePropsIdxL :: Lens' PollModifier (HashMap ApplicationName UpId)
 pmSlottingDataL :: Lens' PollModifier (Maybe SlottingData)
-
--- | PollVerificationFailure represents all possible errors which can
---   appear in Poll data verification.
-data PollVerFailure
-PollWrongScriptVersion :: !ScriptVersion -> !ScriptVersion -> !UpId -> PollVerFailure
-[pwsvExpected] :: PollVerFailure -> !ScriptVersion
-[pwsvFound] :: PollVerFailure -> !ScriptVersion
-[pwsvUpId] :: PollVerFailure -> !UpId
-
--- | Slot duration for this block version is already known and the one we
---   saw doesn't match it
-PollWrongSlotDuration :: !Millisecond -> !Millisecond -> !UpId -> PollVerFailure
-[pwsdExpected] :: PollVerFailure -> !Millisecond
-[pwsdFound] :: PollVerFailure -> !Millisecond
-[pwsdUpId] :: PollVerFailure -> !UpId
-
--- | Max block size for this block version is already known and the one we
---   saw doesn't match it
-PollWrongMaxBlockSize :: !Byte -> !Byte -> !UpId -> PollVerFailure
-[pwmbsExpected] :: PollVerFailure -> !Byte
-[pwmbsFound] :: PollVerFailure -> !Byte
-[pwmbsUpId] :: PollVerFailure -> !UpId
-
--- | A proposal tried to increase the block size limit more than it was
---   allowed to
-PollLargeMaxBlockSize :: !Byte -> !Byte -> !UpId -> PollVerFailure
-[plmbsMaxPossible] :: PollVerFailure -> !Byte
-[plmbsFound] :: PollVerFailure -> !Byte
-[plmbsUpId] :: PollVerFailure -> !UpId
-PollNotFoundScriptVersion :: !BlockVersion -> PollVerFailure
-PollSmallProposalStake :: !Coin -> !Coin -> !UpId -> PollVerFailure
-[pspsThreshold] :: PollVerFailure -> !Coin
-[pspsActual] :: PollVerFailure -> !Coin
-[pspsUpId] :: PollVerFailure -> !UpId
-PollNotRichman :: !StakeholderId -> !Coin -> !(Maybe Coin) -> PollVerFailure
-[pnrStakeholder] :: PollVerFailure -> !StakeholderId
-[pnrThreshold] :: PollVerFailure -> !Coin
-[pnrStake] :: PollVerFailure -> !(Maybe Coin)
-PollUnknownProposal :: !StakeholderId -> !UpId -> PollVerFailure
-[pupStakeholder] :: PollVerFailure -> !StakeholderId
-[pupProposal] :: PollVerFailure -> !UpId
-PollUnknownStakes :: !EpochIndex -> PollVerFailure
-Poll2ndActiveProposal :: !SoftwareVersion -> PollVerFailure
-PollWrongSoftwareVersion :: !(Maybe NumSoftwareVersion) -> !ApplicationName -> !NumSoftwareVersion -> !UpId -> PollVerFailure
-[pwsvStored] :: PollVerFailure -> !(Maybe NumSoftwareVersion)
-[pwsvApp] :: PollVerFailure -> !ApplicationName
-[pwsvGiven] :: PollVerFailure -> !NumSoftwareVersion
-[pwsvUpId] :: PollVerFailure -> !UpId
-PollProposalIsDecided :: !UpId -> !StakeholderId -> PollVerFailure
-[ppidUpId] :: PollVerFailure -> !UpId
-[ppidStakeholder] :: PollVerFailure -> !StakeholderId
-PollExtraRevote :: !UpId -> !StakeholderId -> !Bool -> PollVerFailure
-[perUpId] :: PollVerFailure -> !UpId
-[perStakeholder] :: PollVerFailure -> !StakeholderId
-[perDecision] :: PollVerFailure -> !Bool
-PollWrongHeaderBlockVersion :: !BlockVersion -> !BlockVersion -> PollVerFailure
-[pwhpvGiven] :: PollVerFailure -> !BlockVersion
-[pwhpvAdopted] :: PollVerFailure -> !BlockVersion
-PollBadBlockVersion :: !UpId -> !BlockVersion -> !BlockVersion -> PollVerFailure
-[pbpvUpId] :: PollVerFailure -> !UpId
-[pbpvGiven] :: PollVerFailure -> !BlockVersion
-[pbpvAdopted] :: PollVerFailure -> !BlockVersion
-PollTooBigBlock :: !HeaderHash -> !Byte -> !Byte -> PollVerFailure
-[ptbbHash] :: PollVerFailure -> !HeaderHash
-[ptbbSize] :: PollVerFailure -> !Byte
-[ptbbLimit] :: PollVerFailure -> !Byte
-PollInternalError :: !Text -> PollVerFailure
 
 -- | Previous value of something that could be missing.
 data PrevValue a
