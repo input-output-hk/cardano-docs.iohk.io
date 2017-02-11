@@ -282,12 +282,12 @@ The encoding for these messages is simple:
 +-------------+
 | ProbeSocket |
 +-------------+
-|   Int32     |
+|    Int32    |
 
 +----------------+
 | ProbeSocketAck |
 +----------------+
-|    Int32       |
+|     Int32      |
 ~~~
 
 where the value for the control message headers are 4 and 5 respectively.
@@ -409,7 +409,7 @@ The message structure is:
 +-------------+-----------+
 | CloseSocket |   LWCId   |
 +-------------+-----------|
-|   Int32     |   Int32   |
+|    Int32    |   Int32   |
 ~~~
 
 where:
