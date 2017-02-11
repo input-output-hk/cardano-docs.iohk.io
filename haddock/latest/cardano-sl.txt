@@ -5693,11 +5693,13 @@ getTxHistory :: MonadTxHistory m => Address -> m [TxHistoryEntry]
 saveTx :: MonadTxHistory m => (TxId, TxAux) -> m ()
 getTxHistory :: (MonadTxHistory m, MonadTrans t, MonadTxHistory m', t m' ~ m) => Address -> m [TxHistoryEntry]
 saveTx :: (MonadTxHistory m, MonadTrans t, MonadTxHistory m', t m' ~ m) => (TxId, TxAux) -> m ()
-class Monad m => MonadBlockchainInfo m where networkChainDifficulty = lift networkChainDifficulty localChainDifficulty = lift localChainDifficulty
+class Monad m => MonadBlockchainInfo m where networkChainDifficulty = lift networkChainDifficulty localChainDifficulty = lift localChainDifficulty blockchainSlotDuration = lift blockchainSlotDuration
 networkChainDifficulty :: MonadBlockchainInfo m => m ChainDifficulty
 localChainDifficulty :: MonadBlockchainInfo m => m ChainDifficulty
+blockchainSlotDuration :: MonadBlockchainInfo m => m Millisecond
 networkChainDifficulty :: (MonadBlockchainInfo m, MonadTrans t, MonadBlockchainInfo m', t m' ~ m) => m ChainDifficulty
 localChainDifficulty :: (MonadBlockchainInfo m, MonadTrans t, MonadBlockchainInfo m', t m' ~ m) => m ChainDifficulty
+blockchainSlotDuration :: (MonadBlockchainInfo m, MonadTrans t, MonadBlockchainInfo m', t m' ~ m) => m Millisecond
 
 -- | Abstraction over getting update proposals
 class Monad m => MonadUpdates m where waitForUpdate = lift waitForUpdate applyLastUpdate = lift applyLastUpdate
@@ -5706,8 +5708,8 @@ applyLastUpdate :: MonadUpdates m => m ()
 waitForUpdate :: (MonadUpdates m, MonadTrans t, MonadUpdates m', t m' ~ m) => m ConfirmedProposalState
 applyLastUpdate :: (MonadUpdates m, MonadTrans t, MonadUpdates m', t m' ~ m) => m ()
 type TxMode ssc m = (MinWorkMode m, MonadBalances m, MonadTxHistory m, MonadMockable m, MonadMask m)
-type WalletMode ssc m = (TxMode ssc m, MonadKeys m, MonadBlockchainInfo m, MonadUpdates m, WithWalletContext m, MonadDHT m, MonadSlots m, WithPeerState m)
-type WalletRealMode = PeerStateHolder (KademliaDHT (KeyStorage (NtpSlotting (SlottingHolder (WalletDB (ContextHolder (LoggerNameBox Production)))))))
+type WalletMode ssc m = (TxMode ssc m, MonadKeys m, MonadBlockchainInfo m, MonadUpdates m, WithWalletContext m, MonadDHT m, WithPeerState m)
+type WalletRealMode = PeerStateHolder (KademliaDHT (KeyStorage (WalletDB (ContextHolder (LoggerNameBox Production)))))
 
 
 -- | Web part of wallet.
