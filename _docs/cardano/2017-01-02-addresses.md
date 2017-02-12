@@ -150,7 +150,7 @@ primitive. The requirements on such a function are manyfold:
 The way we transform arbitrary input into output complying with (1-5)
 is called “a cryptographic hash function”.
 
-We are currently using two hash functions: `SHA3` with 256 digest and
+We are currently using two hash functions: `SHA3` with 256 bit digest and
 `BLAKE2S` with 224 bit digest.
 
 For example, for addresses, we wrap SHA3 digest into BLAKE2s, as shown
