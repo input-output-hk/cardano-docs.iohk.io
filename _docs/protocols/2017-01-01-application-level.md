@@ -51,6 +51,40 @@ module.
 Every message type should have an instance of the `Message` typeclass.
 Please see [Time-Warp-NT guide](/protocols/time-warp-nt/#messaging).
 
+## Message names
+
+All messages are given custom names, since using full type names would be excessive. Each name is concatenation of one or two encoded `UnsignedVarInt`s.
+
+This table contains names for all used messages / message parts; they could also be found in
+[Pos.Communication.Message](https://github.com/input-output-hk/cardano-sl/blob/73d1b0a4281dd5453465304ed117b7127f82f79f/src/Pos/Communication/Message.hs) module.
+To distinguish from integers addition, concatenation is denoted here as `(++)`.
+
+| Message type | Name |
+|----------------------------|---------|--------------|
+| NOP | `0` |
+| SendProxySK | `2` |
+| ConfirmProxySK | `3` |
+| MsgGetHeaders | `4` |
+| MsgHeaders | `5` |
+| MsgGetBlocks | `6` |
+| MsgBlock | `7` |
+| InvMsg | `8` ++ `pMessageName tag` |
+| ReqMsg | `9` ++ `pMessageName tag` |
+| DataMsg | `10` ++ `pMessageName contents` |
+| SysStartRequest | `1001` |
+| SysStartResponse | `1002` |
+
+| Message part type | Name |
+|----------------------------|---------|--------------|
+| TxMsgTag | `0` |
+| TxMsgContents | `0` |
+| ProposalMsgTag | `1` |
+| (UpdateProposal, [UpdateVote]) | `1` |
+| VoteMsgTag | `2` |
+| UpdateVote | `2` |
+| GtTag | `3` |
+| GtMsgContents | `3` |
+
 ## Inv/Req/Data and MessagePart
 
 Most of messages in Cardano SL are generalized with `Inv/Req/Data` standard (see [Pos.Communication.Relay](https://github.com/input-output-hk/cardano-sl/blob/3d695fd804814647f50abe452a81a678aad080cc/src/Pos/Communication/Types/Relay.hs) module).
@@ -109,7 +143,7 @@ module for the examples of messages that are using `Inv/Req/Data`.
 
 This table explains [Pos.Block.Network.Types](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Types.hs) module.
 
-| Message Name | Payload | Commentaries |
+| Message type | Payload | Commentaries |
 |--------------|---------|--------------|
 | GetHeaders | Oldest header hash we're interested in; Newest hash we're interested in, or blank | Expect newest header first |
 | GetBlocks | Oldest header hash; Newest hash | As opposed to GetHeaders, both hashes have to be present |
@@ -126,7 +160,7 @@ It covers the following modules:
  + [Pos.Communication.Types.Protocol](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Communication/Types/Protocol.hs)
  + [Pos.Communication.Types.SysStart](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Communication/Types/SysStart.hs)
 
-| Data Type* or Message Name | Payload | Commentaries |
+| Data Type* or Message type | Payload | Commentaries |
 |----------------------------|---------|--------------|
 | PeerState* | ProtocolVersion, or Nothing if we don't know version yet | Polymorphic in scc |
 | VersionReq | Ø | Requests version information from a peer. To be answered with VersionResp |
@@ -183,7 +217,7 @@ This table describes delegation-related messages, found in
 module. The format of delegation messages is described in _Binary protocols_
 section.
 
-| Message Name             | Commentaries                                                                           |
+| Message type             | Commentaries                                                                           |
 |--------------------------+----------------------------------------------------------------------------------------|
 | SendProxySK              | Message with proxy delegation certificate                                              |
 | ConfirmProxySK           | Used to confirm proxy signature delivery                                               |
@@ -195,7 +229,7 @@ section.
 You can see how system messages are implemented under `WorkMode`
 [here](https://github.com/input-output-hk/cardano-sl/blob/22360aa45e5dd82d0c87872d8530217fc3d08f4a/src/Pos/Communication/Methods.hs).
 
-| Message Name             | Commentaries                                                                           |
+| Message type             | Commentaries                                                                           |
 |--------------------------+----------------------------------------------------------------------------------------|
 | UpdateProposal | Serialized update proposal, sent to a DHT peers in Pos.Communication.Methods |
 | VoteMsgTag | A tag for vote message. Works with UpdateVote to tag the payload |
