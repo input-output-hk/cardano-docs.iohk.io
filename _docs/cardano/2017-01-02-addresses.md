@@ -93,7 +93,7 @@ A `PubKeyAddress` contains the hash of this public key.
 Public keys are also used for verifying your identity when your create a
 transaction and other auxiliary purposes.
 
-To sum up, a public key address represents your personal wallet. It is
+To sum up, a public key address represents your personal account. It is
 constructed as
 
     address' ← 0x00 + address_hash(public_key)
