@@ -62,7 +62,7 @@ block (if you're the selected stakeholder), repeat.
 Listeners handle incoming messages and respond to them. 
 Various supplemental listeners will not be covered, focusing on the main ones instead.
 
-Mostly listeners use *Relay* framework, which inludes three type of messages:
+Mostly listeners use [Relay framework](/protocols/csl-application-level/#invreqdata-and-messagepart), which inludes three type of messages:
   - `Inventory` message: node publishes message to network when gets a new data.
   - `Request` message: node requests a new data which  was published in `Inventory` message.
   (from other node), if this data is not known yet by this node
