@@ -3926,31 +3926,31 @@ initDelegation :: (SscHelpersClass ssc, MonadDB ssc m, MonadDelegation m) => m (
 -- | Retrieves current mempool of heavyweight psks plus undo part.
 getProxyMempool :: (MonadDB ssc m, MonadDelegation m) => m ([ProxySKHeavy], [ProxySKHeavy])
 
--- | Datatypes representing a verdict of simple PSK processing.
-data PskSimpleVerdict
+-- | Datatypes representing a verdict of heavy PSK processing.
+data PskHeavyVerdict
 
 -- | If we have exactly the same cert in psk mempool
-PSExists :: PskSimpleVerdict
+PSExists :: PskHeavyVerdict
 
 -- | Not enough stake
-PSForbidden :: PskSimpleVerdict
+PSForbidden :: PskHeavyVerdict
 
 -- | Broken
-PSInvalid :: PskSimpleVerdict
+PSInvalid :: PskHeavyVerdict
 
 -- | Message is cached
-PSCached :: PskSimpleVerdict
+PSCached :: PskHeavyVerdict
 
 -- | Verdict can't be made at the moment (we're updating)
-PSIncoherent :: PskSimpleVerdict
+PSIncoherent :: PskHeavyVerdict
 
 -- | Successfully processed/added to psk mempool
-PSAdded :: PskSimpleVerdict
+PSAdded :: PskHeavyVerdict
 
--- | Processes simple (hardweight) psk. Puts it into the mempool depending
---   on issuer's stake, overrides if exists, checks validity and cachemsg
+-- | Processes heavyweight psk. Puts it into the mempool depending on
+--   issuer's stake, overrides if exists, checks validity and cachemsg
 --   state.
-processProxySKHeavy :: (SscHelpersClass ssc, MonadDB ssc m, MonadDelegation m, WithNodeContext ssc m) => ProxySKHeavy -> m PskSimpleVerdict
+processProxySKHeavy :: (SscHelpersClass ssc, MonadDB ssc m, MonadDelegation m, WithNodeContext ssc m) => ProxySKHeavy -> m PskHeavyVerdict
 
 -- | Applies a sequence of definitely valid blocks to memory state and
 --   returns batchops. It works correctly only in case blocks don't cross
@@ -3974,33 +3974,33 @@ delegationRollbackBlocks :: (SscHelpersClass ssc, MonadDelegation m, MonadDB ssc
 
 -- | PSK check verdict. It can be unrelated (other key or spoiled, no way
 --   to differ), exist in storage already or be cached.
-data PskEpochVerdict
-PEUnrelated :: PskEpochVerdict
-PEInvalid :: PskEpochVerdict
-PEExists :: PskEpochVerdict
-PECached :: PskEpochVerdict
-PERemoved :: PskEpochVerdict
-PEAdded :: PskEpochVerdict
+data PskLightVerdict
+PEUnrelated :: PskLightVerdict
+PEInvalid :: PskLightVerdict
+PEExists :: PskLightVerdict
+PECached :: PskLightVerdict
+PERemoved :: PskLightVerdict
+PEAdded :: PskLightVerdict
 
 -- | Processes proxy secret key (understands do we need it, adds/caches on
 --   decision, returns this decision).
-processProxySKLight :: (MonadDelegation m, WithNodeContext ssc m, MonadDB ssc m, MonadMask m) => ProxySKLight -> m PskEpochVerdict
+processProxySKLight :: (MonadDelegation m, WithNodeContext ssc m, MonadDB ssc m, MonadMask m) => ProxySKLight -> m PskLightVerdict
 
 -- | Verdict of <a>processConfirmProxySk</a> function
-data ConfirmPskEpochVerdict
+data ConfirmPskLightVerdict
 
 -- | Valid, saved
-CPValid :: ConfirmPskEpochVerdict
+CPValid :: ConfirmPskLightVerdict
 
 -- | Invalid, throw away
-CPInvalid :: ConfirmPskEpochVerdict
+CPInvalid :: ConfirmPskLightVerdict
 
 -- | Already saved
-CPCached :: ConfirmPskEpochVerdict
+CPCached :: ConfirmPskLightVerdict
 
 -- | Takes a lightweight psk, delegate proof of delivery. Checks if it's
 --   valid or not. Caches message in any case.
-processConfirmProxySk :: (MonadDelegation m, MonadIO m) => ProxySKLight -> ProxySigLight ProxySKLight -> m ConfirmPskEpochVerdict
+processConfirmProxySk :: (MonadDelegation m, MonadIO m) => ProxySKLight -> ProxySigLight ProxySKLight -> m ConfirmPskLightVerdict
 
 -- | Checks if we hold a confirmation for given PSK.
 isProxySKConfirmed :: ProxySKLight -> DelegationStateAction Bool

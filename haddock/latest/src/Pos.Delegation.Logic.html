@@ -17,18 +17,18 @@
 </span><a name="line-17"></a><span>
 </span><a name="line-18"></a><span>       </span><span class="hs-comment">-- * Heavyweight psks handling</span><span>
 </span><a name="line-19"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Delegation.Logic.html#getProxyMempool"><span class="hs-identifier hs-var">getProxyMempool</span></a><span>
-</span><a name="line-20"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Delegation.Logic.html#PskSimpleVerdict"><span class="hs-identifier hs-type">PskSimpleVerdict</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-20"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Delegation.Logic.html#PskHeavyVerdict"><span class="hs-identifier hs-type">PskHeavyVerdict</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
 </span><a name="line-21"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Delegation.Logic.html#processProxySKHeavy"><span class="hs-identifier hs-var">processProxySKHeavy</span></a><span>
 </span><a name="line-22"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Delegation.Logic.html#delegationApplyBlocks"><span class="hs-identifier hs-var">delegationApplyBlocks</span></a><span>
 </span><a name="line-23"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Delegation.Logic.html#delegationVerifyBlocks"><span class="hs-identifier hs-var">delegationVerifyBlocks</span></a><span>
 </span><a name="line-24"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Delegation.Logic.html#delegationRollbackBlocks"><span class="hs-identifier hs-var">delegationRollbackBlocks</span></a><span>
 </span><a name="line-25"></a><span>
 </span><a name="line-26"></a><span>       </span><span class="hs-comment">-- * Lightweight psks handling</span><span>
-</span><a name="line-27"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Delegation.Logic.html#PskEpochVerdict"><span class="hs-identifier hs-type">PskEpochVerdict</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-27"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Delegation.Logic.html#PskLightVerdict"><span class="hs-identifier hs-type">PskLightVerdict</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
 </span><a name="line-28"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Delegation.Logic.html#processProxySKLight"><span class="hs-identifier hs-var">processProxySKLight</span></a><span>
 </span><a name="line-29"></a><span>
 </span><a name="line-30"></a><span>       </span><span class="hs-comment">-- * Confirmations</span><span>
-</span><a name="line-31"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Delegation.Logic.html#ConfirmPskEpochVerdict"><span class="hs-identifier hs-type">ConfirmPskEpochVerdict</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-31"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Delegation.Logic.html#ConfirmPskLightVerdict"><span class="hs-identifier hs-type">ConfirmPskLightVerdict</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
 </span><a name="line-32"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Delegation.Logic.html#processConfirmProxySk"><span class="hs-identifier hs-var">processConfirmProxySk</span></a><span>
 </span><a name="line-33"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Delegation.Logic.html#isProxySKConfirmed"><span class="hs-identifier hs-var">isProxySKConfirmed</span></a><span>
 </span><a name="line-34"></a><span>       </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
@@ -167,8 +167,8 @@
 </span><a name="line-167"></a><span>    </span><a name="local-6989586621681304171"><a href="#local-6989586621681304171"><span class="hs-identifier">toRollback</span></a></a><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-identifier hs-var">catMaybes</span><span> </span><span class="hs-operator hs-var">&lt;$&gt;</span><span> </span><span class="hs-identifier hs-var">mapM</span><span> </span><a href="Pos.DB.GState.Delegation.html#getPSKByIssuer"><span class="hs-identifier hs-var">GS</span><span class="hs-operator hs-var">.</span><span class="hs-identifier hs-var">getPSKByIssuer</span></a><span> </span><a href="#local-6989586621681304170"><span class="hs-identifier hs-var">issuers</span></a><span>
 </span><a name="line-168"></a><span>    </span><span class="hs-identifier hs-var">pure</span><span> </span><span class="hs-special">(</span><a href="#local-6989586621681304169"><span class="hs-identifier hs-var">sks</span></a><span class="hs-special">,</span><span> </span><a href="#local-6989586621681304171"><span class="hs-identifier hs-var">toRollback</span></a><span class="hs-special">)</span><span>
 </span><a name="line-169"></a><span>
-</span><a name="line-170"></a><span class="hs-comment">-- | Datatypes representing a verdict of simple PSK processing.</span><span>
-</span><a name="line-171"></a><span class="hs-keyword">data</span><span> </span><a name="PskSimpleVerdict"><a href="Pos.Delegation.Logic.html#PskSimpleVerdict"><span class="hs-identifier">PskSimpleVerdict</span></a></a><span>
+</span><a name="line-170"></a><span class="hs-comment">-- | Datatypes representing a verdict of heavy PSK processing.</span><span>
+</span><a name="line-171"></a><span class="hs-keyword">data</span><span> </span><a name="PskHeavyVerdict"><a href="Pos.Delegation.Logic.html#PskHeavyVerdict"><span class="hs-identifier">PskHeavyVerdict</span></a></a><span>
 </span><a name="line-172"></a><span>    </span><span class="hs-glyph">=</span><span> </span><a name="PSExists"><a href="Pos.Delegation.Logic.html#PSExists"><span class="hs-identifier">PSExists</span></a></a><span>     </span><span class="hs-comment">-- ^ If we have exactly the same cert in psk mempool</span><span>
 </span><a name="line-173"></a><span>    </span><span class="hs-glyph">|</span><span> </span><a name="PSForbidden"><a href="Pos.Delegation.Logic.html#PSForbidden"><span class="hs-identifier">PSForbidden</span></a></a><span>  </span><span class="hs-comment">-- ^ Not enough stake</span><span>
 </span><a name="line-174"></a><span>    </span><span class="hs-glyph">|</span><span> </span><a name="PSInvalid"><a href="Pos.Delegation.Logic.html#PSInvalid"><span class="hs-identifier">PSInvalid</span></a></a><span>    </span><span class="hs-comment">-- ^ Broken</span><span>
@@ -177,12 +177,12 @@
 </span><a name="line-177"></a><span>    </span><span class="hs-glyph">|</span><span> </span><a name="PSAdded"><a href="Pos.Delegation.Logic.html#PSAdded"><span class="hs-identifier">PSAdded</span></a></a><span>      </span><span class="hs-comment">-- ^ Successfully processed/added to psk mempool</span><span>
 </span><a name="line-178"></a><span>    </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Show</span><span class="hs-special">,</span><span class="hs-identifier hs-type">Eq</span><span class="hs-special">)</span><span>
 </span><a name="line-179"></a><span>
-</span><a name="line-180"></a><span class="hs-comment">-- | Processes simple (hardweight) psk. Puts it into the mempool</span><span>
+</span><a name="line-180"></a><span class="hs-comment">-- | Processes heavyweight psk. Puts it into the mempool</span><span>
 </span><a name="line-181"></a><span class="hs-comment">-- depending on issuer's stake, overrides if exists, checks</span><span>
 </span><a name="line-182"></a><span class="hs-comment">-- validity and cachemsg state.</span><span>
 </span><a name="line-183"></a><span class="hs-identifier">processProxySKHeavy</span><span>
 </span><a name="line-184"></a><span>    </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><a href="Pos.Ssc.Class.Helpers.html#SscHelpersClass"><span class="hs-identifier hs-type">SscHelpersClass</span></a><span> </span><a href="#local-6989586621681304145"><span class="hs-identifier hs-type">ssc</span></a><span class="hs-special">,</span><span> </span><a href="Pos.DB.Class.html#MonadDB"><span class="hs-identifier hs-type">MonadDB</span></a><span> </span><a href="#local-6989586621681304145"><span class="hs-identifier hs-type">ssc</span></a><span> </span><a href="#local-6989586621681304146"><span class="hs-identifier hs-type">m</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Delegation.Class.html#MonadDelegation"><span class="hs-identifier hs-type">MonadDelegation</span></a><span> </span><a href="#local-6989586621681304146"><span class="hs-identifier hs-type">m</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Context.Class.html#WithNodeContext"><span class="hs-identifier hs-type">WithNodeContext</span></a><span> </span><a href="#local-6989586621681304145"><span class="hs-identifier hs-type">ssc</span></a><span> </span><a href="#local-6989586621681304146"><span class="hs-identifier hs-type">m</span></a><span class="hs-special">)</span><span>
-</span><a name="line-185"></a><span>    </span><span class="hs-glyph">=&gt;</span><span> </span><a href="Pos.Types.Types.html#ProxySKHeavy"><span class="hs-identifier hs-type">ProxySKHeavy</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="#local-6989586621681304146"><span class="hs-identifier hs-type">m</span></a><span> </span><a href="Pos.Delegation.Logic.html#PskSimpleVerdict"><span class="hs-identifier hs-type">PskSimpleVerdict</span></a><span>
+</span><a name="line-185"></a><span>    </span><span class="hs-glyph">=&gt;</span><span> </span><a href="Pos.Types.Types.html#ProxySKHeavy"><span class="hs-identifier hs-type">ProxySKHeavy</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="#local-6989586621681304146"><span class="hs-identifier hs-type">m</span></a><span> </span><a href="Pos.Delegation.Logic.html#PskHeavyVerdict"><span class="hs-identifier hs-type">PskHeavyVerdict</span></a><span>
 </span><a name="line-186"></a><a name="processProxySKHeavy"><a href="Pos.Delegation.Logic.html#processProxySKHeavy"><span class="hs-identifier">processProxySKHeavy</span></a></a><span> </span><a name="local-6989586621681304172"><a href="#local-6989586621681304172"><span class="hs-identifier">psk</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
 </span><a name="line-187"></a><span>    </span><a name="local-6989586621681304173"><a href="#local-6989586621681304173"><span class="hs-identifier">curTime</span></a></a><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-identifier hs-var">liftIO</span><span> </span><span class="hs-identifier hs-var">getCurrentTime</span><span>
 </span><a name="line-188"></a><span>    </span><a name="local-6989586621681304174"><a href="#local-6989586621681304174"><span class="hs-identifier">headEpoch</span></a></a><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-identifier hs-var">view</span><span> </span><a href="Pos.Types.Core.html#epochIndexL"><span class="hs-identifier hs-var">epochIndexL</span></a><span> </span><span class="hs-operator hs-var">&lt;$&gt;</span><span> </span><a href="Pos.DB.DB.html#getTipBlockHeader"><span class="hs-identifier hs-var">DB</span><span class="hs-operator hs-var">.</span><span class="hs-identifier hs-var">getTipBlockHeader</span></a><span>
@@ -381,7 +381,7 @@ delegationRollbackBlocks blunds = do
 
 -- | PSK check verdict. It can be unrelated (other key or spoiled, no
 -- way to differ), exist in storage already or be cached.
-data PskEpochVerdict
+data PskLightVerdict
     = PEUnrelated
     | PEInvalid
     | PEExists
@@ -397,7 +397,7 @@ data PskEpochVerdict
 -- adds/caches on decision, returns this decision).
 processProxySKLight
     :: (MonadDelegation m, WithNodeContext ssc m, MonadDB ssc m, MonadMask m)
-    =&gt; ProxySKLight -&gt; m PskEpochVerdict
+    =&gt; ProxySKLight -&gt; m PskLightVerdict
 processProxySKLight psk = do
     sk &lt;- npSecretKey . ncNodeParams &lt;$&gt; getNodeContext
     curTime &lt;- liftIO getCurrentTime
@@ -429,7 +429,7 @@ processProxySKLight psk = do
 ----------------------------------------------------------------------------
 
 -- | Verdict of 'processConfirmProxySk' function
-data ConfirmPskEpochVerdict
+data ConfirmPskLightVerdict
     = CPValid   -- ^ Valid, saved
     | CPInvalid -- ^ Invalid, throw away
     | CPCached  -- ^ Already saved
@@ -439,7 +439,7 @@ data ConfirmPskEpochVerdict
 -- it's valid or not. Caches message in any case.
 processConfirmProxySk
     :: (MonadDelegation m, MonadIO m)
-    =&gt; ProxySKLight -&gt; ProxySigLight ProxySKLight -&gt; m ConfirmPskEpochVerdict
+    =&gt; ProxySKLight -&gt; ProxySigLight ProxySKLight -&gt; m ConfirmPskLightVerdict
 processConfirmProxySk psk proof = do
     curTime &lt;- liftIO getCurrentTime
     runDelegationStateAction $ do
