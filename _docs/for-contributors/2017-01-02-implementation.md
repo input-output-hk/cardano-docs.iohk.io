@@ -197,6 +197,28 @@ Broadcast messages are resent to neighbors right after retrieval (before
 handling). Also, they are being checked against LRU cache, and messages
 that have been already received once get ignored.
 
+### Leaders and rich men computation (LRC)
+"Slot leaders" and "rich men" are two important notions of Ouroboros Proof of Stake Algorithm:
+
+- Slot leaders: Slot leaders for the current epoch (for each slot of the current epoch) are computed by [Follow the Satoshi](/cardano/proof-of-stake/#follow-the-satoshi) (FTS) algorithm in the beginning of current epoch.
+FTS uses a `shared seed` which is result of [Multi Party Computation](/cardano/proof-of-stake/#multi-party-computation) (MPC) algorithm for previous epoch: in the result of MPC some nodes reveal their seeds, `xor` of these seeds is called `shared seed`.
+
+- Rich men: Only nodes which sent their VSS certificates
+and also has enough stake can participate in MPC algorithm. 
+So in the beginning of epoch node must know all potential participants for validation of MPC messages during this epoch.
+Rich men are also computed in the beginning of current epoch.
+
+Rich men are also important for other components, for instance Update system uses rich men for checking that
+node can publish update proposal and vote.
+
+There are two ways of computing who the rich men will be:
+ - with considering common stake
+ 
+ - with considering delegated stake. Ouroboros provides opportunity to delegate own stake to other node, see more in 
+ [Delegation section](/cardano/differences/#stake-delegation).
+
+MPC and Update System components need rich men with delegated stake, but `Delegation` component with common stake.
+
 ## Constants
 
 The following list of constants is used in the original client. Their values
