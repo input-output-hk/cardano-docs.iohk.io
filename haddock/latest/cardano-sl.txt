@@ -5604,6 +5604,7 @@ ConnectionOpened :: NotifyEvent
 -- | NewWalletTransaction CAddress | NewTransaction
 NetworkDifficultyChanged :: ChainDifficulty -> NotifyEvent
 LocalDifficultyChanged :: ChainDifficulty -> NotifyEvent
+ConnectedPeersChanged :: Word -> NotifyEvent
 UpdateAvailable :: NotifyEvent
 ConnectionClosed :: NotifyEvent
 
@@ -5912,11 +5913,13 @@ getTxHistory :: MonadTxHistory m => Address -> m [TxHistoryEntry]
 saveTx :: MonadTxHistory m => (TxId, TxAux) -> m ()
 getTxHistory :: (MonadTxHistory m, MonadTrans t, MonadTxHistory m', t m' ~ m) => Address -> m [TxHistoryEntry]
 saveTx :: (MonadTxHistory m, MonadTrans t, MonadTxHistory m', t m' ~ m) => (TxId, TxAux) -> m ()
-class Monad m => MonadBlockchainInfo m where networkChainDifficulty = lift networkChainDifficulty localChainDifficulty = lift localChainDifficulty
+class Monad m => MonadBlockchainInfo m where networkChainDifficulty = lift networkChainDifficulty localChainDifficulty = lift localChainDifficulty connectedPeers = lift connectedPeers
 networkChainDifficulty :: MonadBlockchainInfo m => m ChainDifficulty
 localChainDifficulty :: MonadBlockchainInfo m => m ChainDifficulty
+connectedPeers :: MonadBlockchainInfo m => m Word
 networkChainDifficulty :: (MonadBlockchainInfo m, MonadTrans t, MonadBlockchainInfo m', t m' ~ m) => m ChainDifficulty
 localChainDifficulty :: (MonadBlockchainInfo m, MonadTrans t, MonadBlockchainInfo m', t m' ~ m) => m ChainDifficulty
+connectedPeers :: (MonadBlockchainInfo m, MonadTrans t, MonadBlockchainInfo m', t m' ~ m) => m Word
 
 -- | Abstraction over getting update proposals
 class Monad m => MonadUpdates m where waitForUpdate = lift waitForUpdate applyLastUpdate = lift applyLastUpdate
