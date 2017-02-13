@@ -245,10 +245,10 @@ WithHash :: a -> Hash a -> WithHash a
 [whData] :: WithHash a -> a
 [whHash] :: WithHash a -> Hash a
 withHash :: Bi a => a -> WithHash a
-_whData :: forall a_a1gvc. Lens' (WithHash a_a1gvc) a_a1gvc
+_whData :: forall a_a1gvW. Lens' (WithHash a_a1gvW) a_a1gvW
 
 -- | Lenses for <a>WithHash</a>
-_whHash :: forall a_a1gvc. Lens' (WithHash a_a1gvc) (Hash a_a1gvc)
+_whHash :: forall a_a1gvW. Lens' (WithHash a_a1gvW) (Hash a_a1gvW)
 
 -- | Hash wrapper with phantom type for more type-safety. Made abstract in
 --   order to support different algorithms in different situations
@@ -553,7 +553,7 @@ getAttributes :: (Word8 -> h -> Maybe (Get h)) -> Maybe Word32 -> h -> Get (Attr
 --   into set of keys and values.
 putAttributes :: (h -> [(Word8, Put)]) -> Attributes h -> Put
 mkAttributes :: h -> Attributes h
-instance Control.DeepSeq.NFData h_6989586621679428109 => Control.DeepSeq.NFData (Pos.Data.Attributes.Attributes h_6989586621679428109)
+instance Control.DeepSeq.NFData h_6989586621679428155 => Control.DeepSeq.NFData (Pos.Data.Attributes.Attributes h_6989586621679428155)
 instance GHC.Generics.Generic (Pos.Data.Attributes.Attributes h)
 instance GHC.Classes.Ord h => GHC.Classes.Ord (Pos.Data.Attributes.Attributes h)
 instance GHC.Classes.Eq h => GHC.Classes.Eq (Pos.Data.Attributes.Attributes h)
@@ -820,16 +820,16 @@ GenericBlock :: !(GenericBlockHeader b) -> !(Body b) -> !(ExtraBodyData b) -> Ge
 [_gbExtra] :: GenericBlock b -> !(ExtraBodyData b)
 class HasPrevBlock s
 prevBlockL :: HasPrevBlock s => Lens' s HeaderHash
-gbBody :: forall b_a2G1G. Lens' (GenericBlock b_a2G1G) (Body b_a2G1G)
-gbHeader :: forall b_a2G1G. Lens' (GenericBlock b_a2G1G) (GenericBlockHeader b_a2G1G)
-gbExtra :: forall b_a2G1G. Lens' (GenericBlock b_a2G1G) (ExtraBodyData b_a2G1G)
+gbBody :: forall b_a2G2q. Lens' (GenericBlock b_a2G2q) (Body b_a2G2q)
+gbHeader :: forall b_a2G2q. Lens' (GenericBlock b_a2G2q) (GenericBlockHeader b_a2G2q)
+gbExtra :: forall b_a2G2q. Lens' (GenericBlock b_a2G2q) (ExtraBodyData b_a2G2q)
 
 -- | Lens from <a>GenericBlock</a> to <a>BodyProof</a>.
 gbBodyProof :: Lens' (GenericBlock b) (BodyProof b)
-gbhConsensus :: forall b_a2G1H. Lens' (GenericBlockHeader b_a2G1H) (ConsensusData b_a2G1H)
-gbhExtra :: forall b_a2G1H. Lens' (GenericBlockHeader b_a2G1H) (ExtraHeaderData b_a2G1H)
-gbhPrevBlock :: forall b_a2G1H. Lens' (GenericBlockHeader b_a2G1H) (BHeaderHash b_a2G1H)
-gbhBodyProof :: forall b_a2G1H. Lens' (GenericBlockHeader b_a2G1H) (BodyProof b_a2G1H)
+gbhConsensus :: forall b_a2G2r. Lens' (GenericBlockHeader b_a2G2r) (ConsensusData b_a2G2r)
+gbhExtra :: forall b_a2G2r. Lens' (GenericBlockHeader b_a2G2r) (ExtraHeaderData b_a2G2r)
+gbhPrevBlock :: forall b_a2G2r. Lens' (GenericBlockHeader b_a2G2r) (BHeaderHash b_a2G2r)
+gbhBodyProof :: forall b_a2G2r. Lens' (GenericBlockHeader b_a2G2r) (BodyProof b_a2G2r)
 instance GHC.Generics.Generic (Pos.Types.Block.Class.GenericBlockHeader b)
 instance GHC.Generics.Generic (Pos.Types.Block.Class.GenericBlock b)
 instance (GHC.Show.Show (Pos.Types.Block.Class.BHeaderHash b), GHC.Show.Show (Pos.Types.Block.Class.BodyProof b), GHC.Show.Show (Pos.Types.Block.Class.ConsensusData b), GHC.Show.Show (Pos.Types.Block.Class.ExtraHeaderData b)) => GHC.Show.Show (Pos.Types.Block.Class.GenericBlockHeader b)
@@ -1897,7 +1897,7 @@ module Pos.CompileConfig
 
 -- | Compile time configuration. See example in <i>constants.yaml</i> file.
 data CompileConfig
-CompileConfig :: !Int -> !Int -> !Int -> !Byte -> !Byte -> !Double -> !Double -> !Double -> !Double -> !Word -> !Double -> !Int -> !Int -> !Word -> ![String] -> !Int -> !Word -> !Int -> !Int -> !Word64 -> !Word64 -> !Int -> !Int -> !Word -> !Int -> !Int -> !Int -> !Int -> !Int -> !Int -> !Int -> !Int -> !Int -> CompileConfig
+CompileConfig :: !Int -> !Int -> !Int -> !Byte -> !Byte -> !Double -> !Double -> !Double -> !Double -> !Word -> !Double -> !Int -> !Int -> !Word -> ![String] -> !Int -> !Word -> !Int -> !Int -> !Word64 -> !Word64 -> !Int -> !Int -> !Word -> !Int -> !Int -> !Int -> !Int -> !Int -> !Int -> !Int -> !Int -> !Int -> !Int -> CompileConfig
 
 -- | Security parameter from paper
 [ccK] :: CompileConfig -> !Int
@@ -1997,6 +1997,9 @@ CompileConfig :: !Int -> !Int -> !Int -> !Byte -> !Byte -> !Double -> !Double ->
 -- | Block retrieval queue capacity
 [ccBlockRetrievalQueueSize] :: CompileConfig -> !Int
 
+-- | InvMsg propagation queue capacity
+[ccPropagationQueueSize] :: CompileConfig -> !Int
+
 -- | Network timeout on <tt>recv</tt> in milliseconds
 [ccNetworkReceiveTimeout] :: CompileConfig -> !Int
 
@@ -2091,6 +2094,7 @@ neighborsSendThreshold :: Integral a => a
 networkConnectionTimeout :: Microsecond
 networkReceiveTimeout :: Microsecond
 blockRetrievalQueueSize :: Integral a => a
+propagationQueueSize :: Integral a => a
 
 -- | See <a>ccDefaultPeers</a>.
 defaultPeers :: [DHTNode]
@@ -2309,9 +2313,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679163501 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679163501)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679163953 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679163953)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679163954 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679163954)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679163510 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679163510)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679163962 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679163962)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679163963 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679163963)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Core.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Core.SoftwareVersion
@@ -3107,11 +3111,11 @@ NodeDBs :: !(DB ssc) -> !(DB ssc) -> !(DB ssc) -> !(DB ssc) -> !RWLock -> NodeDB
 
 -- | Lock on misc db
 [_miscLock] :: NodeDBs ssc -> !RWLock
-blockDB :: forall ssc_a7a8m. Lens' (NodeDBs ssc_a7a8m) (DB ssc_a7a8m)
-gStateDB :: forall ssc_a7a8m. Lens' (NodeDBs ssc_a7a8m) (DB ssc_a7a8m)
-lrcDB :: forall ssc_a7a8m. Lens' (NodeDBs ssc_a7a8m) (DB ssc_a7a8m)
-miscDB :: forall ssc_a7a8m. Lens' (NodeDBs ssc_a7a8m) (DB ssc_a7a8m)
-miscLock :: forall ssc_a7a8m. Lens' (NodeDBs ssc_a7a8m) RWLock
+blockDB :: forall ssc_a7azs. Lens' (NodeDBs ssc_a7azs) (DB ssc_a7azs)
+gStateDB :: forall ssc_a7azs. Lens' (NodeDBs ssc_a7azs) (DB ssc_a7azs)
+lrcDB :: forall ssc_a7azs. Lens' (NodeDBs ssc_a7azs) (DB ssc_a7azs)
+miscDB :: forall ssc_a7azs. Lens' (NodeDBs ssc_a7azs) (DB ssc_a7azs)
+miscLock :: forall ssc_a7azs. Lens' (NodeDBs ssc_a7azs) RWLock
 newtype Snapshot
 Snapshot :: Snapshot -> Snapshot
 usingSnapshot :: (MonadIO m, MonadMask m) => DB ssc -> (Snapshot -> m a) -> m a
@@ -3298,7 +3302,7 @@ type LrcSyncData = (Bool, EpochIndex)
 
 -- | NodeContext contains runtime context of node.
 data NodeContext ssc
-NodeContext :: !(TVar SlottingState) -> !(Maybe (MVar FilePath)) -> !(SscNodeContext ssc) -> !(MVar HeaderHash) -> !(TVar LrcSyncData) -> !(TVar UserSecret) -> !(TBQueue (NodeId, NewestFirst NE (BlockHeader ssc))) -> !(TMVar (NodeId, BlockHeader ssc)) -> !(MVar ConfirmedProposalState) -> !LoggerConfig -> !NodeParams -> !(TVar Bool) -> !(TBQueue ()) -> !(Maybe (MVar ())) -> !UTCTime -> NodeContext ssc
+NodeContext :: !(TVar SlottingState) -> !(Maybe (MVar FilePath)) -> !(SscNodeContext ssc) -> !(MVar HeaderHash) -> !(TVar LrcSyncData) -> !(TVar UserSecret) -> !(TBQueue (NodeId, NewestFirst NE (BlockHeader ssc))) -> !(TMVar (NodeId, BlockHeader ssc)) -> !(MVar ConfirmedProposalState) -> !RelayInvQueue -> !LoggerConfig -> !NodeParams -> !(TVar Bool) -> !(TBQueue ()) -> !(Maybe (MVar ())) -> !UTCTime -> NodeContext ssc
 
 -- | Data needed for the slotting algorithm to work
 [ncSlottingState] :: NodeContext ssc -> !(TVar SlottingState)
@@ -3330,6 +3334,7 @@ NodeContext :: !(TVar SlottingState) -> !(Maybe (MVar FilePath)) -> !(SscNodeCon
 -- | A semaphore which is unlocked when update data is downloaded and ready
 --   to apply
 [ncUpdateSemaphore] :: NodeContext ssc -> !(MVar ConfirmedProposalState)
+[ncInvPropagationQueue] :: NodeContext ssc -> !RelayInvQueue
 
 -- | Logger config, as taken/read from CLI
 [ncLoggerConfig] :: NodeContext ssc -> !LoggerConfig
@@ -3427,6 +3432,11 @@ BaseParams :: !NetworkAddress -> ![DHTNode] -> !(Maybe DHTKey) -> !Bool -> !Logg
 
 -- | Path to kademlia dump file
 [bpKademliaDump] :: BaseParams -> !FilePath
+
+-- | Queue of InvMsges which should be propagated.
+type RelayInvQueue = TBQueue SomeInvMsg
+data SomeInvMsg
+SomeInvMsg :: !(InvOrData tag key contents) -> SomeInvMsg
 genesisUtxoM :: (Functor m, WithNodeContext ssc m) => m Utxo
 genesisLeadersM :: (Functor m, WithNodeContext ssc m) => m SlotLeaders
 putBlkSemaphore :: (MonadIO m, WithNodeContext ssc m) => HeaderHash -> m ()
@@ -3789,7 +3799,7 @@ module Pos.Communication.Relay
 -- | Typeclass for general Inv<i>Req</i>Dat framework. It describes monads,
 --   that store data described by tag, where "key" stands for node
 --   identifier.
-class (Buildable tag, Buildable contents, Buildable key, Typeable tag, Typeable contents, Typeable key, Message (InvMsg key tag), Message (ReqMsg key tag), Message (DataMsg contents)) => Relay m tag key contents | tag -> contents, contents -> tag, contents -> key, tag -> key
+class (Buildable tag, Buildable contents, Buildable key, Typeable tag, Typeable contents, Typeable key, Message (InvOrData tag key contents), Message (ReqMsg key tag)) => Relay m tag key contents | tag -> contents, contents -> tag, contents -> key, tag -> key
 
 -- | Converts data to tag. Tag returned in monad <tt>m</tt> for only type
 --   matching reason (multiparam type classes are tricky)
@@ -3830,10 +3840,17 @@ ReqMsg :: !tag -> !(NonEmpty key) -> ReqMsg key tag
 data DataMsg contents
 DataMsg :: !contents -> DataMsg contents
 [dmContents] :: DataMsg contents -> !contents
-relayListeners :: (MonadDHT m, Bi (InvMsg key tag), Bi (ReqMsg key tag), Bi (DataMsg contents), Relay m tag key contents, WithLogger m, WorkMode ssc m, Bi NOP, Message NOP) => RelayProxy key tag contents -> ([ListenerSpec m], OutSpecs)
-relayStubListeners :: (WithLogger m, Bi (InvMsg key tag), Bi (ReqMsg key tag), Bi (DataMsg contents), Message (InvMsg key tag), Message (ReqMsg key tag), Message (DataMsg contents)) => RelayProxy key tag contents -> ([ListenerSpec m], OutSpecs)
+relayListeners :: (MonadDHT m, Bi (InvMsg key tag), Bi (ReqMsg key tag), Bi (DataMsg contents), Bi (InvOrData tag key contents), MessagePart contents, MessagePart tag, Relay m tag key contents, Mockable Throw m, WithLogger m, WorkMode ssc m) => RelayProxy key tag contents -> ([ListenerSpec m], OutSpecs)
+relayStubListeners :: (WithLogger m, Bi (InvMsg key tag), Bi (ReqMsg key tag), Bi (DataMsg contents), Message (InvOrData tag key contents), Message (ReqMsg key tag)) => RelayProxy key tag contents -> ([ListenerSpec m], OutSpecs)
+relayWorkers :: forall ssc m. (Mockable Throw m, WorkMode ssc m, Bi NOP, Message NOP) => ([WorkerSpec m], OutSpecs)
 data RelayProxy key tag contents
 RelayProxy :: RelayProxy key tag contents
+type InvOrData tag key contents = Either (InvMsg key tag) (DataMsg contents)
+invReqDataFlow :: (Message (InvOrData tag id contents), Message (ReqMsg id tag), Buildable id, MinWorkMode m, Bi tag, Bi id, Bi (InvOrData tag id contents), Bi (ReqMsg id tag)) => Text -> SendActions m -> DHTNode -> tag -> id -> contents -> m ()
+invReqDataFlowNeighbors :: (Message (InvOrData tag id contents), Message (ReqMsg id tag), Buildable id, MinWorkMode m, Bi tag, Bi id, Bi (InvOrData tag id contents), Bi (ReqMsg id tag)) => Text -> SendActions m -> tag -> id -> contents -> m ()
+instance GHC.Show.Show Pos.Communication.Relay.RelayError
+instance GHC.Generics.Generic Pos.Communication.Relay.RelayError
+instance GHC.Exception.Exception Pos.Communication.Relay.RelayError
 
 
 -- | Arbitrary instances for Update System types.
