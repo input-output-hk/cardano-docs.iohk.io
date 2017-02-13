@@ -13,18 +13,24 @@ This document is a work-in-progress. The goal of this document is to
 enumerate all the ways in which CSL implementation differs from the
 specifications presented in the paper.
 
+# Clarified things
+
 ## Time, Slots, and Synchrony
 
 In a basic model of *Ouroboros* time is divided into discrete units
 called *slots*. However, there are no details on how to obtain current
 time securely and with enough precision.
 
-In *cardano-sl* current time is obtained by querying a predefined set of
-NTP servers.
+In *cardano-sl* current time is obtained by querying a predefined set
+of NTP servers. Specifically, each node periodically queries NTP
+servers and calculates mean of results. Node stores last margin
+(difference between local time and global time) and last obtained
+global time. Node also stores last slot to ensure that slots are
+monotonic. For more details about slotting implementation see **TODO**.
 
 ## Coin Tossing and Verifiable Secret Sharing
 
-As *Ouroboros* paper suggests, a VSS scheme by Schoenmakers is used in
+As *Ouroboros* paper suggests, a PVSS scheme by Schoenmakers is used in
 *cardano-sl*. One of the challenges while using a VSS scheme is associating
 the public key used for signing with the public key used for VSS scheme
 (`VssPublicKey`). This is solved by introducing
@@ -35,6 +41,12 @@ for participation in randomness generation have certificates. When a new
 stakeholder with enough stake appears or when an existing certificate
 expires, a new certificate should be generated and submitted to the
 network. `VssCertificate`s are stored in blocks.
+
+PVSS scheme by Schoenmakers uses share verification information which
+also includes a commitment to the secret. It is also used as a
+commitment in Ouroboros protocol. PVSS scheme has been implemented
+over the elliptic curve secp256r1. For more details about PVSS
+implementation see **TODO**.
 
 ## Block Generation Time
 
@@ -66,7 +78,8 @@ certificates from heavyweight delegation are stored within the
 blockchain. On the contrary, lightweight delegation is available for
 everybody, but certificates are not stored within the blockchain and
 aren't considered when checking eligibility threshold. As paper
-suggests, *delegation-by-proxy* scheme is used.
+suggests, *delegation-by-proxy* scheme is used. For more details about
+delegation implementation see **TODO**.
 
 # Modified Things
 
@@ -77,11 +90,23 @@ a `(1 - p₁) … (1 - pⱼ₋₁) pⱼ`-biased coin to see whether `j`-th
 stakeholder is selected as leader of given slot. Here `pⱼ` is
 probability of selecting `j`-th stakeholder.
 
-In `cardano-sl` it is implemented in a slightly different way.
+In `cardano-sl` it is implemented in a slightly different way. `R`
+random numbers in a range `[0 .. totalCoins]` are generated where `R`
+is number of slots in epoch. Stakeholders occupy different subsegments
+on this range proportional to their stakes. This way each random
+number maps into stakeholder.  Also, as paper suggests, short
+(32-bits) seed is used for initializing PRG instead of using `n ⌈log
+λ⌉` random bits. Detailed description of leader selection process is
+given in **TODO**.
 
 ## Commitments, openings, shares sending
 
-Time of sending is randomized within ε.
+Time of sending is randomized within small interval. It is done to
+avoid network overload when all coin tossing participants send their
+data at the same time. This interval is chosen to be small enough for
+protocol to remain secure. If this data is sent to late and there are
+many adversaries leading last few slots of a certain phase, it can
+happen that data won't be included into block.
 
 ## Multishares
 
@@ -93,10 +118,8 @@ honest stakeholders control 60% of stake in total (each of them
 controls 20%) and there are 40 adversary stakeholders each having 1%
 of stake, then adversary has full control over secret sharing.
 
-To overcome this problem, in *cardano-sl* each stakeholder is allowed
-to send number of commitment shares proportional to their stake. 
-So each node must decrypt each encrypted share of commitment and send 
-all these decrypted shares during *Reveal phase*.
+To overcome this problem, in *cardano-sl* for each stakeholder we
+generate number of shares proportional to their stake.
 
 
 ## Randomness Generation Failure
