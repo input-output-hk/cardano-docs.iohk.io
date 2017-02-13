@@ -51,40 +51,6 @@ module.
 Every message type should have an instance of the `Message` typeclass.
 Please see [Time-Warp-NT guide](/protocols/time-warp-nt/#messaging).
 
-## Message names
-
-All messages are given custom names, since using full type names would be excessive. Each name is concatenation of one or two encoded `UnsignedVarInt`s.
-
-This table contains names for all used messages / message parts; they could also be found in
-[Pos.Communication.Message](https://github.com/input-output-hk/cardano-sl/blob/73d1b0a4281dd5453465304ed117b7127f82f79f/src/Pos/Communication/Message.hs) module.
-To distinguish from integers addition, concatenation is denoted here as `(++)`.
-
-| Message type | Name |
-|----------------------------|---------|--------------|
-| NOP | `0` |
-| SendProxySK | `2` |
-| ConfirmProxySK | `3` |
-| MsgGetHeaders | `4` |
-| MsgHeaders | `5` |
-| MsgGetBlocks | `6` |
-| MsgBlock | `7` |
-| InvMsg | `8` ++ `pMessageName tag` |
-| ReqMsg | `9` ++ `pMessageName tag` |
-| DataMsg | `10` ++ `pMessageName contents` |
-| SysStartRequest | `1001` |
-| SysStartResponse | `1002` |
-
-| Message part type | Name |
-|----------------------------|---------|--------------|
-| TxMsgTag | `0` |
-| TxMsgContents | `0` |
-| ProposalMsgTag | `1` |
-| (UpdateProposal, [UpdateVote]) | `1` |
-| VoteMsgTag | `2` |
-| UpdateVote | `2` |
-| GtTag | `3` |
-| GtMsgContents | `3` |
-
 ## Inv/Req/Data and MessagePart
 
 Most of messages in Cardano SL are generalized with `Inv/Req/Data` standard (see [Pos.Communication.Relay](https://github.com/input-output-hk/cardano-sl/blob/3d695fd804814647f50abe452a81a678aad080cc/src/Pos/Communication/Types/Relay.hs) module).
@@ -149,6 +115,40 @@ This table explains [Pos.Block.Network.Types](https://github.com/input-output-hk
 | GetBlocks | Oldest header hash; Newest hash | As opposed to GetHeaders, both hashes have to be present |
 | BlockHeaders | Non-empty collection of block headers, newest first | Polymorphic in scc |
 | Block | A single block | Polymorphic in scc |
+
+## Message names
+
+All messages are given custom names, since using full type names would be excessive. Each name is concatenation of one or two encoded `UnsignedVarInt`s.
+
+This table contains names for all used messages / message parts; they could also be found in
+[Pos.Communication.Message](https://github.com/input-output-hk/cardano-sl/blob/73d1b0a4281dd5453465304ed117b7127f82f79f/src/Pos/Communication/Message.hs) module.
+To distinguish from integers addition, concatenation is denoted here as `(++)`.
+
+| Message type | Name |
+|----------------------------|---------|--------------|
+| NOP | `0` |
+| SendProxySK | `2` |
+| ConfirmProxySK | `3` |
+| MsgGetHeaders | `4` |
+| MsgHeaders | `5` |
+| MsgGetBlocks | `6` |
+| MsgBlock | `7` |
+| InvMsg | `8` ++ `pMessageName tag` |
+| ReqMsg | `9` ++ `pMessageName tag` |
+| DataMsg | `10` ++ `pMessageName contents` |
+| SysStartRequest | `1001` |
+| SysStartResponse | `1002` |
+
+| Message part type | Name |
+|----------------------------|---------|--------------|
+| TxMsgTag | `0` |
+| TxMsgContents | `0` |
+| ProposalMsgTag | `1` |
+| (UpdateProposal, [UpdateVote]) | `1` |
+| VoteMsgTag | `2` |
+| UpdateVote | `2` |
+| GtTag | `3` |
+| GtMsgContents | `3` |
 
 ## Communication Messages
 
