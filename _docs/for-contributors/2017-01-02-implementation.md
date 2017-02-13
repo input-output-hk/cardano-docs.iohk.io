@@ -217,7 +217,7 @@ There are two ways of computing who the rich men will be:
  - with considering delegated stake. Ouroboros provides opportunity to delegate own stake to other node, see more in 
  [Delegation section](/cardano/differences/#stake-delegation).
 
-MPC and Update System components need rich men with delegated stake, but `Delegation` component with common stake.
+MPC and Update System components need rich men with delegated stake, but Delegation component with common stake.
 
 ## Constants
 
