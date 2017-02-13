@@ -1,8 +1,8 @@
 ---
 layout: default
 title: Introduction
-permalink: /cardano/plutus/introduction/
-group: cardano-plutus
+permalink: /technical/plutus/introduction/
+group: technical-plutus
 ---
 [//]: # (Reviewed at e74b95fd7e04b43c03198dbed0f8599d53df5235)
 
