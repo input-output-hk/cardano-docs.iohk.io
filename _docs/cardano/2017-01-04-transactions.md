@@ -95,7 +95,7 @@ But such a spending doesn't occur immediately, so an output which _isn't yet_ an
 called _unspent transaction output_. Only unspent output can be used as an input for the other transaction,
 to prevent [double-spending](https://en.bitcoin.it/wiki/Double-spending).
 
-So every node in the network not just accepts transactions, but [verify](https://github.com/input-output-hk/cardano-sl/blob/63adb31e813e21ec9da21cfa69984840308bbfa2/src/Pos/Types/Tx.hs#L91) them. To do it,
+So every node in the network not just accepts transactions, but [verifies](https://github.com/input-output-hk/cardano-sl/blob/63adb31e813e21ec9da21cfa69984840308bbfa2/src/Pos/Types/Tx.hs#L91) them. To do it,
 every node have to keep track of unspent outputs, it allows to validate that
 inputs in a published transaction are indeed the unspent outputs. Actually,
 all unspent outputs called _utxo_, and this is a part of the special key-value 
