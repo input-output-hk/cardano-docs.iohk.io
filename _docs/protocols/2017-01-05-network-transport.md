@@ -188,8 +188,8 @@ that it wishes to connect to local endpoint ID 1, when only ID 0 exists. In
 this case both endpoints must close the TCP connection.
 
 A `ConnectionRequestCrossed` response occurs when endpoint B determined that
-an existing TCP connection already exists between A and B, or connections
-between A and B and B and A were being established concurrently. In this case
+a TCP connection already exists between A and B, or connections
+between A and B, and B and A were being established concurrently. In this case
 both endpoints must close the TCP connection.
 
 ## Establishing heavyweight connections (receiving)
@@ -282,12 +282,12 @@ The encoding for these messages is simple:
 +-------------+
 | ProbeSocket |
 +-------------+
-|   Int32     |
+|    Int32    |
 
 +----------------+
 | ProbeSocketAck |
 +----------------+
-|    Int32       |
+|     Int32      |
 ~~~
 
 where the value for the control message headers are 4 and 5 respectively.
@@ -409,7 +409,7 @@ The message structure is:
 +-------------+-----------+
 | CloseSocket |   LWCId   |
 +-------------+-----------|
-|   Int32     |   Int32   |
+|    Int32    |   Int32   |
 ~~~
 
 where:
