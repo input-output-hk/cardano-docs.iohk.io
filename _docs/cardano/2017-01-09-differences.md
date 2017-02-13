@@ -9,11 +9,22 @@ visible: true
 
 # Differences Between Paper and Implementation
 
-This document is a work-in-progress. The goal of this document is to
-enumerate all the ways in which CSL implementation differs from the
-specifications presented in the paper.
+The goal of this document is to enumerate all the ways in which
+Cardano SL implementation differs from the specifications presented in
+the paper and clarify everything that may be obscure after reading the
+paper.
 
-# Clarified things
+This document is divided into four parts:
+ 1. *Clarifications* part clarifies some details which are not
+    specified in paper, but are important for practical implementation.
+ 2. *Modifications* part outlines things which are specified in
+    paper, but are implemented differently in Cardano SL.
+ 3. *Added features* part briefly mentions new features which are not
+    described in paper, but have been implemented in Cardano SL.
+ 4. *Ommisions* part says which topics described in paper haven't
+    been implemented in Cardano SL.
+
+# Clarifications
 
 ## Time, Slots, and Synchrony
 
@@ -26,7 +37,7 @@ of NTP servers. Specifically, each node periodically queries NTP
 servers and calculates mean of results. Node stores last margin
 (difference between local time and global time) and last obtained
 global time. Node also stores last slot to ensure that slots are
-monotonic. For more details about slotting implementation see **TODO**.
+monotonic.
 
 ## Coin Tossing and Verifiable Secret Sharing
 
@@ -45,8 +56,7 @@ network. `VssCertificate`s are stored in blocks.
 PVSS scheme by Schoenmakers uses share verification information which
 also includes a commitment to the secret. It is also used as a
 commitment in Ouroboros protocol. PVSS scheme has been implemented
-over the elliptic curve secp256r1. For more details about PVSS
-implementation see **TODO**.
+over the elliptic curve secp256r1.
 
 ## Block Generation Time
 
@@ -78,10 +88,9 @@ certificates from heavyweight delegation are stored within the
 blockchain. On the contrary, lightweight delegation is available for
 everybody, but certificates are not stored within the blockchain and
 aren't considered when checking eligibility threshold. As paper
-suggests, *delegation-by-proxy* scheme is used. For more details about
-delegation implementation see **TODO**.
+suggests, *delegation-by-proxy* scheme is used.
 
-# Modified Things
+# Modifications
 
 ## Leader Selection Process
 
@@ -96,8 +105,7 @@ is number of slots in epoch. Stakeholders occupy different subsegments
 on this range proportional to their stakes. This way each random
 number maps into stakeholder.  Also, as paper suggests, short
 (32-bits) seed is used for initializing PRG instead of using `n ⌈log
-λ⌉` random bits. Detailed description of leader selection process is
-given in **TODO**.
+λ⌉` random bits.
 
 ## Commitments, openings, shares sending
 
@@ -139,7 +147,7 @@ See the article on [update system](/cardano/update-mechanism/).
 
 See the article on [P2P implementation and hardening](/protocols/p2p/).
 
-# Missing Things
+# Omissions
 
 The sections on _Input Endorsers_ and _Incentive Structure_ aren't
 implemented yet. Those sections are to be implemented together with
