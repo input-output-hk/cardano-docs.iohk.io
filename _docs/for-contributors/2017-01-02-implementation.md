@@ -193,8 +193,7 @@ that have been already received once get ignored.
 ### Leaders and rich men computation (LRC)
 "Slot leaders" and "rich men" are two important notions of Ouroboros Proof of Stake Algorithm:
 
-- Slot leaders: A slot leader is a such node which creates block in the current slot.
-Slot leaders for the current epoch (for each slot of the current epoch) are computed by [Follow the Satoshi](/cardano/proof-of-stake/#follow-the-satoshi) (FTS) algorithm in the beginning of current epoch.
+- Slot leaders: Slot leaders for the current epoch (for each slot of the current epoch) are computed by [Follow the Satoshi](/cardano/proof-of-stake/#follow-the-satoshi) (FTS) algorithm in the beginning of current epoch.
 FTS uses a `shared seed` which is result of [Multi Party Computation](/cardano/proof-of-stake/#multi-party-computation) (MPC) algorithm for previous epoch: in the result of MPC some nodes reveal their seeds, `xor` of these seeds is called `shared seed`.
 
 - Rich men: Only nodes which sent their VSS certificates
