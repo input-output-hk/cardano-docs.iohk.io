@@ -8,4 +8,4 @@ visible: false
 
 # Cardano Monetary Policy
 
-_Pending_
+*Pending*
