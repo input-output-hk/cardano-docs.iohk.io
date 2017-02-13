@@ -9,27 +9,30 @@ group: cardano
 # Addresses in Cardano SL
 
 To send and receive value, addresses are used in virtually all cryptocurrencies.
-Cardano [supports](https://github.com/input-output-hk/cardano-sl/blob/f37c6cf6a43f42cd7c0a0477e33ae95155d50450/src/Pos/Types/Core.hs#L231)
+Cardano
+[supports](https://github.com/input-output-hk/cardano-sl/blob/f37c6cf6a43f42cd7c0a0477e33ae95155d50450/src/Pos/Types/Core.hs#L231)
 two types of addresses: `PubKeyAddress` and `ScriptAddress`.
 
-`PubKeyAddress` is a normal address like in any other cryptocurrency. It is nothing but a
-hashed [public key](https://github.com/input-output-hk/cardano-sl/blob/f37c6cf6a43f42cd7c0a0477e33ae95155d50450/src/Pos/Types/Core.hs#L231).
+`PubKeyAddress` is a normal address like in any other cryptocurrency. It is
+nothing but a hashed [public
+key](https://github.com/input-output-hk/cardano-sl/blob/f37c6cf6a43f42cd7c0a0477e33ae95155d50450/src/Pos/Types/Core.hs#L231).
 [Read more about public key addresses below](#public-key-addresses).
 
-`ScriptAddress` is used in so-called "Pay to Script Hash" (P2SH) transactions. It operates
-autonomously and acts somewhat like a bank deposit: you can send money to it, but
-in order to redeem it you have to satisfy certain conditions, determined by a
+`ScriptAddress` is used in so-called “Pay to Script Hash” (P2SH) transactions.
+It operates autonomously and acts somewhat like a bank deposit: you can send
+money to it, but in order to redeem it you have to satisfy certain conditions,
+determined by a
 [script](https://github.com/input-output-hk/cardano-sl/blob/f37c6cf6a43f42cd7c0a0477e33ae95155d50450/src/Pos/Script/Type.hs#L38)
-associated with the address. The address itself contains the hash of the serialized script.
-[Read more about P2SH below](#pay-to-script-hash).
+associated with the address. The address itself contains the hash of the
+serialized script. [Read more about P2SH below](#pay-to-script-hash).
 
 ## What Does an Address Look Like?
 
 Addresses are `base58`-encoded bytestrings, consisting of:
 
-* 1 byte: address type;
-* 28 bytes: hash of some data structure (different for each type);
-* 4 bytes: CRC32 checksum.
+-   1 byte: address type;
+-   28 bytes: hash of some data structure (different for each type);
+-   4 bytes: CRC32 checksum.
 
 All addresses are 33 bytes long.
 
@@ -39,30 +42,32 @@ to encode data, hence the name. Here is the alphabet we are using:
     123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz
 
 It avoids both non-alphanumeric characters and letters which might look
-ambiguous when printed (`0`, `O`, `I`, `l`); therefore it is suitable for
-human users who enter the data manually, copying it from some visual source,
-and also allows easy copy and paste because a double-click will usually select
-the whole string.
+ambiguous when printed (`0`, `O`, `I`, `l`); therefore it is suitable for human
+users who enter the data manually, copying it from some visual source, and also
+allows easy copy and paste because a double-click will usually select the whole
+string.
 
-Currently there are only two types of addresses in Cardano: `PubKeyAddress`
-and `ScriptAddress`. Here are the `type`s for each:
+Currently there are only two types of addresses in Cardano: `PubKeyAddress` and
+`ScriptAddress`. Here are the `type`s for each:
 
-| `type`  | Address type    |
-|---------|-----------------|
-| [0](https://github.com/input-output-hk/cardano-sl/blob/2f3c7df7d324bc056fefe0fce856e39a692f6d9f/src/Pos/Binary/Address.hs#L18)       | `PubKeyAddress` |
-| [1](https://github.com/input-output-hk/cardano-sl/blob/2f3c7df7d324bc056fefe0fce856e39a692f6d9f/src/Pos/Binary/Address.hs#L22)       | `ScriptAddress` |
+| `type`                                                                                                                                        | Address type         |
+|-----------------------------------------------------------------------------------------------------------------------------------------------|----------------------|
+| [0](https://github.com/input-output-hk/cardano-sl/blob/2f3c7df7d324bc056fefe0fce856e39a692f6d9f/src/Pos/Binary/Address.hs#L18)                | `PubKeyAddress`      |
+| [1](https://github.com/input-output-hk/cardano-sl/blob/2f3c7df7d324bc056fefe0fce856e39a692f6d9f/src/Pos/Binary/Address.hs#L22)                | `ScriptAddress`      |
 | [arbitrary number](https://github.com/input-output-hk/cardano-sl/blob/2f3c7df7d324bc056fefe0fce856e39a692f6d9f/src/Pos/Binary/Address.hs#L26) | `UnknownAddressType` |
 
 For hashing, we use a combination of `SHA3-256` and `BLAKE2s-224`, i.e.:
 
     address_hash(x) = BLAKE2s_224(SHA3_256(x))
 
-See more on hashing [below](#hashing). Also, see sections on [`PubKeyAddress`](#public-key-addresses) and [`ScriptAddress`](#pay-to-script-hash) for a description of
-what `x` is in each case.
+See more on hashing [below](#hashing). Also, see sections on
+[`PubKeyAddress`](#public-key-addresses) and
+[`ScriptAddress`](#pay-to-script-hash) for a description of what `x` is in each
+case.
 
-We also adopt a way to make sure that an address is entered correctly
-by appending a 32-bit Cyclic Redundancy Code checksum (`CRC32`) to
-the end of the address. This way, the full address is
+We also adopt a way to make sure that an address is entered correctly by
+appending a 32-bit Cyclic Redundancy Code checksum (`CRC32`) to the end of the
+address. This way, the full address is
 [generated](https://github.com/input-output-hk/cardano-sl/blob/2f3c7df7d324bc056fefe0fce856e39a692f6d9f/src/Pos/Binary/Address.hs#L50)
 with the following rule, where `+` is concatenation:
 
@@ -80,13 +85,13 @@ type, hash and checksum):
 
 ## Public Key Addresses
 
-As mentioned in the [Introduction](/#you-own-your-money), the
-wallets you see in the user interface are a convenient representation of
-the fact that you own a secret key to spend money in this particular
-wallet. But how is such spending verified by the network and how can you
-receive money from others? The answer is that along with the secret key
-which is used to control the value in your wallets, a public key is
-generated. This public component can be known by anybody, hence the name.
+As mentioned in the [Introduction](/#you-own-your-money), the wallets you see in
+the user interface are a convenient representation of the fact that you own a
+secret key to spend money in this particular wallet. But how is such spending
+verified by the network and how can you receive money from others? The answer is
+that along with the secret key which is used to control the value in your
+wallets, a public key is generated. This public component can be known by
+anybody, hence the name.
 
 A `PubKeyAddress` contains the hash of this public key.
 
@@ -101,20 +106,20 @@ constructed as
 
 ## Pay to Script Hash
 
-The idea of P2SH is to provide a lot of flexibility to formulating complex
-rules for spending money. Instead of sending a transaction to a public key
-address, we create a validator script that can take a so-called redemption script
-as a parameter. To redeem funds, we pass the redemption script to the
-validator and evaluate it. If it evaluates to `success`, money is sent as
-specified by the redeemer. Otherwise nothing happens.
+The idea of P2SH is to provide a lot of flexibility to formulating complex rules
+for spending money. Instead of sending a transaction to a public key address, we
+create a validator script that can take a so-called redemption script as a
+parameter. To redeem funds, we pass the redemption script to the validator and
+evaluate it. If it evaluates to `success`, money is sent as specified by the
+redeemer. Otherwise nothing happens.
 
 To quote Bitcoin Wiki,
 
-> Using P2SH, you can send bitcoins to an address that is secured in
-> various unusual ways without knowing anything about the details of how
-> the security is set up. The recipient might need the signatures of
-> several people to spend these bitcoins, or a password might be
-> required, or the requirements could be completely unique.
+> Using P2SH, you can send bitcoins to an address that is secured in various
+> unusual ways without knowing anything about the details of how the security is
+> set up. The recipient might need the signatures of several people to spend
+> these bitcoins, or a password might be required, or the requirements could be
+> completely unique.
 
 `ScriptHash` addresses are constructed as follows:
 
@@ -124,39 +129,39 @@ To quote Bitcoin Wiki,
 ## Other address types
 
 In the future, we may use the update system to introduce other address types
-with different values in the `type` field.
-[See more](/update-mechanism/#soft-fork-updates) on extending the system
-in non-breaking fashion.
+with different values in the `type` field. [See
+more](/update-mechanism/#soft-fork-updates) on extending the system in
+non-breaking fashion.
 
 ## Advanced Topics
 
 ### Hashing
 
-For a number of reasons, it is useful to have fixed-length
-representation of arbitrary data; for example, when we're working with
-P2SH, we want validator scripts of arbitrary length to be hashed in a
-P2SH address of the same length that is easy to type in and operate
-with. Also, in order to have an authenticated data structure capturing
-information stored on the blockchain, we should have the same kind of
-primitive. The requirements on such a function are manyfold:
+For a number of reasons, it is useful to have fixed-length representation of
+arbitrary data; for example, when we’re working with P2SH, we want validator
+scripts of arbitrary length to be hashed in a P2SH address of the same length
+that is easy to type in and operate with. Also, in order to have an
+authenticated data structure capturing information stored on the blockchain, we
+should have the same kind of primitive. The requirements on such a function are
+manyfold:
 
- 1. On the same input data it always returns the same output string.
- 2. It is computationally simple to calculate output for a given input.
- 3. It is computationally complex to reverse the process.
- 4. A small change in input produces big change in output.
- 5. It is computationally complex to find two pieces of input data that
-    produce the same output.
+1.  On the same input data it always returns the same output string.
+2.  It is computationally simple to calculate output for a given input.
+3.  It is computationally complex to reverse the process.
+4.  A small change in input produces big change in output.
+5.  It is computationally complex to find two pieces of input data that produce
+    the same output.
 
-The way we transform arbitrary input into output complying with (1-5)
-is called “a cryptographic hash function”.
+The way we transform arbitrary input into output complying with (1-5) is called
+“a cryptographic hash function”.
 
-We are currently using two hash functions: `SHA3` with 256 digest and
-`BLAKE2S` with 224 bit digest.
+We are currently using two hash functions: `SHA3` with 256 digest and `BLAKE2S`
+with 224 bit digest.
 
-For example, for addresses, we wrap SHA3 digest into BLAKE2s, as shown
-in the code snippet below.
+For example, for addresses, we wrap SHA3 digest into BLAKE2s, as shown in the
+code snippet below.
 
-~~~ haskell
+``` haskell
 type AddressHash = AbstractHash Blake2s_224
 
 addressHash :: Bi a => a -> AddressHash b
@@ -166,4 +171,4 @@ addressHash = AbstractHash . secondHash . firstHash
     firstHash = hashlazy . Bi.encode
     secondHash :: Digest SHA3_256 -> Digest Blake2s_224
     secondHash = CryptoHash.hash
-~~~
+```
