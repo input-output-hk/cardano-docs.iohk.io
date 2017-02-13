@@ -143,7 +143,7 @@ being supplied with `SendAction`. `SendAction` provides two functions:
 
 1. `sendTo` sends a message in *one-message style*.
 2. `withConnectionTo` initiates *conversation*, executing given action with
-`ConversationActions` given and closing conversation once action
+`ConversationActions` provided and closing conversation once action
 completes. In turn, `ConversationActions` provides `send` and `recv` functions
 to communicate with peer.
 
