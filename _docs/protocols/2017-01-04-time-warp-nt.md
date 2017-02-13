@@ -19,7 +19,7 @@ Time-warp is split up into two parts:
 1. `Mockable` interfaces.
 2. Network functionality.
 
-# Mockable
+## Mockable
 
 `Mockable` interfaces allow to abstract from language-specific details of
 implementation of the basic functions.
@@ -35,14 +35,14 @@ environment, where the latter allows to emulate time, threads, networking, etc.
 prototypes of the functions.
 
 
-# Networking
+## Networking
 
 This layer is written on top of _network-transport_ and provides network
 capabilities for the application layer. It is split up into two sub-layers:
 **lower** and **upper**.
 
 
-## Lower Layer
+### Lower Layer
 
 This sub-layer is a direct wrapper over _network-transport_, and it provides
 a convenient interface which allows to initiate lightweight connection and
@@ -51,15 +51,15 @@ for more info.
 
 It supports two types of connections, **unidirectional** and **bidirectional**.
 
-### Unidirectional Connections
+#### Unidirectional Connections
 
 Unidirectional connections allow to send a stream of bytes without waiting for
 peer's response.
 
-The function `withOutChannel` executes given action with context to send data
+The function `withOutChannel` executes given action with a context, allowing to send data
 chunks to peer using one-shot lightweight connection.
 
-Upon connection initialization, a node sends `UNI`:
+Upon connection initialization, node sends `UNI`:
 
 ~~~
 +------------------+
@@ -71,7 +71,7 @@ Upon connection initialization, a node sends `UNI`:
 
 `Word8` represents 8-bit unsigned integer value.
 
-### Bidirectional Сonnections
+#### Bidirectional Сonnections
 
 Bidirectional connections allow both nodes to send and receive bytes to each other.
 
@@ -92,7 +92,7 @@ First, the initiator sends a **connection request**, which has the following str
 
 where `Nonce` is randomly generated.
 
-Then the peer sends **acknowledgement**, with has following structure:
+Then the peer sends **acknowledgement**, with the following structure:
 
 ~~~
 +------------------+-----------------+
@@ -113,7 +113,7 @@ The opposite case could take place if the node never sent request on that nonce
 normal, and the node should ignore this acknowledgement.
 
 
-## Messaging
+### Messaging
 
 Before talking about upper layer, let's describe messaging.
 
@@ -123,7 +123,7 @@ function. It returns unique message identifier, which is sent along with the
 message itself and allows receiver to select correct handler to process this message.
 
 
-## Upper Layer
+### Upper Layer
 
 This sub-layer enables message exchange. It provides two styles of communication:
 
@@ -144,18 +144,19 @@ being supplied with `SendAction`. `SendAction` provides two functions:
 1. `sendTo` sends a message in *one-message style*.
 2. `withConnectionTo` initiates *conversation*, executing given action with
 `ConversationActions` in its context and closing conversation once action
-completes. `ConversationActions` provides `send` and `recv` functions to
-communicate with peer.
+completes. In turn, `ConversationActions` provides `send` and `recv` functions
+to communicate with peer.
 
 ***Listener*** is a handler for a message. Each listener remembers type of
 related message, and several listeners with non-overlapping message types
 could be defined. Listeners could be of two types:
 
-1. `ListenerActionOneMsg`, for *one-message style*.
-2. `ListenerActionConversation`, for *conversation style*.
+1. `ListenerActionOneMsg`, for *one-message style*. It is provided with `SendActions`.
+2. `ListenerActionConversation`, for *conversation style*. It is provided with
+`ConversationActions` in order to communicate with its peer.
 
 
-## Serialization
+### Serialization
 
 Time-warp doesn't rely on any predefined serialization strategy, but rather
 allows users to use their own.
