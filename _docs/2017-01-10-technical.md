@@ -222,32 +222,11 @@ MPC and Update System components need rich men with delegated stake, but Delegat
 
 ## Constants
 
-The following list of constants is used in the original client. Their values
-have been discussed with the original authors of the protocol as well as
-independent security auditors, so reusing these constants is strongly
-recommended for alternative clients.
+Cardano SL uses a list of the fundamental constants. Their values have been discussed with 
+the original authors of the protocol as well as independent security auditors, 
+so reusing these constants is strongly recommended for alternative clients.
 
-| Constant name                 | Value         | Description                  |
-|-------------------------------|---------------|------------------------------|
-| **Protocol constants**        |               |                              |
-| k                             |            60 | Security parameter           |
-| slotDurationSec               |           120 | Duration of slots in seconds |
-| networkDiameter               |            45 | _Pending_                    |
-| neighboursSendThreshold       |             2 | _Pending_                    |
-| genesisN                      |         12014 | _Pending_                    |
-| maxLocalTxs                   |          1000 | _Pending_                    |
-| defaultPeers                  |            [] | _Pending_                    |
-| sysTimeBroadcastSlots         |             6 | _Pending_                    |
-| mpcSendInterval               |           100 | Must be less than `k * slotDuration - networkDiameter` |
-| mdNoBlocksSlotThreshold       |            45 | _Pending_                    |
-| mdNoCommitmentsEpochThreshold |             3 | _Pending_                    |
-| vssMaxTTL                     |             6 | In Epochs                    |
-| protocolMagic                 |      50987833 | _Pending_                    |
-| enchancedMessageBroadcast     |             2 | _Pending_                    |
-| delegationThreshold           |         0.001 | 1% of the stake              |
-| **Update system constants**   |               |                              |
-| updateServers                 |            [] | List of IPs                  |
-| maxBlockProxySKs              |         10000 | _Pending_                    |
-| updateProposalThreshold       |           0.1 | 10% of the total stake       |
-| updateVoteThreshold           |         0.001 | 0.1% of the total stake      |
-| updateImplicitApproval        |         40000 | In Slots                     |
+Values of these constants are defined in two configuration files:
+
+1. [constants-dev.yaml](https://github.com/input-output-hk/cardano-sl/blob/f4fac95c104c62a4dad72e3b0b57c8e9e7da0866/constants-dev.yaml), for development environment.
+2. [constants-prod.yaml](https://github.com/input-output-hk/cardano-sl/blob/f4fac95c104c62a4dad72e3b0b57c8e9e7da0866/constants-prod.yaml), for production environment.
