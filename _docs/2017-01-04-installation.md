@@ -14,8 +14,8 @@ children: dsa
 
  + [Windows](https://daedaluswallet.io/)
 
-A Linux and Mac OS installer is going to be released soon. For now, to
-get Cardano SL on Linux or Mac OS, please refer to the [Building From
+A Linux and macOS installer is going to be released soon. For now, to
+get Cardano SL on Linux or macOS, please refer to the [Building From
 Source](/for-contributors/building-from-source) section.
 
 ## Running a Node
