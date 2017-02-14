@@ -4,7 +4,7 @@ title: CSL Application-Level Messaging
 permalink: /technical/protocols/csl-application-level/
 group: technical-protocols
 ---
-[//]: # (Reviewed at 0f05d3b447d69ac640b033c169083288d26e5a19)
+[//]: # (Reviewed at e1d0f9fb37a3f1378341716916f0321fb55698df)
 
 # CSL Application-Level Messaging
 
@@ -34,7 +34,7 @@ How do you read this? First, let's examine the `instance` part. This particular
 snippet says that the data structure defined by type `MsgGetHeaders` is used as
 a message payload. The name of such message is `"GetHeaders"`.
 
-In this particular case, the data structure has two fields — `mghFrom` and `mghTo`.
+In this particular case, the data structure has two fields: `mghFrom` and `mghTo`.
 Prefixes like `mgh` are used because Haskell puts symbols for record fields in
 the global namespace, so it's programmer's duty to avoid clashes.
 
@@ -438,7 +438,7 @@ a _compile-time guarantee_ that particular actions can be performed in the
 particular context. For example, if we define type of some function `f` in the terms of **logging** constraint, we definitely know that we can log different info inside of this function `f`.
 
 All workers and handlers described above work in the `WorkMode`'s constraints.
-These constraints guarantee following abilities:
+These constraints guarantee the following abilities:
 
 * [`WithLogger`](https://hackage.haskell.org/package/log-warper-0.2.1/docs/System-Wlog-CanLog.html#t:WithLogger).
 An ability to log different info, see [example](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Retrieval.hs#L58).
@@ -453,7 +453,7 @@ or peer discovery to find neighbors. Please read [P2P Layer Guide](/protocols/p2
 * [`MonadMask`](http://hackage.haskell.org/package/exceptions-0.8.3/docs/Control-Monad-Catch.html#t:MonadMask).
 An ability to mask asynchronous exceptions.
 * [`MonadSlots`](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/Slotting.hs#L44).
-An ability to get information about time when system started functioning and different slot-related info, see [example](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/wallet/Main.hs#L152).
+An ability to get information about the time when system started functioning and different slot-related info, see [example](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/wallet/Main.hs#L152).
 * [`MonadDB`](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/DB/Class.hs#L27).
 An ability to work with node's DB data (we use RocksDB), see [example](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/Web/Server.hs#L117).
 * [`MonadTxpLD`](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/Txp/Class.hs#L51).
