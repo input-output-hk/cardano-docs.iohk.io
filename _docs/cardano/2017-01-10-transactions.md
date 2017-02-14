@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Transactions in Cardano SL
+title: Transactions
 permalink: /cardano/transactions/
 group: cardano
 ---

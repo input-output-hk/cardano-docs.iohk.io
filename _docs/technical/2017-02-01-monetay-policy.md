@@ -1,8 +1,8 @@
 ---
 layout: default
 title: Monetary Policy
-permalink: /cardano/monetary-policy/
-group: cardano
+permalink: /technical/monetary-policy/
+group: technical
 visible: false
 ---
 

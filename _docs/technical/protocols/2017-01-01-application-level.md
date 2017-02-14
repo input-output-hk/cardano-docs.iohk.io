@@ -1,8 +1,8 @@
 ---
 layout: default
 title: CSL Application-Level Messaging
-permalink: /protocols/csl-application-level/
-group: protocols
+permalink: /technical/protocols/csl-application-level/
+group: technical-protocols
 ---
 [//]: # (Reviewed at 0f05d3b447d69ac640b033c169083288d26e5a19)
 
