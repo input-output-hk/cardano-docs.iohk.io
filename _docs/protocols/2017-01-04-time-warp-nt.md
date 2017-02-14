@@ -56,8 +56,8 @@ It supports two types of connections, **unidirectional** and **bidirectional**.
 Unidirectional connections allow to send a stream of bytes without waiting for
 peer's response.
 
-The function `withOutChannel` executes given action with a context, allowing to send data
-chunks to peer using one-shot lightweight connection.
+The function `withOutChannel` executes given action, providing it with
+one-shot lightweight connection.
 
 Upon connection initialization, node sends `UNI`:
 
@@ -76,7 +76,7 @@ Upon connection initialization, node sends `UNI`:
 Bidirectional connections allow both nodes to send and receive bytes to each other.
 
 The function `withInOutChannel` establishes connection, executes given action with
-context enabling sending and receiving bytes on connection, and automatically
+given handle to send and receive bytes on connection, and automatically
 closes connection on action's end. Its usage requires a handshake, which contains
 the following steps.
 
@@ -143,7 +143,7 @@ being supplied with `SendAction`. `SendAction` provides two functions:
 
 1. `sendTo` sends a message in *one-message style*.
 2. `withConnectionTo` initiates *conversation*, executing given action with
-`ConversationActions` in its context and closing conversation once action
+`ConversationActions` provided and closing conversation once action
 completes. In turn, `ConversationActions` provides `send` and `recv` functions
 to communicate with peer.
 

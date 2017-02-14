@@ -59,25 +59,32 @@ block (if you're the selected stakeholder), repeat.
 
 ### Listeners
 
-Listeners handle incoming messages and respond to them. Various
-supplemental listeners will not be covered, focusing on the main ones
-instead:
+Listeners handle incoming messages and respond to them. 
+Various supplemental listeners will not be covered, focusing on the main ones instead.
+
+Mostly listeners use [Relay framework](/protocols/csl-application-level/#invreqdata-and-messagepart), which inludes three type of messages:
+  - `Inventory` message: node publishes message to network when gets a new data.
+  - `Request` message: node requests a new data which  was published in `Inventory` message.
+  (from other node), if this data is not known yet by this node
+  - `Data` message: node replies with this message on `Request` message. `Data` message contains concrete data.
+
+For instance, when user creates a new transaction, wallet sends `Inventory` message with
+transaction id to network, if node which received `Inventory` doesn't know transaction with such id, 
+then it replies with `Request` message, after that wallet sends this transaction in `Data` message.
+After node recieved `Data` message it can send `Inventory` message
+to their neighbors in DHT network and repeat previous iterations again.
+
+Other example is:
 
 - Block listeners:
-    - `handleBlock`: Handles an incoming block. Takes transactions from it,
-    sends the block header to other nodes, etc.
     - `handleBlockHeader`: Handles an incoming block header. Decides whether
     the block is needed; if it is needed, requests the block.
+    
     - `handleBlockRequest`: Handles an incoming block request. If the block is
     in possession, sends it to the other node.
-
-- Transaction listeners:
-    - `handleTx`: Processes a single transaction.
-    - `handleTxs`: Processes multiple transactions and relays ones
-    that have validated successfully to other nodes.
-
-- SSC Listeners:
-    - `handleSsc`: Handles consensus-related messages and responds to them.
+    
+    - `handleBlock`: Handles an incoming block. Takes transactions from it,
+    sends the block header to other nodes, etc.
 
 ### Workers
 
@@ -189,6 +196,28 @@ message types:
 Broadcast messages are resent to neighbors right after retrieval (before
 handling). Also, they are being checked against LRU cache, and messages
 that have been already received once get ignored.
+
+### Leaders and rich men computation (LRC)
+"Slot leaders" and "rich men" are two important notions of Ouroboros Proof of Stake Algorithm:
+
+- Slot leaders: Slot leaders for the current epoch (for each slot of the current epoch) are computed by [Follow the Satoshi](/cardano/proof-of-stake/#follow-the-satoshi) (FTS) algorithm in the beginning of current epoch.
+FTS uses a `shared seed` which is result of [Multi Party Computation](/cardano/proof-of-stake/#multi-party-computation) (MPC) algorithm for previous epoch: in the result of MPC some nodes reveal their seeds, `xor` of these seeds is called `shared seed`.
+
+- Rich men: Only nodes which sent their VSS certificates
+and also has enough stake can participate in MPC algorithm. 
+So in the beginning of epoch node must know all potential participants for validation of MPC messages during this epoch.
+Rich men are also computed in the beginning of current epoch.
+
+Rich men are also important for other components, for instance Update system uses rich men for checking that
+node can publish update proposal and vote.
+
+There are two ways of computing who the rich men will be:
+ - with considering common stake
+ 
+ - with considering delegated stake. Ouroboros provides opportunity to delegate own stake to other node, see more in 
+ [Delegation section](/cardano/differences/#stake-delegation).
+
+MPC and Update System components need rich men with delegated stake, but Delegation component with common stake.
 
 ## Constants
 
