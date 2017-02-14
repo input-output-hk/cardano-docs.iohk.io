@@ -57,7 +57,8 @@ For hashing, we use a combination of `SHA3-256` and `BLAKE2s-224`, i.e.:
 
     address_hash(x) = BLAKE2s_224(SHA3_256(x))
 
-See more on hashing [below](#hashing). Also, see sections on [`PubKeyAddress`](#public-key-addresses) and [`ScriptAddress`](#pay-to-script-hash) for a description of
+See sections on [`PubKeyAddress`](#public-key-addresses) and
+[`ScriptAddress`](#pay-to-script-hash) for a description of
 what `x` is in each case.
 
 We also adopt a way to make sure that an address is entered correctly
@@ -125,45 +126,5 @@ To quote Bitcoin Wiki,
 
 In the future, we may use the update system to introduce other address types
 with different values in the `type` field.
-[See more](/update-mechanism/#soft-fork-updates) on extending the system
+[See more](/cardano/update-mechanism/#soft-fork-updates) on extending the system
 in non-breaking fashion.
-
-## Advanced Topics
-
-### Hashing
-
-For a number of reasons, it is useful to have fixed-length
-representation of arbitrary data; for example, when we're working with
-P2SH, we want validator scripts of arbitrary length to be hashed in a
-P2SH address of the same length that is easy to type in and operate
-with. Also, in order to have an authenticated data structure capturing
-information stored on the blockchain, we should have the same kind of
-primitive. The requirements on such a function are manyfold:
-
- 1. On the same input data it always returns the same output string.
- 2. It is computationally simple to calculate output for a given input.
- 3. It is computationally complex to reverse the process.
- 4. A small change in input produces big change in output.
- 5. It is computationally complex to find two pieces of input data that
-    produce the same output.
-
-The way we transform arbitrary input into output complying with (1-5)
-is called “a cryptographic hash function”.
-
-We are currently using two hash functions: `SHA3` with 256 digest and
-`BLAKE2S` with 224 bit digest.
-
-For example, for addresses, we wrap SHA3 digest into BLAKE2s, as shown
-in the code snippet below.
-
-~~~ haskell
-type AddressHash = AbstractHash Blake2s_224
-
-addressHash :: Bi a => a -> AddressHash b
-addressHash = AbstractHash . secondHash . firstHash
-  where
-    firstHash :: Bi a => a -> Digest SHA3_256
-    firstHash = hashlazy . Bi.encode
-    secondHash :: Digest SHA3_256 -> Digest Blake2s_224
-    secondHash = CryptoHash.hash
-~~~
