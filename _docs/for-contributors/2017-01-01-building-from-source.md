@@ -26,16 +26,16 @@ report having problems. The rest of documentation assumes that the reader has Ni
 To build the project, first clone the source base and navigate to the root directory of it:
 
 ```
-git clone https://github.com/input-output-hk/pos-haskell-prototype.git
-cd pos-haskell-prototype
+git clone https://github.com/input-output-hk/cardano-sl.git
+cd cardano-sl
 ```
 
 Then enter `nix-shell` and if it's the first project in Haskell language on this machine, run `stack setup`.
 
 ```
-Tue Jan 10 sweater@chill ~/github/pos-haskell-prototype (master)
+Tue Jan 10 sweater@chill ~/github/cardano-sl (master)
 λ nix-shell
-[nix-shell:~/github/pos-haskell-prototype]$ stack setup
+[nix-shell:~/github/cardano-sl]$ stack setup
 * snip *
 ```
 
@@ -50,7 +50,7 @@ Now, in order to build Cardano SL with wallet capabilities, run the
 following command:
 
 ```
-[nix-shell:~/github/pos-haskell-prototype]
+[nix-shell:~/github/cardano-sl]
 $ stack build --flag cardano-sl:with-wallet --flag cardano-sl:with-web
 ```
 
