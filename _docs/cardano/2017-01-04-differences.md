@@ -5,7 +5,7 @@ permalink: /cardano/differences/
 group: cardano
 visible: true
 ---
-[//]: # (Reviewed at 86f679863c67c2aaf23c37cf2c23b9101fd1c77d)
+[//]: # (Reviewed at d0d6c2fedefb642744a24b4b0a6d8d7ad11532f6)
 
 # Differences Between Paper and Implementation
 
@@ -94,8 +94,8 @@ controls 20%) and there are 40 adversary stakeholders each having 1%
 of stake, then adversary has full control over secret sharing.
 
 To overcome this problem, in *cardano-sl* each stakeholder is allowed
-to send number of commitment shares proportional to their stake. 
-So each node must decrypt each encrypted share of commitment and send 
+to send number of commitment shares proportional to their stake.
+So each node must decrypt each encrypted share of commitment and send
 all these decrypted shares during *Reveal phase*.
 
 

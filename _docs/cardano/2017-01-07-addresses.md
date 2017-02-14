@@ -4,7 +4,7 @@ title: Addresses
 permalink: /cardano/addresses/
 group: cardano
 ---
-[//]: # (Reviewed at 403cea2d897aba95163b709bd13c35d343116f3f)
+[//]: # (Reviewed at d0d6c2fedefb642744a24b4b0a6d8d7ad11532f6)
 
 # Addresses in Cardano SL
 
@@ -41,7 +41,7 @@ to encode data, hence the name. Here is the alphabet we are using:
 It avoids both non-alphanumeric characters and letters which might look
 ambiguous when printed (`0`, `O`, `I`, `l`); therefore it is suitable for
 human users who enter the data manually, copying it from some visual source,
-and also allows easy copy and paste because a double-click will usually select
+and also allows easy copy and paste by double-clicking which usually selects
 the whole string.
 
 Currently there are only two types of addresses in Cardano: `PubKeyAddress`
@@ -74,7 +74,7 @@ Here is an example of a valid address:
 
     1EWYSJnvgnSUmp8Gi4mADvU2zkJgVAA7McgFRXiqwDBs8
 
-which can be decoded into the following byte string (with spaces separating
+It can be decoded into the following byte string (with spaces separating
 type, hash and checksum):
 
     00 C8B9519459F5D4E42B002EF06AE94DC9C0A5B87E52D0D0375FD83ECE C52CEB43
@@ -102,7 +102,7 @@ constructed as
 
 ## Pay to Script Hash
 
-The idea of P2SH is to provide a lot of flexibility to formulating complex
+The idea of P2SH is to provide a lot of flexibility for formulating complex
 rules for spending money. Instead of sending a transaction to a public key
 address, we create a validator script that can take a so-called redemption script
 as a parameter. To redeem funds, we pass the redemption script to the
