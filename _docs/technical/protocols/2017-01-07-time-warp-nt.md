@@ -46,7 +46,8 @@ capabilities for the application layer. It is split up into two sub-layers:
 
 This sub-layer is a direct wrapper over _network-transport_, and it provides
 a convenient interface which allows to initiate lightweight connection and
-send/receive data on it. Please read [Network Transport Layer guide](/protocols/network-transport)
+send/receive data on it. Please read
+[Network Transport Layer guide](/technical/protocols/network-transport)
 for more info.
 
 It supports two types of connections, **unidirectional** and **bidirectional**.
