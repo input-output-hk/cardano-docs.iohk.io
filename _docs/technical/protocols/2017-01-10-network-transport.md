@@ -1,8 +1,8 @@
 ---
 layout: default
 title: Network Transport Layer
-permalink: /protocols/network-transport/
-group: protocols
+permalink: /technical/protocols/network-transport/
+group: technical-protocols
 ---
 [//]: # (Reviewed at 0f05d3b447d69ac640b033c169083288d26e5a19)
 
