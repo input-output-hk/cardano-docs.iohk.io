@@ -11,8 +11,7 @@ group: for-contributors
 
 Cardano SL consists of a collection of binaries that constitutes
 the backend, a PureScript API for the Electron-based wallet, and the
-Electron-based wallet called “Daedalus”. You can read more about design
-and architecture of Cardano SL in the [Implementation Guide](/for-contributors/implementation).
+Electron-based wallet called “Daedalus”.
 
 ## Cardano SL and Daedalus Bridge
 
