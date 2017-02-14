@@ -3574,6 +3574,9 @@ getSlotStart :: MonadSlotsData m => SlotId -> m (Maybe Timestamp)
 --   function throws exception when slot start is unknown.
 getSlotStartEmpatically :: (MonadSlotsData m, MonadThrow m) => SlotId -> m Timestamp
 
+-- | Get last known slot duration.
+getLastKnownSlotDuration :: MonadSlotsData m => m Millisecond
+
 -- | Run given action as soon as new slot starts, passing SlotId to it.
 --   This function uses Mockable and assumes consistency between MonadSlots
 --   and Mockable implementations.
