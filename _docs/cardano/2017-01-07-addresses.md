@@ -126,5 +126,5 @@ To quote Bitcoin Wiki,
 
 In the future, we may use the update system to introduce other address types
 with different values in the `type` field.
-[See more](/update-mechanism/#soft-fork-updates) on extending the system
+[See more](/cardano/update-mechanism/#soft-fork-updates) on extending the system
 in non-breaking fashion.
