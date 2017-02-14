@@ -4,7 +4,7 @@ title: Network Transport Layer
 permalink: /technical/protocols/network-transport/
 group: technical-protocols
 ---
-[//]: # (Reviewed at 0f05d3b447d69ac640b033c169083288d26e5a19)
+[//]: # (Reviewed at e1d0f9fb37a3f1378341716916f0321fb55698df)
 
 # Network Transport Layer
 
@@ -93,7 +93,7 @@ Two connected endpoints use one and _only one_ TCP-connection at once.
 
 **Connection** (or more explicitly a _lightweight connection_) is a
 unidirectional connection between endpoints. All lightweight connections
-between endpoints are multiplexed on a single heavyweight connection (ie a
+between endpoints are multiplexed on a single heavyweight connection (i.e. a
 single TCP connection).
 
 The lightweight connections are a logical concept layered on top of TCP.
@@ -127,7 +127,7 @@ Thus `Int32` used below in message definitions refers to a 32-bit _signed_
 integer value in network byte order.
 
 
-## Setting up a transport instance
+## Setting Up a Transport Instance
 
 Each transport instance must set up a TCP listening socket. The local interface
 and port number to use are determined by the application using the transport.
@@ -178,7 +178,7 @@ single `Int32` encoding one of the following responses:
 - `ConnectionRequestCrossed` (2)
 
 In the typical `ConnectionRequestAccepted` case, endpoint A must record in
-its local state that it now has an established (i.e. no longer initialising)
+its local state that it now has an established (i.e. no longer initializing)
 heavyweight to B. It may then proceed to the main part of the protocol
 described below.
 
@@ -192,14 +192,13 @@ a TCP connection already exists between A and B, or connections
 between A and B, and B and A were being established concurrently. In this case
 both endpoints must close the TCP connection.
 
-## Establishing heavyweight connections (receiving)
+## Establishing Heavyweight Connections (Receiving)
 
 Assume, as before, that a heavyweight connection is to be established between
 endpoints labelled A and B, with endpoint A initiating the connection. We now
 consider this from the point of view of endpoint B.
 
-Both endpoints have endpoint address of the form `HOST:PORT:LOCAL_ID`. For
-concreteness, assume that B has only one endpoint, with `LOCAL_ID` of 0.
+Both endpoints have endpoint address of the form `HOST:PORT:LOCAL_ID`. To be concrete, assume that B has only one endpoint, with `LOCAL_ID` of 0.
 
 The transport instance for B has a listening socket open on the host and port
 corresponding to the endpoint IDs. It accepts a new TCP connection from some
@@ -245,7 +244,7 @@ connection has failed (i.e. its end is closed) and is trying to establish a new
 TCP connection, while the other peer has not yet discovered that the existing
 TCP connection is dead.
 
-### crossed connection situation
+### Crossed Connection Situation
 
 In the crossed connection situation, thus far this is completely symmetric
 between endpoints, but we must break the symmetry to resolve which of the two
@@ -257,10 +256,10 @@ reply with `ConnectionRequestAccepted` if the peer's endpoint ID is less than
 the local endpoint id, and otherwise reply with `ConnectionRequestCrossed` and
 close the TCP connection.
 
-### connection dead / re-establish situation
+### Connection Dead / Re-establish Situation
 
 In the second case, where the endpoint handling the incoming TCP connection has
-determined that there already exists an established connection between the two
+determined that an established connection already exists between the two
 endpoints, the protocol is as follows. A `ConnectionRequestCrossed` reply is
 sent and the TCP connection is closed. Additionally, the endpoint tries to
 validate the liveness of the existing connection, with the purpose of either
@@ -292,7 +291,7 @@ The encoding for these messages is simple:
 
 where the value for the control message headers are 4 and 5 respectively.
 
-## Main protocol
+## Main Protocol
 
 Once a heavyweight connection has been established between two endpoints then
 the main part of the protocol begins.
@@ -309,7 +308,7 @@ connections in each direction are managed by the _sending_ side. The receiving
 side has no direct control over the allocation of lightweight connections.
 
 Lightweight connections are identified by a Lightweight connection ID, which is
-a 32bit signed integer. Lightweight connection ids must be greater than 1024.
+a 32-bit signed integer. Lightweight connection IDs must be greater than 1024.
 Lightweight connection ID numbers should be used sequentially.
 
 The control messages to create or close a lightweight connection simply
@@ -362,7 +361,7 @@ boundaries and reads/writes on the TCP socket or packets. It may make sense for
 performance or network efficiency to arrange for a connection open, small data
 message and connection close to be sent in a single write.
 
-## Closing heavyweight connections
+## Closing Heavyweight Connections
 
 Cleanly closing the heavyweight connection is not trivial. This is because the
 heavyweight connection should only be closed once lightweight connections in
@@ -392,7 +391,7 @@ lightweight connection ID it has used for outgoing connections. If there are
 still outbound connections then the close socket message is ignored.
 Additionally, if the maximum outbound lightweight connection ID used thus far
 by the local node is higher than the one received in the close socket message
-then the close socket message is ignored. This case can happen, even if the
+then the close socket message is ignored. This case can happen even if the
 number of outbound connections is currently zero, if an outbound connection was
 created and then closed prior to the close socket message arriving. In both
 cases what has happened is that the heavyweight connection has become active
@@ -417,7 +416,7 @@ where:
 - `CloseSocket` - close connection control message, value `2`;
 - `LWCId` - maximum lightweight connection ID used thus far.
 
-## Flow control and back-pressure
+## Flow Control and Back-pressure
 
 Lightweight connections do not provide any flow control over and above what is
 provided by TCP. The protocol does not provide any facility to reject incoming
