@@ -49,7 +49,7 @@ The way messages are serialized can be seen in
 module.
 
 Every message type should have an instance of the `Message` typeclass.
-Please see [Time-Warp-NT guide](/protocols/time-warp-nt/#messaging).
+Please see [Time-Warp-NT guide](/technical/protocols/time-warp-nt/#messaging).
 
 ## Inv/Req/Data and MessagePart
 
@@ -297,8 +297,8 @@ a new slot starts. This action includes the following steps:
 
 The way in which blocks are processed is specified in the
 [Pos.Block.Logic](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Logic.hs)
-module. Please read about [Handling Blocks and
-Headers](/protocols/handling-blocks-and-headers/) for more info.
+module. Please read about [blocks in Cardano SL](/technical/blocks/)
+for more info.
 
 ### Block Processing Listeners
 
@@ -446,10 +446,10 @@ An ability to log different info, see [example](https://github.com/input-output-
 An ability to interact with the real world. For example, standard input/output, filesystem, etc., see [example](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Retrieval.hs#L61).
 * [`MonadMockable`](https://github.com/serokell/time-warp-nt/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Mockable/Monad.hs#L20).
 An ability to work with our network layer, see [example](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Listeners.hs#L86).
-Please read [Time-Warp-NT Guide](/protocols/time-warp-nt.md) for more info.
+Please read [Time-Warp-NT Guide](/technical/protocols/time-warp-nt/) for more info.
 * [`MonadDHT`](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/DHT/Model/Class.hs#L16).
 An ability to perform Distributed Hash Table operations — for example, [join the network](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/DHT/Real/Real.hs#L211)
-or peer discovery to find neighbors. Please read [P2P Layer Guide](/protocols/p2p.md) for more info.
+or peer discovery to find neighbors. Please read [P2P Layer Guide](/technical/protocols/p2p/) for more info.
 * [`MonadMask`](http://hackage.haskell.org/package/exceptions-0.8.3/docs/Control-Monad-Catch.html#t:MonadMask).
 An ability to mask asynchronous exceptions.
 * [`MonadSlots`](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/Slotting.hs#L44).
@@ -480,7 +480,7 @@ An ability to collect statistics information, see [example](https://github.com/i
 * [`MonadJL`](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/Util/JsonLog.hs#L96).
 An ability to log JSON log events, see [example](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/Statistics/MonadStats.hs#L190).
 * [`WithKademliaDHTInstance`](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/DHT/Real/Types.hs#L80).
-An ability to get Kademlia DHT instance, see [example](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/Wallet/Web/Server/Lite.hs#L56). Please read [P2P Layer Guide](/protocols/p2p.md) for more info about Kademlia.
+An ability to get Kademlia DHT instance, see [example](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/Wallet/Web/Server/Lite.hs#L56). Please read [P2P Layer Guide](/technical/protocols/p2p/) for more info about Kademlia.
 * [`MonadFail`](https://hackage.haskell.org/package/base-4.9.1.0/docs/Control-Monad-Fail.html#t:MonadFail).
 Ability to abort some operation as failed.
 * [`WithPeerState`](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/Communication/PeerState.hs#L41).

@@ -114,7 +114,7 @@ See the article on [update system](/cardano/update-mechanism/).
 
 ## Security of P2P
 
-See the article on [P2P implementation and hardening](/protocols/p2p/).
+See the article on [P2P implementation and hardening](/technical/protocols/p2p/).
 
 # Missing Things
 
