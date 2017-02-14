@@ -57,7 +57,8 @@ For hashing, we use a combination of `SHA3-256` and `BLAKE2s-224`, i.e.:
 
     address_hash(x) = BLAKE2s_224(SHA3_256(x))
 
-See more on hashing [below](#hashing). Also, see sections on [`PubKeyAddress`](#public-key-addresses) and [`ScriptAddress`](#pay-to-script-hash) for a description of
+See sections on [`PubKeyAddress`](#public-key-addresses) and
+[`ScriptAddress`](#pay-to-script-hash) for a description of
 what `x` is in each case.
 
 We also adopt a way to make sure that an address is entered correctly
