@@ -1,8 +1,8 @@
 ---
 layout: default
 title: Time-warp-NT Layer
-permalink: /protocols/time-warp-nt/
-group: protocols
+permalink: /technical/protocols/time-warp-nt/
+group: technical-protocols
 ---
 [//]: # (Reviewed at 5cdd60691c273047147865ddaf1bad9626adf5e9)
 

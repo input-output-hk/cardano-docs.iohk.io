@@ -1,8 +1,9 @@
 ---
 layout: default
-title: Implementation
-permalink: /for-contributors/implementation/
-group: for-contributors
+title: Technical details
+group: base
+permalink: /technical/
+children: technical
 ---
 
 [//]: # (Reviewed at 60033350e60408fc79f202491e6985b3b47acd90)

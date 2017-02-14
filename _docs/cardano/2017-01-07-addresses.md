@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Addresses in Cardano SL
+title: Addresses
 permalink: /cardano/addresses/
 group: cardano
 ---
