@@ -10,7 +10,7 @@ visible: true
 # Differences Between Paper and Implementation
 
 The goal of this document is to enumerate all the ways in which
-Cardano SL implementation differs from the specifications presented in
+*cardano-sl* implementation differs from the specifications presented in
 the paper and clarify everything that may be obscure after reading the
 paper.
 
@@ -112,7 +112,7 @@ number maps into stakeholder.  Also, as paper suggests, short
 Time of sending is randomized within small interval. It is done to
 avoid network overload when all coin tossing participants send their
 data at the same time. This interval is chosen to be small enough for
-protocol to remain secure. If this data is sent to late and there are
+protocol to remain secure. If this data is sent too late and there are
 many adversaries leading last few slots of a certain phase, it can
 happen that data won't be included into block.
 
