@@ -4969,7 +4969,7 @@ class (Monad m, WithLogger m) => MonadPollRead m where getAdoptedBV = fst <$> ge
 -- | Retrieve state of given block version.
 getBVState :: MonadPollRead m => BlockVersion -> m (Maybe BlockVersionState)
 
--- | Retrieve all proposed block version.
+-- | Retrieve all proposed block versions.
 getProposedBVs :: MonadPollRead m => m [BlockVersion]
 
 -- | Get all confirmed <a>BlockVersion</a>s and their states.
@@ -5019,7 +5019,7 @@ getAdoptedBVData :: MonadPollRead m => m BlockVersionData
 -- | Retrieve state of given block version.
 getBVState :: (MonadPollRead m, MonadTrans t, MonadPollRead m', t m' ~ m) => BlockVersion -> m (Maybe BlockVersionState)
 
--- | Retrieve all proposed block version.
+-- | Retrieve all proposed block versions.
 getProposedBVs :: (MonadPollRead m, MonadTrans t, MonadPollRead m', t m' ~ m) => m [BlockVersion]
 
 -- | Get all confirmed <a>BlockVersion</a>s and their states.
