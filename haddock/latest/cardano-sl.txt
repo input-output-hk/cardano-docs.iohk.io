@@ -5671,6 +5671,9 @@ getNodeInfo :: (MonadDHT m, MonadIO m) => m Text
 --   <tt>WorkMode</tt> context.
 reportMisbehaviour :: (MonadIO m, MonadMask m, MonadDHT m, WithNodeContext її m, HasLoggerName m, CanLog m) => Text -> m ()
 
+-- | Report misbehaveour, but catch all errors inside
+reportMisbehaviourMasked :: forall m її. (MonadIO m, MonadMask m, MonadDHT m, WithNodeContext її m, HasLoggerName m, CanLog m) => Text -> m ()
+
 -- | Given logs files list and report type, sends reports to URI asked. All
 --   files _must_ exist. Report server URI should be in form like
 --   "http(s):/<i>host:port</i>" without specified endpoint.
@@ -5691,6 +5694,10 @@ retrieveLogFiles :: LoggerConfig -> [([Text], FilePath)]
 --   this function will return <tt>[component.log.122,
 --   component.log.123]</tt>.
 chooseLogFiles :: (MonadIO m) => FilePath -> m [FilePath]
+
+
+-- | Reexports of error reporting functionality
+module Pos.Reporting
 
 
 -- | Re-export of Pos.Block.Network.*
