@@ -29,7 +29,7 @@ The testnet will be reset on February, 15th during this time.
 Later in 2017 the system will go live with initial ninety days
 of [bootstrapping era](/timeline/bootstrap/). Then, as the network enters [rewarding
 era](/timeline/reward/), it will be advisable for stakeholders
-with a considerable amount of [stake](/proof-of-stake/#stake) to
+with a considerable amount of [stake](/cardano/proof-of-stake/#stake) to
 participate in running the protocol by keeping the node online with port
 `8777` open. We plan to release a one-click solution for running a node
 in the cloud, which will allow you to participate in running the

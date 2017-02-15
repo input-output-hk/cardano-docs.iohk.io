@@ -9,7 +9,7 @@ group: technical-protocols
 # Network Transport Layer
 
 This guide is for developers who want to build their own client for Cardano SL.
-Please read [Cardano SL Implementation Overview](/for-contributors/implementation)
+Please read [Cardano SL Implementation Overview](/technical/)
 for more info. This guide covers the network transport layer used in Cardano SL
 nodes.
 

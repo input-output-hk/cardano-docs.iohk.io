@@ -444,7 +444,7 @@ These constraints guarantee the following abilities:
 An ability to log different info, see [example](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Retrieval.hs#L58).
 * [`MonadIO`](http://hackage.haskell.org/package/transformers-0.5.1.0/docs/Control-Monad-IO-Class.html#t:MonadIO).
 An ability to interact with the real world. For example, standard input/output, filesystem, etc., see [example](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Retrieval.hs#L61).
-* [`MonadMockable`](https://github.com/serokell/time-warp-nt/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Mockable/Monad.hs#L20).
+* [`MonadMockable`](https://github.com/serokell/time-warp-nt/blob/9b4927f8115499db2fa3ba07df50d60d02190790/src/Mockable/Monad.hs).
 An ability to work with our network layer, see [example](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Listeners.hs#L86).
 Please read [Time-Warp-NT Guide](/technical/protocols/time-warp-nt/) for more info.
 * [`MonadDHT`](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/DHT/Model/Class.hs#L16).
@@ -493,5 +493,5 @@ There's a minimum version of `WorkMode` called `MinWorkMode`, for more specific 
 * [`WithLogger`](https://hackage.haskell.org/package/log-warper-0.2.1/docs/System-Wlog-CanLog.html#t:WithLogger). See above.
 * [`MonadIO`](http://hackage.haskell.org/package/transformers-0.5.1.0/docs/Control-Monad-IO-Class.html#t:MonadIO). See above.
 * [`MonadDHT`](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/DHT/Model/Class.hs#L16). See above.
-* [`MonadMockable`](https://github.com/serokell/time-warp-nt/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Mockable/Monad.hs#L20). See above.
+* [`MonadMockable`](https://github.com/serokell/time-warp-nt/blob/9b4927f8115499db2fa3ba07df50d60d02190790/src/Mockable/Monad.hs). See above.
 * [`MonadFail`](https://hackage.haskell.org/package/base-4.9.1.0/docs/Control-Monad-Fail.html#t:MonadFail). See above.
