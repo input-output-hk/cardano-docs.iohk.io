@@ -4,7 +4,7 @@ body{background:#FAFBFC;color:#555;padding-top:0px;font:116%/1.3 'montserratligh
 a{color:#CE851F;}
 
 
-h1,h2,h3,h4,h5,h6{font-family: 'Montserrat', sans-serif;color:#fff}
+h1,h2,h3,h4,h5,h6{font-family: 'Montserrat', sans-serif;color:#fff;padding:1em 0;margin:0}
 
 .main h1,.main h2,.main h3,.main h4,.main h5,.main h6{font-family: 'Montserrat', sans-serif;color:#444;text-transform: uppercase}
 
