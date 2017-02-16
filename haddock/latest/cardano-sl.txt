@@ -6,7 +6,7 @@
 --   
 --   Please see README.md
 @package cardano-sl
-@version 0.2.0
+@version 0.1.0.0
 
 
 -- | Common things used in <a>Arbitrary</a> and <a>Arbitrary</a>
@@ -245,10 +245,10 @@ WithHash :: a -> Hash a -> WithHash a
 [whData] :: WithHash a -> a
 [whHash] :: WithHash a -> Hash a
 withHash :: Bi a => a -> WithHash a
-_whData :: forall a_a1gvW. Lens' (WithHash a_a1gvW) a_a1gvW
+_whData :: forall a_a1g3w. Lens' (WithHash a_a1g3w) a_a1g3w
 
 -- | Lenses for <a>WithHash</a>
-_whHash :: forall a_a1gvW. Lens' (WithHash a_a1gvW) (Hash a_a1gvW)
+_whHash :: forall a_a1g3w. Lens' (WithHash a_a1g3w) (Hash a_a1g3w)
 
 -- | Hash wrapper with phantom type for more type-safety. Made abstract in
 --   order to support different algorithms in different situations
@@ -553,7 +553,7 @@ getAttributes :: (Word8 -> h -> Maybe (Get h)) -> Maybe Word32 -> h -> Get (Attr
 --   into set of keys and values.
 putAttributes :: (h -> [(Word8, Put)]) -> Attributes h -> Put
 mkAttributes :: h -> Attributes h
-instance Control.DeepSeq.NFData h_6989586621679428359 => Control.DeepSeq.NFData (Pos.Data.Attributes.Attributes h_6989586621679428359)
+instance Control.DeepSeq.NFData h_6989586621679426597 => Control.DeepSeq.NFData (Pos.Data.Attributes.Attributes h_6989586621679426597)
 instance GHC.Generics.Generic (Pos.Data.Attributes.Attributes h)
 instance GHC.Classes.Ord h => GHC.Classes.Ord (Pos.Data.Attributes.Attributes h)
 instance GHC.Classes.Eq h => GHC.Classes.Eq (Pos.Data.Attributes.Attributes h)
@@ -820,16 +820,16 @@ GenericBlock :: !(GenericBlockHeader b) -> !(Body b) -> !(ExtraBodyData b) -> Ge
 [_gbExtra] :: GenericBlock b -> !(ExtraBodyData b)
 class HasPrevBlock s
 prevBlockL :: HasPrevBlock s => Lens' s HeaderHash
-gbBody :: forall b_a2G5I. Lens' (GenericBlock b_a2G5I) (Body b_a2G5I)
-gbHeader :: forall b_a2G5I. Lens' (GenericBlock b_a2G5I) (GenericBlockHeader b_a2G5I)
-gbExtra :: forall b_a2G5I. Lens' (GenericBlock b_a2G5I) (ExtraBodyData b_a2G5I)
+gbBody :: forall b_a2FDi. Lens' (GenericBlock b_a2FDi) (Body b_a2FDi)
+gbHeader :: forall b_a2FDi. Lens' (GenericBlock b_a2FDi) (GenericBlockHeader b_a2FDi)
+gbExtra :: forall b_a2FDi. Lens' (GenericBlock b_a2FDi) (ExtraBodyData b_a2FDi)
 
 -- | Lens from <a>GenericBlock</a> to <a>BodyProof</a>.
 gbBodyProof :: Lens' (GenericBlock b) (BodyProof b)
-gbhConsensus :: forall b_a2G5J. Lens' (GenericBlockHeader b_a2G5J) (ConsensusData b_a2G5J)
-gbhExtra :: forall b_a2G5J. Lens' (GenericBlockHeader b_a2G5J) (ExtraHeaderData b_a2G5J)
-gbhPrevBlock :: forall b_a2G5J. Lens' (GenericBlockHeader b_a2G5J) (BHeaderHash b_a2G5J)
-gbhBodyProof :: forall b_a2G5J. Lens' (GenericBlockHeader b_a2G5J) (BodyProof b_a2G5J)
+gbhConsensus :: forall b_a2FDj. Lens' (GenericBlockHeader b_a2FDj) (ConsensusData b_a2FDj)
+gbhExtra :: forall b_a2FDj. Lens' (GenericBlockHeader b_a2FDj) (ExtraHeaderData b_a2FDj)
+gbhPrevBlock :: forall b_a2FDj. Lens' (GenericBlockHeader b_a2FDj) (BHeaderHash b_a2FDj)
+gbhBodyProof :: forall b_a2FDj. Lens' (GenericBlockHeader b_a2FDj) (BodyProof b_a2FDj)
 instance GHC.Generics.Generic (Pos.Types.Block.Class.GenericBlockHeader b)
 instance GHC.Generics.Generic (Pos.Types.Block.Class.GenericBlock b)
 instance (GHC.Show.Show (Pos.Types.Block.Class.BHeaderHash b), GHC.Show.Show (Pos.Types.Block.Class.BodyProof b), GHC.Show.Show (Pos.Types.Block.Class.ConsensusData b), GHC.Show.Show (Pos.Types.Block.Class.ExtraHeaderData b)) => GHC.Show.Show (Pos.Types.Block.Class.GenericBlockHeader b)
@@ -1145,12 +1145,18 @@ cardanoExceptionToException :: (Buildable e, Exception e) => e -> SomeException
 -- | Helper to define sub-exception of CardanoException.
 cardanoExceptionFromException :: Exception e => SomeException -> Maybe e
 
--- | Error indicating that something really bad happened.
+-- | Error indicating that something really bad happened. Should be used
+--   when serious assertions fail (local equivalent of <a>panic</a>).
+--   <a>panic</a> is still alright to use, but preferably in pure
+--   environment.
 data CardanoFatalError
 CardanoFatalError :: !Text -> CardanoFatalError
 
 -- | Print red message about fatal error and throw exception.
 reportFatalError :: (WithLogger m, MonadThrow m) => Text -> m a
+
+-- | Report <a>CardanoFatalError</a> for failed assertions.
+assertionFailed :: (WithLogger m, MonadThrow m) => Text -> m a
 instance GHC.Show.Show Pos.Exception.CardanoFatalError
 instance GHC.Show.Show Pos.Exception.CardanoException
 instance GHC.Exception.Exception Pos.Exception.CardanoException
@@ -2315,9 +2321,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679163510 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679163510)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679163962 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679163962)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679163963 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679163963)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679161748 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679161748)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679162200 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679162200)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679162201 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679162201)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Core.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Core.SoftwareVersion
@@ -3100,11 +3106,11 @@ NodeDBs :: !(DB ssc) -> !(DB ssc) -> !(DB ssc) -> !(DB ssc) -> !RWLock -> NodeDB
 
 -- | Lock on misc db
 [_miscLock] :: NodeDBs ssc -> !RWLock
-blockDB :: forall ssc_a7fp8. Lens' (NodeDBs ssc_a7fp8) (DB ssc_a7fp8)
-gStateDB :: forall ssc_a7fp8. Lens' (NodeDBs ssc_a7fp8) (DB ssc_a7fp8)
-lrcDB :: forall ssc_a7fp8. Lens' (NodeDBs ssc_a7fp8) (DB ssc_a7fp8)
-miscDB :: forall ssc_a7fp8. Lens' (NodeDBs ssc_a7fp8) (DB ssc_a7fp8)
-miscLock :: forall ssc_a7fp8. Lens' (NodeDBs ssc_a7fp8) RWLock
+blockDB :: forall ssc_a7foe. Lens' (NodeDBs ssc_a7foe) (DB ssc_a7foe)
+gStateDB :: forall ssc_a7foe. Lens' (NodeDBs ssc_a7foe) (DB ssc_a7foe)
+lrcDB :: forall ssc_a7foe. Lens' (NodeDBs ssc_a7foe) (DB ssc_a7foe)
+miscDB :: forall ssc_a7foe. Lens' (NodeDBs ssc_a7foe) (DB ssc_a7foe)
+miscLock :: forall ssc_a7foe. Lens' (NodeDBs ssc_a7foe) RWLock
 newtype Snapshot
 Snapshot :: Snapshot -> Snapshot
 usingSnapshot :: (MonadIO m, MonadMask m) => DB ssc -> (Snapshot -> m a) -> m a
@@ -5669,10 +5675,14 @@ getNodeInfo :: (MonadDHT m, MonadIO m) => m Text
 
 -- | Reports misbehaviour given reason string. Effectively designed for
 --   <tt>WorkMode</tt> context.
-reportMisbehaviour :: (MonadIO m, MonadMask m, MonadDHT m, WithNodeContext її m, HasLoggerName m, CanLog m) => Text -> m ()
+reportMisbehaviour :: forall m її. ReportingContext її m => Text -> m ()
 
 -- | Report misbehaveour, but catch all errors inside
-reportMisbehaviourMasked :: forall m її. (MonadIO m, MonadMask m, MonadDHT m, WithNodeContext її m, HasLoggerName m, CanLog m) => Text -> m ()
+reportMisbehaviourMasked :: forall m її. ReportingContext її m => Text -> m ()
+
+-- | Execute action, report <a>CardanoFatalError</a> and <a>FatalError</a>
+--   if it happens and rethrow.
+reportingFatal :: forall m a ё. ReportingContext ё m => m a -> m a
 
 -- | Given logs files list and report type, sends reports to URI asked. All
 --   files _must_ exist. Report server URI should be in form like
