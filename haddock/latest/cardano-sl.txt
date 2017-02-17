@@ -5781,7 +5781,6 @@ closeWSConnection :: MonadIO m => ConnectionsVar -> m ()
 upgradeApplicationWS :: ConnectionsVar -> Application -> Application
 notify :: WebWalletSockets m => NotifyEvent -> m ()
 runWalletWS :: ConnectionsVar -> WalletWebSockets m a -> m a
-getWalletWebSocketsState :: Monad m => WalletWebSockets m ConnectionsVar
 
 -- | Holder for web wallet data
 newtype WalletWebDB m a
