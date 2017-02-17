@@ -3106,11 +3106,11 @@ NodeDBs :: !(DB ssc) -> !(DB ssc) -> !(DB ssc) -> !(DB ssc) -> !RWLock -> NodeDB
 
 -- | Lock on misc db
 [_miscLock] :: NodeDBs ssc -> !RWLock
-blockDB :: forall ssc_a7foe. Lens' (NodeDBs ssc_a7foe) (DB ssc_a7foe)
-gStateDB :: forall ssc_a7foe. Lens' (NodeDBs ssc_a7foe) (DB ssc_a7foe)
-lrcDB :: forall ssc_a7foe. Lens' (NodeDBs ssc_a7foe) (DB ssc_a7foe)
-miscDB :: forall ssc_a7foe. Lens' (NodeDBs ssc_a7foe) (DB ssc_a7foe)
-miscLock :: forall ssc_a7foe. Lens' (NodeDBs ssc_a7foe) RWLock
+blockDB :: forall ssc_a7gij. Lens' (NodeDBs ssc_a7gij) (DB ssc_a7gij)
+gStateDB :: forall ssc_a7gij. Lens' (NodeDBs ssc_a7gij) (DB ssc_a7gij)
+lrcDB :: forall ssc_a7gij. Lens' (NodeDBs ssc_a7gij) (DB ssc_a7gij)
+miscDB :: forall ssc_a7gij. Lens' (NodeDBs ssc_a7gij) (DB ssc_a7gij)
+miscLock :: forall ssc_a7gij. Lens' (NodeDBs ssc_a7gij) RWLock
 newtype Snapshot
 Snapshot :: Snapshot -> Snapshot
 usingSnapshot :: (MonadIO m, MonadMask m) => DB ssc -> (Snapshot -> m a) -> m a
