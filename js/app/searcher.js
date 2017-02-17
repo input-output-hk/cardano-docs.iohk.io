@@ -1,6 +1,6 @@
 
 function io_search_filter(obj,str){
-  if(str.length > 1){
+  //if(str.length > 1){
     var txt = $(obj).text();
     var srch = txt.toLowerCase().search(str.toLowerCase());
     if(srch == -1){
@@ -42,17 +42,15 @@ function io_search_filter(obj,str){
 
 
     }
-  }
+  //}
 }
 
 function io_search_update(){
-  if($("#site_search_input").val().length > 1){
-    $("#search-results").empty();
-    $("#search-output .search-output").each(function(){
-      $(this).find('.main').removeAttr('id');
-      io_search_filter($(this),$("#site_search_input").val());
-    });
-  }
+  $("#search-results").empty();
+  $("#search-output .search-output").each(function(){
+    $(this).find('.main').removeAttr('id');
+    io_search_filter($(this),$("#site_search_input").val());
+  });
 }
 
 var io_search_site_loaded = false;
