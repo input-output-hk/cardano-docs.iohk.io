@@ -31,9 +31,9 @@
 </span><a name="line-31"></a><span class="hs-keyword">import</span><span>           </span><a href="Pos.Util.Binary.html"><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Util</span><span class="hs-operator">.</span><span class="hs-identifier">Binary</span></a><span>      </span><span class="hs-special">(</span><a href="Pos.Util.Binary.html#Raw"><span class="hs-identifier hs-type">Raw</span></a><span class="hs-special">)</span><span>
 </span><a name="line-32"></a><span>
 </span><a name="line-33"></a><span class="hs-comment">-- | Data type for root of merkle tree.</span><span>
-</span><a name="line-34"></a><span class="hs-keyword">newtype</span><span> </span><a name="MerkleRoot"><a href="Pos.Merkle.html#MerkleRoot"><span class="hs-identifier">MerkleRoot</span></a></a><span> </span><a name="local-6989586621679442600"><a href="#local-6989586621679442600"><span class="hs-identifier">a</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a name="MerkleRoot"><a href="Pos.Merkle.html#MerkleRoot"><span class="hs-identifier">MerkleRoot</span></a></a><span>
+</span><a name="line-34"></a><span class="hs-keyword">newtype</span><span> </span><a name="MerkleRoot"><a href="Pos.Merkle.html#MerkleRoot"><span class="hs-identifier">MerkleRoot</span></a></a><span> </span><a name="local-6989586621679442999"><a href="#local-6989586621679442999"><span class="hs-identifier">a</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a name="MerkleRoot"><a href="Pos.Merkle.html#MerkleRoot"><span class="hs-identifier">MerkleRoot</span></a></a><span>
 </span><a name="line-35"></a><span>    </span><span class="hs-special">{</span><span> </span><a name="getMerkleRoot"><a href="Pos.Merkle.html#getMerkleRoot"><span class="hs-identifier">getMerkleRoot</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><a href="Pos.Crypto.Hashing.html#Hash"><span class="hs-identifier hs-type">Hash</span></a><span> </span><a href="Pos.Util.Binary.html#Raw"><span class="hs-identifier hs-type">Raw</span></a><span>  </span><span class="hs-comment">-- ^ returns root 'Hash' of Merkle Tree</span><span>
-</span><a name="line-36"></a><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Show</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Eq</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Ord</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Generic</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">ByteArrayAccess</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Typeable</span><span class="hs-special">)</span><span>
+</span><a name="line-36"></a><span>    </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Show</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Eq</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Ord</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Generic</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">ByteArrayAccess</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Typeable</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">NFData</span><span class="hs-special">)</span><span>
 </span><a name="line-37"></a><span>
 </span><a name="line-38"></a><span class="hs-comment">-- This gives a &#8220;redundant constraint&#8221; warning due to</span><span>
 </span><a name="line-39"></a><span class="hs-comment">-- https://github.com/acid-state/safecopy/issues/46.</span><span>
@@ -42,6 +42,8 @@
 -- | Straightforward merkle tree representation in Haskell.
 data MerkleTree a = MerkleEmpty | MerkleTree Word32 (MerkleNode a)
     deriving (Eq, Generic)
+
+instance NFData a =&gt; NFData (MerkleTree a)
 
 instance Foldable MerkleTree where
     foldMap _ MerkleEmpty      = mempty
@@ -63,6 +65,8 @@ data MerkleNode a
     | MerkleLeaf { mRoot :: MerkleRoot a
                  , mVal  :: a}
     deriving (Eq, Show, Generic)
+
+instance NFData a =&gt; NFData (MerkleNode a)
 
 instance Foldable MerkleNode where
     foldMap f x = case x of

@@ -245,10 +245,10 @@ WithHash :: a -> Hash a -> WithHash a
 [whData] :: WithHash a -> a
 [whHash] :: WithHash a -> Hash a
 withHash :: Bi a => a -> WithHash a
-_whData :: forall a_a1g74. Lens' (WithHash a_a1g74) a_a1g74
+_whData :: forall a_a1gdE. Lens' (WithHash a_a1gdE) a_a1gdE
 
 -- | Lenses for <a>WithHash</a>
-_whHash :: forall a_a1g74. Lens' (WithHash a_a1g74) (Hash a_a1g74)
+_whHash :: forall a_a1gdE. Lens' (WithHash a_a1gdE) (Hash a_a1gdE)
 
 -- | Hash wrapper with phantom type for more type-safety. Made abstract in
 --   order to support different algorithms in different situations
@@ -553,7 +553,7 @@ getAttributes :: (Word8 -> h -> Maybe (Get h)) -> Maybe Word32 -> h -> Get (Attr
 --   into set of keys and values.
 putAttributes :: (h -> [(Word8, Put)]) -> Attributes h -> Put
 mkAttributes :: h -> Attributes h
-instance Control.DeepSeq.NFData h_6989586621679426817 => Control.DeepSeq.NFData (Pos.Data.Attributes.Attributes h_6989586621679426817)
+instance Control.DeepSeq.NFData h_6989586621679427216 => Control.DeepSeq.NFData (Pos.Data.Attributes.Attributes h_6989586621679427216)
 instance GHC.Generics.Generic (Pos.Data.Attributes.Attributes h)
 instance GHC.Classes.Ord h => GHC.Classes.Ord (Pos.Data.Attributes.Attributes h)
 instance GHC.Classes.Eq h => GHC.Classes.Eq (Pos.Data.Attributes.Attributes h)
@@ -604,9 +604,12 @@ instance GHC.Generics.Generic (Pos.Merkle.MerkleNode a)
 instance GHC.Show.Show a => GHC.Show.Show (Pos.Merkle.MerkleNode a)
 instance GHC.Classes.Eq a => GHC.Classes.Eq (Pos.Merkle.MerkleNode a)
 instance Data.SafeCopy.SafeCopy.SafeCopy a0 => Data.SafeCopy.SafeCopy.SafeCopy (Pos.Merkle.MerkleRoot a0)
+instance Control.DeepSeq.NFData a => Control.DeepSeq.NFData (Pos.Merkle.MerkleTree a)
 instance Data.Foldable.Foldable Pos.Merkle.MerkleTree
 instance GHC.Show.Show a => GHC.Show.Show (Pos.Merkle.MerkleTree a)
+instance Control.DeepSeq.NFData a => Control.DeepSeq.NFData (Pos.Merkle.MerkleNode a)
 instance Data.Foldable.Foldable Pos.Merkle.MerkleNode
+instance Control.DeepSeq.NFData (Pos.Merkle.MerkleRoot a)
 instance Data.ByteArray.Types.ByteArrayAccess (Pos.Merkle.MerkleRoot a)
 instance GHC.Generics.Generic (Pos.Merkle.MerkleRoot a)
 instance GHC.Classes.Ord (Pos.Merkle.MerkleRoot a)
@@ -820,22 +823,23 @@ GenericBlock :: !(GenericBlockHeader b) -> !(Body b) -> !(ExtraBodyData b) -> Ge
 [_gbExtra] :: GenericBlock b -> !(ExtraBodyData b)
 class HasPrevBlock s
 prevBlockL :: HasPrevBlock s => Lens' s HeaderHash
-gbBody :: forall b_a2FyC. Lens' (GenericBlock b_a2FyC) (Body b_a2FyC)
-gbHeader :: forall b_a2FyC. Lens' (GenericBlock b_a2FyC) (GenericBlockHeader b_a2FyC)
-gbExtra :: forall b_a2FyC. Lens' (GenericBlock b_a2FyC) (ExtraBodyData b_a2FyC)
+gbBody :: forall b_a2FRP. Lens' (GenericBlock b_a2FRP) (Body b_a2FRP)
+gbHeader :: forall b_a2FRP. Lens' (GenericBlock b_a2FRP) (GenericBlockHeader b_a2FRP)
+gbExtra :: forall b_a2FRP. Lens' (GenericBlock b_a2FRP) (ExtraBodyData b_a2FRP)
 
 -- | Lens from <a>GenericBlock</a> to <a>BodyProof</a>.
 gbBodyProof :: Lens' (GenericBlock b) (BodyProof b)
-gbhConsensus :: forall b_a2FyD. Lens' (GenericBlockHeader b_a2FyD) (ConsensusData b_a2FyD)
-gbhExtra :: forall b_a2FyD. Lens' (GenericBlockHeader b_a2FyD) (ExtraHeaderData b_a2FyD)
-gbhPrevBlock :: forall b_a2FyD. Lens' (GenericBlockHeader b_a2FyD) (BHeaderHash b_a2FyD)
-gbhBodyProof :: forall b_a2FyD. Lens' (GenericBlockHeader b_a2FyD) (BodyProof b_a2FyD)
+gbhConsensus :: forall b_a2FRQ. Lens' (GenericBlockHeader b_a2FRQ) (ConsensusData b_a2FRQ)
+gbhExtra :: forall b_a2FRQ. Lens' (GenericBlockHeader b_a2FRQ) (ExtraHeaderData b_a2FRQ)
+gbhPrevBlock :: forall b_a2FRQ. Lens' (GenericBlockHeader b_a2FRQ) (BHeaderHash b_a2FRQ)
+gbhBodyProof :: forall b_a2FRQ. Lens' (GenericBlockHeader b_a2FRQ) (BodyProof b_a2FRQ)
 instance GHC.Generics.Generic (Pos.Types.Block.Class.GenericBlockHeader b)
 instance GHC.Generics.Generic (Pos.Types.Block.Class.GenericBlock b)
 instance (GHC.Show.Show (Pos.Types.Block.Class.BHeaderHash b), GHC.Show.Show (Pos.Types.Block.Class.BodyProof b), GHC.Show.Show (Pos.Types.Block.Class.ConsensusData b), GHC.Show.Show (Pos.Types.Block.Class.ExtraHeaderData b)) => GHC.Show.Show (Pos.Types.Block.Class.GenericBlockHeader b)
 instance (GHC.Classes.Eq (Pos.Types.Block.Class.BHeaderHash b), GHC.Classes.Eq (Pos.Types.Block.Class.BodyProof b), GHC.Classes.Eq (Pos.Types.Block.Class.ConsensusData b), GHC.Classes.Eq (Pos.Types.Block.Class.ExtraHeaderData b)) => GHC.Classes.Eq (Pos.Types.Block.Class.GenericBlockHeader b)
 instance (GHC.Show.Show (Pos.Types.Block.Class.GenericBlockHeader b), GHC.Show.Show (Pos.Types.Block.Class.Body b), GHC.Show.Show (Pos.Types.Block.Class.ExtraBodyData b)) => GHC.Show.Show (Pos.Types.Block.Class.GenericBlock b)
 instance (GHC.Classes.Eq (Pos.Types.Block.Class.BHeaderHash b), GHC.Classes.Eq (Pos.Types.Block.Class.Body b), GHC.Classes.Eq (Pos.Types.Block.Class.BodyProof b), GHC.Classes.Eq (Pos.Types.Block.Class.ConsensusData b), GHC.Classes.Eq (Pos.Types.Block.Class.ExtraBodyData b), GHC.Classes.Eq (Pos.Types.Block.Class.ExtraHeaderData b)) => GHC.Classes.Eq (Pos.Types.Block.Class.GenericBlock b)
+instance (Control.DeepSeq.NFData (Pos.Types.Block.Class.BHeaderHash b), Control.DeepSeq.NFData (Pos.Types.Block.Class.BodyProof b), Control.DeepSeq.NFData (Pos.Types.Block.Class.ConsensusData b), Control.DeepSeq.NFData (Pos.Types.Block.Class.ExtraHeaderData b)) => Control.DeepSeq.NFData (Pos.Types.Block.Class.GenericBlockHeader b)
 
 module Pos.Types.Coin
 
@@ -1748,15 +1752,19 @@ mehBlockVersion :: Lens' MainExtraHeaderData BlockVersion
 mehSoftwareVersion :: Lens' MainExtraHeaderData SoftwareVersion
 mehAttributes :: Lens' MainExtraHeaderData BlockHeaderAttributes
 mebAttributes :: Iso' MainExtraBodyData BlockBodyAttributes
+instance Control.DeepSeq.NFData Pos.Types.Block.Types.MainExtraBodyData
 instance GHC.Generics.Generic Pos.Types.Block.Types.MainExtraBodyData
 instance GHC.Show.Show Pos.Types.Block.Types.MainExtraBodyData
 instance GHC.Classes.Eq Pos.Types.Block.Types.MainExtraBodyData
 instance GHC.Generics.Generic Pos.Types.Block.Types.MainExtraHeaderData
 instance GHC.Show.Show Pos.Types.Block.Types.MainExtraHeaderData
 instance GHC.Classes.Eq Pos.Types.Block.Types.MainExtraHeaderData
+instance GHC.Generics.Generic (Pos.Types.Block.Types.BlockSignature ssc)
 instance GHC.Classes.Eq (Pos.Types.Block.Types.BlockSignature ssc)
 instance GHC.Show.Show (Pos.Types.Block.Types.BlockSignature ssc)
+instance Control.DeepSeq.NFData (Pos.Types.Block.Class.BodyProof (Pos.Types.Block.Types.MainBlockchain ssc)) => Control.DeepSeq.NFData (Pos.Types.Block.Types.BlockSignature ssc)
 instance Data.Text.Buildable.Buildable (Pos.Types.Block.Types.BlockSignature ssc)
+instance Control.DeepSeq.NFData Pos.Types.Block.Types.MainExtraHeaderData
 instance Data.Text.Buildable.Buildable Pos.Types.Block.Types.MainExtraHeaderData
 instance Data.Text.Buildable.Buildable Pos.Types.Block.Types.MainExtraBodyData
 
@@ -1862,7 +1870,15 @@ instance Pos.Ssc.Class.Types.Ssc ssc => GHC.Classes.Eq (Pos.Types.Block.Class.Bo
 instance Pos.Ssc.Class.Types.Ssc ssc => GHC.Show.Show (Pos.Types.Block.Class.Body (Pos.Types.Block.Types.MainBlockchain ssc))
 instance (GHC.Classes.Eq (Pos.Ssc.Class.Types.SscPayload ssc), Pos.Ssc.Class.Types.Ssc ssc) => GHC.Classes.Eq (Pos.Types.Block.Class.Body (Pos.Types.Block.Types.MainBlockchain ssc))
 instance (Pos.Ssc.Class.Helpers.SscHelpersClass ssc, Pos.Binary.Class.Bi Pos.Types.Types.TxWitness, Pos.Binary.Class.Bi Pos.Update.Core.Types.UpdatePayload, Pos.Binary.Class.Bi Pos.Types.Core.EpochIndex) => Pos.Types.Block.Class.Blockchain (Pos.Types.Block.Types.MainBlockchain ssc)
+instance Pos.Ssc.Class.Types.Ssc ssc => Control.DeepSeq.NFData (Pos.Types.Block.Class.BodyProof (Pos.Types.Block.Types.MainBlockchain ssc))
+instance Pos.Ssc.Class.Types.Ssc ssc => Control.DeepSeq.NFData (Pos.Types.Block.Class.ConsensusData (Pos.Types.Block.Types.MainBlockchain ssc))
+instance Pos.Ssc.Class.Types.Ssc ssc => Control.DeepSeq.NFData (Pos.Types.Block.Class.Body (Pos.Types.Block.Types.MainBlockchain ssc))
+instance Pos.Ssc.Class.Types.Ssc ssc => Control.DeepSeq.NFData (Pos.Types.Block.Types.MainBlock ssc)
 instance Pos.Types.Block.Class.Blockchain (Pos.Types.Block.Types.GenesisBlockchain ssc)
+instance Pos.Ssc.Class.Types.Ssc ssc => Control.DeepSeq.NFData (Pos.Types.Block.Class.BodyProof (Pos.Types.Block.Types.GenesisBlockchain ssc))
+instance Pos.Ssc.Class.Types.Ssc ssc => Control.DeepSeq.NFData (Pos.Types.Block.Class.ConsensusData (Pos.Types.Block.Types.GenesisBlockchain ssc))
+instance Pos.Ssc.Class.Types.Ssc ssc => Control.DeepSeq.NFData (Pos.Types.Block.Class.Body (Pos.Types.Block.Types.GenesisBlockchain ssc))
+instance Pos.Ssc.Class.Types.Ssc ssc => Control.DeepSeq.NFData (Pos.Types.Block.Types.GenesisBlock ssc)
 instance Pos.Types.Block.Types.BiSsc ssc => Data.Text.Buildable.Buildable (Pos.Types.Block.Types.MainBlockHeader ssc)
 instance (Pos.Binary.Class.Bi Pos.Update.Core.Types.UpdateProposal, Pos.Types.Block.Types.BiSsc ssc) => Data.Text.Buildable.Buildable (Pos.Types.Block.Types.MainBlock ssc)
 instance Pos.Types.Block.Types.BiSsc ssc => Data.Text.Buildable.Buildable (Pos.Types.Block.Types.GenesisBlockHeader ssc)
@@ -3106,11 +3122,11 @@ NodeDBs :: !(DB ssc) -> !(DB ssc) -> !(DB ssc) -> !(DB ssc) -> !RWLock -> NodeDB
 
 -- | Lock on misc db
 [_miscLock] :: NodeDBs ssc -> !RWLock
-blockDB :: forall ssc_a7mSd. Lens' (NodeDBs ssc_a7mSd) (DB ssc_a7mSd)
-gStateDB :: forall ssc_a7mSd. Lens' (NodeDBs ssc_a7mSd) (DB ssc_a7mSd)
-lrcDB :: forall ssc_a7mSd. Lens' (NodeDBs ssc_a7mSd) (DB ssc_a7mSd)
-miscDB :: forall ssc_a7mSd. Lens' (NodeDBs ssc_a7mSd) (DB ssc_a7mSd)
-miscLock :: forall ssc_a7mSd. Lens' (NodeDBs ssc_a7mSd) RWLock
+blockDB :: forall ssc_a7qTj. Lens' (NodeDBs ssc_a7qTj) (DB ssc_a7qTj)
+gStateDB :: forall ssc_a7qTj. Lens' (NodeDBs ssc_a7qTj) (DB ssc_a7qTj)
+lrcDB :: forall ssc_a7qTj. Lens' (NodeDBs ssc_a7qTj) (DB ssc_a7qTj)
+miscDB :: forall ssc_a7qTj. Lens' (NodeDBs ssc_a7qTj) (DB ssc_a7qTj)
+miscLock :: forall ssc_a7qTj. Lens' (NodeDBs ssc_a7qTj) RWLock
 newtype Snapshot
 Snapshot :: Snapshot -> Snapshot
 usingSnapshot :: (MonadIO m, MonadMask m) => DB ssc -> (Snapshot -> m a) -> m a
@@ -4229,7 +4245,7 @@ type SscVerifier ssc a = forall m. SscVerifyMode ssc m => m a
 
 -- | Main Shared Seed Calculation type class. Stores all needed type
 --   parameters for general implementation of SSC.
-class (Typeable ssc, Typeable (SscPayload ssc), Typeable (SscProof ssc), Typeable (SscSeedError ssc), Eq (SscProof ssc), Eq (SscGlobalState ssc), Show (SscProof ssc), Show (SscPayload ssc), Buildable (SscPayload ssc), Buildable (SscSeedError ssc), Buildable (SscVerifyError ssc), Buildable (SscGlobalState ssc), Bi (SscProof ssc), Bi (SscPayload ssc)) => Ssc ssc where type SscLocalData ssc type SscPayload ssc type SscGlobalState ssc type SscProof ssc type SscSeedError ssc type SscNodeContext ssc type SscParams ssc type SscVerifyError ssc where {
+class (Typeable ssc, Typeable (SscPayload ssc), Typeable (SscProof ssc), Typeable (SscSeedError ssc), Eq (SscProof ssc), Eq (SscGlobalState ssc), Show (SscProof ssc), Show (SscPayload ssc), Buildable (SscPayload ssc), Buildable (SscSeedError ssc), Buildable (SscVerifyError ssc), Buildable (SscGlobalState ssc), Bi (SscProof ssc), Bi (SscPayload ssc), NFData (SscPayload ssc), NFData (SscProof ssc)) => Ssc ssc where type SscLocalData ssc type SscPayload ssc type SscGlobalState ssc type SscProof ssc type SscSeedError ssc type SscNodeContext ssc type SscParams ssc type SscVerifyError ssc where {
     type family SscLocalData ssc;
     type family SscPayload ssc;
     type family SscGlobalState ssc;
