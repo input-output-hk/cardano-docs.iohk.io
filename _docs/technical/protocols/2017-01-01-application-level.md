@@ -4,7 +4,7 @@ title: CSL Application-Level Messaging
 permalink: /technical/protocols/csl-application-level/
 group: technical-protocols
 ---
-[//]: # (Reviewed at 0f05d3b447d69ac640b033c169083288d26e5a19)
+[//]: # (Reviewed at e1d0f9fb37a3f1378341716916f0321fb55698df)
 
 # CSL Application-Level Messaging
 
@@ -34,7 +34,7 @@ How do you read this? First, let's examine the `instance` part. This particular
 snippet says that the data structure defined by type `MsgGetHeaders` is used as
 a message payload. The name of such message is `"GetHeaders"`.
 
-In this particular case, the data structure has two fields — `mghFrom` and `mghTo`.
+In this particular case, the data structure has two fields: `mghFrom` and `mghTo`.
 Prefixes like `mgh` are used because Haskell puts symbols for record fields in
 the global namespace, so it's programmer's duty to avoid clashes.
 
@@ -49,7 +49,7 @@ The way messages are serialized can be seen in
 module.
 
 Every message type should have an instance of the `Message` typeclass.
-Please see [Time-Warp-NT guide](/protocols/time-warp-nt/#messaging).
+Please see [Time-Warp-NT guide](/technical/protocols/time-warp-nt/#messaging).
 
 ## Inv/Req/Data and MessagePart
 
@@ -273,8 +273,7 @@ point](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c8
 it receives an answer from this listener, a message of `MsgBlock` type.
 
 Here's another example — the `requestHeaders` function. This function handles
-expected block headers, tracking them locally, and bans a node if it
-sends headers that are not requested. So at [this
+expected block headers, tracking them locally. So at [this
 point](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Retrieval.hs#L190)
 it sends a message of type `MsgGetHeaders` to the listener, and at [this
 point](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Retrieval.hs#L191)
@@ -297,8 +296,8 @@ a new slot starts. This action includes the following steps:
 
 The way in which blocks are processed is specified in the
 [Pos.Block.Logic](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Logic.hs)
-module. Please read about [Handling Blocks and
-Headers](/protocols/handling-blocks-and-headers/) for more info.
+module. Please read about [blocks in Cardano SL](/technical/blocks/)
+for more info.
 
 ### Block Processing Listeners
 
@@ -438,22 +437,22 @@ a _compile-time guarantee_ that particular actions can be performed in the
 particular context. For example, if we define type of some function `f` in the terms of **logging** constraint, we definitely know that we can log different info inside of this function `f`.
 
 All workers and handlers described above work in the `WorkMode`'s constraints.
-These constraints guarantee following abilities:
+These constraints guarantee the following abilities:
 
 * [`WithLogger`](https://hackage.haskell.org/package/log-warper-0.2.1/docs/System-Wlog-CanLog.html#t:WithLogger).
 An ability to log different info, see [example](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Retrieval.hs#L58).
 * [`MonadIO`](http://hackage.haskell.org/package/transformers-0.5.1.0/docs/Control-Monad-IO-Class.html#t:MonadIO).
 An ability to interact with the real world. For example, standard input/output, filesystem, etc., see [example](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Retrieval.hs#L61).
-* [`MonadMockable`](https://github.com/serokell/time-warp-nt/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Mockable/Monad.hs#L20).
+* [`MonadMockable`](https://github.com/serokell/time-warp-nt/blob/9b4927f8115499db2fa3ba07df50d60d02190790/src/Mockable/Monad.hs).
 An ability to work with our network layer, see [example](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Listeners.hs#L86).
-Please read [Time-Warp-NT Guide](/protocols/time-warp-nt.md) for more info.
+Please read [Time-Warp-NT Guide](/technical/protocols/time-warp-nt/) for more info.
 * [`MonadDHT`](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/DHT/Model/Class.hs#L16).
 An ability to perform Distributed Hash Table operations — for example, [join the network](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/DHT/Real/Real.hs#L211)
-or peer discovery to find neighbors. Please read [P2P Layer Guide](/protocols/p2p.md) for more info.
+or peer discovery to find neighbors. Please read [P2P Layer Guide](/technical/protocols/p2p/) for more info.
 * [`MonadMask`](http://hackage.haskell.org/package/exceptions-0.8.3/docs/Control-Monad-Catch.html#t:MonadMask).
 An ability to mask asynchronous exceptions.
 * [`MonadSlots`](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/Slotting.hs#L44).
-An ability to get information about time when system started functioning and different slot-related info, see [example](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/wallet/Main.hs#L152).
+An ability to get information about the time when system started functioning and different slot-related info, see [example](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/wallet/Main.hs#L152).
 * [`MonadDB`](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/DB/Class.hs#L27).
 An ability to work with node's DB data (we use RocksDB), see [example](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/Web/Server.hs#L117).
 * [`MonadTxpLD`](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/Txp/Class.hs#L51).
@@ -480,7 +479,7 @@ An ability to collect statistics information, see [example](https://github.com/i
 * [`MonadJL`](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/Util/JsonLog.hs#L96).
 An ability to log JSON log events, see [example](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/Statistics/MonadStats.hs#L190).
 * [`WithKademliaDHTInstance`](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/DHT/Real/Types.hs#L80).
-An ability to get Kademlia DHT instance, see [example](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/Wallet/Web/Server/Lite.hs#L56). Please read [P2P Layer Guide](/protocols/p2p.md) for more info about Kademlia.
+An ability to get Kademlia DHT instance, see [example](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/Wallet/Web/Server/Lite.hs#L56). Please read [P2P Layer Guide](/technical/protocols/p2p/) for more info about Kademlia.
 * [`MonadFail`](https://hackage.haskell.org/package/base-4.9.1.0/docs/Control-Monad-Fail.html#t:MonadFail).
 Ability to abort some operation as failed.
 * [`WithPeerState`](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/Communication/PeerState.hs#L41).
@@ -493,5 +492,5 @@ There's a minimum version of `WorkMode` called `MinWorkMode`, for more specific 
 * [`WithLogger`](https://hackage.haskell.org/package/log-warper-0.2.1/docs/System-Wlog-CanLog.html#t:WithLogger). See above.
 * [`MonadIO`](http://hackage.haskell.org/package/transformers-0.5.1.0/docs/Control-Monad-IO-Class.html#t:MonadIO). See above.
 * [`MonadDHT`](https://github.com/input-output-hk/cardano-sl/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Pos/DHT/Model/Class.hs#L16). See above.
-* [`MonadMockable`](https://github.com/serokell/time-warp-nt/blob/517a72801c0bbb11a34c8d6a6d528fff5f094471/src/Mockable/Monad.hs#L20). See above.
+* [`MonadMockable`](https://github.com/serokell/time-warp-nt/blob/9b4927f8115499db2fa3ba07df50d60d02190790/src/Mockable/Monad.hs). See above.
 * [`MonadFail`](https://hackage.haskell.org/package/base-4.9.1.0/docs/Control-Monad-Fail.html#t:MonadFail). See above.

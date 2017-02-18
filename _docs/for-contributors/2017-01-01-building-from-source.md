@@ -5,14 +5,13 @@ permalink: /for-contributors/building-from-source/
 group: for-contributors
 ---
 
-[//]: # (Reviewed at 60033350e60408fc79f202491e6985b3b47acd90)
+[//]: # (Reviewed at e1d0f9fb37a3f1378341716916f0321fb55698df)
 
 # Building Cardano SL and Daedalus from Source
 
 Cardano SL consists of a collection of binaries that constitutes
 the backend, a PureScript API for the Electron-based wallet, and the
-Electron-based wallet called “Daedalus”. You can read more about design
-and architecture of Cardano SL in the [Implementation Guide](/for-contributors/implementation).
+Electron-based wallet called “Daedalus”.
 
 ## Cardano SL and Daedalus Bridge
 
@@ -26,16 +25,16 @@ report having problems. The rest of documentation assumes that the reader has Ni
 To build the project, first clone the source base and navigate to the root directory of it:
 
 ```
-git clone https://github.com/input-output-hk/pos-haskell-prototype.git
-cd pos-haskell-prototype
+git clone https://github.com/input-output-hk/cardano-sl.git
+cd cardano-sl
 ```
 
-Then enter `nix-shell` and if it's the first project in Haskell language on this machine, run `stack setup`.
+Then enter `nix-shell` and if it's the first project in Haskell on this machine, run `stack setup`.
 
 ```
-Tue Jan 10 sweater@chill ~/github/pos-haskell-prototype (master)
+Tue Jan 10 sweater@chill ~/github/cardano-sl (master)
 λ nix-shell
-[nix-shell:~/github/pos-haskell-prototype]$ stack setup
+[nix-shell:~/github/cardano-sl]$ stack setup
 * snip *
 ```
 
@@ -50,21 +49,20 @@ Now, in order to build Cardano SL with wallet capabilities, run the
 following command:
 
 ```
-[nix-shell:~/github/pos-haskell-prototype]
+[nix-shell:~/github/cardano-sl]
 $ stack build --flag cardano-sl:with-wallet --flag cardano-sl:with-web
 ```
 
 Here is the [asciinema
 cast](http://asciinema.org/a/47vbdch8srbhf3j5kta7j9bov) of the project building.
 
-It is suggested having at least 8GB of RAM and some swap space for the build process. As the project is fairly large and GHC parallelizes builds very effectively, memory and CPU consumption during the build process is
-high.
+It is suggested having at least 8GB of RAM and some swap space for the build process. As the project is fairly large and GHC parallelizes builds very effectively, memory and CPU consumption during the build process is high.
 
 After the project is built, the built binaries can be launched using the `stack exec` command. Let's discuss important binaries briefly before proceeding to the next step.
 
 ### Cardano-node
 
-Binary `cardano-node` is the most important binary of the system. It launches nodes. In order to attach to a network, Hardened Kadmelia DHT peer information has to be supplied. Peer discovery will follow if an initial DHT peer is available. The syntax for communicating initial
+The `cardano-node` binary is the most important binary of the system. It launches nodes. In order to attach to a network, Hardened Kadmelia DHT peer information has to be supplied. Peer discovery will follow if an initial DHT peer is available. The syntax for communicating initial
 DHT peer is as follows: `--peer HOST:PORT/HOST_ID`, for example
 `discover.memorici.de:21989/MHdtsP-oPf7UWly7QuXnLK5RDB8=`.
 
@@ -75,7 +73,7 @@ DHT peer is as follows: `--peer HOST:PORT/HOST_ID`, for example
 
 Before providing an example of running the node, the trickiest command line arguments are noted.
 
-When a testnet is bootstrapped, stake is distributed across several addresses in the genesis block. The distributions that are supported are flat distribution and Bitcoin distribution. The spending and VSS keys are generated for genesis block. If a node has access to a genesis key mapping, the index of the secret key in this mapping can be provided using `--vss-genesis N` and `--spending-genesis N`, where `N` is index in this mapping.
+When a testnet is bootstrapped, stake is distributed across several addresses in the genesis block. The supported distributions are flat distribution and Bitcoin distribution. The spending and VSS keys are generated for genesis block. If a node has access to a genesis key mapping, the index of the secret key in this mapping can be provided using `--vss-genesis N` and `--spending-genesis N`, where `N` is the index in this mapping.
 
 An example of a local invocation connecting to HostID
 `MHdtsP-oPf7UWly007QuXnLK5RD=`:
@@ -156,7 +154,7 @@ A warning message will be printed; this message is safe to ignore. Once the type
 
 ### Building Daedalus Bridge
 
-The building process for Daedalus Bridge is a bit complex
+The building process for Daedalus Bridge is a bit complex.
 Currently Nix expressions don't install Node.js and NPM, so
 those have to be installed manually. To do that, consult the repositories of the package manager of the according OS, or download binaries from [the
 net](https://nodejs.org/en/download/). You will also need the following npm packages: `bower`, `pulp`, `purescript`. Those can be installed with

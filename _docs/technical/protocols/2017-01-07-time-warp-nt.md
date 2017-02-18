@@ -4,7 +4,7 @@ title: Time-warp-NT Layer
 permalink: /technical/protocols/time-warp-nt/
 group: technical-protocols
 ---
-[//]: # (Reviewed at 5cdd60691c273047147865ddaf1bad9626adf5e9)
+[//]: # (Reviewed at e1d0f9fb37a3f1378341716916f0321fb55698df)
 
 # Time-Warp-NT Layer
 
@@ -46,7 +46,8 @@ capabilities for the application layer. It is split up into two sub-layers:
 
 This sub-layer is a direct wrapper over _network-transport_, and it provides
 a convenient interface which allows to initiate lightweight connection and
-send/receive data on it. Please read [Network Transport Layer guide](/protocols/network-transport)
+send/receive data on it. Please read
+[Network Transport Layer guide](/technical/protocols/network-transport)
 for more info.
 
 It supports two types of connections, **unidirectional** and **bidirectional**.

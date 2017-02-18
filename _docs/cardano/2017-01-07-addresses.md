@@ -4,7 +4,7 @@ title: Addresses
 permalink: /cardano/addresses/
 group: cardano
 ---
-[//]: # (Reviewed at 403cea2d897aba95163b709bd13c35d343116f3f)
+[//]: # (Reviewed at d0d6c2fedefb642744a24b4b0a6d8d7ad11532f6)
 
 # Addresses in Cardano SL
 
@@ -36,12 +36,12 @@ All addresses are 33 bytes long.
 `Base58` is the same encoding as used in Bitcoin. It uses a 58-symbol alphabet
 to encode data, hence the name. Here is the alphabet we are using:
 
-    123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz
+	123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz
 
 It avoids both non-alphanumeric characters and letters which might look
 ambiguous when printed (`0`, `O`, `I`, `l`); therefore it is suitable for
 human users who enter the data manually, copying it from some visual source,
-and also allows easy copy and paste because a double-click will usually select
+and also allows easy copy and paste by double-clicking which usually selects
 the whole string.
 
 Currently there are only two types of addresses in Cardano: `PubKeyAddress`
@@ -55,9 +55,12 @@ and `ScriptAddress`. Here are the `type`s for each:
 
 For hashing, we use a combination of `SHA3-256` and `BLAKE2s-224`, i.e.:
 
-    address_hash(x) = BLAKE2s_224(SHA3_256(x))
+	address_hash(x) = BLAKE2s_224(SHA3_256(x))
 
-See more on hashing [below](#hashing). Also, see sections on [`PubKeyAddress`](#public-key-addresses) and [`ScriptAddress`](#pay-to-script-hash) for a description of
+See more on [hash functions](https://en.wikipedia.org/wiki/Hash_function).
+See also sections on
+[`PubKeyAddress`](#public-key-addresses) and
+[`ScriptAddress`](#pay-to-script-hash) for a description of
 what `x` is in each case.
 
 We also adopt a way to make sure that an address is entered correctly
@@ -66,17 +69,17 @@ the end of the address. This way, the full address is
 [generated](https://github.com/input-output-hk/cardano-sl/blob/2f3c7df7d324bc056fefe0fce856e39a692f6d9f/src/Pos/Binary/Address.hs#L50)
 with the following rule, where `+` is concatenation:
 
-    address' ← type + address_hash(x)
-    address ← toBase58(address' + crc32(address'))
+	address' ← type + address_hash(x)
+	address ← toBase58(address' + crc32(address'))
 
 Here is an example of a valid address:
 
-    1EWYSJnvgnSUmp8Gi4mADvU2zkJgVAA7McgFRXiqwDBs8
+	1EWYSJnvgnSUmp8Gi4mADvU2zkJgVAA7McgFRXiqwDBs8
 
-which can be decoded into the following byte string (with spaces separating
+It can be decoded into the following byte string (with spaces separating
 type, hash and checksum):
 
-    00 C8B9519459F5D4E42B002EF06AE94DC9C0A5B87E52D0D0375FD83ECE C52CEB43
+	00 C8B9519459F5D4E42B002EF06AE94DC9C0A5B87E52D0D0375FD83ECE C52CEB43
 
 ## Public Key Addresses
 
@@ -96,12 +99,12 @@ transaction and other auxiliary purposes.
 To sum up, a public key address represents your personal account. It is
 constructed as
 
-    address' ← 0x00 + address_hash(public_key)
-    address ← toBase58(address' + crc32(address'))
+	address' ← 0x00 + address_hash(public_key)
+	address ← toBase58(address' + crc32(address'))
 
 ## Pay to Script Hash
 
-The idea of P2SH is to provide a lot of flexibility to formulating complex
+The idea of P2SH is to provide a lot of flexibility for formulating complex
 rules for spending money. Instead of sending a transaction to a public key
 address, we create a validator script that can take a so-called redemption script
 as a parameter. To redeem funds, we pass the redemption script to the
@@ -118,52 +121,12 @@ To quote Bitcoin Wiki,
 
 `ScriptHash` addresses are constructed as follows:
 
-    address' ← 0x01 + address_hash(serialize(validator_script))
-    address ← toBase58(address' + crc32(address'))
+	address' ← 0x01 + address_hash(serialize(validator_script))
+	address ← toBase58(address' + crc32(address'))
 
 ## Other address types
 
 In the future, we may use the update system to introduce other address types
 with different values in the `type` field.
-[See more](/update-mechanism/#soft-fork-updates) on extending the system
+[See more](/cardano/update-mechanism/#soft-fork-updates) on extending the system
 in non-breaking fashion.
-
-## Advanced Topics
-
-### Hashing
-
-For a number of reasons, it is useful to have fixed-length
-representation of arbitrary data; for example, when we're working with
-P2SH, we want validator scripts of arbitrary length to be hashed in a
-P2SH address of the same length that is easy to type in and operate
-with. Also, in order to have an authenticated data structure capturing
-information stored on the blockchain, we should have the same kind of
-primitive. The requirements on such a function are manyfold:
-
- 1. On the same input data it always returns the same output string.
- 2. It is computationally simple to calculate output for a given input.
- 3. It is computationally complex to reverse the process.
- 4. A small change in input produces big change in output.
- 5. It is computationally complex to find two pieces of input data that
-    produce the same output.
-
-The way we transform arbitrary input into output complying with (1-5)
-is called “a cryptographic hash function”.
-
-We are currently using two hash functions: `SHA3` with 256 bit digest and
-`BLAKE2S` with 224 bit digest.
-
-For example, for addresses, we wrap SHA3 digest into BLAKE2s, as shown
-in the code snippet below.
-
-~~~ haskell
-type AddressHash = AbstractHash Blake2s_224
-
-addressHash :: Bi a => a -> AddressHash b
-addressHash = AbstractHash . secondHash . firstHash
-  where
-    firstHash :: Bi a => a -> Digest SHA3_256
-    firstHash = hashlazy . Bi.encode
-    secondHash :: Digest SHA3_256 -> Digest Blake2s_224
-    secondHash = CryptoHash.hash
-~~~

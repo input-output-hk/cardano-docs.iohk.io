@@ -46,19 +46,23 @@ function io_search_filter(obj,str){
 }
 
 function io_search_update(){
-  $("#search-results").empty();
-  $("#search-output .search-output").each(function(){
-    $(this).find('.main').removeAttr('id');
-    io_search_filter($(this),$("#site_search_input").val());
-  });
+  if($("#site_search_input").val().length > 1){
+    $("#search-results").empty();
+    $("#search-output .search-output").each(function(){
+      $(this).find('.main').removeAttr('id');
+      io_search_filter($(this),$("#site_search_input").val());
+    });
+  }
 }
 
 var io_search_site_loaded = false;
 var io_search_site_setup = true;
 function io_search_site(){
   if(!io_search_site_loaded){
+
     io_search_site_loaded = true;
     $("#cardano-nav a").each(function(index,value){
+
       if($(this).hasClass('nosearch')){
 
       }else{
@@ -69,6 +73,7 @@ function io_search_site(){
           io_search_update();
         });
       }
+
     });
   }
 
