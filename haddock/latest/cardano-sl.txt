@@ -2913,21 +2913,18 @@ getProposedBVs :: MonadDB ssc m => m [BlockVersion]
 -- | Get all confirmed <a>BlockVersion</a>s and their states.
 getConfirmedBVStates :: MonadDB ssc m => m [(BlockVersion, BlockVersionState)]
 getProposedBVStates :: MonadDB ssc m => m [BlockVersionState]
-
--- | Get genesis utxo
-getGenUtxo :: (MonadThrow m, MonadDB ssc m) => m Utxo
 getTxOutFromDB :: (MonadIO m, MonadThrow m) => TxIn -> DB ssc -> m (Maybe TxOutAux)
 getTxOut :: MonadDB ssc m => TxIn -> m (Maybe TxOutAux)
 data UtxoOp
 DelTxIn :: !TxIn -> UtxoOp
 AddTxOut :: !TxIn -> !TxOutAux -> UtxoOp
+AddGenTxOut :: !TxIn -> !TxOutAux -> UtxoOp
 prepareGStateUtxo :: forall ssc m. MonadDB ssc m => Utxo -> m ()
 data UtxoIter
-runUtxoIterator :: forall m ssc a. MonadDB ssc m => DBnIterator ssc UtxoIter a -> m a
-runUtxoMapIterator :: forall v m ssc a. MonadDB ssc m => DBnMapIterator ssc UtxoIter v a -> (IterType UtxoIter -> v) -> m a
-
--- | Get small sub-utxo containing only outputs of given address
+runUtxoIterator :: forall i m ssc a. (MonadDB ssc m, DBIteratorClass i, IterKey i ~ TxIn, IterValue i ~ TxOutAux) => DBnIterator ssc i a -> m a
+runUtxoMapIterator :: forall i v m ssc a. (MonadDB ssc m, DBIteratorClass i, IterKey i ~ TxIn, IterValue i ~ TxOutAux) => DBnMapIterator ssc i v a -> (IterType i -> v) -> m a
 getFilteredUtxo :: MonadDB ssc m => Address -> m Utxo
+getFilteredGenUtxo :: MonadDB ssc m => Address -> m Utxo
 sanityCheckUtxo :: (MonadDB ssc m, WithLogger m) => Coin -> m ()
 
 
