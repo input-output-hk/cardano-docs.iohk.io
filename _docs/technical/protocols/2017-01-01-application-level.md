@@ -273,8 +273,7 @@ point](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c8
 it receives an answer from this listener, a message of `MsgBlock` type.
 
 Here's another example — the `requestHeaders` function. This function handles
-expected block headers, tracking them locally, and bans a node if it
-sends headers that are not requested. So at [this
+expected block headers, tracking them locally. So at [this
 point](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Retrieval.hs#L190)
 it sends a message of type `MsgGetHeaders` to the listener, and at [this
 point](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Retrieval.hs#L191)
