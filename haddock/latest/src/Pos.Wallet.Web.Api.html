@@ -62,7 +62,7 @@
     :&lt;|&gt;
      &quot;api&quot; :&gt; &quot;system_version&quot; :&gt; Get '[JSON] (Either WalletError SoftwareVersion)
     :&lt;|&gt;
-     &quot;api&quot; :&gt; &quot;import_key&quot; :&gt; Capture &quot;key&quot; FilePath :&gt; Post '[JSON] (Either WalletError ())
+     &quot;api&quot; :&gt; &quot;import_key&quot; :&gt; ReqBody '[JSON] Text :&gt; Post '[JSON] (Either WalletError ())
 
 -- | Helper Proxy.
 walletApi :: Proxy WalletApi
