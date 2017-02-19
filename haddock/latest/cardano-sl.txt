@@ -3123,11 +3123,11 @@ NodeDBs :: !(DB ssc) -> !(DB ssc) -> !(DB ssc) -> !(DB ssc) -> !RWLock -> NodeDB
 
 -- | Lock on misc db
 [_miscLock] :: NodeDBs ssc -> !RWLock
-blockDB :: forall ssc_a7r1N. Lens' (NodeDBs ssc_a7r1N) (DB ssc_a7r1N)
-gStateDB :: forall ssc_a7r1N. Lens' (NodeDBs ssc_a7r1N) (DB ssc_a7r1N)
-lrcDB :: forall ssc_a7r1N. Lens' (NodeDBs ssc_a7r1N) (DB ssc_a7r1N)
-miscDB :: forall ssc_a7r1N. Lens' (NodeDBs ssc_a7r1N) (DB ssc_a7r1N)
-miscLock :: forall ssc_a7r1N. Lens' (NodeDBs ssc_a7r1N) RWLock
+blockDB :: forall ssc_a7r5E. Lens' (NodeDBs ssc_a7r5E) (DB ssc_a7r5E)
+gStateDB :: forall ssc_a7r5E. Lens' (NodeDBs ssc_a7r5E) (DB ssc_a7r5E)
+lrcDB :: forall ssc_a7r5E. Lens' (NodeDBs ssc_a7r5E) (DB ssc_a7r5E)
+miscDB :: forall ssc_a7r5E. Lens' (NodeDBs ssc_a7r5E) (DB ssc_a7r5E)
+miscLock :: forall ssc_a7r5E. Lens' (NodeDBs ssc_a7r5E) RWLock
 newtype Snapshot
 Snapshot :: Snapshot -> Snapshot
 usingSnapshot :: (MonadIO m, MonadMask m) => DB ssc -> (Snapshot -> m a) -> m a
@@ -3314,7 +3314,7 @@ type LrcSyncData = (Bool, EpochIndex)
 
 -- | NodeContext contains runtime context of node.
 data NodeContext ssc
-NodeContext :: !(Maybe (MVar FilePath)) -> !(SscNodeContext ssc) -> !(MVar HeaderHash) -> !(TVar LrcSyncData) -> !(TVar UserSecret) -> !(TBQueue (NodeId, NewestFirst NE (BlockHeader ssc))) -> !(TMVar (NodeId, BlockHeader ssc)) -> !(MVar ConfirmedProposalState) -> !RelayInvQueue -> !LoggerConfig -> !NodeParams -> !(TVar Bool) -> !(TBQueue ()) -> !(Maybe (MVar ())) -> !UTCTime -> NodeContext ssc
+NodeContext :: !(Maybe (MVar FilePath)) -> !(SscNodeContext ssc) -> !(MVar HeaderHash) -> !(TVar LrcSyncData) -> !(TVar UserSecret) -> !(TBQueue (NodeId, NewestFirst NE (BlockHeader ssc))) -> !(TMVar (NodeId, BlockHeader ssc)) -> !(TMVar (BlockHeader ssc)) -> !(MVar ConfirmedProposalState) -> !RelayInvQueue -> !LoggerConfig -> !NodeParams -> !(TVar Bool) -> !(TBQueue ()) -> !(Maybe (MVar ())) -> !UTCTime -> NodeContext ssc
 [ncJLFile] :: NodeContext ssc -> !(Maybe (MVar FilePath))
 [ncSscContext] :: NodeContext ssc -> !(SscNodeContext ssc)
 
@@ -3340,12 +3340,16 @@ NodeContext :: !(Maybe (MVar FilePath)) -> !(SscNodeContext ssc) -> !(MVar Heade
 --   we've downloaded this header, we clean mvar.
 [ncRecoveryHeader] :: NodeContext ssc -> !(TMVar (NodeId, BlockHeader ssc))
 
+-- | Header of the last block that was downloaded in retrieving queue. Is
+--   needed to show smooth prorgess on the frontend.
+[ncProgressHeader] :: NodeContext ssc -> !(TMVar (BlockHeader ssc))
+
 -- | A semaphore which is unlocked when update data is downloaded and ready
---   to apply
+--   to apply.
 [ncUpdateSemaphore] :: NodeContext ssc -> !(MVar ConfirmedProposalState)
 [ncInvPropagationQueue] :: NodeContext ssc -> !RelayInvQueue
 
--- | Logger config, as taken/read from CLI
+-- | Logger config, as taken/read from CLI.
 [ncLoggerConfig] :: NodeContext ssc -> !LoggerConfig
 
 -- | Params node is launched with
@@ -3355,11 +3359,11 @@ NodeContext :: !(Maybe (MVar FilePath)) -> !(SscNodeContext ssc) -> !(MVar Heade
 [ncShutdownFlag] :: NodeContext ssc -> !(TVar Bool)
 
 -- | A queue which is used to count how many workers have successfully
---   terminated
+--   terminated.
 [ncShutdownNotifyQueue] :: NodeContext ssc -> !(TBQueue ())
 
 -- | Exclusive lock for sending messages to other nodes (if Nothing, no
---   lock used)
+--   lock used).
 [ncSendLock] :: NodeContext ssc -> !(Maybe (MVar ()))
 
 -- | Time when node was started (<a>NodeContext</a> initialized).
