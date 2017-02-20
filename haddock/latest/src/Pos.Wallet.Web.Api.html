@@ -61,6 +61,8 @@
      &quot;api&quot; :&gt; &quot;slot_duration&quot; :&gt; Get '[JSON] (Either WalletError Word)
     :&lt;|&gt;
      &quot;api&quot; :&gt; &quot;system_version&quot; :&gt; Get '[JSON] (Either WalletError SoftwareVersion)
+    :&lt;|&gt;
+     &quot;api&quot; :&gt; &quot;import_key&quot; :&gt; ReqBody '[JSON] Text :&gt; Post '[JSON] (Either WalletError CWallet)
 
 -- | Helper Proxy.
 walletApi :: Proxy WalletApi
