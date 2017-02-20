@@ -1431,6 +1431,7 @@ optionalLogPrefix :: Parser (Maybe String)
 portOption :: Word16 -> Parser Word16
 timeLordOption :: Parser Bool
 webPortOption :: Word16 -> String -> Parser Word16
+walletPortOption :: Word16 -> String -> Parser Word16
 ipPortOption :: NetworkAddress -> Parser NetworkAddress
 
 -- | Parse <a>DHTNode</a>s from a file (nodes should be separated by
@@ -3123,11 +3124,11 @@ NodeDBs :: !(DB ssc) -> !(DB ssc) -> !(DB ssc) -> !(DB ssc) -> !RWLock -> NodeDB
 
 -- | Lock on misc db
 [_miscLock] :: NodeDBs ssc -> !RWLock
-blockDB :: forall ssc_a7r5H. Lens' (NodeDBs ssc_a7r5H) (DB ssc_a7r5H)
-gStateDB :: forall ssc_a7r5H. Lens' (NodeDBs ssc_a7r5H) (DB ssc_a7r5H)
-lrcDB :: forall ssc_a7r5H. Lens' (NodeDBs ssc_a7r5H) (DB ssc_a7r5H)
-miscDB :: forall ssc_a7r5H. Lens' (NodeDBs ssc_a7r5H) (DB ssc_a7r5H)
-miscLock :: forall ssc_a7r5H. Lens' (NodeDBs ssc_a7r5H) RWLock
+blockDB :: forall ssc_a7r9v. Lens' (NodeDBs ssc_a7r9v) (DB ssc_a7r9v)
+gStateDB :: forall ssc_a7r9v. Lens' (NodeDBs ssc_a7r9v) (DB ssc_a7r9v)
+lrcDB :: forall ssc_a7r9v. Lens' (NodeDBs ssc_a7r9v) (DB ssc_a7r9v)
+miscDB :: forall ssc_a7r9v. Lens' (NodeDBs ssc_a7r9v) (DB ssc_a7r9v)
+miscLock :: forall ssc_a7r9v. Lens' (NodeDBs ssc_a7r9v) RWLock
 newtype Snapshot
 Snapshot :: Snapshot -> Snapshot
 usingSnapshot :: (MonadIO m, MonadMask m) => DB ssc -> (Snapshot -> m a) -> m a
