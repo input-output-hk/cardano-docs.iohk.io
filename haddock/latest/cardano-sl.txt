@@ -988,10 +988,6 @@ putAsciiString1b :: String -> Put
 mappendPair :: (Monoid a, Monoid b) => (a, b) -> (a, b) -> (a, b)
 mconcatPair :: (Monoid a, Monoid b) => [(a, b)] -> (a, b)
 
--- | Concatenates two url part using regular slash <a>/</a>. E.g.
---   <tt>".<i>dir</i>" <a>//</a> "<i>file" = ".</i>dir/file"</tt>.
-(<//>) :: String -> String -> String
-
 -- | Convert (Reader s) to any (MonadState s)
 readerToState :: MonadState s m => Reader s a -> m a
 
@@ -3128,11 +3124,11 @@ NodeDBs :: !(DB ssc) -> !(DB ssc) -> !(DB ssc) -> !(DB ssc) -> !RWLock -> NodeDB
 
 -- | Lock on misc db
 [_miscLock] :: NodeDBs ssc -> !RWLock
-blockDB :: forall ssc_a7reH. Lens' (NodeDBs ssc_a7reH) (DB ssc_a7reH)
-gStateDB :: forall ssc_a7reH. Lens' (NodeDBs ssc_a7reH) (DB ssc_a7reH)
-lrcDB :: forall ssc_a7reH. Lens' (NodeDBs ssc_a7reH) (DB ssc_a7reH)
-miscDB :: forall ssc_a7reH. Lens' (NodeDBs ssc_a7reH) (DB ssc_a7reH)
-miscLock :: forall ssc_a7reH. Lens' (NodeDBs ssc_a7reH) RWLock
+blockDB :: forall ssc_a7r9v. Lens' (NodeDBs ssc_a7r9v) (DB ssc_a7r9v)
+gStateDB :: forall ssc_a7r9v. Lens' (NodeDBs ssc_a7r9v) (DB ssc_a7r9v)
+lrcDB :: forall ssc_a7r9v. Lens' (NodeDBs ssc_a7r9v) (DB ssc_a7r9v)
+miscDB :: forall ssc_a7r9v. Lens' (NodeDBs ssc_a7r9v) (DB ssc_a7r9v)
+miscLock :: forall ssc_a7r9v. Lens' (NodeDBs ssc_a7r9v) RWLock
 newtype Snapshot
 Snapshot :: Snapshot -> Snapshot
 usingSnapshot :: (MonadIO m, MonadMask m) => DB ssc -> (Snapshot -> m a) -> m a
