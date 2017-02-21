@@ -325,21 +325,6 @@ deterministic :: ByteString -> MonadPseudoRandom ChaChaDRG a -> a
 --   interval is guaranteed to be divisible by n, and thus applying
 --   <a>mod</a> to it will be safe.
 randomNumber :: MonadRandom m => Integer -> m Integer
-newtype EncryptedSecretKey
-EncryptedSecretKey :: XPrv -> EncryptedSecretKey
-
--- | TODO This newtype should be eventually changed to wrapper over
---   <tt>ScrubbedBytes</tt>, after `cardano-crypto` support it.
-data PassPhrase
-
--- | SafeSigner datatype to encapsulate sensible data
-data SafeSigner
-safeSign :: Bi a => SafeSigner -> a -> Signature a
-
--- | We can make SafeSigner only inside IO bracket, so we can manually
---   cleanup all IO buffers we use to store passphrase (when we'll actually
---   use them)
-withSafeSigner :: MonadIO m => EncryptedSecretKey -> m PassPhrase -> (SafeSigner -> m a) -> m a
 
 -- | This key is used as public key in VSS.
 newtype VssPublicKey
@@ -428,13 +413,13 @@ verifySecretProof :: SecretSharingExtra -> Secret -> SecretProof -> Bool
 -- | Verify that Share has been decrypted correctly.
 verifyShare :: EncShare -> VssPublicKey -> Share -> Bool
 
--- | Wrapper around <a>XPub</a>.
+-- | Wrapper around <a>PublicKey</a>.
 newtype PublicKey
-PublicKey :: XPub -> PublicKey
+PublicKey :: PublicKey -> PublicKey
 
--- | Wrapper around <a>XPrv</a>.
+-- | Wrapper around <a>SecretKey</a>.
 newtype SecretKey
-SecretKey :: XPrv -> SecretKey
+SecretKey :: SecretKey -> SecretKey
 
 -- | Generate a key pair.
 keyGen :: MonadIO m => m (PublicKey, SecretKey)
@@ -458,9 +443,9 @@ fullPublicKeyHexF :: Format r (PublicKey -> r)
 -- | Parse <a>PublicKey</a> from base64 encoded string.
 parseFullPublicKey :: (Bi PublicKey) => Text -> Maybe PublicKey
 
--- | Wrapper around <a>XSignature</a>.
+-- | Wrapper around <a>Signature</a>.
 newtype Signature a
-Signature :: XSignature -> Signature a
+Signature :: Signature -> Signature a
 
 -- | Encode something with <tt>Binary</tt> and sign it.
 sign :: Bi a => SecretKey -> a -> Signature a
@@ -492,8 +477,8 @@ verifyRaw :: PublicKey -> ByteString -> Signature Raw -> Bool
 
 -- | Proxy certificate, made of ω + public key of delegate.
 newtype ProxyCert w
-ProxyCert :: XSignature -> ProxyCert w
-[unProxyCert] :: ProxyCert w -> XSignature
+ProxyCert :: Signature -> ProxyCert w
+[unProxyCert] :: ProxyCert w -> Signature
 
 -- | Proxy certificate creation from secret key of issuer, public key of
 --   delegate and the message space ω.
@@ -522,11 +507,11 @@ verifyProxySecretKey :: (Bi w) => ProxySecretKey w -> Bool
 --   stays for message type used in proxy (ω in the implementation notes),
 --   <tt>b</tt> for type of message signed.
 data ProxySignature w a
-ProxySignature :: w -> PublicKey -> ProxyCert w -> XSignature -> ProxySignature w a
+ProxySignature :: w -> PublicKey -> ProxyCert w -> Signature -> ProxySignature w a
 [pdOmega] :: ProxySignature w a -> w
 [pdDelegatePk] :: ProxySignature w a -> PublicKey
 [pdCert] :: ProxySignature w a -> ProxyCert w
-[pdSig] :: ProxySignature w a -> XSignature
+[pdSig] :: ProxySignature w a -> Signature
 
 -- | Make a proxy delegate signature with help of certificate. If the
 --   delegate secret key passed doesn't pair with delegate public key in
@@ -568,7 +553,7 @@ getAttributes :: (Word8 -> h -> Maybe (Get h)) -> Maybe Word32 -> h -> Get (Attr
 --   into set of keys and values.
 putAttributes :: (h -> [(Word8, Put)]) -> Attributes h -> Put
 mkAttributes :: h -> Attributes h
-instance Control.DeepSeq.NFData h_6989586621679432424 => Control.DeepSeq.NFData (Pos.Data.Attributes.Attributes h_6989586621679432424)
+instance Control.DeepSeq.NFData h_6989586621679427216 => Control.DeepSeq.NFData (Pos.Data.Attributes.Attributes h_6989586621679427216)
 instance GHC.Generics.Generic (Pos.Data.Attributes.Attributes h)
 instance GHC.Classes.Ord h => GHC.Classes.Ord (Pos.Data.Attributes.Attributes h)
 instance GHC.Classes.Eq h => GHC.Classes.Eq (Pos.Data.Attributes.Attributes h)
@@ -838,16 +823,16 @@ GenericBlock :: !(GenericBlockHeader b) -> !(Body b) -> !(ExtraBodyData b) -> Ge
 [_gbExtra] :: GenericBlock b -> !(ExtraBodyData b)
 class HasPrevBlock s
 prevBlockL :: HasPrevBlock s => Lens' s HeaderHash
-gbBody :: forall b_a2HdK. Lens' (GenericBlock b_a2HdK) (Body b_a2HdK)
-gbHeader :: forall b_a2HdK. Lens' (GenericBlock b_a2HdK) (GenericBlockHeader b_a2HdK)
-gbExtra :: forall b_a2HdK. Lens' (GenericBlock b_a2HdK) (ExtraBodyData b_a2HdK)
+gbBody :: forall b_a2FRP. Lens' (GenericBlock b_a2FRP) (Body b_a2FRP)
+gbHeader :: forall b_a2FRP. Lens' (GenericBlock b_a2FRP) (GenericBlockHeader b_a2FRP)
+gbExtra :: forall b_a2FRP. Lens' (GenericBlock b_a2FRP) (ExtraBodyData b_a2FRP)
 
 -- | Lens from <a>GenericBlock</a> to <a>BodyProof</a>.
 gbBodyProof :: Lens' (GenericBlock b) (BodyProof b)
-gbhConsensus :: forall b_a2HdL. Lens' (GenericBlockHeader b_a2HdL) (ConsensusData b_a2HdL)
-gbhExtra :: forall b_a2HdL. Lens' (GenericBlockHeader b_a2HdL) (ExtraHeaderData b_a2HdL)
-gbhPrevBlock :: forall b_a2HdL. Lens' (GenericBlockHeader b_a2HdL) (BHeaderHash b_a2HdL)
-gbhBodyProof :: forall b_a2HdL. Lens' (GenericBlockHeader b_a2HdL) (BodyProof b_a2HdL)
+gbhConsensus :: forall b_a2FRQ. Lens' (GenericBlockHeader b_a2FRQ) (ConsensusData b_a2FRQ)
+gbhExtra :: forall b_a2FRQ. Lens' (GenericBlockHeader b_a2FRQ) (ExtraHeaderData b_a2FRQ)
+gbhPrevBlock :: forall b_a2FRQ. Lens' (GenericBlockHeader b_a2FRQ) (BHeaderHash b_a2FRQ)
+gbhBodyProof :: forall b_a2FRQ. Lens' (GenericBlockHeader b_a2FRQ) (BodyProof b_a2FRQ)
 instance GHC.Generics.Generic (Pos.Types.Block.Class.GenericBlockHeader b)
 instance GHC.Generics.Generic (Pos.Types.Block.Class.GenericBlock b)
 instance (GHC.Show.Show (Pos.Types.Block.Class.BHeaderHash b), GHC.Show.Show (Pos.Types.Block.Class.BodyProof b), GHC.Show.Show (Pos.Types.Block.Class.ConsensusData b), GHC.Show.Show (Pos.Types.Block.Class.ExtraHeaderData b)) => GHC.Show.Show (Pos.Types.Block.Class.GenericBlockHeader b)
@@ -1446,6 +1431,7 @@ optionalLogPrefix :: Parser (Maybe String)
 portOption :: Word16 -> Parser Word16
 timeLordOption :: Parser Bool
 webPortOption :: Word16 -> String -> Parser Word16
+walletPortOption :: Word16 -> String -> Parser Word16
 ipPortOption :: NetworkAddress -> Parser NetworkAddress
 
 -- | Parse <a>DHTNode</a>s from a file (nodes should be separated by
@@ -3138,11 +3124,11 @@ NodeDBs :: !(DB ssc) -> !(DB ssc) -> !(DB ssc) -> !(DB ssc) -> !RWLock -> NodeDB
 
 -- | Lock on misc db
 [_miscLock] :: NodeDBs ssc -> !RWLock
-blockDB :: forall ssc_a7s9q. Lens' (NodeDBs ssc_a7s9q) (DB ssc_a7s9q)
-gStateDB :: forall ssc_a7s9q. Lens' (NodeDBs ssc_a7s9q) (DB ssc_a7s9q)
-lrcDB :: forall ssc_a7s9q. Lens' (NodeDBs ssc_a7s9q) (DB ssc_a7s9q)
-miscDB :: forall ssc_a7s9q. Lens' (NodeDBs ssc_a7s9q) (DB ssc_a7s9q)
-miscLock :: forall ssc_a7s9q. Lens' (NodeDBs ssc_a7s9q) RWLock
+blockDB :: forall ssc_a7r9v. Lens' (NodeDBs ssc_a7r9v) (DB ssc_a7r9v)
+gStateDB :: forall ssc_a7r9v. Lens' (NodeDBs ssc_a7r9v) (DB ssc_a7r9v)
+lrcDB :: forall ssc_a7r9v. Lens' (NodeDBs ssc_a7r9v) (DB ssc_a7r9v)
+miscDB :: forall ssc_a7r9v. Lens' (NodeDBs ssc_a7r9v) (DB ssc_a7r9v)
+miscLock :: forall ssc_a7r9v. Lens' (NodeDBs ssc_a7r9v) RWLock
 newtype Snapshot
 Snapshot :: Snapshot -> Snapshot
 usingSnapshot :: (MonadIO m, MonadMask m) => DB ssc -> (Snapshot -> m a) -> m a
