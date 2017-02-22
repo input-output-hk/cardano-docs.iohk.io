@@ -2365,9 +2365,9 @@ newtype LessThanZeroOrMoreThanOne
 BadCoinPortion :: Double -> LessThanZeroOrMoreThanOne
 [getDouble] :: LessThanZeroOrMoreThanOne -> Double
 
--- | This datatype has two coins that will always overflow when multiplied.
---   It is used to make sure coin multiplication by an integer raises the
---   appropriate exception when this happens.
+-- | This datatype has a <a>Coin</a> and an <a>Integer</a> that will always
+--   overflow when multiplied. It is used to make sure coin multiplication
+--   by an integer raises the appropriate exception when this happens.
 newtype SafeCoinPairMul
 CoinPairMul :: (Coin, Integer) -> SafeCoinPairMul
 [getPairMul] :: SafeCoinPairMul -> (Coin, Integer)
@@ -3217,11 +3217,11 @@ NodeDBs :: !(DB ssc) -> !(DB ssc) -> !(DB ssc) -> !(DB ssc) -> !RWLock -> NodeDB
 
 -- | Lock on misc db
 [_miscLock] :: NodeDBs ssc -> !RWLock
-blockDB :: forall ssc_a7kTO. Lens' (NodeDBs ssc_a7kTO) (DB ssc_a7kTO)
-gStateDB :: forall ssc_a7kTO. Lens' (NodeDBs ssc_a7kTO) (DB ssc_a7kTO)
-lrcDB :: forall ssc_a7kTO. Lens' (NodeDBs ssc_a7kTO) (DB ssc_a7kTO)
-miscDB :: forall ssc_a7kTO. Lens' (NodeDBs ssc_a7kTO) (DB ssc_a7kTO)
-miscLock :: forall ssc_a7kTO. Lens' (NodeDBs ssc_a7kTO) RWLock
+blockDB :: forall ssc_a7l1L. Lens' (NodeDBs ssc_a7l1L) (DB ssc_a7l1L)
+gStateDB :: forall ssc_a7l1L. Lens' (NodeDBs ssc_a7l1L) (DB ssc_a7l1L)
+lrcDB :: forall ssc_a7l1L. Lens' (NodeDBs ssc_a7l1L) (DB ssc_a7l1L)
+miscDB :: forall ssc_a7l1L. Lens' (NodeDBs ssc_a7l1L) (DB ssc_a7l1L)
+miscLock :: forall ssc_a7l1L. Lens' (NodeDBs ssc_a7l1L) RWLock
 newtype Snapshot
 Snapshot :: Snapshot -> Snapshot
 usingSnapshot :: (MonadIO m, MonadMask m) => DB ssc -> (Snapshot -> m a) -> m a
