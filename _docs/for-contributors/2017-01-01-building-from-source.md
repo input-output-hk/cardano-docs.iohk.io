@@ -83,21 +83,22 @@ Before providing an example of running the node, the trickiest command line argu
 
 When a testnet is bootstrapped, stake is distributed across several addresses in the genesis block. The supported distributions are flat distribution and Bitcoin distribution. The spending and VSS keys are generated for genesis block. If a node has access to a genesis key mapping, the index of the secret key in this mapping can be provided using `--vss-genesis N` and `--spending-genesis N`, where `N` is the index in this mapping.
 
-An example of a local invocation connecting to HostID
-`dYGuDj0BrJxCsTC9ntJE7ePT7wUoVdQMH3sKLzQD8bo=`:
+Example:
 
 ```
 stack exec -- cardano-node \
   --db-path run/node-db2 \
-  --vss-genesis 2 --spending-genesis 2 \
-  --peer 127.0.0.1:3000/dYGuDj0BrJxCsTC9ntJE7ePT7wUoVdQMH3sKLzQD8bo= \
+  --rebuild-db \
+  --vss-genesis 0 \
+  --spending-genesis 0 \
   --json-log logs/2017-01-10_035413/node2.json \
   --logs-prefix logs/2017-01-10_035413 \
   --log-config logs/2017-01-10_035413/conf/node2.log.yaml \
   --flat-distr "(3, 100000)" \
   --listen 127.0.0.1:3000 \
   --time-lord \
-  --wallet
+  --wallet \
+  --kademlia-dump-path kademlia.dump 
 ```
 
 Please make sure that file `logs/2017-01-10_035413/conf/node2.log.yaml` passed to `--log-config` actually exists. It's possible to use [default configuration file](https://github.com/input-output-hk/cardano-sl/blob/44d3482a7ff72d02eef3cc2b47fa0def232b999c/log-config-prod.yaml).
