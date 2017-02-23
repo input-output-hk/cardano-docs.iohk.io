@@ -562,7 +562,7 @@ badIntRedeemer :: Script
 stdlibValidator :: Script
 goodStdlibRedeemer :: Script
 multisigValidator :: Int -> [PublicKey] -> Script
-multisigRedeemer :: TxSigData -> [Maybe SecretKey] -> Script
+multisigRedeemer :: TxSigData -> [Maybe SafeSigner] -> Script
 intValidatorWithBlah :: Script
 goodIntRedeemerWithBlah :: Script
 
@@ -731,8 +731,9 @@ module Pos.Util.UserSecret
 -- | User secret data. Includes secret keys only for now (not including
 --   auxiliary <tt>_usPath</tt>).
 data UserSecret
-usKeys :: Lens' UserSecret [SecretKey]
+usKeys :: Lens' UserSecret [EncryptedSecretKey]
 usVss :: Lens' UserSecret (Maybe VssKeyPair)
+usPrimKey :: Lens' UserSecret (Maybe SecretKey)
 getUSPath :: UserSecret -> FilePath
 
 -- | Create a simple UserSecret from secret key and file path
@@ -1494,9 +1495,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679127611 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679127611)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679127603 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679127603)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679127598 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679127598)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679127635 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679127635)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679127627 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679127627)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679127622 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679127622)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Core.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Core.SoftwareVersion
@@ -2134,11 +2135,11 @@ NodeDBs :: !(DB ssc) -> !(DB ssc) -> !(DB ssc) -> !(DB ssc) -> !RWLock -> NodeDB
 
 -- | Lock on misc db
 [_miscLock] :: NodeDBs ssc -> !RWLock
-blockDB :: forall ssc_a4Mon. Lens' (NodeDBs ssc_a4Mon) (DB ssc_a4Mon)
-gStateDB :: forall ssc_a4Mon. Lens' (NodeDBs ssc_a4Mon) (DB ssc_a4Mon)
-lrcDB :: forall ssc_a4Mon. Lens' (NodeDBs ssc_a4Mon) (DB ssc_a4Mon)
-miscDB :: forall ssc_a4Mon. Lens' (NodeDBs ssc_a4Mon) (DB ssc_a4Mon)
-miscLock :: forall ssc_a4Mon. Lens' (NodeDBs ssc_a4Mon) RWLock
+blockDB :: forall ssc_a4O30. Lens' (NodeDBs ssc_a4O30) (DB ssc_a4O30)
+gStateDB :: forall ssc_a4O30. Lens' (NodeDBs ssc_a4O30) (DB ssc_a4O30)
+lrcDB :: forall ssc_a4O30. Lens' (NodeDBs ssc_a4O30) (DB ssc_a4O30)
+miscDB :: forall ssc_a4O30. Lens' (NodeDBs ssc_a4O30) (DB ssc_a4O30)
+miscLock :: forall ssc_a4O30. Lens' (NodeDBs ssc_a4O30) RWLock
 newtype Snapshot
 Snapshot :: Snapshot -> Snapshot
 usingSnapshot :: (MonadIO m, MonadMask m) => DB ssc -> (Snapshot -> m a) -> m a
@@ -2175,6 +2176,7 @@ backupPhraseWordsNum :: Int
 bpToList :: BackupPhrase -> [Text]
 toSeed :: BackupPhrase -> ByteString
 keysFromPhrase :: BackupPhrase -> (SecretKey, VssKeyPair)
+safeKeysFromPhrase :: PassPhrase -> BackupPhrase -> (EncryptedSecretKey, VssKeyPair)
 instance GHC.Generics.Generic Pos.Util.BackupPhrase.BackupPhrase
 instance GHC.Classes.Eq Pos.Util.BackupPhrase.BackupPhrase
 instance GHC.Show.Show Pos.Util.BackupPhrase.BackupPhrase
@@ -4937,20 +4939,20 @@ runWalletReal :: RealModeResources -> WalletParams -> ([WorkerSpec WalletRealMod
 runWallet :: WalletMode ssc m => ([WorkerSpec m], OutSpecs) -> (WorkerSpec m, OutSpecs)
 
 -- | Makes a transaction which use P2PKH addresses as a source
-makePubKeyTx :: SecretKey -> TxInputs -> TxOutputs -> TxAux
-makeMOfNTx :: Script -> [Maybe SecretKey] -> TxInputs -> TxOutputs -> TxAux
+makePubKeyTx :: SafeSigner -> TxInputs -> TxOutputs -> TxAux
+makeMOfNTx :: Script -> [Maybe SafeSigner] -> TxInputs -> TxOutputs -> TxAux
 
 -- | Construct Tx using secret key and given list of desired outputs
-submitTx :: TxMode ssc m => SendActions m -> SecretKey -> [DHTNode] -> [TxOutAux] -> m (Either TxError TxAux)
+submitTx :: TxMode ssc m => SendActions m -> SafeSigner -> [DHTNode] -> [TxOutAux] -> m (Either TxError TxAux)
 
 -- | Send the ready-to-use transaction
 submitTxRaw :: MinWorkMode m => SendActions m -> [DHTNode] -> TxAux -> m ()
 
 -- | Make a multi-transaction using given secret key and info for outputs
-createTx :: Utxo -> SecretKey -> TxOutputs -> Either TxError TxAux
+createTx :: Utxo -> SafeSigner -> TxOutputs -> Either TxError TxAux
 
 -- | Make a transaction, using M-of-N script as a source
-createMOfNTx :: Utxo -> [(PublicKey, Maybe SecretKey)] -> TxOutputs -> Either TxError TxAux
+createMOfNTx :: Utxo -> [(PublicKey, Maybe SafeSigner)] -> TxOutputs -> Either TxError TxAux
 sendTxOuts :: OutSpecs
 
 -- | Send UpdateVote to given addresses
