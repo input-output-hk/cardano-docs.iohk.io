@@ -3817,6 +3817,9 @@ handleHeadersCommunication :: WorkMode ssc m => ConversationActions (MsgHeaders 
 blockListeners :: (WorkMode ssc m) => ([ListenerSpec m], OutSpecs)
 blockStubListeners :: (SscHelpersClass ssc, WithLogger m) => Tagged ssc ([ListenerSpec m], OutSpecs)
 retrievalWorker :: forall ssc m. (SscWorkersClass ssc, WorkMode ssc m) => (WorkerSpec m, OutSpecs)
+
+-- | Triggers recovery based on established communication.
+triggerRecovery :: WorkMode ssc m => SendActions m -> m ()
 handleUnsolicitedHeaders :: forall ssc m. (WorkMode ssc m) => NonEmpty (BlockHeader ssc) -> NodeId -> ConversationActions MsgGetHeaders (MsgHeaders ssc) m -> m ()
 requestTip :: forall ssc m. (WorkMode ssc m) => NodeId -> ConversationActions MsgGetHeaders (MsgHeaders ssc) m -> m ()
 requestHeaders :: forall ssc m. (WorkMode ssc m) => MsgGetHeaders -> Maybe (BlockHeader ssc) -> NodeId -> ConversationActions MsgGetHeaders (MsgHeaders ssc) m -> m ()
