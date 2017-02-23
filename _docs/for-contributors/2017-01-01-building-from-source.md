@@ -160,7 +160,7 @@ operations with said binaries is clarified. Let's proceed with building the wall
 To generate types, run
 
 ```
-cd cardano-sl/daedalus
+cd cardano-sl
 stack exec -- cardano-wallet-hs2purs
 ```
 
@@ -173,21 +173,16 @@ Currently Nix expressions don't install Node.js and NPM, so
 those have to be installed manually. To do that, consult the repositories of the package manager of the according OS, or download binaries from [the
 net](https://nodejs.org/en/download/). Please make sure you have Node.js version 6. You can use [nvm](https://github.com/creationix/nvm#installation) to install proper version.
 
-You will also need the following npm packages: `bower`, `pulp`, `purescript`. Those can be installed with this command:
-
-```
-npm install -g bower pulp purescript
-```
-
 To build Daedalus Bridge with npm installed, run the following commands:
 
 ```
+cd daedalus
 npm install
 npm run build:prod
 npm link
 ```
 
-Running `npm install` will register `daedalus-bridge` in local npm package repository. This way, at any time, `daedalus-bridge` dependency can be satisfied in any project that depends on it by manually running `npm link daedalus-bridge`.
+Running `npm install` will register `daedalus-client-api` in local npm package repository. This way, at any time, `daedalus-client-api` dependency can be satisfied in any project that depends on it by manually running `npm link daedalus-client-api`.
 
 ## Building Daedalus
 
