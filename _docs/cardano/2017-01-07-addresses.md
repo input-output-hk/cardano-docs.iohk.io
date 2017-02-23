@@ -36,7 +36,7 @@ All addresses are 33 bytes long.
 `Base58` is the same encoding as used in Bitcoin. It uses a 58-symbol alphabet
 to encode data, hence the name. Here is the alphabet we are using:
 
-    123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz
+	123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz
 
 It avoids both non-alphanumeric characters and letters which might look
 ambiguous when printed (`0`, `O`, `I`, `l`); therefore it is suitable for
@@ -55,7 +55,7 @@ and `ScriptAddress`. Here are the `type`s for each:
 
 For hashing, we use a combination of `SHA3-256` and `BLAKE2s-224`, i.e.:
 
-    address_hash(x) = BLAKE2s_224(SHA3_256(x))
+	address_hash(x) = BLAKE2s_224(SHA3_256(x))
 
 See more on [hash functions](https://en.wikipedia.org/wiki/Hash_function).
 See also sections on
@@ -69,17 +69,17 @@ the end of the address. This way, the full address is
 [generated](https://github.com/input-output-hk/cardano-sl/blob/2f3c7df7d324bc056fefe0fce856e39a692f6d9f/src/Pos/Binary/Address.hs#L50)
 with the following rule, where `+` is concatenation:
 
-    address' ← type + address_hash(x)
-    address ← toBase58(address' + crc32(address'))
+	address' ← type + address_hash(x)
+	address ← toBase58(address' + crc32(address'))
 
 Here is an example of a valid address:
 
-    1EWYSJnvgnSUmp8Gi4mADvU2zkJgVAA7McgFRXiqwDBs8
+	1EWYSJnvgnSUmp8Gi4mADvU2zkJgVAA7McgFRXiqwDBs8
 
 It can be decoded into the following byte string (with spaces separating
 type, hash and checksum):
 
-    00 C8B9519459F5D4E42B002EF06AE94DC9C0A5B87E52D0D0375FD83ECE C52CEB43
+	00 C8B9519459F5D4E42B002EF06AE94DC9C0A5B87E52D0D0375FD83ECE C52CEB43
 
 ## Public Key Addresses
 
@@ -96,11 +96,11 @@ A `PubKeyAddress` contains the hash of this public key.
 Public keys are also used for verifying your identity when your create a
 transaction and other auxiliary purposes.
 
-To sum up, a public key address represents your personal wallet. It is
+To sum up, a public key address represents your personal account. It is
 constructed as
 
-    address' ← 0x00 + address_hash(public_key)
-    address ← toBase58(address' + crc32(address'))
+	address' ← 0x00 + address_hash(public_key)
+	address ← toBase58(address' + crc32(address'))
 
 ## Pay to Script Hash
 
@@ -121,8 +121,8 @@ To quote Bitcoin Wiki,
 
 `ScriptHash` addresses are constructed as follows:
 
-    address' ← 0x01 + address_hash(serialize(validator_script))
-    address ← toBase58(address' + crc32(address'))
+	address' ← 0x01 + address_hash(serialize(validator_script))
+	address ← toBase58(address' + crc32(address'))
 
 ## Other address types
 
