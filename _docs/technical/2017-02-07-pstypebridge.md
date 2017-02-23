@@ -1,10 +1,9 @@
 ---
 layout: default
 title: PureScript Type Bridge in Cardano SL
-permalink: /cardano/pstypebridge/
-group: cardano
+permalink: /technical/pstypebridge/
+group: technical
 ---
-[//]: # (Reviewed at e74b95fd7e04b43c03198dbed0f8599d53df5235)
 
 # PureScript type bridge
 
