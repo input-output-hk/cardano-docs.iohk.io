@@ -163,13 +163,10 @@ It covers the following modules:
  + [Pos.Communication.Types.Protocol](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Communication/Types/Protocol.hs)
  + [Pos.Communication.Types.SysStart](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Communication/Types/SysStart.hs)
 
-| Data Type* or Message type | Payload | Commentaries |
-|----------------------------|---------|--------------|
-| PeerState* | ProtocolVersion, or Nothing if we don't know version yet | Polymorphic in scc |
-| VersionReq | Ø | Requests version information from a peer. To be answered with VersionResp |
-| VersionResp | Int32 "magic" version bytes; Properly typed ProtocolVersion field | |
-| SysStartRequest | Ø | Polls peer's timestamps. To be answered with SysStartResponse |
-| SysStartResponse | Peer's timestamp | |
+| Data Type* or Message type | Payload          | Commentaries                                                  |
+|----------------------------+------------------+---------------------------------------------------------------|
+| SysStartRequest            | Ø                | Polls peer's timestamps. To be answered with SysStartResponse |
+| SysStartResponse           | Peer's timestamp | Answer to SysStartRequest                                     |
 
 ## Delegation Messages
 
