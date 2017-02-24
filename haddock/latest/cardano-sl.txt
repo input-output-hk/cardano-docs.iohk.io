@@ -245,10 +245,10 @@ WithHash :: a -> Hash a -> WithHash a
 [whData] :: WithHash a -> a
 [whHash] :: WithHash a -> Hash a
 withHash :: Bi a => a -> WithHash a
-_whData :: forall a_a1hbN. Lens' (WithHash a_a1hbN) a_a1hbN
+_whData :: forall a_a1gdE. Lens' (WithHash a_a1gdE) a_a1gdE
 
 -- | Lenses for <a>WithHash</a>
-_whHash :: forall a_a1hbN. Lens' (WithHash a_a1hbN) (Hash a_a1hbN)
+_whHash :: forall a_a1gdE. Lens' (WithHash a_a1gdE) (Hash a_a1gdE)
 
 -- | Hash wrapper with phantom type for more type-safety. Made abstract in
 --   order to support different algorithms in different situations
@@ -553,7 +553,7 @@ getAttributes :: (Word8 -> h -> Maybe (Get h)) -> Maybe Word32 -> h -> Get (Attr
 --   into set of keys and values.
 putAttributes :: (h -> [(Word8, Put)]) -> Attributes h -> Put
 mkAttributes :: h -> Attributes h
-instance Control.DeepSeq.NFData h_6989586621679430806 => Control.DeepSeq.NFData (Pos.Data.Attributes.Attributes h_6989586621679430806)
+instance Control.DeepSeq.NFData h_6989586621679427216 => Control.DeepSeq.NFData (Pos.Data.Attributes.Attributes h_6989586621679427216)
 instance GHC.Generics.Generic (Pos.Data.Attributes.Attributes h)
 instance GHC.Classes.Ord h => GHC.Classes.Ord (Pos.Data.Attributes.Attributes h)
 instance GHC.Classes.Eq h => GHC.Classes.Eq (Pos.Data.Attributes.Attributes h)
@@ -823,16 +823,16 @@ GenericBlock :: !(GenericBlockHeader b) -> !(Body b) -> !(ExtraBodyData b) -> Ge
 [_gbExtra] :: GenericBlock b -> !(ExtraBodyData b)
 class HasPrevBlock s
 prevBlockL :: HasPrevBlock s => Lens' s HeaderHash
-gbBody :: forall b_a2GNH. Lens' (GenericBlock b_a2GNH) (Body b_a2GNH)
-gbHeader :: forall b_a2GNH. Lens' (GenericBlock b_a2GNH) (GenericBlockHeader b_a2GNH)
-gbExtra :: forall b_a2GNH. Lens' (GenericBlock b_a2GNH) (ExtraBodyData b_a2GNH)
+gbBody :: forall b_a2FRP. Lens' (GenericBlock b_a2FRP) (Body b_a2FRP)
+gbHeader :: forall b_a2FRP. Lens' (GenericBlock b_a2FRP) (GenericBlockHeader b_a2FRP)
+gbExtra :: forall b_a2FRP. Lens' (GenericBlock b_a2FRP) (ExtraBodyData b_a2FRP)
 
 -- | Lens from <a>GenericBlock</a> to <a>BodyProof</a>.
 gbBodyProof :: Lens' (GenericBlock b) (BodyProof b)
-gbhConsensus :: forall b_a2GNI. Lens' (GenericBlockHeader b_a2GNI) (ConsensusData b_a2GNI)
-gbhExtra :: forall b_a2GNI. Lens' (GenericBlockHeader b_a2GNI) (ExtraHeaderData b_a2GNI)
-gbhPrevBlock :: forall b_a2GNI. Lens' (GenericBlockHeader b_a2GNI) (BHeaderHash b_a2GNI)
-gbhBodyProof :: forall b_a2GNI. Lens' (GenericBlockHeader b_a2GNI) (BodyProof b_a2GNI)
+gbhConsensus :: forall b_a2FRQ. Lens' (GenericBlockHeader b_a2FRQ) (ConsensusData b_a2FRQ)
+gbhExtra :: forall b_a2FRQ. Lens' (GenericBlockHeader b_a2FRQ) (ExtraHeaderData b_a2FRQ)
+gbhPrevBlock :: forall b_a2FRQ. Lens' (GenericBlockHeader b_a2FRQ) (BHeaderHash b_a2FRQ)
+gbhBodyProof :: forall b_a2FRQ. Lens' (GenericBlockHeader b_a2FRQ) (BodyProof b_a2FRQ)
 instance GHC.Generics.Generic (Pos.Types.Block.Class.GenericBlockHeader b)
 instance GHC.Generics.Generic (Pos.Types.Block.Class.GenericBlock b)
 instance (GHC.Show.Show (Pos.Types.Block.Class.BHeaderHash b), GHC.Show.Show (Pos.Types.Block.Class.BodyProof b), GHC.Show.Show (Pos.Types.Block.Class.ConsensusData b), GHC.Show.Show (Pos.Types.Block.Class.ExtraHeaderData b)) => GHC.Show.Show (Pos.Types.Block.Class.GenericBlockHeader b)
@@ -1357,6 +1357,10 @@ simpleUserSecret :: SecretKey -> FilePath -> UserSecret
 --   already exist.
 initializeUserSecret :: (MonadIO m) => FilePath -> m ()
 
+-- | Reads user secret from file, assuming that file exists, throws
+--   exception in other case
+readUserSecret :: MonadIO m => FilePath -> m UserSecret
+
 -- | Reads user secret from the given file. If the file does not exist/is
 --   empty, returns empty user secret
 peekUserSecret :: (MonadIO m) => FilePath -> m UserSecret
@@ -1427,6 +1431,7 @@ optionalLogPrefix :: Parser (Maybe String)
 portOption :: Word16 -> Parser Word16
 timeLordOption :: Parser Bool
 webPortOption :: Word16 -> String -> Parser Word16
+walletPortOption :: Word16 -> String -> Parser Word16
 ipPortOption :: NetworkAddress -> Parser NetworkAddress
 
 -- | Parse <a>DHTNode</a>s from a file (nodes should be separated by
@@ -2337,9 +2342,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679165481 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679165481)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679165933 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679165933)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679165934 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679165934)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679161769 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679161769)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679162221 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679162221)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679162222 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679162222)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Core.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Core.SoftwareVersion
@@ -2913,21 +2918,18 @@ getProposedBVs :: MonadDB ssc m => m [BlockVersion]
 -- | Get all confirmed <a>BlockVersion</a>s and their states.
 getConfirmedBVStates :: MonadDB ssc m => m [(BlockVersion, BlockVersionState)]
 getProposedBVStates :: MonadDB ssc m => m [BlockVersionState]
-
--- | Get genesis utxo
-getGenUtxo :: (MonadThrow m, MonadDB ssc m) => m Utxo
 getTxOutFromDB :: (MonadIO m, MonadThrow m) => TxIn -> DB ssc -> m (Maybe TxOutAux)
 getTxOut :: MonadDB ssc m => TxIn -> m (Maybe TxOutAux)
 data UtxoOp
 DelTxIn :: !TxIn -> UtxoOp
 AddTxOut :: !TxIn -> !TxOutAux -> UtxoOp
+AddGenTxOut :: !TxIn -> !TxOutAux -> UtxoOp
 prepareGStateUtxo :: forall ssc m. MonadDB ssc m => Utxo -> m ()
 data UtxoIter
-runUtxoIterator :: forall m ssc a. MonadDB ssc m => DBnIterator ssc UtxoIter a -> m a
-runUtxoMapIterator :: forall v m ssc a. MonadDB ssc m => DBnMapIterator ssc UtxoIter v a -> (IterType UtxoIter -> v) -> m a
-
--- | Get small sub-utxo containing only outputs of given address
+runUtxoIterator :: forall i m ssc a. (MonadDB ssc m, DBIteratorClass i, IterKey i ~ TxIn, IterValue i ~ TxOutAux) => DBnIterator ssc i a -> m a
+runUtxoMapIterator :: forall i v m ssc a. (MonadDB ssc m, DBIteratorClass i, IterKey i ~ TxIn, IterValue i ~ TxOutAux) => DBnMapIterator ssc i v a -> (IterType i -> v) -> m a
 getFilteredUtxo :: MonadDB ssc m => Address -> m Utxo
+getFilteredGenUtxo :: MonadDB ssc m => Address -> m Utxo
 sanityCheckUtxo :: (MonadDB ssc m, WithLogger m) => Coin -> m ()
 
 
@@ -3122,11 +3124,11 @@ NodeDBs :: !(DB ssc) -> !(DB ssc) -> !(DB ssc) -> !(DB ssc) -> !RWLock -> NodeDB
 
 -- | Lock on misc db
 [_miscLock] :: NodeDBs ssc -> !RWLock
-blockDB :: forall ssc_a7rOL. Lens' (NodeDBs ssc_a7rOL) (DB ssc_a7rOL)
-gStateDB :: forall ssc_a7rOL. Lens' (NodeDBs ssc_a7rOL) (DB ssc_a7rOL)
-lrcDB :: forall ssc_a7rOL. Lens' (NodeDBs ssc_a7rOL) (DB ssc_a7rOL)
-miscDB :: forall ssc_a7rOL. Lens' (NodeDBs ssc_a7rOL) (DB ssc_a7rOL)
-miscLock :: forall ssc_a7rOL. Lens' (NodeDBs ssc_a7rOL) RWLock
+blockDB :: forall ssc_a7r9v. Lens' (NodeDBs ssc_a7r9v) (DB ssc_a7r9v)
+gStateDB :: forall ssc_a7r9v. Lens' (NodeDBs ssc_a7r9v) (DB ssc_a7r9v)
+lrcDB :: forall ssc_a7r9v. Lens' (NodeDBs ssc_a7r9v) (DB ssc_a7r9v)
+miscDB :: forall ssc_a7r9v. Lens' (NodeDBs ssc_a7r9v) (DB ssc_a7r9v)
+miscLock :: forall ssc_a7r9v. Lens' (NodeDBs ssc_a7r9v) RWLock
 newtype Snapshot
 Snapshot :: Snapshot -> Snapshot
 usingSnapshot :: (MonadIO m, MonadMask m) => DB ssc -> (Snapshot -> m a) -> m a
@@ -3313,7 +3315,7 @@ type LrcSyncData = (Bool, EpochIndex)
 
 -- | NodeContext contains runtime context of node.
 data NodeContext ssc
-NodeContext :: !(Maybe (MVar FilePath)) -> !(SscNodeContext ssc) -> !(MVar HeaderHash) -> !(TVar LrcSyncData) -> !(TVar UserSecret) -> !(TBQueue (NodeId, NewestFirst NE (BlockHeader ssc))) -> !(TMVar (NodeId, BlockHeader ssc)) -> !(MVar ConfirmedProposalState) -> !RelayInvQueue -> !LoggerConfig -> !NodeParams -> !(TVar Bool) -> !(TBQueue ()) -> !(Maybe (MVar ())) -> !UTCTime -> NodeContext ssc
+NodeContext :: !(Maybe (MVar FilePath)) -> !(SscNodeContext ssc) -> !(MVar HeaderHash) -> !(TVar LrcSyncData) -> !(TVar UserSecret) -> !(TBQueue (NodeId, NewestFirst NE (BlockHeader ssc))) -> !(TMVar (NodeId, BlockHeader ssc)) -> !(TMVar (BlockHeader ssc)) -> !(MVar ConfirmedProposalState) -> !RelayInvQueue -> !LoggerConfig -> !NodeParams -> !(TVar Bool) -> !(TBQueue ()) -> !(Maybe (MVar ())) -> !UTCTime -> NodeContext ssc
 [ncJLFile] :: NodeContext ssc -> !(Maybe (MVar FilePath))
 [ncSscContext] :: NodeContext ssc -> !(SscNodeContext ssc)
 
@@ -3339,12 +3341,16 @@ NodeContext :: !(Maybe (MVar FilePath)) -> !(SscNodeContext ssc) -> !(MVar Heade
 --   we've downloaded this header, we clean mvar.
 [ncRecoveryHeader] :: NodeContext ssc -> !(TMVar (NodeId, BlockHeader ssc))
 
+-- | Header of the last block that was downloaded in retrieving queue. Is
+--   needed to show smooth prorgess on the frontend.
+[ncProgressHeader] :: NodeContext ssc -> !(TMVar (BlockHeader ssc))
+
 -- | A semaphore which is unlocked when update data is downloaded and ready
---   to apply
+--   to apply.
 [ncUpdateSemaphore] :: NodeContext ssc -> !(MVar ConfirmedProposalState)
 [ncInvPropagationQueue] :: NodeContext ssc -> !RelayInvQueue
 
--- | Logger config, as taken/read from CLI
+-- | Logger config, as taken/read from CLI.
 [ncLoggerConfig] :: NodeContext ssc -> !LoggerConfig
 
 -- | Params node is launched with
@@ -3354,11 +3360,11 @@ NodeContext :: !(Maybe (MVar FilePath)) -> !(SscNodeContext ssc) -> !(MVar Heade
 [ncShutdownFlag] :: NodeContext ssc -> !(TVar Bool)
 
 -- | A queue which is used to count how many workers have successfully
---   terminated
+--   terminated.
 [ncShutdownNotifyQueue] :: NodeContext ssc -> !(TBQueue ())
 
 -- | Exclusive lock for sending messages to other nodes (if Nothing, no
---   lock used)
+--   lock used).
 [ncSendLock] :: NodeContext ssc -> !(Maybe (MVar ()))
 
 -- | Time when node was started (<a>NodeContext</a> initialized).
@@ -5628,7 +5634,7 @@ module Pos.Aeson
 module Pos.Wallet.Web
 
 -- | Servant API which provides access to wallet.
-type WalletApi = ("api" :> ("get_wallet" :> (Capture "address" CAddress :> Get '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("get_wallets" :> Get '[JSON] (Either WalletError [CWallet]))) :<|> (("api" :> ("send" :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> Post '[JSON] (Either WalletError CTx)))))) :<|> (("api" :> ("send" :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> (Capture "currency" CCurrency :> (Capture "title" Text :> (Capture "description" Text :> Post '[JSON] (Either WalletError CTx))))))))) :<|> (("api" :> ("txhistory" :> (Capture "address" CAddress :> (Capture "skip" Word :> (Capture "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word))))))) :<|> (("api" :> ("search_txhistory" :> (Capture "address" CAddress :> (Capture "search" Text :> (Capture "skip" Word :> (Capture "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word)))))))) :<|> (("api" :> ("update_transaction" :> (Capture "address" CAddress :> (Capture "transaction" CTxId :> (ReqBody '[JSON] CTxMeta :> Post '[JSON] (Either WalletError ())))))) :<|> (("api" :> ("new_wallet" :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("restore_wallet" :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("update_wallet" :> (Capture "address" CAddress :> (ReqBody '[JSON] CWalletMeta :> Post '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("delete_wallet" :> (Capture "address" CAddress :> Post '[JSON] (Either WalletError ())))) :<|> (("api" :> ("valid_address" :> (Capture "currency" CCurrency :> (Capture "address" Text :> Get '[JSON] (Either WalletError Bool))))) :<|> (("api" :> ("get_profile" :> Get '[JSON] (Either WalletError CProfile))) :<|> (("api" :> ("update_profile" :> (ReqBody '[JSON] CProfile :> Post '[JSON] (Either WalletError CProfile)))) :<|> (("api" :> ("redeem_ada" :> (ReqBody '[JSON] CWalletRedeem :> Post '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("next_update" :> Get '[JSON] (Either WalletError CUpdateInfo))) :<|> (("api" :> ("apply_update" :> Post '[JSON] (Either WalletError ()))) :<|> (("api" :> ("slot_duration" :> Get '[JSON] (Either WalletError Word))) :<|> ("api" :> ("system_version" :> Get '[JSON] (Either WalletError SoftwareVersion))))))))))))))))))))
+type WalletApi = ("api" :> ("get_wallet" :> (Capture "address" CAddress :> Get '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("get_wallets" :> Get '[JSON] (Either WalletError [CWallet]))) :<|> (("api" :> ("send" :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> Post '[JSON] (Either WalletError CTx)))))) :<|> (("api" :> ("send" :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> (Capture "currency" CCurrency :> (Capture "title" Text :> (Capture "description" Text :> Post '[JSON] (Either WalletError CTx))))))))) :<|> (("api" :> ("txhistory" :> (Capture "address" CAddress :> (Capture "skip" Word :> (Capture "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word))))))) :<|> (("api" :> ("search_txhistory" :> (Capture "address" CAddress :> (Capture "search" Text :> (Capture "skip" Word :> (Capture "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word)))))))) :<|> (("api" :> ("update_transaction" :> (Capture "address" CAddress :> (Capture "transaction" CTxId :> (ReqBody '[JSON] CTxMeta :> Post '[JSON] (Either WalletError ())))))) :<|> (("api" :> ("new_wallet" :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("restore_wallet" :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("update_wallet" :> (Capture "address" CAddress :> (ReqBody '[JSON] CWalletMeta :> Post '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("delete_wallet" :> (Capture "address" CAddress :> Post '[JSON] (Either WalletError ())))) :<|> (("api" :> ("valid_address" :> (Capture "currency" CCurrency :> (Capture "address" Text :> Get '[JSON] (Either WalletError Bool))))) :<|> (("api" :> ("get_profile" :> Get '[JSON] (Either WalletError CProfile))) :<|> (("api" :> ("update_profile" :> (ReqBody '[JSON] CProfile :> Post '[JSON] (Either WalletError CProfile)))) :<|> (("api" :> ("redeem_ada" :> (ReqBody '[JSON] CWalletRedeem :> Post '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("next_update" :> Get '[JSON] (Either WalletError CUpdateInfo))) :<|> (("api" :> ("apply_update" :> Post '[JSON] (Either WalletError ()))) :<|> (("api" :> ("slot_duration" :> Get '[JSON] (Either WalletError Word))) :<|> (("api" :> ("system_version" :> Get '[JSON] (Either WalletError SoftwareVersion))) :<|> ("api" :> ("import_key" :> (ReqBody '[JSON] Text :> Post '[JSON] (Either WalletError CWallet))))))))))))))))))))))
 
 -- | Helper Proxy.
 walletApi :: Proxy WalletApi
