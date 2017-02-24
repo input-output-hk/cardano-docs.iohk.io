@@ -262,8 +262,8 @@ instance Containers.One (f a) => Containers.One (Pos.Util.OldestFirst f a)
 instance Pos.Util.Chrono []
 instance Pos.Util.Chrono Data.List.NonEmpty.NonEmpty
 instance Language.Haskell.TH.Syntax.Lift Serokell.Data.Memory.Units.Byte
-instance Data.Aeson.Types.FromJSON.FromJSON Serokell.Data.Memory.Units.Byte
-instance Data.Aeson.Types.ToJSON.ToJSON Serokell.Data.Memory.Units.Byte
+instance Data.Aeson.Types.Class.FromJSON Serokell.Data.Memory.Units.Byte
+instance Data.Aeson.Types.Class.ToJSON Serokell.Data.Memory.Units.Byte
 instance Data.SafeCopy.SafeCopy.SafeCopy a => Data.SafeCopy.SafeCopy.SafeCopy (Data.List.NonEmpty.NonEmpty a)
 instance Data.SafeCopy.SafeCopy.SafeCopy Data.Time.Units.Millisecond
 instance Data.SafeCopy.SafeCopy.SafeCopy Data.Time.Units.Microsecond
@@ -562,7 +562,7 @@ badIntRedeemer :: Script
 stdlibValidator :: Script
 goodStdlibRedeemer :: Script
 multisigValidator :: Int -> [PublicKey] -> Script
-multisigRedeemer :: TxSigData -> [Maybe SecretKey] -> Script
+multisigRedeemer :: TxSigData -> [Maybe SafeSigner] -> Script
 intValidatorWithBlah :: Script
 goodIntRedeemerWithBlah :: Script
 
@@ -731,8 +731,9 @@ module Pos.Util.UserSecret
 -- | User secret data. Includes secret keys only for now (not including
 --   auxiliary <tt>_usPath</tt>).
 data UserSecret
-usKeys :: Lens' UserSecret [SecretKey]
+usKeys :: Lens' UserSecret [EncryptedSecretKey]
 usVss :: Lens' UserSecret (Maybe VssKeyPair)
+usPrimKey :: Lens' UserSecret (Maybe SecretKey)
 getUSPath :: UserSecret -> FilePath
 
 -- | Create a simple UserSecret from secret key and file path
@@ -1494,9 +1495,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679128416 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679128416)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679128408 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679128408)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679128403 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679128403)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679127632 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679127632)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679127624 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679127624)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679127619 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679127619)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Core.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Core.SoftwareVersion
@@ -2134,11 +2135,11 @@ NodeDBs :: !(DB ssc) -> !(DB ssc) -> !(DB ssc) -> !(DB ssc) -> !RWLock -> NodeDB
 
 -- | Lock on misc db
 [_miscLock] :: NodeDBs ssc -> !RWLock
-blockDB :: forall ssc_a4LFq. Lens' (NodeDBs ssc_a4LFq) (DB ssc_a4LFq)
-gStateDB :: forall ssc_a4LFq. Lens' (NodeDBs ssc_a4LFq) (DB ssc_a4LFq)
-lrcDB :: forall ssc_a4LFq. Lens' (NodeDBs ssc_a4LFq) (DB ssc_a4LFq)
-miscDB :: forall ssc_a4LFq. Lens' (NodeDBs ssc_a4LFq) (DB ssc_a4LFq)
-miscLock :: forall ssc_a4LFq. Lens' (NodeDBs ssc_a4LFq) RWLock
+blockDB :: forall ssc_a4Owo. Lens' (NodeDBs ssc_a4Owo) (DB ssc_a4Owo)
+gStateDB :: forall ssc_a4Owo. Lens' (NodeDBs ssc_a4Owo) (DB ssc_a4Owo)
+lrcDB :: forall ssc_a4Owo. Lens' (NodeDBs ssc_a4Owo) (DB ssc_a4Owo)
+miscDB :: forall ssc_a4Owo. Lens' (NodeDBs ssc_a4Owo) (DB ssc_a4Owo)
+miscLock :: forall ssc_a4Owo. Lens' (NodeDBs ssc_a4Owo) RWLock
 newtype Snapshot
 Snapshot :: Snapshot -> Snapshot
 usingSnapshot :: (MonadIO m, MonadMask m) => DB ssc -> (Snapshot -> m a) -> m a
@@ -2175,6 +2176,7 @@ backupPhraseWordsNum :: Int
 bpToList :: BackupPhrase -> [Text]
 toSeed :: BackupPhrase -> ByteString
 keysFromPhrase :: BackupPhrase -> (SecretKey, VssKeyPair)
+safeKeysFromPhrase :: PassPhrase -> BackupPhrase -> (EncryptedSecretKey, VssKeyPair)
 instance GHC.Generics.Generic Pos.Util.BackupPhrase.BackupPhrase
 instance GHC.Classes.Eq Pos.Util.BackupPhrase.BackupPhrase
 instance GHC.Show.Show Pos.Util.BackupPhrase.BackupPhrase
@@ -2222,14 +2224,14 @@ appendJL :: (MonadIO m) => FilePath -> JLEvent -> m ()
 
 -- | Get <a>SlotId</a> from <a>JLSlotId</a>.
 fromJLSlotId :: JLSlotId -> SlotId
-instance Data.Aeson.Types.ToJSON.ToJSON Pos.Util.JsonLog.JLTimedEvent
-instance Data.Aeson.Types.FromJSON.FromJSON Pos.Util.JsonLog.JLTimedEvent
+instance Data.Aeson.Types.Class.ToJSON Pos.Util.JsonLog.JLTimedEvent
+instance Data.Aeson.Types.Class.FromJSON Pos.Util.JsonLog.JLTimedEvent
 instance Pos.Util.JsonLog.MonadJL m => Pos.Util.JsonLog.MonadJL (Control.Monad.Trans.Reader.ReaderT s m)
 instance Pos.Util.JsonLog.MonadJL m => Pos.Util.JsonLog.MonadJL (Control.Monad.Trans.State.Lazy.StateT s m)
-instance Data.Aeson.Types.ToJSON.ToJSON Pos.Util.JsonLog.JLEvent
-instance Data.Aeson.Types.FromJSON.FromJSON Pos.Util.JsonLog.JLEvent
-instance Data.Aeson.Types.ToJSON.ToJSON Pos.Util.JsonLog.JLBlock
-instance Data.Aeson.Types.FromJSON.FromJSON Pos.Util.JsonLog.JLBlock
+instance Data.Aeson.Types.Class.ToJSON Pos.Util.JsonLog.JLEvent
+instance Data.Aeson.Types.Class.FromJSON Pos.Util.JsonLog.JLEvent
+instance Data.Aeson.Types.Class.ToJSON Pos.Util.JsonLog.JLBlock
+instance Data.Aeson.Types.Class.FromJSON Pos.Util.JsonLog.JLBlock
 instance GHC.Show.Show Pos.Util.JsonLog.JLTimedEvent
 instance GHC.Show.Show Pos.Util.JsonLog.JLEvent
 instance GHC.Show.Show Pos.Util.JsonLog.JLBlock
@@ -4937,20 +4939,20 @@ runWalletReal :: RealModeResources -> WalletParams -> ([WorkerSpec WalletRealMod
 runWallet :: WalletMode ssc m => ([WorkerSpec m], OutSpecs) -> (WorkerSpec m, OutSpecs)
 
 -- | Makes a transaction which use P2PKH addresses as a source
-makePubKeyTx :: SecretKey -> TxInputs -> TxOutputs -> TxAux
-makeMOfNTx :: Script -> [Maybe SecretKey] -> TxInputs -> TxOutputs -> TxAux
+makePubKeyTx :: SafeSigner -> TxInputs -> TxOutputs -> TxAux
+makeMOfNTx :: Script -> [Maybe SafeSigner] -> TxInputs -> TxOutputs -> TxAux
 
 -- | Construct Tx using secret key and given list of desired outputs
-submitTx :: TxMode ssc m => SendActions m -> SecretKey -> [DHTNode] -> [TxOutAux] -> m (Either TxError TxAux)
+submitTx :: TxMode ssc m => SendActions m -> SafeSigner -> [DHTNode] -> [TxOutAux] -> m (Either TxError TxAux)
 
 -- | Send the ready-to-use transaction
 submitTxRaw :: MinWorkMode m => SendActions m -> [DHTNode] -> TxAux -> m ()
 
 -- | Make a multi-transaction using given secret key and info for outputs
-createTx :: Utxo -> SecretKey -> TxOutputs -> Either TxError TxAux
+createTx :: Utxo -> SafeSigner -> TxOutputs -> Either TxError TxAux
 
 -- | Make a transaction, using M-of-N script as a source
-createMOfNTx :: Utxo -> [(PublicKey, Maybe SecretKey)] -> TxOutputs -> Either TxError TxAux
+createMOfNTx :: Utxo -> [(PublicKey, Maybe SafeSigner)] -> TxOutputs -> Either TxError TxAux
 sendTxOuts :: OutSpecs
 
 -- | Send UpdateVote to given addresses
