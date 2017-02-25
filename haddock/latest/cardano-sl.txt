@@ -4977,11 +4977,11 @@ saveTx :: MonadTxHistory m => (TxId, TxAux) -> m ()
 getTxHistory :: (MonadTxHistory m, MonadTrans t, MonadTxHistory m', t m' ~ m) => Address -> m [TxHistoryEntry]
 saveTx :: (MonadTxHistory m, MonadTrans t, MonadTxHistory m', t m' ~ m) => (TxId, TxAux) -> m ()
 class Monad m => MonadBlockchainInfo m where networkChainDifficulty = lift networkChainDifficulty localChainDifficulty = lift localChainDifficulty blockchainSlotDuration = lift blockchainSlotDuration connectedPeers = lift connectedPeers
-networkChainDifficulty :: MonadBlockchainInfo m => m (Maybe ChainDifficulty)
+networkChainDifficulty :: MonadBlockchainInfo m => m ChainDifficulty
 localChainDifficulty :: MonadBlockchainInfo m => m ChainDifficulty
 blockchainSlotDuration :: MonadBlockchainInfo m => m Millisecond
 connectedPeers :: MonadBlockchainInfo m => m Word
-networkChainDifficulty :: (MonadBlockchainInfo m, MonadTrans t, MonadBlockchainInfo m', t m' ~ m) => m (Maybe ChainDifficulty)
+networkChainDifficulty :: (MonadBlockchainInfo m, MonadTrans t, MonadBlockchainInfo m', t m' ~ m) => m ChainDifficulty
 localChainDifficulty :: (MonadBlockchainInfo m, MonadTrans t, MonadBlockchainInfo m', t m' ~ m) => m ChainDifficulty
 blockchainSlotDuration :: (MonadBlockchainInfo m, MonadTrans t, MonadBlockchainInfo m', t m' ~ m) => m Millisecond
 connectedPeers :: (MonadBlockchainInfo m, MonadTrans t, MonadBlockchainInfo m', t m' ~ m) => m Word
