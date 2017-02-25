@@ -1464,9 +1464,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679128341 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679128341)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679128333 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679128333)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679128328 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679128328)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679132113 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679132113)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679132105 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679132105)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679132100 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679132100)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Core.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Core.SoftwareVersion
@@ -2162,11 +2162,11 @@ NodeDBs :: !(DB ssc) -> !(DB ssc) -> !(DB ssc) -> !(DB ssc) -> !RWLock -> NodeDB
 
 -- | Lock on misc db
 [_miscLock] :: NodeDBs ssc -> !RWLock
-blockDB :: forall ssc_a4ORb. Lens' (NodeDBs ssc_a4ORb) (DB ssc_a4ORb)
-gStateDB :: forall ssc_a4ORb. Lens' (NodeDBs ssc_a4ORb) (DB ssc_a4ORb)
-lrcDB :: forall ssc_a4ORb. Lens' (NodeDBs ssc_a4ORb) (DB ssc_a4ORb)
-miscDB :: forall ssc_a4ORb. Lens' (NodeDBs ssc_a4ORb) (DB ssc_a4ORb)
-miscLock :: forall ssc_a4ORb. Lens' (NodeDBs ssc_a4ORb) RWLock
+blockDB :: forall ssc_a4PMD. Lens' (NodeDBs ssc_a4PMD) (DB ssc_a4PMD)
+gStateDB :: forall ssc_a4PMD. Lens' (NodeDBs ssc_a4PMD) (DB ssc_a4PMD)
+lrcDB :: forall ssc_a4PMD. Lens' (NodeDBs ssc_a4PMD) (DB ssc_a4PMD)
+miscDB :: forall ssc_a4PMD. Lens' (NodeDBs ssc_a4PMD) (DB ssc_a4PMD)
+miscLock :: forall ssc_a4PMD. Lens' (NodeDBs ssc_a4PMD) RWLock
 newtype Snapshot
 Snapshot :: Snapshot -> Snapshot
 usingSnapshot :: (MonadIO m, MonadMask m) => DB ssc -> (Snapshot -> m a) -> m a
