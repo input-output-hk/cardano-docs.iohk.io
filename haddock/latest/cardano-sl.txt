@@ -262,8 +262,8 @@ instance Containers.One (f a) => Containers.One (Pos.Util.OldestFirst f a)
 instance Pos.Util.Chrono []
 instance Pos.Util.Chrono Data.List.NonEmpty.NonEmpty
 instance Language.Haskell.TH.Syntax.Lift Serokell.Data.Memory.Units.Byte
-instance Data.Aeson.Types.FromJSON.FromJSON Serokell.Data.Memory.Units.Byte
-instance Data.Aeson.Types.ToJSON.ToJSON Serokell.Data.Memory.Units.Byte
+instance Data.Aeson.Types.Class.FromJSON Serokell.Data.Memory.Units.Byte
+instance Data.Aeson.Types.Class.ToJSON Serokell.Data.Memory.Units.Byte
 instance Data.SafeCopy.SafeCopy.SafeCopy a => Data.SafeCopy.SafeCopy.SafeCopy (Data.List.NonEmpty.NonEmpty a)
 instance Data.SafeCopy.SafeCopy.SafeCopy Data.Time.Units.Millisecond
 instance Data.SafeCopy.SafeCopy.SafeCopy Data.Time.Units.Microsecond
@@ -1484,102 +1484,19 @@ newtype BadSigsTx
 BadSigsTx :: [((Tx, TxDistribution), TxIn, TxOutAux, TxInWitness)] -> BadSigsTx
 [getBadSigsTx] :: BadSigsTx -> [((Tx, TxDistribution), TxIn, TxOutAux, TxInWitness)]
 
--- | This datatype has two coins that will always overflow when added. It
---   is used in tests to make sure addition raises the appropriate
---   exception when this happens.
-newtype CoinPairOverflowSum
-TwoCoinsSum :: (Coin, Coin) -> CoinPairOverflowSum
-[get2CSum] :: CoinPairOverflowSum -> (Coin, Coin)
-
--- | This datatype has two coins that will always underflow when
---   subtracted. It is used in tests to make sure subtraction raises the
---   appropriate exception when this happens.
-newtype CoinPairOverflowSub
-TwoCoinsSub :: (Coin, Coin) -> CoinPairOverflowSub
-[get2CSub] :: CoinPairOverflowSub -> (Coin, Coin)
-
--- | This datatype has a <a>Coin</a> and an <a>Integer</a> that will always
---   overflow when multiplied. It is used in tests to make sure
---   multiplication raises the appropriate exception when this happens.
-newtype CoinPairOverflowMul
-TwoCoinsM :: (Coin, Integer) -> CoinPairOverflowMul
-[get2CMul] :: CoinPairOverflowMul -> (Coin, Integer)
-
--- | Another wrapper over <a>Double</a>. Its <a>Arbitrary</a> instance
---   guarantees the <a>Double</a> inside can always be safely turned into a
---   <a>CoinPortion</a>. Used in tests to ensure converting a valid
---   <a>Double</a> to/from <a>CoinPortion</a> works properly.
-newtype DoubleInZeroToOneRange
-DoubleInRange :: Double -> DoubleInZeroToOneRange
-[getDoubleInRange] :: DoubleInZeroToOneRange -> Double
-
--- | This datatype has an Integer that will never overflow when turned into
---   a <a>Coin</a>. Useful for testing that conversion between valid
---   <a>Integer</a>s and <a>Coin</a>s works properly.
-newtype IntegerToCoinNoOverflow
-Integer :: Integer -> IntegerToCoinNoOverflow
-[getInteger] :: IntegerToCoinNoOverflow -> Integer
-
--- | <a>IntegerToCoinOverflow</a> is a wrapped over <a>Integer</a>. Its
---   <a>Arbitrary</a> instance makes it so that these integers will always
---   overflow when converted into a <a>Coin</a>. Used in tests to make sure
---   an exception is raised when there is an attempt to turn an excessively
---   large <a>Integer</a> into a <a>Coin</a>.
-newtype IntegerToCoinOverflow
-LargeInteger :: Integer -> IntegerToCoinOverflow
-[getLargeInteger] :: IntegerToCoinOverflow -> Integer
-
 -- | Well-formed transaction <a>Tx</a>.
 newtype GoodTx
 GoodTx :: [((Tx, TxDistribution), TxIn, TxOutAux, TxInWitness)] -> GoodTx
 [getGoodTx] :: GoodTx -> [((Tx, TxDistribution), TxIn, TxOutAux, TxInWitness)]
-
--- | A wrapper over <a>Double</a>. Its <a>Arbitrary</a> instance ensures
---   the <a>Double</a> within can never be converted into a
---   <a>CoinPortion</a> without an exception being raised. Used in tests to
---   safeguard that converting an invalid <a>Double</a> to a
---   <a>CoinPortion</a> always raised an exception.
-newtype LessThanZeroOrMoreThanOne
-BadCoinPortion :: Double -> LessThanZeroOrMoreThanOne
-[getDouble] :: LessThanZeroOrMoreThanOne -> Double
-
--- | This datatype has a <a>Coin</a> and an <a>Integer</a> that will always
---   overflow when multiplied. It is used to make sure coin multiplication
---   by an integer raises the appropriate exception when this happens.
-newtype SafeCoinPairMul
-CoinPairMul :: (Coin, Integer) -> SafeCoinPairMul
-[getPairMul] :: SafeCoinPairMul -> (Coin, Integer)
-
--- | This datatype has two coins that will never overflow when added. It is
---   therefore safe to add them. Useful in tests to ensure adding two coins
---   whose sum is a valid <a>Coin</a> always works.
-newtype SafeCoinPairSum
-CoinPairSum :: (Coin, Coin) -> SafeCoinPairSum
-[getPairSum] :: SafeCoinPairSum -> (Coin, Coin)
-
--- | This datatype has two coins that will never underflow when subtracted.
---   It is therefore safe to subtract them. Useful in tests to show that
---   two coins whose subtraction does not underflow always works.
-newtype SafeCoinPairSub
-CoinPairSub :: (Coin, Coin) -> SafeCoinPairSub
-[getPairSub] :: SafeCoinPairSub -> (Coin, Coin)
-
--- | A wrapper over <a>Word64</a>. Its <a>Arbitrary</a> instance guarantees
---   the <a>Word64</a> inside can always be safely converted into
---   <a>CoinPortion</a>. Used in tests to ensure converting a valid
---   <a>Word64</a> to/from <a>CoinPortion</a> works properly.
-newtype SafeWord
-SafeWord :: Word64 -> SafeWord
-[getSafeWord] :: SafeWord -> Word64
 newtype SmallBadSigsTx
 SmallBadSigsTx :: BadSigsTx -> SmallBadSigsTx
 newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679128416 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679128416)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679128408 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679128408)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679128403 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679128403)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679127611 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679127611)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679127603 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679127603)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679127598 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679127598)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Core.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Core.SoftwareVersion
@@ -1600,44 +1517,11 @@ instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Arbitrary.SmallBadSigsTx
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Types.SharedSeed
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Core.ApplicationName
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Types.TxDistribution
-instance GHC.Classes.Eq Pos.Types.Arbitrary.SafeWord
-instance GHC.Show.Show Pos.Types.Arbitrary.SafeWord
-instance GHC.Classes.Eq Pos.Types.Arbitrary.DoubleInZeroToOneRange
-instance GHC.Show.Show Pos.Types.Arbitrary.DoubleInZeroToOneRange
-instance GHC.Classes.Eq Pos.Types.Arbitrary.LessThanZeroOrMoreThanOne
-instance GHC.Show.Show Pos.Types.Arbitrary.LessThanZeroOrMoreThanOne
-instance GHC.Classes.Eq Pos.Types.Arbitrary.IntegerToCoinNoOverflow
-instance GHC.Show.Show Pos.Types.Arbitrary.IntegerToCoinNoOverflow
-instance GHC.Classes.Eq Pos.Types.Arbitrary.IntegerToCoinOverflow
-instance GHC.Show.Show Pos.Types.Arbitrary.IntegerToCoinOverflow
-instance GHC.Classes.Eq Pos.Types.Arbitrary.SafeCoinPairMul
-instance GHC.Show.Show Pos.Types.Arbitrary.SafeCoinPairMul
-instance GHC.Classes.Eq Pos.Types.Arbitrary.CoinPairOverflowMul
-instance GHC.Show.Show Pos.Types.Arbitrary.CoinPairOverflowMul
-instance GHC.Classes.Eq Pos.Types.Arbitrary.SafeCoinPairSub
-instance GHC.Show.Show Pos.Types.Arbitrary.SafeCoinPairSub
-instance GHC.Classes.Eq Pos.Types.Arbitrary.CoinPairOverflowSub
-instance GHC.Show.Show Pos.Types.Arbitrary.CoinPairOverflowSub
-instance GHC.Classes.Eq Pos.Types.Arbitrary.SafeCoinPairSum
-instance GHC.Show.Show Pos.Types.Arbitrary.SafeCoinPairSum
-instance GHC.Classes.Eq Pos.Types.Arbitrary.CoinPairOverflowSum
-instance GHC.Show.Show Pos.Types.Arbitrary.CoinPairOverflowSum
 instance System.Random.Random Pos.Types.Core.EpochIndex
 instance System.Random.Random Pos.Types.Core.LocalSlotIndex
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Types.TxOut
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Core.Coin
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Arbitrary.CoinPairOverflowSum
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Arbitrary.SafeCoinPairSum
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Arbitrary.CoinPairOverflowSub
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Arbitrary.SafeCoinPairSub
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Arbitrary.CoinPairOverflowMul
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Arbitrary.SafeCoinPairMul
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Arbitrary.IntegerToCoinOverflow
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Arbitrary.IntegerToCoinNoOverflow
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Core.CoinPortion
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Arbitrary.LessThanZeroOrMoreThanOne
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Arbitrary.DoubleInZeroToOneRange
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Arbitrary.SafeWord
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Core.EpochIndex
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Core.LocalSlotIndex
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Core.SlotId
@@ -2250,11 +2134,11 @@ NodeDBs :: !(DB ssc) -> !(DB ssc) -> !(DB ssc) -> !(DB ssc) -> !RWLock -> NodeDB
 
 -- | Lock on misc db
 [_miscLock] :: NodeDBs ssc -> !RWLock
-blockDB :: forall ssc_a4PVJ. Lens' (NodeDBs ssc_a4PVJ) (DB ssc_a4PVJ)
-gStateDB :: forall ssc_a4PVJ. Lens' (NodeDBs ssc_a4PVJ) (DB ssc_a4PVJ)
-lrcDB :: forall ssc_a4PVJ. Lens' (NodeDBs ssc_a4PVJ) (DB ssc_a4PVJ)
-miscDB :: forall ssc_a4PVJ. Lens' (NodeDBs ssc_a4PVJ) (DB ssc_a4PVJ)
-miscLock :: forall ssc_a4PVJ. Lens' (NodeDBs ssc_a4PVJ) RWLock
+blockDB :: forall ssc_a4Mon. Lens' (NodeDBs ssc_a4Mon) (DB ssc_a4Mon)
+gStateDB :: forall ssc_a4Mon. Lens' (NodeDBs ssc_a4Mon) (DB ssc_a4Mon)
+lrcDB :: forall ssc_a4Mon. Lens' (NodeDBs ssc_a4Mon) (DB ssc_a4Mon)
+miscDB :: forall ssc_a4Mon. Lens' (NodeDBs ssc_a4Mon) (DB ssc_a4Mon)
+miscLock :: forall ssc_a4Mon. Lens' (NodeDBs ssc_a4Mon) RWLock
 newtype Snapshot
 Snapshot :: Snapshot -> Snapshot
 usingSnapshot :: (MonadIO m, MonadMask m) => DB ssc -> (Snapshot -> m a) -> m a
@@ -2338,14 +2222,14 @@ appendJL :: (MonadIO m) => FilePath -> JLEvent -> m ()
 
 -- | Get <a>SlotId</a> from <a>JLSlotId</a>.
 fromJLSlotId :: JLSlotId -> SlotId
-instance Data.Aeson.Types.ToJSON.ToJSON Pos.Util.JsonLog.JLTimedEvent
-instance Data.Aeson.Types.FromJSON.FromJSON Pos.Util.JsonLog.JLTimedEvent
+instance Data.Aeson.Types.Class.ToJSON Pos.Util.JsonLog.JLTimedEvent
+instance Data.Aeson.Types.Class.FromJSON Pos.Util.JsonLog.JLTimedEvent
 instance Pos.Util.JsonLog.MonadJL m => Pos.Util.JsonLog.MonadJL (Control.Monad.Trans.Reader.ReaderT s m)
 instance Pos.Util.JsonLog.MonadJL m => Pos.Util.JsonLog.MonadJL (Control.Monad.Trans.State.Lazy.StateT s m)
-instance Data.Aeson.Types.ToJSON.ToJSON Pos.Util.JsonLog.JLEvent
-instance Data.Aeson.Types.FromJSON.FromJSON Pos.Util.JsonLog.JLEvent
-instance Data.Aeson.Types.ToJSON.ToJSON Pos.Util.JsonLog.JLBlock
-instance Data.Aeson.Types.FromJSON.FromJSON Pos.Util.JsonLog.JLBlock
+instance Data.Aeson.Types.Class.ToJSON Pos.Util.JsonLog.JLEvent
+instance Data.Aeson.Types.Class.FromJSON Pos.Util.JsonLog.JLEvent
+instance Data.Aeson.Types.Class.ToJSON Pos.Util.JsonLog.JLBlock
+instance Data.Aeson.Types.Class.FromJSON Pos.Util.JsonLog.JLBlock
 instance GHC.Show.Show Pos.Util.JsonLog.JLTimedEvent
 instance GHC.Show.Show Pos.Util.JsonLog.JLEvent
 instance GHC.Show.Show Pos.Util.JsonLog.JLBlock
