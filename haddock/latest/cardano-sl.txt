@@ -3877,6 +3877,226 @@ gtGetGlobalState :: (MonadSscMem SscGodTossing m, MonadIO m) => m GtGlobalState
 -- | Get stable VSS certificates for given epoch.
 getStableCerts :: (MonadSscMem SscGodTossing m, MonadIO m) => EpochIndex -> m VssCertificatesMap
 
+-- | Retrieve <a>SignedCommitment</a> of given stakeholder if it's known.
+getCommitment :: MonadTossRead m => StakeholderId -> m (Maybe SignedCommitment)
+
+-- | Check whether there is a <a>SignedCommitment</a> from given
+--   stakeholder.
+hasCommitmentToss :: MonadTossRead m => StakeholderId -> m Bool
+
+-- | Check whether there is an <a>Opening</a> from given stakeholder.
+hasOpeningToss :: MonadTossRead m => StakeholderId -> m Bool
+
+-- | Check whether there is <a>InnerSharesMap</a> from given stakeholder.
+hasSharesToss :: MonadTossRead m => StakeholderId -> m Bool
+
+-- | Check whether there is <tt>VssCertificate</tt> from given stakeholder.
+hasCertificateToss :: MonadTossRead m => StakeholderId -> m Bool
+
+-- | Get <a>VssCertificatesMap</a> containing <a>StakeholderId</a>s and
+--   <tt>VssPublicKey</tt>s of participating nodes for given epoch.
+getParticipants :: (MonadError TossVerFailure m, MonadToss m) => EpochIndex -> m VssCertificatesMap
+
+-- | Compute <tt>VssCertificate</tt>s of GodTossing participants using set
+--   of richmen and stable certificates.
+computeParticipants :: RichmenSet -> VssCertificatesMap -> VssCertificatesMap
+computeSharesDistr :: MonadError TossVerFailure m => RichmenStake -> m SharesDistribution
+checkCommitmentsPayload :: (MonadToss m, MonadError TossVerFailure m) => EpochIndex -> CommitmentsMap -> m ()
+checkOpeningsPayload :: (MonadToss m, MonadError TossVerFailure m) => OpeningsMap -> m ()
+checkSharesPayload :: (MonadToss m, MonadError TossVerFailure m) => EpochIndex -> SharesMap -> m ()
+checkCertificatesPayload :: (MonadToss m, MonadError TossVerFailure m) => EpochIndex -> VssCertificatesMap -> m ()
+checkPayload :: (MonadToss m, MonadError TossVerFailure m) => EpochIndex -> GtPayload -> m ()
+verifyEntriesGuardM :: MonadError TossVerFailure m => (entry -> key) -> (entry -> verificationVal) -> (NonEmpty key -> TossVerFailure) -> (verificationVal -> m Bool) -> [entry] -> m ()
+
+-- | Type class which provides functions necessary for read-only
+--   verification of GodTossing data.
+class (Monad m, WithLogger m) => MonadTossRead m where getCommitments = lift getCommitments getOpenings = lift getOpenings getShares = lift getShares getVssCertificates = lift getVssCertificates getStableCertificates = lift . getStableCertificates getRichmen = lift . getRichmen
+
+-- | Get <a>CommitmentsMap</a> with all commitments.
+getCommitments :: MonadTossRead m => m CommitmentsMap
+
+-- | Get <a>OpeningsMap</a> with all openings.
+getOpenings :: MonadTossRead m => m OpeningsMap
+
+-- | Get <a>SharesMap</a> with all shares.
+getShares :: MonadTossRead m => m SharesMap
+
+-- | Get <a>VssCertificatesMap</a> with all VSS certificates.
+getVssCertificates :: MonadTossRead m => m VssCertificatesMap
+
+-- | Retrieve all stable <a>VssCertificate</a>s for given epoch.
+getStableCertificates :: MonadTossRead m => EpochIndex -> m VssCertificatesMap
+
+-- | Retrieve richmen for given epoch if they are known.
+getRichmen :: MonadTossRead m => EpochIndex -> m (Maybe RichmenStake)
+
+-- | Get <a>CommitmentsMap</a> with all commitments.
+getCommitments :: (MonadTossRead m, MonadTrans t, MonadTossRead m', t m' ~ m) => m CommitmentsMap
+
+-- | Get <a>OpeningsMap</a> with all openings.
+getOpenings :: (MonadTossRead m, MonadTrans t, MonadTossRead m', t m' ~ m) => m OpeningsMap
+
+-- | Get <a>SharesMap</a> with all shares.
+getShares :: (MonadTossRead m, MonadTrans t, MonadTossRead m', t m' ~ m) => m SharesMap
+
+-- | Get <a>VssCertificatesMap</a> with all VSS certificates.
+getVssCertificates :: (MonadTossRead m, MonadTrans t, MonadTossRead m', t m' ~ m) => m VssCertificatesMap
+
+-- | Retrieve all stable <a>VssCertificate</a>s for given epoch.
+getStableCertificates :: (MonadTossRead m, MonadTrans t, MonadTossRead m', t m' ~ m) => EpochIndex -> m VssCertificatesMap
+
+-- | Retrieve richmen for given epoch if they are known.
+getRichmen :: (MonadTossRead m, MonadTrans t, MonadTossRead m', t m' ~ m) => EpochIndex -> m (Maybe RichmenStake)
+
+-- | Type class which provides function necessary for verification of
+--   GodTossing data with ability to modify state.
+class MonadTossRead m => MonadToss m where putCommitment = lift . putCommitment putOpening id = lift . putOpening id putShares id = lift . putShares id putCertificate = lift . putCertificate resetCO = lift resetCO resetShares = lift resetShares delCommitment = lift . delCommitment delOpening = lift . delOpening delShares = lift . delShares setEpochOrSlot = lift . setEpochOrSlot
+
+-- | Put <a>SignedCommitment</a> into state.
+putCommitment :: MonadToss m => SignedCommitment -> m ()
+
+-- | Put <a>Opening</a> from given stakeholder into state.
+putOpening :: MonadToss m => StakeholderId -> Opening -> m ()
+
+-- | Put <tt>InnerShares</tt> from given stakeholder into state.
+putShares :: MonadToss m => StakeholderId -> InnerSharesMap -> m ()
+
+-- | Put <a>VssCertificate</a> into state.
+putCertificate :: MonadToss m => VssCertificate -> m ()
+
+-- | Reset Commitments and Openings.
+resetCO :: MonadToss m => m ()
+
+-- | Reset Shares.
+resetShares :: MonadToss m => m ()
+
+-- | Delete commitment of given stakeholder.
+delCommitment :: MonadToss m => StakeholderId -> m ()
+
+-- | Delete opening of given stakeholder.
+delOpening :: MonadToss m => StakeholderId -> m ()
+
+-- | Delete shares of given stakeholder.
+delShares :: MonadToss m => StakeholderId -> m ()
+
+-- | This function is called when block with given <a>EpochOrSlot</a> is
+--   applied.
+setEpochOrSlot :: MonadToss m => EpochOrSlot -> m ()
+
+-- | Put <a>SignedCommitment</a> into state.
+putCommitment :: (MonadToss m, MonadTrans t, MonadToss m', t m' ~ m) => SignedCommitment -> m ()
+
+-- | Put <a>Opening</a> from given stakeholder into state.
+putOpening :: (MonadToss m, MonadTrans t, MonadToss m', t m' ~ m) => StakeholderId -> Opening -> m ()
+
+-- | Put <tt>InnerShares</tt> from given stakeholder into state.
+putShares :: (MonadToss m, MonadTrans t, MonadToss m', t m' ~ m) => StakeholderId -> InnerSharesMap -> m ()
+
+-- | Put <a>VssCertificate</a> into state.
+putCertificate :: (MonadToss m, MonadTrans t, MonadToss m', t m' ~ m) => VssCertificate -> m ()
+
+-- | Reset Commitments and Openings.
+resetCO :: (MonadToss m, MonadTrans t, MonadToss m', t m' ~ m) => m ()
+
+-- | Reset Shares.
+resetShares :: (MonadToss m, MonadTrans t, MonadToss m', t m' ~ m) => m ()
+
+-- | Delete commitment of given stakeholder.
+delCommitment :: (MonadToss m, MonadTrans t, MonadToss m', t m' ~ m) => StakeholderId -> m ()
+
+-- | Delete opening of given stakeholder.
+delOpening :: (MonadToss m, MonadTrans t, MonadToss m', t m' ~ m) => StakeholderId -> m ()
+
+-- | Delete shares of given stakeholder.
+delShares :: (MonadToss m, MonadTrans t, MonadToss m', t m' ~ m) => StakeholderId -> m ()
+
+-- | This function is called when block with given <a>EpochOrSlot</a> is
+--   applied.
+setEpochOrSlot :: (MonadToss m, MonadTrans t, MonadToss m', t m' ~ m) => EpochOrSlot -> m ()
+data TossVerFailure
+NotCommitmentPhase :: !SlotId -> TossVerFailure
+NotOpeningPhase :: !SlotId -> TossVerFailure
+NotSharesPhase :: !SlotId -> TossVerFailure
+NotIntermediatePhase :: !SlotId -> TossVerFailure
+CurrentSlotUnknown :: TossVerFailure
+DifferentEpoches :: !EpochIndex -> !EpochIndex -> TossVerFailure
+TossUnknownRichmen :: !EpochIndex -> TossVerFailure
+NoRichmen :: !EpochIndex -> TossVerFailure
+CommitmentInvalid :: !NEStIds -> TossVerFailure
+CommitingNoParticipants :: !NEStIds -> TossVerFailure
+CommitmentAlreadySent :: !NEStIds -> TossVerFailure
+CommSharesOnWrongParticipants :: !NEStIds -> TossVerFailure
+OpeningAlreadySent :: !NEStIds -> TossVerFailure
+OpeningWithoutCommitment :: !NEStIds -> TossVerFailure
+OpeningNotMatchCommitment :: !NEStIds -> TossVerFailure
+SharesNotRichmen :: !NEStIds -> TossVerFailure
+InternalShareWithoutCommitment :: !NEStIds -> TossVerFailure
+SharesAlreadySent :: !NEStIds -> TossVerFailure
+DecrSharesNotMatchCommitment :: !NEStIds -> TossVerFailure
+CertificateAlreadySent :: !NEStIds -> TossVerFailure
+CertificateNotRichmen :: !NEStIds -> TossVerFailure
+CertificateInvalidSign :: !(NonEmpty (StakeholderId, VssCertificate)) -> TossVerFailure
+CertificateInvalidTTL :: !(NonEmpty VssCertificate) -> TossVerFailure
+TossInternallError :: !Text -> TossVerFailure
+
+-- | Verify <a>GtPayload</a> with respect to data provided by MonadToss. If
+--   data is valid it is also applied. Otherwise TossVerFailure is thrown
+--   using <a>MonadError</a> type class.
+verifyAndApplyGtPayload :: (MonadToss m, MonadError TossVerFailure m) => Either EpochIndex (MainBlockHeader ssc) -> GtPayload -> m ()
+
+-- | Apply genesis block for given epoch to <tt>Toss</tt> state.
+applyGenesisBlock :: MonadToss m => EpochIndex -> m ()
+
+-- | Rollback application of <a>GtPayload</a>s in <tt>Toss</tt>. First
+--   argument is <a>EpochOrSlot</a> of oldest block which is subject to
+--   rollback.
+rollbackGT :: MonadToss m => EpochOrSlot -> NewestFirst [] GtPayload -> m ()
+
+-- | Apply as much data from given <a>TossModifier</a> as possible.
+normalizeToss :: forall m. MonadToss m => EpochIndex -> TossModifier -> m ()
+newtype PureToss a
+PureToss :: LoggerNameBox (PureLogger (RWS MultiRichmenStake () GtGlobalState)) a -> PureToss a
+[getPureToss] :: PureToss a -> LoggerNameBox (PureLogger (RWS MultiRichmenStake () GtGlobalState)) a
+type MultiRichmenStake = HashMap EpochIndex RichmenStake
+type MultiRichmenSet = HashMap EpochIndex RichmenSet
+runPureToss :: LoggerName -> MultiRichmenStake -> GtGlobalState -> PureToss a -> (a, GtGlobalState, [LogEvent])
+runPureTossWithLogger :: WithLogger m => MultiRichmenStake -> GtGlobalState -> PureToss a -> m (a, GtGlobalState)
+evalPureTossWithLogger :: WithLogger m => MultiRichmenStake -> GtGlobalState -> PureToss a -> m a
+execPureTossWithLogger :: WithLogger m => MultiRichmenStake -> GtGlobalState -> PureToss a -> m GtGlobalState
+
+-- | Monad transformer which stores TossModifier and implements writable
+--   MonadToss.
+--   
+--   <ul>
+--   <li><i>WARNING</i> This transformer uses StateT and is intended for
+--   single-threaded usage only.</li>
+--   </ul>
+newtype TossT m a
+TossT :: StateT TossModifier m a -> TossT m a
+[getTossT] :: TossT m a -> StateT TossModifier m a
+runTossT :: TossModifier -> TossT m a -> m (a, TossModifier)
+evalTossT :: Functor m => TossModifier -> TossT m a -> m a
+execTossT :: Functor m => TossModifier -> TossT m a -> m TossModifier
+
+-- | Tag corresponding to GodTossing data.
+data GtTag
+CommitmentMsg :: GtTag
+OpeningMsg :: GtTag
+SharesMsg :: GtTag
+VssCertificateMsg :: GtTag
+isGoodSlotForTag :: GtTag -> LocalSlotIndex -> Bool
+isGoodSlotIdForTag :: GtTag -> SlotId -> Bool
+data TossModifier
+TossModifier :: !CommitmentsMap -> !OpeningsMap -> !SharesMap -> !VssCertificatesMap -> TossModifier
+[_tmCommitments] :: TossModifier -> !CommitmentsMap
+[_tmOpenings] :: TossModifier -> !OpeningsMap
+[_tmShares] :: TossModifier -> !SharesMap
+[_tmCertificates] :: TossModifier -> !VssCertificatesMap
+tmCommitments :: Lens' TossModifier CommitmentsMap
+tmOpenings :: Lens' TossModifier OpeningsMap
+tmShares :: Lens' TossModifier SharesMap
+tmCertificates :: Lens' TossModifier VssCertificatesMap
+
 -- | Data type which represents shared seed calculation tag in
 --   -XTypeApplication hacks with type families.
 data SscGodTossing
