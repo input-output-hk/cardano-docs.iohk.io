@@ -1464,9 +1464,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679132113 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679132113)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679132105 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679132105)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679132100 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679132100)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679128341 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679128341)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679128333 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679128333)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679128328 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679128328)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Core.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Core.SoftwareVersion
@@ -2162,11 +2162,11 @@ NodeDBs :: !(DB ssc) -> !(DB ssc) -> !(DB ssc) -> !(DB ssc) -> !RWLock -> NodeDB
 
 -- | Lock on misc db
 [_miscLock] :: NodeDBs ssc -> !RWLock
-blockDB :: forall ssc_a4PMD. Lens' (NodeDBs ssc_a4PMD) (DB ssc_a4PMD)
-gStateDB :: forall ssc_a4PMD. Lens' (NodeDBs ssc_a4PMD) (DB ssc_a4PMD)
-lrcDB :: forall ssc_a4PMD. Lens' (NodeDBs ssc_a4PMD) (DB ssc_a4PMD)
-miscDB :: forall ssc_a4PMD. Lens' (NodeDBs ssc_a4PMD) (DB ssc_a4PMD)
-miscLock :: forall ssc_a4PMD. Lens' (NodeDBs ssc_a4PMD) RWLock
+blockDB :: forall ssc_a4OBt. Lens' (NodeDBs ssc_a4OBt) (DB ssc_a4OBt)
+gStateDB :: forall ssc_a4OBt. Lens' (NodeDBs ssc_a4OBt) (DB ssc_a4OBt)
+lrcDB :: forall ssc_a4OBt. Lens' (NodeDBs ssc_a4OBt) (DB ssc_a4OBt)
+miscDB :: forall ssc_a4OBt. Lens' (NodeDBs ssc_a4OBt) (DB ssc_a4OBt)
+miscLock :: forall ssc_a4OBt. Lens' (NodeDBs ssc_a4OBt) RWLock
 newtype Snapshot
 Snapshot :: Snapshot -> Snapshot
 usingSnapshot :: (MonadIO m, MonadMask m) => DB ssc -> (Snapshot -> m a) -> m a
@@ -2711,7 +2711,7 @@ DataMsg :: !contents -> DataMsg contents
 [dmContents] :: DataMsg contents -> !contents
 relayListeners :: (MonadDHT m, Bi (InvMsg key tag), Bi (ReqMsg key tag), Bi (DataMsg contents), Bi (InvOrData tag key contents), MessagePart contents, MessagePart tag, Relay m tag key contents, Mockable Throw m, WithLogger m, WorkMode ssc m) => RelayProxy key tag contents -> ([ListenerSpec m], OutSpecs)
 relayStubListeners :: (WithLogger m, Bi (InvMsg key tag), Bi (ReqMsg key tag), Bi (DataMsg contents), Message (InvOrData tag key contents), Message (ReqMsg key tag)) => RelayProxy key tag contents -> ([ListenerSpec m], OutSpecs)
-relayWorkers :: forall ssc m. (Mockable Throw m, WorkMode ssc m, Bi NOP, Message NOP) => ([WorkerSpec m], OutSpecs)
+relayWorkers :: forall ssc m. (Mockable Throw m, WorkMode ssc m) => ([WorkerSpec m], OutSpecs)
 data RelayProxy key tag contents
 RelayProxy :: RelayProxy key tag contents
 type InvOrData tag key contents = Either (InvMsg key tag) (DataMsg contents)
