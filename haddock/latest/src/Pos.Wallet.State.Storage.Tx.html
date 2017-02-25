@@ -5,15 +5,15 @@
 </span><a name="line-5"></a><span>       </span><span class="hs-special">(</span><span> </span><a href="Pos.Wallet.State.Storage.Tx.html#TxStorage"><span class="hs-identifier hs-type">TxStorage</span></a><span>
 </span><a name="line-6"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Wallet.State.Storage.Tx.html#HasTxStorage"><span class="hs-identifier hs-type">HasTxStorage</span></a><span> </span><span class="hs-special">(</span><a href="Pos.Wallet.State.Storage.Tx.html#txStorage"><span class="hs-identifier hs-var">txStorage</span></a><span class="hs-special">)</span><span>
 </span><a name="line-7"></a><span>
-</span><a name="line-8"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Wallet.State.Storage.Tx.html#mkTxStorage"><span class="hs-identifier hs-var">mkTxStorage</span></a><span>
-</span><a name="line-9"></a><span>
-</span><a name="line-10"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Wallet.State.Storage.Tx.html#getUtxo"><span class="hs-identifier hs-var">getUtxo</span></a><span>
-</span><a name="line-11"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Wallet.State.Storage.Tx.html#getOldestUtxo"><span class="hs-identifier hs-var">getOldestUtxo</span></a><span>
-</span><a name="line-12"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Wallet.State.Storage.Tx.html#getTxHistory"><span class="hs-identifier hs-var">getTxHistory</span></a><span>
-</span><a name="line-13"></a><span>       </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
-</span><a name="line-14"></a><span>
-</span><a name="line-15"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Control</span><span class="hs-operator">.</span><span class="hs-identifier">Lens</span><span>  </span><span class="hs-special">(</span><span class="hs-identifier hs-var">makeClassy</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">to</span><span class="hs-special">)</span><span>
-</span><a name="line-16"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">List</span><span>     </span><span class="hs-special">(</span><span class="hs-identifier hs-var">last</span><span class="hs-special">)</span><span>
+</span><a name="line-8"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Wallet.State.Storage.Tx.html#getUtxo"><span class="hs-identifier hs-var">getUtxo</span></a><span>
+</span><a name="line-9"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Wallet.State.Storage.Tx.html#getOldestUtxo"><span class="hs-identifier hs-var">getOldestUtxo</span></a><span>
+</span><a name="line-10"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Wallet.State.Storage.Tx.html#getTxHistory"><span class="hs-identifier hs-var">getTxHistory</span></a><span>
+</span><a name="line-11"></a><span>       </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-12"></a><span>
+</span><a name="line-13"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Control</span><span class="hs-operator">.</span><span class="hs-identifier">Lens</span><span>  </span><span class="hs-special">(</span><span class="hs-identifier hs-var">makeClassy</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">to</span><span class="hs-special">)</span><span>
+</span><a name="line-14"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Default</span><span>  </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Default</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">def</span><span class="hs-special">)</span><span>
+</span><a name="line-15"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">List</span><span>     </span><span class="hs-special">(</span><span class="hs-identifier hs-var">last</span><span class="hs-special">)</span><span>
+</span><a name="line-16"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Map</span><span>      </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">M</span><span>
 </span><a name="line-17"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">SafeCopy</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">base</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">deriveSafeCopySimple</span><span class="hs-special">)</span><span>
 </span><a name="line-18"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Universum</span><span>
 </span><a name="line-19"></a><span>
@@ -37,8 +37,8 @@
 </span><a name="line-37"></a><span class="hs-identifier hs-var">makeClassy</span><span> </span><span class="hs-char">''TxStorage
 deriveSafeCopySimple 0 'base ''TxStorage
 
-mkTxStorage :: Utxo -&gt; TxStorage
-mkTxStorage = flip (TxStorage mempty) mempty
+instance Default TxStorage where
+    def = TxStorage [] M.empty []
 
 type Query a = forall m x. (HasTxStorage x, MonadReader x m) =&gt; m a
 --type Update a = forall m x. (HasTxStorage x, MonadState x m) =&gt; m a
