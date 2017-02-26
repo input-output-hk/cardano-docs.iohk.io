@@ -1,0 +1,26 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE TemplateHaskell #-}</span><span>
+</span><a name="line-2"></a><span>
+</span><a name="line-3"></a><span class="hs-comment">-- | Socket state of server.</span><span>
+</span><a name="line-4"></a><span>
+</span><a name="line-5"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Communication</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span><span class="hs-operator">.</span><span class="hs-identifier">State</span><span>
+</span><a name="line-6"></a><span>       </span><span class="hs-special">(</span><span> </span><a href="Pos.Communication.Types.State.html#PeerState"><span class="hs-identifier hs-type">PeerState</span></a><span>
+</span><a name="line-7"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Pos.Communication.Types.State.html#peerVerInfo"><span class="hs-identifier hs-var">peerVerInfo</span></a><span>
+</span><a name="line-8"></a><span>       </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-9"></a><span>
+</span><a name="line-10"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Control</span><span class="hs-operator">.</span><span class="hs-identifier">Lens</span><span>                     </span><span class="hs-special">(</span><span class="hs-identifier hs-var">makeClassy</span><span class="hs-special">)</span><span>
+</span><a name="line-11"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Default</span><span>                     </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Default</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">def</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><a name="line-12"></a><span class="hs-keyword">import</span><span>           </span><a href="Pos.Communication.Types.Protocol.html"><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Communication</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span><span class="hs-operator">.</span><span class="hs-identifier">Protocol</span></a><span> </span><span class="hs-special">(</span><a href="Pos.Communication.Types.Protocol.html#VerInfo"><span class="hs-identifier hs-type">VerInfo</span></a><span class="hs-special">)</span><span>
+</span><a name="line-13"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Universum</span><span>
+</span><a name="line-14"></a><span>
+</span><a name="line-15"></a><span class="hs-comment">-- | PeerState type aggregates socket states needed for different</span><span>
+</span><a name="line-16"></a><span class="hs-comment">-- parts of system.</span><span>
+</span><a name="line-17"></a><span class="hs-keyword">data</span><span> </span><a name="PeerState"><a href="Pos.Communication.Types.State.html#PeerState"><span class="hs-identifier">PeerState</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a name="PeerState"><a href="Pos.Communication.Types.State.html#PeerState"><span class="hs-identifier">PeerState</span></a></a><span>
+</span><a name="line-18"></a><span>    </span><span class="hs-special">{</span><span> </span><a name="_peerVerInfo"><a href="Pos.Communication.Types.State.html#_peerVerInfo"><span class="hs-identifier">_peerVerInfo</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-glyph">!</span><span class="hs-special">(</span><span class="hs-identifier hs-type">Maybe</span><span> </span><a href="Pos.Communication.Types.Protocol.html#VerInfo"><span class="hs-identifier hs-type">VerInfo</span></a><span class="hs-special">)</span><span>
+</span><a name="line-19"></a><span>    </span><span class="hs-special">}</span><span>
+</span><a name="line-20"></a><span>
+</span><a name="line-21"></a><span class="hs-comment">-- | Classy lenses for PeerState.</span><span>
+</span><a name="line-22"></a><span class="hs-identifier hs-var">makeClassy</span><span> </span><span class="hs-char">''PeerState
+
+instance Default PeerState where
+    def = PeerState Nothing
+</span></pre></body></html>
