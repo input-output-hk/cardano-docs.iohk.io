@@ -9,6 +9,47 @@
 @version 0.2.0
 
 
+-- | Secret key file storage and management functions based on file
+--   locking.
+module Pos.Util.UserSecret
+
+-- | User secret data. Includes secret keys only for now (not including
+--   auxiliary <tt>_usPath</tt>).
+data UserSecret
+usKeys :: Lens' UserSecret [SecretKey]
+usVss :: Lens' UserSecret (Maybe VssKeyPair)
+getUSPath :: UserSecret -> FilePath
+
+-- | Create a simple UserSecret from secret key and file path
+simpleUserSecret :: SecretKey -> FilePath -> UserSecret
+
+-- | Create user secret file at the given path, but only when one doesn't
+--   already exist.
+initializeUserSecret :: (MonadIO m) => FilePath -> m ()
+
+-- | Reads user secret from file, assuming that file exists, throws
+--   exception in other case
+readUserSecret :: MonadIO m => FilePath -> m UserSecret
+
+-- | Reads user secret from the given file. If the file does not exist/is
+--   empty, returns empty user secret
+peekUserSecret :: (MonadIO m) => FilePath -> m UserSecret
+
+-- | Read user secret putting an exclusive lock on it. To unlock, use
+--   <a>writeUserSecretRelease</a>.
+takeUserSecret :: (MonadIO m) => FilePath -> m UserSecret
+
+-- | Writes user secret .
+writeUserSecret :: (MonadIO m) => UserSecret -> m ()
+
+-- | Writes user secret and releases the lock. UserSecret can't be used
+--   after this function call anymore.
+writeUserSecretRelease :: (MonadFail m, MonadIO m) => UserSecret -> m ()
+instance GHC.Show.Show Pos.Util.UserSecret.UserSecret
+instance Data.Default.Class.Default Pos.Util.UserSecret.UserSecret
+instance Pos.Binary.Class.Bi Pos.Util.UserSecret.UserSecret
+
+
 -- | Common things used in <a>Arbitrary</a> and <a>Arbitrary</a>
 module Pos.Util.TimeWarp
 
@@ -332,6 +373,142 @@ instance GHC.Show.Show Pos.Types.Core.SoftwareVersion
 instance Data.Hashable.Class.Hashable Pos.Types.Core.SoftwareVersion
 
 
+-- | Core of Update System.
+module Pos.Update.Core
+
+-- | Proposal for software update
+data UpdateProposal
+UpdateProposal :: !BlockVersion -> !BlockVersionData -> !SoftwareVersion -> !(HashMap SystemTag UpdateData) -> !UpAttributes -> UpdateProposal
+[upBlockVersion] :: UpdateProposal -> !BlockVersion
+[upBlockVersionData] :: UpdateProposal -> !BlockVersionData
+[upSoftwareVersion] :: UpdateProposal -> !SoftwareVersion
+
+-- | UpdateData for each system which this update affects. It must be
+--   non-empty.
+[upData] :: UpdateProposal -> !(HashMap SystemTag UpdateData)
+
+-- | Attributes which are currently empty, but provide extensibility.
+[upAttributes] :: UpdateProposal -> !UpAttributes
+
+-- | ID of softwaree update proposal
+type UpId = Hash UpdateProposal
+type UpAttributes = Attributes ()
+
+-- | Data which describes update. It is specific for each system.
+data UpdateData
+UpdateData :: !(Hash Raw) -> !(Hash Raw) -> !(Hash Raw) -> !(Hash Raw) -> UpdateData
+
+-- | Hash of binary diff between two applications. This diff can be passed
+--   to updater to create new application.
+[udAppDiffHash] :: UpdateData -> !(Hash Raw)
+
+-- | Hash of package to install new application. This package can be used
+--   to install new application from scratch instead of updating existing
+--   application.
+[udPkgHash] :: UpdateData -> !(Hash Raw)
+
+-- | Hash if update application which can be used to install this update
+--   (relevant only when updater is used, not package).
+[udUpdaterHash] :: UpdateData -> !(Hash Raw)
+
+-- | Hash of metadata relevant to this update. It is raw hash, because
+--   metadata can include image or something (maybe). Anyway, we can always
+--   use <a>unsafeHash</a>.
+[udMetadataHash] :: UpdateData -> !(Hash Raw)
+
+-- | Data which is associated with <a>BlockVersion</a>.
+data BlockVersionData
+BlockVersionData :: !ScriptVersion -> !Millisecond -> !Byte -> !Byte -> !CoinPortion -> !CoinPortion -> !CoinPortion -> !CoinPortion -> !FlatSlotId -> !CoinPortion -> BlockVersionData
+[bvdScriptVersion] :: BlockVersionData -> !ScriptVersion
+[bvdSlotDuration] :: BlockVersionData -> !Millisecond
+[bvdMaxBlockSize] :: BlockVersionData -> !Byte
+[bvdMaxTxSize] :: BlockVersionData -> !Byte
+[bvdMpcThd] :: BlockVersionData -> !CoinPortion
+[bvdHeavyDelThd] :: BlockVersionData -> !CoinPortion
+[bvdUpdateVoteThd] :: BlockVersionData -> !CoinPortion
+[bvdUpdateProposalThd] :: BlockVersionData -> !CoinPortion
+[bvdUpdateImplicit] :: BlockVersionData -> !FlatSlotId
+[bvdUpdateSoftforkThd] :: BlockVersionData -> !CoinPortion
+
+-- | Tag of system for which update data is purposed, e.g. win64, mac32
+data SystemTag
+mkSystemTag :: MonadFail m => Text -> m SystemTag
+systemTagMaxLength :: Integral i => i
+patakUpdateData :: HashMap SystemTag UpdateData
+skovorodaUpdateData :: Hash Raw -> HashMap SystemTag UpdateData
+upScriptVersion :: UpdateProposal -> ScriptVersion
+upSlotDuration :: UpdateProposal -> Millisecond
+upMaxBlockSize :: UpdateProposal -> Byte
+
+-- | Format <a>UpdateVote</a> compactly.
+formatVoteShort :: UpdateVote -> Builder
+
+-- | Formatter for <a>UpdateVote</a> which displays it compactly.
+shortVoteF :: Format r (UpdateVote -> r)
+
+-- | Vote for update proposal
+data UpdateVote
+UpdateVote :: !PublicKey -> !UpId -> !Bool -> !(Signature (UpId, Bool)) -> UpdateVote
+
+-- | Public key of stakeholder, who votes
+[uvKey] :: UpdateVote -> !PublicKey
+
+-- | Proposal to which this vote applies
+[uvProposalId] :: UpdateVote -> !UpId
+
+-- | Approval/rejection bit
+[uvDecision] :: UpdateVote -> !Bool
+
+-- | Signature of (Update proposal, Approval/rejection bit) by stakeholder
+[uvSignature] :: UpdateVote -> !(Signature (UpId, Bool))
+type VoteId = (UpId, PublicKey, Bool)
+
+-- | Type alias for set of votes from stakeholders
+type StakeholderVotes = HashMap PublicKey VoteState
+type UpdateProposals = HashMap UpId UpdateProposal
+type LocalVotes = HashMap UpId (HashMap PublicKey UpdateVote)
+mkVoteId :: UpdateVote -> VoteId
+
+-- | Update System payload. <a>BodyProof</a> contains <a>UpdateProof</a> =
+--   <tt>Hash UpdatePayload</tt>.
+data UpdatePayload
+UpdatePayload :: !(Maybe UpdateProposal) -> ![UpdateVote] -> UpdatePayload
+[upProposal] :: UpdatePayload -> !(Maybe UpdateProposal)
+[upVotes] :: UpdatePayload -> ![UpdateVote]
+
+-- | Proof that body of update message contains <a>UpdatePayload</a>.
+type UpdateProof = Hash UpdatePayload
+mkUpdateProof :: Bi UpdatePayload => UpdatePayload -> UpdateProof
+
+-- | This type represents summary of votes issued by stakeholder.
+data VoteState
+
+-- | Stakeholder voted once positively.
+PositiveVote :: VoteState
+
+-- | Stakeholder voted once positively.
+NegativeVote :: VoteState
+
+-- | Stakeholder voted negatively, then positively.
+PositiveRevote :: VoteState
+
+-- | Stakeholder voted positively, then negatively.
+NegativeRevote :: VoteState
+
+-- | Check whether given decision is a valid vote if applied to existing
+--   vote (which may not exist).
+canCombineVotes :: Bool -> Maybe VoteState -> Bool
+
+-- | Apply decision to given vote (or Nothing). This function returns
+--   <a>Nothing</a> if decision can't be applied. <a>canCombineVotes</a>
+--   can be used to check whether it will be successful.
+combineVotes :: Bool -> Maybe VoteState -> Maybe VoteState
+isPositiveVote :: VoteState -> Bool
+
+-- | Create new VoteState from bool, which is simple vote, not revote.
+newVoteState :: Bool -> VoteState
+
+
 -- | Contains all Shared Seed Calculation algorithms implemented in our
 --   prototype. For now only NIST Beacon and more smart algorithm known as
 --   <i>Coin tossing with guaranteed output delivery</i>
@@ -362,6 +539,37 @@ instance GHC.Classes.Eq Pos.Security.CLI.AttackTarget
 instance GHC.Show.Show Pos.Security.CLI.AttackType
 instance GHC.Classes.Eq Pos.Security.CLI.AttackType
 instance GHC.Exception.Exception Pos.Security.CLI.NodeAttackedError
+
+
+-- | A wrapper over Plutus (the scripting language used in transactions).
+module Pos.Script
+
+-- | A script for inclusion into a transaction.
+data Script :: *
+
+-- | Serialized script
+Script :: ScriptVersion -> LByteString -> Script
+
+-- | Version
+[scrVersion] :: Script -> ScriptVersion
+[scrScript] :: Script -> LByteString
+type TxScriptError = String
+
+-- | Validate a transaction, given a validator and a redeemer.
+txScriptCheck :: Bi Script_v0 => TxSigData -> Script -> Script -> Either TxScriptError ()
+
+-- | Parse a script intended to serve as a validator (or “lock”) in a
+--   transaction output.
+parseValidator :: Bi Script_v0 => Text -> Either String Script
+
+-- | Parse a script intended to serve as a redeemer (or “proof”) in a
+--   transaction input.
+--   
+--   Can be given an optional validator (e.g. if the redeemer uses
+--   functions or types defined by the validator).
+parseRedeemer :: Bi Script_v0 => Maybe Script -> Text -> Either String Script
+stdlib :: Program
+isKnownScriptVersion :: ScriptVersion -> Bool
 
 
 -- | Exceptions related to error reporting.
@@ -531,35 +739,15 @@ module Pos.DHT.Model.Util
 joinNetworkNoThrow :: (MonadDHT m, Mockable Catch m, Mockable Throw m, WithLogger m) => [DHTNode] -> m ()
 
 
--- | A wrapper over Plutus (the scripting language used in transactions).
-module Pos.Script
-
--- | A script for inclusion into a transaction.
-data Script :: *
-
--- | Serialized script
-Script :: ScriptVersion -> LByteString -> Script
-
--- | Version
-[scrVersion] :: Script -> ScriptVersion
-[scrScript] :: Script -> LByteString
-type TxScriptError = String
-
--- | Validate a transaction, given a validator and a redeemer.
-txScriptCheck :: Bi Script_v0 => TxSigData -> Script -> Script -> Either TxScriptError ()
-
--- | Parse a script intended to serve as a validator (or “lock”) in a
---   transaction output.
-parseValidator :: Bi Script_v0 => Text -> Either String Script
-
--- | Parse a script intended to serve as a redeemer (or “proof”) in a
---   transaction input.
---   
---   Can be given an optional validator (e.g. if the redeemer uses
---   functions or types defined by the validator).
-parseRedeemer :: Bi Script_v0 => Maybe Script -> Text -> Either String Script
-stdlib :: Program
-isKnownScriptVersion :: ScriptVersion -> Bool
+-- | <tt>Arbitrary</tt> unsafe instances for some types from <a>Types</a>.
+module Pos.Types.Arbitrary.Unsafe
+instance Pos.Util.Arbitrary.ArbitraryUnsafe Pos.Types.Types.SharedSeed
+instance Pos.Util.Arbitrary.ArbitraryUnsafe Pos.Types.Core.EpochIndex
+instance Pos.Util.Arbitrary.ArbitraryUnsafe Pos.Types.Core.LocalSlotIndex
+instance Pos.Util.Arbitrary.ArbitraryUnsafe Pos.Types.Core.Coin
+instance Pos.Util.Arbitrary.ArbitraryUnsafe Pos.Types.Core.Address
+instance Pos.Util.Arbitrary.ArbitraryUnsafe Pos.Types.Core.SlotId
+instance Pos.Util.Arbitrary.ArbitraryUnsafe Pos.Txp.Core.Types.TxOut
 
 
 -- | Some example scripts used in tests.
@@ -586,194 +774,6 @@ shaStressRedeemer :: Int -> Script
 
 -- | Checks a signature N times. Should be used with <a>idValidator</a>.
 sigStressRedeemer :: Int -> Script
-
-
--- | <tt>Arbitrary</tt> unsafe instances for some types from <a>Types</a>.
-module Pos.Types.Arbitrary.Unsafe
-instance Pos.Util.Arbitrary.ArbitraryUnsafe Pos.Types.Types.SharedSeed
-instance Pos.Util.Arbitrary.ArbitraryUnsafe Pos.Types.Core.EpochIndex
-instance Pos.Util.Arbitrary.ArbitraryUnsafe Pos.Types.Core.LocalSlotIndex
-instance Pos.Util.Arbitrary.ArbitraryUnsafe Pos.Types.Core.Coin
-instance Pos.Util.Arbitrary.ArbitraryUnsafe Pos.Types.Core.Address
-instance Pos.Util.Arbitrary.ArbitraryUnsafe Pos.Types.Core.SlotId
-instance Pos.Util.Arbitrary.ArbitraryUnsafe Pos.Txp.Core.Types.TxOut
-
-
--- | Core of Update System.
-module Pos.Update.Core
-
--- | Proposal for software update
-data UpdateProposal
-UpdateProposal :: !BlockVersion -> !BlockVersionData -> !SoftwareVersion -> !(HashMap SystemTag UpdateData) -> !UpAttributes -> UpdateProposal
-[upBlockVersion] :: UpdateProposal -> !BlockVersion
-[upBlockVersionData] :: UpdateProposal -> !BlockVersionData
-[upSoftwareVersion] :: UpdateProposal -> !SoftwareVersion
-
--- | UpdateData for each system which this update affects. It must be
---   non-empty.
-[upData] :: UpdateProposal -> !(HashMap SystemTag UpdateData)
-
--- | Attributes which are currently empty, but provide extensibility.
-[upAttributes] :: UpdateProposal -> !UpAttributes
-
--- | ID of softwaree update proposal
-type UpId = Hash UpdateProposal
-type UpAttributes = Attributes ()
-
--- | Data which describes update. It is specific for each system.
-data UpdateData
-UpdateData :: !(Hash Raw) -> !(Hash Raw) -> !(Hash Raw) -> !(Hash Raw) -> UpdateData
-
--- | Hash of binary diff between two applications. This diff can be passed
---   to updater to create new application.
-[udAppDiffHash] :: UpdateData -> !(Hash Raw)
-
--- | Hash of package to install new application. This package can be used
---   to install new application from scratch instead of updating existing
---   application.
-[udPkgHash] :: UpdateData -> !(Hash Raw)
-
--- | Hash if update application which can be used to install this update
---   (relevant only when updater is used, not package).
-[udUpdaterHash] :: UpdateData -> !(Hash Raw)
-
--- | Hash of metadata relevant to this update. It is raw hash, because
---   metadata can include image or something (maybe). Anyway, we can always
---   use <a>unsafeHash</a>.
-[udMetadataHash] :: UpdateData -> !(Hash Raw)
-
--- | Data which is associated with <a>BlockVersion</a>.
-data BlockVersionData
-BlockVersionData :: !ScriptVersion -> !Millisecond -> !Byte -> !Byte -> !CoinPortion -> !CoinPortion -> !CoinPortion -> !CoinPortion -> !FlatSlotId -> !CoinPortion -> BlockVersionData
-[bvdScriptVersion] :: BlockVersionData -> !ScriptVersion
-[bvdSlotDuration] :: BlockVersionData -> !Millisecond
-[bvdMaxBlockSize] :: BlockVersionData -> !Byte
-[bvdMaxTxSize] :: BlockVersionData -> !Byte
-[bvdMpcThd] :: BlockVersionData -> !CoinPortion
-[bvdHeavyDelThd] :: BlockVersionData -> !CoinPortion
-[bvdUpdateVoteThd] :: BlockVersionData -> !CoinPortion
-[bvdUpdateProposalThd] :: BlockVersionData -> !CoinPortion
-[bvdUpdateImplicit] :: BlockVersionData -> !FlatSlotId
-[bvdUpdateSoftforkThd] :: BlockVersionData -> !CoinPortion
-
--- | Tag of system for which update data is purposed, e.g. win64, mac32
-data SystemTag
-mkSystemTag :: MonadFail m => Text -> m SystemTag
-systemTagMaxLength :: Integral i => i
-patakUpdateData :: HashMap SystemTag UpdateData
-skovorodaUpdateData :: Hash Raw -> HashMap SystemTag UpdateData
-upScriptVersion :: UpdateProposal -> ScriptVersion
-upSlotDuration :: UpdateProposal -> Millisecond
-upMaxBlockSize :: UpdateProposal -> Byte
-
--- | Format <a>UpdateVote</a> compactly.
-formatVoteShort :: UpdateVote -> Builder
-
--- | Formatter for <a>UpdateVote</a> which displays it compactly.
-shortVoteF :: Format r (UpdateVote -> r)
-
--- | Vote for update proposal
-data UpdateVote
-UpdateVote :: !PublicKey -> !UpId -> !Bool -> !(Signature (UpId, Bool)) -> UpdateVote
-
--- | Public key of stakeholder, who votes
-[uvKey] :: UpdateVote -> !PublicKey
-
--- | Proposal to which this vote applies
-[uvProposalId] :: UpdateVote -> !UpId
-
--- | Approval/rejection bit
-[uvDecision] :: UpdateVote -> !Bool
-
--- | Signature of (Update proposal, Approval/rejection bit) by stakeholder
-[uvSignature] :: UpdateVote -> !(Signature (UpId, Bool))
-type VoteId = (UpId, PublicKey, Bool)
-
--- | Type alias for set of votes from stakeholders
-type StakeholderVotes = HashMap PublicKey VoteState
-type UpdateProposals = HashMap UpId UpdateProposal
-type LocalVotes = HashMap UpId (HashMap PublicKey UpdateVote)
-mkVoteId :: UpdateVote -> VoteId
-
--- | Update System payload. <a>BodyProof</a> contains <a>UpdateProof</a> =
---   <tt>Hash UpdatePayload</tt>.
-data UpdatePayload
-UpdatePayload :: !(Maybe UpdateProposal) -> ![UpdateVote] -> UpdatePayload
-[upProposal] :: UpdatePayload -> !(Maybe UpdateProposal)
-[upVotes] :: UpdatePayload -> ![UpdateVote]
-
--- | Proof that body of update message contains <a>UpdatePayload</a>.
-type UpdateProof = Hash UpdatePayload
-mkUpdateProof :: Bi UpdatePayload => UpdatePayload -> UpdateProof
-
--- | This type represents summary of votes issued by stakeholder.
-data VoteState
-
--- | Stakeholder voted once positively.
-PositiveVote :: VoteState
-
--- | Stakeholder voted once positively.
-NegativeVote :: VoteState
-
--- | Stakeholder voted negatively, then positively.
-PositiveRevote :: VoteState
-
--- | Stakeholder voted positively, then negatively.
-NegativeRevote :: VoteState
-
--- | Check whether given decision is a valid vote if applied to existing
---   vote (which may not exist).
-canCombineVotes :: Bool -> Maybe VoteState -> Bool
-
--- | Apply decision to given vote (or Nothing). This function returns
---   <a>Nothing</a> if decision can't be applied. <a>canCombineVotes</a>
---   can be used to check whether it will be successful.
-combineVotes :: Bool -> Maybe VoteState -> Maybe VoteState
-isPositiveVote :: VoteState -> Bool
-
--- | Create new VoteState from bool, which is simple vote, not revote.
-newVoteState :: Bool -> VoteState
-
-
--- | Secret key file storage and management functions based on file
---   locking.
-module Pos.Util.UserSecret
-
--- | User secret data. Includes secret keys only for now (not including
---   auxiliary <tt>_usPath</tt>).
-data UserSecret
-usKeys :: Lens' UserSecret [SecretKey]
-usVss :: Lens' UserSecret (Maybe VssKeyPair)
-getUSPath :: UserSecret -> FilePath
-
--- | Create a simple UserSecret from secret key and file path
-simpleUserSecret :: SecretKey -> FilePath -> UserSecret
-
--- | Create user secret file at the given path, but only when one doesn't
---   already exist.
-initializeUserSecret :: (MonadIO m) => FilePath -> m ()
-
--- | Reads user secret from file, assuming that file exists, throws
---   exception in other case
-readUserSecret :: MonadIO m => FilePath -> m UserSecret
-
--- | Reads user secret from the given file. If the file does not exist/is
---   empty, returns empty user secret
-peekUserSecret :: (MonadIO m) => FilePath -> m UserSecret
-
--- | Read user secret putting an exclusive lock on it. To unlock, use
---   <a>writeUserSecretRelease</a>.
-takeUserSecret :: (MonadIO m) => FilePath -> m UserSecret
-
--- | Writes user secret .
-writeUserSecret :: (MonadIO m) => UserSecret -> m ()
-
--- | Writes user secret and releases the lock. UserSecret can't be used
---   after this function call anymore.
-writeUserSecretRelease :: (MonadFail m, MonadIO m) => UserSecret -> m ()
-instance GHC.Show.Show Pos.Util.UserSecret.UserSecret
-instance Data.Default.Class.Default Pos.Util.UserSecret.UserSecret
-instance Pos.Binary.Class.Bi Pos.Util.UserSecret.UserSecret
 
 
 -- | Module for command-line utilites, parsers and convenient handlers.
@@ -1475,9 +1475,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679128341 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679128341)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679128333 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679128333)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679128328 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679128328)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679074714 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679074714)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679074707 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679074707)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679074703 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679074703)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Core.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Core.SoftwareVersion
@@ -1819,383 +1819,6 @@ triggerShutdown :: (MonadIO m, WithLogger m, WithNodeContext ssc m) => m ()
 waitForWorkers :: (MonadIO m, WithNodeContext ssc m) => Int -> m ()
 
 
--- | GState DB stores whole global state, i. e. result of application of
---   all blocks up to <i>tip</i>.
-module Pos.DB.GState
-
--- | Get total amount of stake to be used for follow-the-satoshi. It's
---   different from total amount of coins in the system.
-getTotalFtsStake :: MonadDB ssc m => m Coin
-
--- | Get stake owne by given stakeholder (according to rules used for FTS).
-getFtsStake :: MonadDB ssc m => StakeholderId -> m (Maybe Coin)
-getFtsStakeFromDB :: (MonadIO m, MonadThrow m) => StakeholderId -> DB ssc -> m (Maybe Coin)
-data BalancesOp
-PutFtsSum :: !Coin -> BalancesOp
-PutFtsStake :: !StakeholderId -> !Coin -> BalancesOp
-prepareGStateBalances :: forall ssc m. MonadDB ssc m => Utxo -> m ()
-data BalIter
-runBalanceIterator :: forall m ssc a. MonadDB ssc m => DBnIterator ssc BalIter a -> m a
-runBalanceMapIterator :: forall v m ssc a. MonadDB ssc m => DBnMapIterator ssc BalIter v a -> (IterType BalIter -> v) -> m a
-sanityCheckBalances :: (MonadMask m, MonadDB ssc m, WithLogger m) => m ()
-
--- | Tries to retrieve next block using current one (given a block/header).
-resolveForwardLink :: (HasHeaderHash a, MonadDB ssc m) => a -> m (Maybe HeaderHash)
-
--- | Check if given hash representing block is in main chain.
-isBlockInMainChain :: (HasHeaderHash a, MonadDB ssc m) => a -> m Bool
-data BlockExtraOp
-
--- | Adds or overwrites forward link
-AddForwardLink :: HeaderHash -> HeaderHash -> BlockExtraOp
-
--- | Removes forward link
-RemoveForwardLink :: HeaderHash -> BlockExtraOp
-
--- | Enables or disables "in main chain" status of the block
-SetInMainChain :: Bool -> HeaderHash -> BlockExtraOp
-
--- | Returns headers loaded up.
-loadHeadersUpWhile :: (SscHelpersClass ssc, MonadDB ssc m, HasHeaderHash a) => a -> (BlockHeader ssc -> Int -> Bool) -> m (OldestFirst [] (BlockHeader ssc))
-
--- | Returns blocks loaded up.
-loadBlocksUpWhile :: (SscHelpersClass ssc, MonadDB ssc m, HasHeaderHash a) => a -> (Block ssc -> Int -> Bool) -> m (OldestFirst [] (Block ssc))
-prepareGStateBlockExtra :: MonadDB ssc m => HeaderHash -> m ()
-
--- | Get current tip from GState DB.
-getTip :: (MonadDB ssc m) => m HeaderHash
-
--- | Get the hash of the first genesis block from GState DB.
-getBot :: (MonadDB ssc m) => m HeaderHash
-
--- | Put missing initial common data into GState DB.
-prepareGStateCommon :: forall ssc m. MonadDB ssc m => HeaderHash -> m ()
-getBi :: (MonadDB ssc m, Bi v) => ByteString -> m (Maybe v)
-putBi :: (MonadDB ssc m, Bi v) => ByteString -> v -> m ()
-delete :: (MonadDB ssc m) => ByteString -> m ()
-writeBatchGState :: (RocksBatchOp a, MonadDB ssc m) => [a] -> m ()
-data CommonOp
-PutTip :: HeaderHash -> CommonOp
-
--- | Retrieves certificate by issuer address (hash of public key) if
---   present.
-getPSKByIssuerAddressHash :: MonadDB ssc m => StakeholderId -> m (Maybe ProxySKHeavy)
-
--- | Retrieves certificate by issuer public key if present.
-getPSKByIssuer :: MonadDB ssc m => PublicKey -> m (Maybe ProxySKHeavy)
-isIssuerByAddressHash :: MonadDB ssc m => StakeholderId -> m Bool
-data DelegationOp
-
--- | Adds PSK. Overwrites if present.
-AddPSK :: !ProxySKHeavy -> DelegationOp
-
--- | Removes PSK by issuer PK.
-DelPSK :: !PublicKey -> DelegationOp
-runPskIterator :: forall m ssc a. MonadDB ssc m => DBnIterator ssc PskIter a -> m a
-runPskMapIterator :: forall v m ssc a. MonadDB ssc m => DBnMapIterator ssc PskIter v a -> (IterType PskIter -> v) -> m a
-
--- | Put missing initial data into GState DB.
-prepareGStateDB :: forall ssc m. (WithNodeContext ssc m, MonadDB ssc m) => HeaderHash -> m ()
-
--- | Check that GState DB is consistent.
-sanityCheckGStateDB :: forall ssc m. (MonadDB ssc m, MonadMask m, WithLogger m) => m ()
-usingGStateSnapshot :: (MonadDB ssc m, MonadMask m) => m a -> m a
-
--- | Get last adopted block version.
-getAdoptedBV :: MonadDB ssc m => m BlockVersion
-
--- | Get state of last adopted BlockVersion.
-getAdoptedBVData :: MonadDB ssc m => m BlockVersionData
-
--- | Get last adopted BlockVersion and data associated with it.
-getAdoptedBVFull :: MonadDB ssc m => m (BlockVersion, BlockVersionData)
-
--- | Get <a>BlockVersionState</a> associated with given BlockVersion.
-getBVState :: MonadDB ssc m => BlockVersion -> m (Maybe BlockVersionState)
-
--- | Get state of UpdateProposal for given UpId
-getProposalState :: MonadDB ssc m => UpId -> m (Maybe ProposalState)
-
--- | Get UpId of current proposal for given appName
-getAppProposal :: MonadDB ssc m => ApplicationName -> m (Maybe UpId)
-
--- | Get state of Update Proposal for given AppName
-getProposalStateByApp :: MonadDB ssc m => ApplicationName -> m (Maybe ProposalState)
-
--- | Get last confirmed SoftwareVersion of given application.
-getConfirmedSV :: MonadDB ssc m => ApplicationName -> m (Maybe NumSoftwareVersion)
-
--- | Get maximum block size (in bytes).
-getMaxBlockSize :: MonadDB ssc m => m Byte
-
--- | Get most recent <a>SlottingData</a>.
-getSlottingData :: MonadDB ssc m => m SlottingData
-data UpdateOp
-PutProposal :: !ProposalState -> UpdateOp
-DeleteProposal :: !UpId -> !ApplicationName -> UpdateOp
-ConfirmVersion :: !SoftwareVersion -> UpdateOp
-DelConfirmedVersion :: !ApplicationName -> UpdateOp
-AddConfirmedProposal :: !ConfirmedProposalState -> UpdateOp
-DelConfirmedProposal :: !SoftwareVersion -> UpdateOp
-SetAdopted :: !BlockVersion -> BlockVersionData -> UpdateOp
-SetBVState :: !BlockVersion -> !BlockVersionState -> UpdateOp
-DelBV :: !BlockVersion -> UpdateOp
-PutSlottingData :: !SlottingData -> UpdateOp
-prepareGStateUS :: forall ssc m. MonadDB ssc m => Timestamp -> m ()
-data PropIter
-runProposalMapIterator :: forall v m ssc a. MonadDB ssc m => DBnMapIterator ssc PropIter v a -> (IterType PropIter -> v) -> m a
-runProposalIterator :: forall m ssc a. MonadDB ssc m => DBnIterator ssc PropIter a -> m a
-
--- | Get all proposals which were issued no later than given slot.
-getOldProposals :: forall ssc m. MonadDB ssc m => SlotId -> m [UndecidedProposalState]
-
--- | Get all decided proposals which were accepted deeper than given
---   difficulty.
-getDeepProposals :: forall ssc m. MonadDB ssc m => ChainDifficulty -> m [DecidedProposalState]
-data ConfPropIter
-
--- | Get confirmed proposals which update our application and have version
---   bigger than argument (or all proposals if <a>Nothing</a> is passed).
---   For instance, current software version can be passed to this function
---   to get all proposals with bigger version.
-getConfirmedProposals :: MonadDB ssc m => Maybe NumSoftwareVersion -> m [ConfirmedProposalState]
-data BVIter
-
--- | Get all proposed <a>BlockVersion</a>s.
-getProposedBVs :: MonadDB ssc m => m [BlockVersion]
-
--- | Get all confirmed <a>BlockVersion</a>s and their states.
-getConfirmedBVStates :: MonadDB ssc m => m [(BlockVersion, BlockVersionState)]
-getProposedBVStates :: MonadDB ssc m => m [BlockVersionState]
-getTxOutFromDB :: (MonadIO m, MonadThrow m) => TxIn -> DB ssc -> m (Maybe TxOutAux)
-getTxOut :: MonadDB ssc m => TxIn -> m (Maybe TxOutAux)
-data UtxoOp
-DelTxIn :: !TxIn -> UtxoOp
-AddTxOut :: !TxIn -> !TxOutAux -> UtxoOp
-AddGenTxOut :: !TxIn -> !TxOutAux -> UtxoOp
-prepareGStateUtxo :: forall ssc m. MonadDB ssc m => Utxo -> m ()
-data UtxoIter
-runUtxoIterator :: forall i m ssc a. (MonadDB ssc m, DBIteratorClass i, IterKey i ~ TxIn, IterValue i ~ TxOutAux) => DBnIterator ssc i a -> m a
-runUtxoMapIterator :: forall i v m ssc a. (MonadDB ssc m, DBIteratorClass i, IterKey i ~ TxIn, IterValue i ~ TxOutAux) => DBnMapIterator ssc i v a -> (IterType i -> v) -> m a
-getFilteredUtxo :: MonadDB ssc m => Address -> m Utxo
-getFilteredGenUtxo :: MonadDB ssc m => Address -> m Utxo
-sanityCheckUtxo :: (MonadDB ssc m, WithLogger m) => Coin -> m ()
-
-
--- | Re-exports of Pos.DB functionality.
-module Pos.DB
-
--- | Get block with given hash from Block DB.
-getBlock :: (SscHelpersClass ssc, MonadDB ssc m) => HeaderHash -> m (Maybe (Block ssc))
-
--- | Returns header of block that was requested from Block DB.
-getBlockHeader :: (SscHelpersClass ssc, MonadDB ssc m) => HeaderHash -> m (Maybe (BlockHeader ssc))
-
--- | Get StoredBlock by hash from Block DB.
-getStoredBlock :: (SscHelpersClass ssc, MonadDB ssc m) => HeaderHash -> m (Maybe (StoredBlock ssc))
-
--- | Get undo data for block with given hash from Block DB.
-getUndo :: MonadDB ssc m => HeaderHash -> m (Maybe Undo)
-
--- | Retrieves block and undo together.
-getBlockWithUndo :: (SscHelpersClass ssc, MonadDB ssc m) => HeaderHash -> m (Maybe (Block ssc, Undo))
-deleteBlock :: (MonadDB ssc m) => HeaderHash -> m ()
-
--- | Put given block, its metadata and Undo data into Block DB.
-putBlock :: (SscHelpersClass ssc, MonadDB ssc m) => Undo -> Block ssc -> m ()
-prepareBlockDB :: forall ssc m. (SscHelpersClass ssc, MonadDB ssc m) => GenesisBlock ssc -> m ()
-
--- | Load blunds starting from block with header hash equal to given hash
---   and while <tt>predicate</tt> is true.
-loadBlundsWhile :: (SscHelpersClass ssc, MonadDB ssc m) => (Block ssc -> Bool) -> HeaderHash -> m (NewestFirst [] (Blund ssc))
-
--- | Load blunds which have depth less than given.
-loadBlundsByDepth :: (SscHelpersClass ssc, MonadDB ssc m) => Word -> HeaderHash -> m (NewestFirst [] (Blund ssc))
-
--- | Load blocks starting from block with header hash equal to given hash
---   and while <tt>predicate</tt> is true.
-loadBlocksWhile :: (SscHelpersClass ssc, MonadDB ssc m) => (Block ssc -> Bool) -> HeaderHash -> m (NewestFirst [] (Block ssc))
-
--- | Load headers starting from block with header hash equal to given hash
---   and while <tt>predicate</tt> is true.
-loadHeadersWhile :: (SscHelpersClass ssc, MonadDB ssc m) => (BlockHeader ssc -> Bool) -> HeaderHash -> m (NewestFirst [] (BlockHeader ssc))
-
--- | Load headers which have depth less than given.
-loadHeadersByDepth :: (SscHelpersClass ssc, MonadDB ssc m) => Word -> HeaderHash -> m (NewestFirst [] (BlockHeader ssc))
-
--- | Load headers which have depth less than given and match some
---   criterion.
-loadHeadersByDepthWhile :: (SscHelpersClass ssc, MonadDB ssc m) => (BlockHeader ssc -> Bool) -> Word -> HeaderHash -> m (NewestFirst [] (BlockHeader ssc))
-class (MonadIO m, MonadThrow m) => MonadDB ssc m | m -> ssc
-getNodeDBs :: MonadDB ssc m => m (NodeDBs ssc)
-usingReadOptions :: MonadDB ssc m => ReadOptions -> ASetter' (NodeDBs ssc) (DB ssc) -> m a -> m a
-usingWriteOptions :: MonadDB ssc m => WriteOptions -> ASetter' (NodeDBs ssc) (DB ssc) -> m a -> m a
-getBlockDB :: MonadDB ssc m => m (DB ssc)
-getUtxoDB :: MonadDB ssc m => m (DB ssc)
-getLrcDB :: MonadDB ssc m => m (DB ssc)
-getMiscDB :: MonadDB ssc m => m (DB ssc)
-
--- | Open all DBs stored on disk.
-openNodeDBs :: (MonadIO m) => Bool -> FilePath -> m (NodeDBs ssc)
-
--- | Initialize DBs if necessary.
-initNodeDBs :: forall ssc m. (SscHelpersClass ssc, WithNodeContext ssc m, MonadDB ssc m) => m ()
-
--- | Get current tip from GState DB.
-getTip :: (MonadDB ssc m) => m HeaderHash
-
--- | Get block corresponding to tip.
-getTipBlock :: (SscHelpersClass ssc, MonadDB ssc m) => m (Block ssc)
-
--- | Get BlockHeader corresponding to tip.
-getTipBlockHeader :: (SscHelpersClass ssc, MonadDB ssc m) => m (BlockHeader ssc)
-
--- | Load blunds from BlockDB starting from tip and while the
---   <tt>condition</tt> is true.
-loadBlundsFromTipWhile :: (SscHelpersClass ssc, MonadDB ssc m) => (Block ssc -> Bool) -> m (NewestFirst [] (Blund ssc))
-
--- | Load blunds from BlockDB starting from tip which have depth less than
---   given.
-loadBlundsFromTipByDepth :: (SscHelpersClass ssc, MonadDB ssc m) => Word -> m (NewestFirst [] (Blund ssc))
-sanityCheckDB :: (MonadMask m, MonadDB ssc m, WithLogger m) => m ()
-class DBIteratorClass i where type IterKey i :: * type IterValue i :: * where {
-    type family IterKey i :: *;
-    type family IterValue i :: *;
-}
-iterKeyPrefix :: DBIteratorClass i => Proxy i -> ByteString
-type IterType i = (IterKey i, IterValue i)
-newtype DBIterator i m a
-DBIterator :: ReaderT Iterator m a -> DBIterator i m a
-[getDBIterator] :: DBIterator i m a -> ReaderT Iterator m a
-
--- | Encapsulate `map f elements`, where <tt>elements</tt> - collection
---   elements of type <tt>a</tt>. Holds `DBIterator m a` and apply f for
---   every <a>nextItem</a> and <a>curItem</a> call. If f :: a -&gt; b then
---   we iterate by collection elements of type b.
-newtype DBMapIterator i v m a
-DBMapIterator :: ReaderT (IterType i -> v) (DBIterator i m) a -> DBMapIterator i v m a
-[getDBMapIterator] :: DBMapIterator i v m a -> ReaderT (IterType i -> v) (DBIterator i m) a
-type DBKeyIterator i = DBMapIterator i (IterKey i)
-type DBValueIterator i = DBMapIterator i (IterValue i)
-type DBnIterator ssc i = DBHolder ssc (DBIterator i IO)
-type DBnMapIterator ssc i v = DBHolder ssc (DBMapIterator i v IO)
-runDBnIterator :: forall i m ssc a. (MonadDB ssc m, DBIteratorClass i) => (NodeDBs ssc -> DB ssc) -> DBnIterator ssc i a -> m a
-runDBnMapIterator :: forall i v m ssc a. (MonadDB ssc m, DBIteratorClass i) => (NodeDBs ssc -> DB ssc) -> DBnMapIterator ssc i v a -> (IterType i -> v) -> m a
-
--- | Run DBIterator by `DB ssc`.
-runIterator :: forall i a m ssc. (MonadIO m, MonadMask m, DBIteratorClass i) => DBIterator i m a -> DB ssc -> m a
-
--- | Run DBMapIterator by `DB ssc`.
-runMapIterator :: forall i v m ssc a. (MonadIO m, MonadMask m, DBIteratorClass i) => DBMapIterator i v m a -> (IterType i -> v) -> DB ssc -> m a
-data DBError
-
--- | Structure of DB is malformed (e. g. data is inconsistent, something is
---   missing, etc.)
-DBMalformed :: !Text -> DBError
-openDB :: MonadIO m => FilePath -> m (DB ssc)
-encodeWithKeyPrefix :: forall i. (DBIteratorClass i, Bi (IterKey i)) => IterKey i -> ByteString
-rocksDelete :: (MonadIO m) => ByteString -> DB ssc -> m ()
-
--- | Read serialized value from RocksDB using given key.
-rocksGetBi :: forall v m ssc. (Bi v, MonadIO m, MonadThrow m) => ByteString -> DB ssc -> m (Maybe v)
-
--- | Read ByteString from RocksDb using given key.
-rocksGetBytes :: (MonadIO m) => ByteString -> DB ssc -> m (Maybe ByteString)
-
--- | Write serializable value to RocksDb for given key.
-rocksPutBi :: (Bi v, MonadIO m) => ByteString -> v -> DB ssc -> m ()
-
--- | Write ByteString to RocksDB for given key.
-rocksPutBytes :: (MonadIO m) => ByteString -> ByteString -> DB ssc -> m ()
-rocksDecodeWP :: forall i m. (MonadThrow m, DBIteratorClass i, Bi (IterKey i)) => ByteString -> m (IterKey i)
-rocksDecodeMaybe :: (Bi v) => ByteString -> Maybe v
-rocksDecodeMaybeWP :: forall i. (DBIteratorClass i, Bi (IterKey i)) => ByteString -> Maybe (IterKey i)
-rocksDecodeKeyValMaybe :: (Bi k, Bi v) => (ByteString, ByteString) -> Maybe (k, v)
-class RocksBatchOp a
-toBatchOp :: RocksBatchOp a => a -> [BatchOp]
-data SomeBatchOp
-SomeBatchOp :: a -> SomeBatchOp
-data SomePrettyBatchOp
-SomePrettyBatchOp :: a -> SomePrettyBatchOp
-
--- | Write Batch encapsulation
-rocksWriteBatch :: (RocksBatchOp a, MonadIO m) => [a] -> DB ssc -> m ()
-newtype DBHolder ssc m a
-DBHolder :: ReaderT (NodeDBs ssc) m a -> DBHolder ssc m a
-[getDBHolder] :: DBHolder ssc m a -> ReaderT (NodeDBs ssc) m a
-
--- | Execute <a>DBHolder</a> action with given <tt>NodeState</tt>.
-runDBHolder :: NodeDBs ssc -> DBHolder ssc m a -> m a
-prepareMiscDB :: forall ssc m. (MonadDB ssc m) => m ()
-
--- | Gets proxy secret keys stored by node
-getProxySecretKeys :: MonadDB ssc m => m [ProxySKLight]
-
--- | Adds proxy secret key if not present. Nothing if present.
-addProxySecretKey :: MonadDB ssc m => ProxySKLight -> m ()
-
--- | Removes proxy secret key if present by issuer pk.
-removeProxySecretKey :: MonadDB ssc m => PublicKey -> m ()
-
--- | Given epochindex, throws away all outdated PSKs. Remark: it doesn't
---   remove keys that can be used in future.
-dropOldProxySecretKeys :: MonadDB ssc m => EpochIndex -> m ()
-getSecretStorage :: MonadDB SscGodTossing m => m (Maybe GtSecretStorage)
-putSecretStorage :: MonadDB SscGodTossing m => GtSecretStorage -> m ()
-
--- | Puts or overwrites secret key of the node. Returns if it was
---   overwritten.
-putSecretKeyHash :: MonadDB ssc m => Hash SecretKey -> m Bool
-
--- | Checks if given secret key hash matches the hash in the database. Puts
---   it into the database and return True if nothing was stored there.
-checkSecretKeyHash :: MonadDB ssc m => Hash SecretKey -> m Bool
-data DB ssc
-DB :: !ReadOptions -> !WriteOptions -> !Options -> !DB -> DB ssc
-[rocksReadOpts] :: DB ssc -> !ReadOptions
-[rocksWriteOpts] :: DB ssc -> !WriteOptions
-[rocksOptions] :: DB ssc -> !Options
-[rocksDB] :: DB ssc -> !DB
-data NodeDBs ssc
-NodeDBs :: !(DB ssc) -> !(DB ssc) -> !(DB ssc) -> !(DB ssc) -> !RWLock -> NodeDBs ssc
-
--- | Blocks, block index, undo data.
-[_blockDB] :: NodeDBs ssc -> !(DB ssc)
-
--- | Global state corresponding to some tip.
-[_gStateDB] :: NodeDBs ssc -> !(DB ssc)
-
--- | Data computed by LRC.
-[_lrcDB] :: NodeDBs ssc -> !(DB ssc)
-
--- | Everything small and insignificant
-[_miscDB] :: NodeDBs ssc -> !(DB ssc)
-
--- | Lock on misc db
-[_miscLock] :: NodeDBs ssc -> !RWLock
-blockDB :: forall ssc_a4OLp. Lens' (NodeDBs ssc_a4OLp) (DB ssc_a4OLp)
-gStateDB :: forall ssc_a4OLp. Lens' (NodeDBs ssc_a4OLp) (DB ssc_a4OLp)
-lrcDB :: forall ssc_a4OLp. Lens' (NodeDBs ssc_a4OLp) (DB ssc_a4OLp)
-miscDB :: forall ssc_a4OLp. Lens' (NodeDBs ssc_a4OLp) (DB ssc_a4OLp)
-miscLock :: forall ssc_a4OLp. Lens' (NodeDBs ssc_a4OLp) RWLock
-newtype Snapshot
-Snapshot :: Snapshot -> Snapshot
-usingSnapshot :: (MonadIO m, MonadMask m) => DB ssc -> (Snapshot -> m a) -> m a
-data StoredBlock ssc
-StoredBlock :: !(Block ssc) -> StoredBlock ssc
-
--- | Block itself.
-[sbBlock] :: StoredBlock ssc -> !(Block ssc)
-data LeadersStorage ssc
-LeadersStorage :: !EpochIndex -> !SlotLeaders -> LeadersStorage ssc
-[lrcEpoch] :: LeadersStorage ssc -> !EpochIndex
-[lrcLeaders] :: LeadersStorage ssc -> !SlotLeaders
-data GtRichmenStorage ssc
-GtRichmenStorage :: !EpochIndex -> !RichmenStake -> GtRichmenStorage ssc
-[gtRichmenEpoch] :: GtRichmenStorage ssc -> !EpochIndex
-[gtRichmen] :: GtRichmenStorage ssc -> !RichmenStake
-
-
 -- | Monadic represantion of something that has <tt>json</tt> journaled log
 --   of operations.
 module Pos.Util.JsonLog
@@ -2431,6 +2054,182 @@ shouldIgnoreAddress :: NodeContext ssc -> NetworkAddress -> Bool
 shouldIgnorePkAddress :: NodeContext ssc -> StakeholderId -> Bool
 
 
+-- | GState DB stores whole global state, i. e. result of application of
+--   all blocks up to <i>tip</i>.
+module Pos.DB.GState
+
+-- | Tries to retrieve next block using current one (given a block/header).
+resolveForwardLink :: (HasHeaderHash a, MonadDB m) => a -> m (Maybe HeaderHash)
+
+-- | Check if given hash representing block is in main chain.
+isBlockInMainChain :: (HasHeaderHash a, MonadDB m) => a -> m Bool
+data BlockExtraOp
+
+-- | Adds or overwrites forward link
+AddForwardLink :: HeaderHash -> HeaderHash -> BlockExtraOp
+
+-- | Removes forward link
+RemoveForwardLink :: HeaderHash -> BlockExtraOp
+
+-- | Enables or disables "in main chain" status of the block
+SetInMainChain :: Bool -> HeaderHash -> BlockExtraOp
+
+-- | Returns headers loaded up.
+loadHeadersUpWhile :: (SscHelpersClass ssc, MonadDB m, HasHeaderHash a) => a -> (BlockHeader ssc -> Int -> Bool) -> m (OldestFirst [] (BlockHeader ssc))
+
+-- | Returns blocks loaded up.
+loadBlocksUpWhile :: (SscHelpersClass ssc, MonadDB m, HasHeaderHash a) => a -> (Block ssc -> Int -> Bool) -> m (OldestFirst [] (Block ssc))
+prepareGStateBlockExtra :: MonadDB m => HeaderHash -> m ()
+
+-- | Put missing initial data into GState DB.
+prepareGStateDB :: forall ssc m. (WithNodeContext ssc m, MonadDB m) => HeaderHash -> m ()
+
+-- | Check that GState DB is consistent.
+sanityCheckGStateDB :: forall m. (MonadDB m, MonadMask m, WithLogger m) => m ()
+usingGStateSnapshot :: (MonadDB m, MonadMask m) => m a -> m a
+
+-- | Retrieves certificate by issuer address (hash of public key) if
+--   present.
+getPSKByIssuerAddressHash :: MonadDB m => StakeholderId -> m (Maybe ProxySKHeavy)
+
+-- | Retrieves certificate by issuer public key if present.
+getPSKByIssuer :: MonadDB m => PublicKey -> m (Maybe ProxySKHeavy)
+isIssuerByAddressHash :: MonadDB m => StakeholderId -> m Bool
+data DelegationOp
+
+-- | Adds PSK. Overwrites if present.
+AddPSK :: !ProxySKHeavy -> DelegationOp
+
+-- | Removes PSK by issuer PK.
+DelPSK :: !PublicKey -> DelegationOp
+runPskIterator :: forall m a. MonadDB m => DBnIterator PskIter a -> m a
+runPskMapIterator :: forall v m a. MonadDB m => DBnMapIterator PskIter v a -> (IterType PskIter -> v) -> m a
+
+-- | Get total amount of stake to be used for follow-the-satoshi. It's
+--   different from total amount of coins in the system.
+getTotalFtsStake :: MonadDB m => m Coin
+
+-- | Get stake owne by given stakeholder (according to rules used for FTS).
+getFtsStake :: MonadDB m => StakeholderId -> m (Maybe Coin)
+getFtsStakeFromDB :: (MonadIO m, MonadThrow m) => StakeholderId -> DB -> m (Maybe Coin)
+data BalancesOp
+PutFtsSum :: !Coin -> BalancesOp
+PutFtsStake :: !StakeholderId -> !Coin -> BalancesOp
+prepareGStateBalances :: forall m. MonadDB m => Utxo -> m ()
+data BalIter
+runBalanceIterator :: forall m a. MonadDB m => DBnIterator BalIter a -> m a
+runBalanceMapIterator :: forall v m a. MonadDB m => DBnMapIterator BalIter v a -> (IterType BalIter -> v) -> m a
+sanityCheckBalances :: (MonadMask m, MonadDB m, WithLogger m) => m ()
+getTxOutFromDB :: (MonadIO m, MonadThrow m) => TxIn -> DB -> m (Maybe TxOutAux)
+getTxOut :: MonadDB m => TxIn -> m (Maybe TxOutAux)
+data UtxoOp
+DelTxIn :: !TxIn -> UtxoOp
+AddTxOut :: !TxIn -> !TxOutAux -> UtxoOp
+AddGenTxOut :: !TxIn -> !TxOutAux -> UtxoOp
+prepareGStateUtxo :: forall m. MonadDB m => Utxo -> m ()
+data UtxoIter
+runUtxoIterator :: forall i m a. (MonadDB m, DBIteratorClass i, IterKey i ~ TxIn, IterValue i ~ TxOutAux) => DBnIterator i a -> m a
+runUtxoMapIterator :: forall i v m a. (MonadDB m, DBIteratorClass i, IterKey i ~ TxIn, IterValue i ~ TxOutAux) => DBnMapIterator i v a -> (IterType i -> v) -> m a
+getFilteredUtxo :: MonadDB m => Address -> m Utxo
+getFilteredGenUtxo :: MonadDB m => Address -> m Utxo
+sanityCheckUtxo :: (MonadDB m, WithLogger m) => Coin -> m ()
+
+-- | Get last adopted block version.
+getAdoptedBV :: MonadDB m => m BlockVersion
+
+-- | Get state of last adopted BlockVersion.
+getAdoptedBVData :: MonadDB m => m BlockVersionData
+
+-- | Get last adopted BlockVersion and data associated with it.
+getAdoptedBVFull :: MonadDB m => m (BlockVersion, BlockVersionData)
+
+-- | Get <a>BlockVersionState</a> associated with given BlockVersion.
+getBVState :: MonadDB m => BlockVersion -> m (Maybe BlockVersionState)
+
+-- | Get state of UpdateProposal for given UpId
+getProposalState :: MonadDB m => UpId -> m (Maybe ProposalState)
+
+-- | Get UpId of current proposal for given appName
+getAppProposal :: MonadDB m => ApplicationName -> m (Maybe UpId)
+
+-- | Get state of Update Proposal for given AppName
+getProposalStateByApp :: MonadDB m => ApplicationName -> m (Maybe ProposalState)
+
+-- | Get last confirmed SoftwareVersion of given application.
+getConfirmedSV :: MonadDB m => ApplicationName -> m (Maybe NumSoftwareVersion)
+
+-- | Get maximum block size (in bytes).
+getMaxBlockSize :: MonadDB m => m Byte
+
+-- | Get most recent <a>SlottingData</a>.
+getSlottingData :: MonadDB m => m SlottingData
+data UpdateOp
+PutProposal :: !ProposalState -> UpdateOp
+DeleteProposal :: !UpId -> !ApplicationName -> UpdateOp
+ConfirmVersion :: !SoftwareVersion -> UpdateOp
+DelConfirmedVersion :: !ApplicationName -> UpdateOp
+AddConfirmedProposal :: !ConfirmedProposalState -> UpdateOp
+DelConfirmedProposal :: !SoftwareVersion -> UpdateOp
+SetAdopted :: !BlockVersion -> BlockVersionData -> UpdateOp
+SetBVState :: !BlockVersion -> !BlockVersionState -> UpdateOp
+DelBV :: !BlockVersion -> UpdateOp
+PutSlottingData :: !SlottingData -> UpdateOp
+prepareGStateUS :: forall m. MonadDB m => Timestamp -> m ()
+data PropIter
+runProposalMapIterator :: forall v m a. MonadDB m => DBnMapIterator PropIter v a -> (IterType PropIter -> v) -> m a
+runProposalIterator :: forall m a. MonadDB m => DBnIterator PropIter a -> m a
+
+-- | Get all proposals which were issued no later than given slot.
+getOldProposals :: forall m. MonadDB m => SlotId -> m [UndecidedProposalState]
+
+-- | Get all decided proposals which were accepted deeper than given
+--   difficulty.
+getDeepProposals :: forall m. MonadDB m => ChainDifficulty -> m [DecidedProposalState]
+data ConfPropIter
+
+-- | Get confirmed proposals which update our application and have version
+--   bigger than argument (or all proposals if <a>Nothing</a> is passed).
+--   For instance, current software version can be passed to this function
+--   to get all proposals with bigger version.
+getConfirmedProposals :: MonadDB m => Maybe NumSoftwareVersion -> m [ConfirmedProposalState]
+data BVIter
+
+-- | Get all proposed <a>BlockVersion</a>s.
+getProposedBVs :: MonadDB m => m [BlockVersion]
+
+-- | Get all confirmed <a>BlockVersion</a>s and their states.
+getConfirmedBVStates :: MonadDB m => m [(BlockVersion, BlockVersionState)]
+getProposedBVStates :: MonadDB m => m [BlockVersionState]
+
+
+-- | Higher-level DB functionality.
+module Pos.DB.DB
+
+-- | Open all DBs stored on disk.
+openNodeDBs :: (MonadIO m) => Bool -> FilePath -> m NodeDBs
+
+-- | Initialize DBs if necessary.
+initNodeDBs :: forall ssc m. (SscHelpersClass ssc, WithNodeContext ssc m, MonadDB m) => m ()
+
+-- | Get current tip from GState DB.
+getTip :: MonadDB m => m HeaderHash
+
+-- | Get block corresponding to tip.
+getTipBlock :: (SscHelpersClass ssc, MonadDB m) => m (Block ssc)
+
+-- | Get BlockHeader corresponding to tip.
+getTipBlockHeader :: (SscHelpersClass ssc, MonadDB m) => m (BlockHeader ssc)
+
+-- | Load blunds from BlockDB starting from tip and while the
+--   <tt>condition</tt> is true.
+loadBlundsFromTipWhile :: (SscHelpersClass ssc, MonadDB m) => (Block ssc -> Bool) -> m (NewestFirst [] (Blund ssc))
+
+-- | Load blunds from BlockDB starting from tip which have depth less than
+--   given.
+loadBlundsFromTipByDepth :: (SscHelpersClass ssc, MonadDB m) => Word -> m (NewestFirst [] (Blund ssc))
+sanityCheckDB :: (MonadMask m, MonadDB m, WithLogger m) => m ()
+
+
 -- | This module re-exports functionality from Pos.Ssc.Extra.* modules.
 --   Pos.Ssc.Extra provides SSC functionality independent of particular
 --   SSC.
@@ -2461,12 +2260,12 @@ sscGetLocalPayload :: forall ssc m. (MonadIO m, MonadSscMem ssc m, SscLocalDataC
 -- | Update local data to be valid for current global state. This function
 --   is assumed to be called after applying block and before releasing lock
 --   on block application.
-sscNormalize :: forall ssc m. (MonadDB ssc m, MonadSscMem ssc m, SscLocalDataClass ssc, WithNodeContext ssc m, SscHelpersClass ssc, WithLogger m) => m ()
+sscNormalize :: forall ssc m. (MonadDB m, MonadSscMem ssc m, SscLocalDataClass ssc, WithNodeContext ssc m, SscHelpersClass ssc, WithLogger m) => m ()
 
 -- | Reset local data to empty state. This function can be used when we
 --   detect that something is really bad. In this case it makes sense to
 --   remove all local data to be sure it's valid.
-sscResetLocal :: forall ssc m. (MonadDB ssc m, MonadSscMem ssc m, SscLocalDataClass ssc, MonadSlots m) => m ()
+sscResetLocal :: forall ssc m. (MonadDB m, MonadSscMem ssc m, SscLocalDataClass ssc, MonadSlots m) => m ()
 
 -- | Apply sequence of definitely valid blocks. Global state which is
 --   result of application of these blocks can be optionally passed as
@@ -2486,8 +2285,8 @@ sscVerifyBlocks :: forall ssc m. SscGlobalVerifyMode ssc m => OldestFirst NE (Bl
 newtype SscHolder ssc m a
 SscHolder :: ReaderT (SscState ssc) m a -> SscHolder ssc m a
 [getSscHolder] :: SscHolder ssc m a -> ReaderT (SscState ssc) m a
-mkSscHolderState :: forall ssc m. (WithLogger m, WithNodeContext ssc m, SscGStateClass ssc, SscLocalDataClass ssc, MonadDB ssc m, MonadSlots m) => m (SscState ssc)
-mkStateAndRunSscHolder :: forall ssc m a. (WithLogger m, WithNodeContext ssc m, SscGStateClass ssc, SscLocalDataClass ssc, MonadDB ssc m, MonadSlots m) => SscHolder ssc m a -> m a
+mkSscHolderState :: forall ssc m. (WithLogger m, WithNodeContext ssc m, SscGStateClass ssc, SscLocalDataClass ssc, MonadDB m, MonadSlots m) => m (SscState ssc)
+mkStateAndRunSscHolder :: forall ssc m a. (WithLogger m, WithNodeContext ssc m, SscGStateClass ssc, SscLocalDataClass ssc, MonadDB m, MonadSlots m) => SscHolder ssc m a -> m a
 
 -- | Run <a>SscHolder</a> reading GState from DB (restoring from blocks)
 --   and using default (uninitialized) local state.
@@ -2640,7 +2439,7 @@ module Pos.WorkMode
 
 -- | Bunch of constraints to perform work for real world distributed
 --   system.
-type WorkMode ssc m = (MinWorkMode m, MonadMask m, MonadSlots m, MonadDB ssc m, MonadTxpMem m, MonadDelegation m, MonadSscMem ssc m, SscGStateClass ssc, SscLocalDataClass ssc, SscHelpersClass ssc, WithNodeContext ssc m, MonadStats m, MonadJL m, WithKademliaDHTInstance m, WithPeerState m, MonadUSMem m)
+type WorkMode ssc m = (MinWorkMode m, MonadMask m, MonadSlots m, MonadDB m, MonadTxpMem m, MonadDelegation m, MonadSscMem ssc m, SscGStateClass ssc, SscLocalDataClass ssc, SscHelpersClass ssc, WithNodeContext ssc m, MonadStats m, MonadJL m, WithKademliaDHTInstance m, WithPeerState m, MonadUSMem m)
 
 -- | More relaxed version of <a>WorkMode</a>.
 type MinWorkMode m = (WithLogger m, MonadMockable m, MonadDHT m, MonadIO m, WithPeerState m)
@@ -2650,7 +2449,7 @@ type MinWorkMode m = (WithLogger m, MonadMockable m, MonadDHT m, MonadIO m, With
 type ProductionMode ssc = NoStatsT (RawRealMode ssc)
 
 -- | RawRealMode is a basis for <a>WorkMode</a>s used to really run system.
-type RawRealMode ssc = PeerStateHolder (KademliaDHT (USHolder (DelegationT (TxpHolder (SscHolder ssc (NtpSlotting (SlottingHolder (ContextHolder ssc (DBHolder ssc (LoggerNameBox Production))))))))))
+type RawRealMode ssc = PeerStateHolder (KademliaDHT (USHolder (DelegationT (TxpHolder (SscHolder ssc (NtpSlotting (SlottingHolder (ContextHolder ssc (DBHolder (LoggerNameBox Production))))))))))
 
 -- | ServiceMode is the mode in which support nodes work.
 type ServiceMode = PeerStateHolder (KademliaDHT (LoggerNameBox Production))
@@ -2658,11 +2457,11 @@ type ServiceMode = PeerStateHolder (KademliaDHT (LoggerNameBox Production))
 -- | StatsMode is used for remote benchmarking.
 type StatsMode ssc = StatsT (RawRealMode ssc)
 instance (GHC.Base.Monad m, Pos.Context.Class.WithNodeContext ssc m) => Pos.Context.Class.WithNodeContext ssc (Pos.DHT.Real.Types.KademliaDHT m)
-instance Pos.DB.Class.MonadDB ssc m => Pos.DB.Class.MonadDB ssc (Pos.DHT.Real.Types.KademliaDHT m)
+instance Pos.DB.Class.MonadDB m => Pos.DB.Class.MonadDB (Pos.DHT.Real.Types.KademliaDHT m)
 instance Pos.Delegation.Class.MonadDelegation m => Pos.Delegation.Class.MonadDelegation (Pos.DHT.Real.Types.KademliaDHT m)
 instance Pos.Update.MemState.Class.MonadUSMem m => Pos.Update.MemState.Class.MonadUSMem (Pos.DHT.Real.Types.KademliaDHT m)
 instance (GHC.Base.Monad m, Pos.Context.Class.WithNodeContext ssc m) => Pos.Context.Class.WithNodeContext ssc (Pos.Communication.PeerState.PeerStateHolder m)
-instance Pos.DB.Class.MonadDB ssc m => Pos.DB.Class.MonadDB ssc (Pos.Communication.PeerState.PeerStateHolder m)
+instance Pos.DB.Class.MonadDB m => Pos.DB.Class.MonadDB (Pos.Communication.PeerState.PeerStateHolder m)
 instance Pos.DHT.Model.Class.MonadDHT m => Pos.DHT.Model.Class.MonadDHT (Pos.Communication.PeerState.PeerStateHolder m)
 instance Pos.Ssc.Extra.Class.MonadSscMem ssc m => Pos.Ssc.Extra.Class.MonadSscMem ssc (Pos.Communication.PeerState.PeerStateHolder m)
 instance Pos.Delegation.Class.MonadDelegation m => Pos.Delegation.Class.MonadDelegation (Pos.Communication.PeerState.PeerStateHolder m)
@@ -2821,10 +2620,10 @@ invalidateProxyCaches :: UTCTime -> DelegationStateAction ()
 --   <li>Sets <tt>_dwEpochId</tt> to epoch of tip.</li>
 --   <li>Loads <tt>_dwThisEpochPosted</tt> from database</li>
 --   </ul>
-initDelegation :: (SscHelpersClass ssc, MonadDB ssc m, MonadDelegation m) => m ()
+initDelegation :: forall ssc m. (SscHelpersClass ssc, MonadDB m, MonadDelegation m) => m ()
 
 -- | Retrieves current mempool of heavyweight psks plus undo part.
-getProxyMempool :: (MonadDB ssc m, MonadDelegation m) => m ([ProxySKHeavy], [ProxySKHeavy])
+getProxyMempool :: (MonadDB m, MonadDelegation m) => m ([ProxySKHeavy], [ProxySKHeavy])
 
 -- | Datatypes representing a verdict of heavy PSK processing.
 data PskHeavyVerdict
@@ -2850,12 +2649,12 @@ PHAdded :: PskHeavyVerdict
 -- | Processes heavyweight psk. Puts it into the mempool depending on
 --   issuer's stake, overrides if exists, checks validity and cachemsg
 --   state.
-processProxySKHeavy :: (SscHelpersClass ssc, MonadDB ssc m, MonadDelegation m, WithNodeContext ssc m) => ProxySKHeavy -> m PskHeavyVerdict
+processProxySKHeavy :: forall ssc m. (SscHelpersClass ssc, MonadDB m, MonadDelegation m, WithNodeContext ssc m) => ProxySKHeavy -> m PskHeavyVerdict
 
 -- | Applies a sequence of definitely valid blocks to memory state and
 --   returns batchops. It works correctly only in case blocks don't cross
 --   over epoch. So genesis block is either absent or the head.
-delegationApplyBlocks :: forall ssc m. (DelegationWorkMode ssc m) => OldestFirst NE (Block ssc) -> m (NonEmpty SomeBatchOp)
+delegationApplyBlocks :: forall ssc m. (DelegationWorkMode m) => OldestFirst NE (Block ssc) -> m (NonEmpty SomeBatchOp)
 
 -- | Verifies if blocks are correct relatively to the delegation logic and
 --   returns a non-empty list of proxySKs needed for undoing them.
@@ -2869,12 +2668,12 @@ delegationApplyBlocks :: forall ssc m. (DelegationWorkMode ssc m) => OldestFirst
 --   
 --   It's assumed blocks are correct from 'Pos.Types.Block#verifyBlocks'
 --   point of view.
-delegationVerifyBlocks :: forall ssc m. (SscHelpersClass ssc, MonadDB ssc m, WithNodeContext ssc m) => OldestFirst NE (Block ssc) -> m (Either Text (OldestFirst NE [ProxySKHeavy]))
+delegationVerifyBlocks :: forall ssc m. (SscHelpersClass ssc, MonadDB m, WithNodeContext ssc m) => OldestFirst NE (Block ssc) -> m (Either Text (OldestFirst NE [ProxySKHeavy]))
 
 -- | Rollbacks block list. Erases mempool of certificates. Better to
 --   restore them after the rollback (see Txp#normalizeTxpLD). You can
 --   rollback arbitrary number of blocks.
-delegationRollbackBlocks :: (SscHelpersClass ssc, MonadDelegation m, MonadDB ssc m, WithNodeContext ssc m) => NewestFirst NE (Blund ssc) -> m (NonEmpty SomeBatchOp)
+delegationRollbackBlocks :: forall ssc m. (SscHelpersClass ssc, MonadDelegation m, MonadDB m, WithNodeContext ssc m) => NewestFirst NE (Blund ssc) -> m (NonEmpty SomeBatchOp)
 
 -- | PSK check verdict. It can be unrelated (other key or spoiled, no way
 --   to differ), exist in storage already or be cached.
@@ -2888,7 +2687,7 @@ PLAdded :: PskLightVerdict
 
 -- | Processes proxy secret key (understands do we need it, adds/caches on
 --   decision, returns this decision).
-processProxySKLight :: (MonadDelegation m, WithNodeContext ssc m, MonadDB ssc m, MonadMask m) => ProxySKLight -> m PskLightVerdict
+processProxySKLight :: (MonadDelegation m, WithNodeContext ssc m, MonadDB m, MonadMask m) => ProxySKLight -> m PskLightVerdict
 
 -- | Verdict of <a>processConfirmProxySk</a> function
 data ConfirmPskLightVerdict
@@ -2910,7 +2709,7 @@ processConfirmProxySk :: (MonadDelegation m, MonadIO m) => ProxySKLight -> Proxy
 isProxySKConfirmed :: ProxySKLight -> DelegationStateAction Bool
 
 -- | Consumer will be called on every Richmen computation.
-delegationLrcConsumer :: MonadDB ssc m => LrcConsumer m
+delegationLrcConsumer :: MonadDB m => LrcConsumer m
 
 -- | Sends epoch psk to neighbours
 sendProxySKLight :: (MinWorkMode m) => ProxySKLight -> Action' m ()
@@ -2973,7 +2772,7 @@ lrcConsumerFromComponent :: forall c m. RichmenComponent c => (EpochIndex -> m B
 
 -- | Create simple LrcConsumer using constants from RichmenComponent which
 --   uses only LRC DB.
-lrcConsumerFromComponentSimple :: forall c ssc m. (RichmenComponent c, MonadDB ssc m) => LrcConsumer m
+lrcConsumerFromComponentSimple :: forall c m. (RichmenComponent c, MonadDB m) => LrcConsumer m
 allLrcConsumers :: (SscWorkersClass ssc, WorkMode ssc m) => [LrcConsumer m]
 
 -- | Find nodes which have at least 'eligibility threshold' coins.
@@ -2984,10 +2783,10 @@ findRichmenPure :: [(StakeholderId, Coin)] -> (Coin -> Coin) -> RichmenType -> F
 
 -- | Function considers all variants of computation and compute using one
 --   pass by stake DB and one pass by delegation DB.
-findAllRichmenMaybe :: forall ssc m. (MonadDB ssc m, MonadIterator (StakeholderId, Coin) m) => Maybe Coin -> Maybe Coin -> m (RichmenStake, RichmenStake)
+findAllRichmenMaybe :: forall m. (MonadDB m, MonadIterator (StakeholderId, Coin) m) => Maybe Coin -> Maybe Coin -> m (RichmenStake, RichmenStake)
 
 -- | Find delegated richmen.
-findDelegatedRichmen :: (MonadDB ssc m, MonadIterator (StakeholderId, Coin) m) => Coin -> m RichmenStake
+findDelegatedRichmen :: (MonadDB m, MonadIterator (StakeholderId, Coin) m) => Coin -> m RichmenStake
 data RichmenType
 RTUsual :: RichmenType
 RTDelegation :: (HashMap StakeholderId [StakeholderId]) -> RichmenType
@@ -3035,11 +2834,11 @@ sscNormalizeU :: SscLocalDataClass ssc => EpochIndex -> RichmenStake -> SscGloba
 -- | Create new (empty) local data. We are using this function instead of
 --   <tt>Default</tt> class, because it gives more flexibility. For
 --   instance, one can read something from DB or get current slot.
-sscNewLocalData :: (SscLocalDataClass ssc, MonadSlots m, MonadDB ssc m) => m (SscLocalData ssc)
+sscNewLocalData :: (SscLocalDataClass ssc, MonadSlots m, MonadDB m) => m (SscLocalData ssc)
 class Ssc ssc => SscGStateClass ssc
 
 -- | Load global state from DB by recreating it from recent blocks.
-sscLoadGlobalState :: (SscGStateClass ssc, WithNodeContext ssc m, MonadDB ssc m, WithLogger m) => m (SscGlobalState ssc)
+sscLoadGlobalState :: (SscGStateClass ssc, WithNodeContext ssc m, MonadDB m, WithLogger m) => m (SscGlobalState ssc)
 
 -- | Rollback application of blocks.
 sscRollbackU :: SscGStateClass ssc => NewestFirst NE (Block ssc) -> SscGlobalUpdate ssc ()
@@ -3072,7 +2871,7 @@ class (Typeable ssc, Typeable (SscPayload ssc), Typeable (SscProof ssc), Typeabl
 mkSscProof :: Ssc ssc => Tagged ssc (SscPayload ssc -> SscProof ssc)
 
 -- | Create SscNodeContext
-sscCreateNodeContext :: (Ssc ssc, MonadIO m) => SscParams ssc -> m (SscNodeContext ssc)
+sscCreateNodeContext :: (Ssc ssc, MonadIO m) => Tagged ssc (SscParams ssc -> m (SscNodeContext ssc))
 
 -- | Class for <tt>SSC</tt> workers.
 class Ssc ssc => SscWorkersClass ssc
@@ -3265,21 +3064,21 @@ data TxpError
 TxpInternalError :: !Text -> TxpError
 
 -- | Verify chain of blocks and return transaction undos of blocks.
-txVerifyBlocks :: forall ssc m. TxpWorkMode ssc m => OldestFirst NE (Block ssc) -> m (Either Text (OldestFirst NE TxsUndo))
+txVerifyBlocks :: forall ssc m. TxpWorkMode m => OldestFirst NE (Block ssc) -> m (Either Text (OldestFirst NE TxsUndo))
 
 -- | Apply chain of <i>definitely</i> valid blocks to state on transactions
 --   processing.
-txApplyBlocks :: TxpWorkMode ssc m => OldestFirst NE (Blund ssc) -> m SomeBatchOp
+txApplyBlocks :: TxpWorkMode m => OldestFirst NE (Blund ssc) -> m SomeBatchOp
 
 -- | Rollback chain of blocks.
-txRollbackBlocks :: (WithLogger m, MonadDB ssc m) => NewestFirst NE (Blund ssc) -> m SomeBatchOp
-txProcessTransaction :: TxpLocalWorkMode ssc m => (TxId, TxAux) -> m ()
+txRollbackBlocks :: (WithLogger m, MonadDB m) => NewestFirst NE (Blund ssc) -> m SomeBatchOp
+txProcessTransaction :: TxpLocalWorkMode m => (TxId, TxAux) -> m ()
 
 -- | <ol>
 --   <li>Recompute UtxoView by current MemPool | 2. Remove invalid
 --   transactions from MemPool | 3. Set new tip to txp local data</li>
 --   </ol>
-txNormalize :: (MonadDB ssc m, MonadTxpMem m) => m ()
+txNormalize :: (MonadDB m, MonadTxpMem m) => m ()
 
 -- | Reduced equivalent of <tt>MonadReader TxpLDWrap m</tt>.
 class Monad m => MonadTxpMem m where askTxpMem = lift askTxpMem
@@ -3547,7 +3346,7 @@ type SlottingVar = TVar SlottingData
 runSlottingHolder :: SlottingVar -> SlottingHolder m a -> m a
 
 -- | Create new <a>SlottingVar</a> using data from DB.
-mkSlottingVar :: MonadDB ε m => m SlottingVar
+mkSlottingVar :: MonadDB m => m SlottingVar
 
 -- | Data needed for the slotting algorithm to work.
 data NtpSlottingState
@@ -3829,7 +3628,7 @@ genesisVssKeyPairs :: [VssKeyPair]
 
 -- | Check whether SSC data with given tag and public key can be added to
 --   current local data.
-sscIsDataUseful :: (WithLogger m, MonadDB SscGodTossing m, WithNodeContext kek m, MonadSlots m, MonadSscMem SscGodTossing m) => GtTag -> StakeholderId -> m Bool
+sscIsDataUseful :: (WithLogger m, MonadDB m, WithNodeContext kek m, MonadSlots m, MonadSscMem SscGodTossing m) => GtTag -> StakeholderId -> m Bool
 
 -- | Process <a>SignedCommitment</a> received from network, checking it
 --   against current state (global + local) and adding to local state if
@@ -3869,13 +3668,13 @@ ldModifier :: Lens' GtLocalData TossModifier
 ldEpoch :: Lens' GtLocalData EpochIndex
 
 -- | Get our commitment for given epoch if it's known.
-getOurCommitment :: MonadDB SscGodTossing m => EpochIndex -> m (Maybe SignedCommitment)
+getOurCommitment :: MonadDB m => EpochIndex -> m (Maybe SignedCommitment)
 
 -- | Get our opening corresponding for given epoch if it's known.
-getOurOpening :: MonadDB SscGodTossing m => EpochIndex -> m (Maybe Opening)
+getOurOpening :: MonadDB m => EpochIndex -> m (Maybe Opening)
 
 -- | Put our secret for given epoch.
-putOurSecret :: MonadDB SscGodTossing m => SignedCommitment -> Opening -> EpochIndex -> m ()
+putOurSecret :: MonadDB m => SignedCommitment -> Opening -> EpochIndex -> m ()
 
 -- | Calculate SharedSeed. SharedSeed is a random bytestring that all nodes
 --   generate together and agree on.
@@ -4263,7 +4062,7 @@ module Pos.Web
 baseDocsText :: Text
 gtDocsText :: Text
 type MyWorkMode ssc m = (WorkMode ssc m, SscConstraint ssc)
-type WebHandler ssc = TxpHolder (ContextHolder ssc (DBHolder ssc Production))
+type WebHandler ssc = TxpHolder (ContextHolder ssc (DBHolder Production))
 serveImpl :: MonadIO m => m Application -> Word16 -> m ()
 nat :: forall ssc m. (MyWorkMode ssc m) => m (WebHandler ssc :~> Handler)
 serveWebBase :: MyWorkMode ssc m => Word16 -> m ()
@@ -4276,7 +4075,7 @@ applicationGT :: MyWorkMode SscGodTossing m => m Application
 module Pos.Block.Network
 announceBlock :: WorkMode ssc m => SendActions m -> MainBlockHeader ssc -> m ()
 announceBlockOuts :: OutSpecs
-handleHeadersCommunication :: WorkMode ssc m => ConversationActions (MsgHeaders ssc) MsgGetHeaders m -> m ()
+handleHeadersCommunication :: forall ssc m. WorkMode ssc m => ConversationActions (MsgHeaders ssc) MsgGetHeaders m -> m ()
 blockListeners :: (WorkMode ssc m) => ([ListenerSpec m], OutSpecs)
 blockStubListeners :: (SscHelpersClass ssc, WithLogger m) => Tagged ssc ([ListenerSpec m], OutSpecs)
 retrievalWorker :: forall ssc m. (SscWorkersClass ssc, WorkMode ssc m) => (WorkerSpec m, OutSpecs)
@@ -4297,7 +4096,7 @@ addToBlockRequestQueue :: forall ssc m. (WorkMode ssc m) => NewestFirst NE (Bloc
 -- | Make <tt>GetHeaders</tt> message using our main chain. This function
 --   chooses appropriate <tt>from</tt> hashes and puts them into
 --   <tt>GetHeaders</tt> message.
-mkHeadersRequest :: WorkMode ssc m => Maybe HeaderHash -> m (Maybe MsgGetHeaders)
+mkHeadersRequest :: forall ssc m. WorkMode ssc m => Maybe HeaderHash -> m (Maybe MsgGetHeaders)
 requestTipOuts :: OutSpecs
 
 -- | <tt>GetHeaders</tt> message. Behaviour of the response depends on
@@ -4405,7 +4204,7 @@ usApplyBlocks :: (MonadThrow m, USGlobalApplyMode ssc m) => OldestFirst NE (Bloc
 
 -- | Checks whether our software can create block according to current
 --   global state.
-usCanCreateBlock :: (WithLogger m, WithNodeContext ssc m, MonadDB ssc m) => m Bool
+usCanCreateBlock :: (WithLogger m, WithNodeContext ssc m, MonadDB m) => m Bool
 
 -- | Revert application of given blocks to US part of GState DB and US
 --   local data. The caller must ensure that the tip stored in DB is
@@ -4464,7 +4263,7 @@ processNewSlot :: (USLocalLogicMode ssc m) => SlotId -> m ()
 usPreparePayload :: (USLocalLogicMode ssc m) => SlotId -> m (Maybe UpdatePayload)
 
 -- | Consumer will be called on every Richmen computation.
-usLrcConsumer :: MonadDB ssc m => LrcConsumer m
+usLrcConsumer :: MonadDB m => LrcConsumer m
 
 -- | Reduced equivalent of <tt>MonadReader MemVar m</tt>.
 class Monad m => MonadUSMem m where askUSMemVar = lift askUSMemVar
@@ -5181,11 +4980,11 @@ data WalletError
 Internal :: !Text -> WalletError
 walletServeWebFull :: forall ssc. SscConstraint ssc => SendActions (RawRealMode ssc) -> Bool -> FilePath -> Bool -> Word16 -> RawRealMode ssc ()
 walletServerOuts :: OutSpecs
-walletServeWebLite :: SendActions WalletRealMode -> FilePath -> Bool -> Word16 -> WalletRealMode ()
+walletServeWebLite :: forall ssc. SscHelpersClass ssc => Proxy ssc -> SendActions WalletRealMode -> FilePath -> Bool -> Word16 -> WalletRealMode ()
 walletServerOuts :: OutSpecs
 type WalletWebHandler m = WalletWebSockets (WalletWebDB m)
 walletApplication :: WalletWebMode ssc m => m (Server WalletApi) -> m Application
-walletServer :: (Monad m, WalletWebMode ssc (WalletWebHandler m)) => SendActions m -> WalletWebHandler m (WalletWebHandler m :~> Handler) -> WalletWebHandler m (Server WalletApi)
+walletServer :: forall ssc m. (SscHelpersClass ssc, Monad m, WalletWebMode ssc (WalletWebHandler m)) => SendActions m -> WalletWebHandler m (WalletWebHandler m :~> Handler) -> WalletWebHandler m (Server WalletApi)
 walletServeImpl :: (MonadIO m, MonadMask m, WalletWebMode ssc (WalletWebHandler m)) => WalletWebHandler m Application -> FilePath -> Bool -> Word16 -> m ()
 walletServerOuts :: OutSpecs
 
@@ -5384,7 +5183,7 @@ initSemaphore :: (WorkMode ssc m) => m ()
 initLrc :: WorkMode ssc m => m ()
 
 -- | Run full node in any WorkMode.
-runNode' :: (SscConstraint ssc, WorkMode ssc m) => [WorkerSpec m] -> WorkerSpec m
+runNode' :: forall ssc m. (SscConstraint ssc, WorkMode ssc m) => [WorkerSpec m] -> WorkerSpec m
 
 module Pos.Wallet
 data WalletParams
@@ -5437,10 +5236,10 @@ getBalance :: MonadBalances m => Address -> m Coin
 getOwnUtxo :: (MonadBalances m, MonadTrans t, MonadBalances m', t m' ~ m) => Address -> m Utxo
 
 -- | A class which have methods to get transaction history
-class Monad m => MonadTxHistory m where getTxHistory = lift . getTxHistory saveTx = lift . saveTx
-getTxHistory :: MonadTxHistory m => Address -> m [TxHistoryEntry]
+class Monad m => MonadTxHistory m where getTxHistory = fmap lift <$> getTxHistory saveTx = lift . saveTx
+getTxHistory :: (MonadTxHistory m, SscHelpersClass ssc) => Tagged ssc (Address -> m [TxHistoryEntry])
 saveTx :: MonadTxHistory m => (TxId, TxAux) -> m ()
-getTxHistory :: (MonadTxHistory m, MonadTrans t, MonadTxHistory m', t m' ~ m) => Address -> m [TxHistoryEntry]
+getTxHistory :: (MonadTxHistory m, SscHelpersClass ssc, MonadTrans t, MonadTxHistory m', t m' ~ m) => Tagged ssc (Address -> m [TxHistoryEntry])
 saveTx :: (MonadTxHistory m, MonadTrans t, MonadTxHistory m', t m' ~ m) => (TxId, TxAux) -> m ()
 class Monad m => MonadBlockchainInfo m where networkChainDifficulty = lift networkChainDifficulty localChainDifficulty = lift localChainDifficulty blockchainSlotDuration = lift blockchainSlotDuration connectedPeers = lift connectedPeers
 networkChainDifficulty :: MonadBlockchainInfo m => m (Maybe ChainDifficulty)
