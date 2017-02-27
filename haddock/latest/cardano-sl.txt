@@ -300,6 +300,8 @@ instance Control.Lens.Each.Each (f a) (f b) a b => Control.Lens.Each.Each (Pos.U
 instance Control.Lens.Each.Each (f a) (f b) a b => Control.Lens.Each.Each (Pos.Util.OldestFirst f a) (Pos.Util.OldestFirst f b) a b
 instance Containers.One (f a) => Containers.One (Pos.Util.NewestFirst f a)
 instance Containers.One (f a) => Containers.One (Pos.Util.OldestFirst f a)
+instance GHC.Exts.IsList (f a) => GHC.Exts.IsList (Pos.Util.NewestFirst f a)
+instance GHC.Exts.IsList (f a) => GHC.Exts.IsList (Pos.Util.OldestFirst f a)
 instance Pos.Util.Chrono []
 instance Pos.Util.Chrono Data.List.NonEmpty.NonEmpty
 instance Language.Haskell.TH.Syntax.Lift Serokell.Data.Memory.Units.Byte
@@ -1089,7 +1091,7 @@ module Pos.CompileConfig
 
 -- | Compile time configuration. See example in <i>constants.yaml</i> file.
 data CompileConfig
-CompileConfig :: !Int -> !Int -> !Int -> !Byte -> !Byte -> !Double -> !Double -> !Double -> !Double -> !Word -> !Double -> !Int -> !Int -> !Word -> ![String] -> !Int -> !Word -> !Int -> !Int -> !Word64 -> !Word64 -> !Int -> !Int -> !Word -> !Int -> !Int -> !Int -> !Int -> !Int -> !Int -> !Int -> !Int -> !Int -> !Int -> CompileConfig
+CompileConfig :: !Int -> !Int -> !Int -> !Byte -> !Byte -> !Byte -> !Double -> !Double -> !Double -> !Byte -> !Double -> !Word -> !Double -> !Byte -> !Byte -> !Int -> !Int -> !Word -> ![String] -> !Int -> !Word -> !Int -> !Int -> !Word64 -> !Word64 -> !Int -> !Int -> !Word -> !Int -> !Int -> !Int -> !Int -> !Int -> !Int -> !Int -> !Int -> !Int -> !Int -> CompileConfig
 
 -- | Security parameter from paper
 [ccK] :: CompileConfig -> !Int
@@ -1103,6 +1105,9 @@ CompileConfig :: !Int -> !Int -> !Int -> !Byte -> !Byte -> !Double -> !Double ->
 -- | Maximum block size in bytes
 [ccGenesisMaxBlockSize] :: CompileConfig -> !Byte
 
+-- | Maximum block header size in bytes
+[ccGenesisMaxHeaderSize] :: CompileConfig -> !Byte
+
 -- | Maximum tx size in bytes
 [ccGenesisMaxTxSize] :: CompileConfig -> !Byte
 
@@ -1114,6 +1119,9 @@ CompileConfig :: !Int -> !Int -> !Int -> !Byte -> !Byte -> !Double -> !Double ->
 
 -- | Portion of total stake necessary to vote for or against update.
 [ccGenesisUpdateVoteThd] :: CompileConfig -> !Double
+
+-- | Maximum update proposal size in bytes
+[ccGenesisMaxUpdateProposalSize] :: CompileConfig -> !Byte
 
 -- | Portion of total stake such that block containing UpdateProposal must
 --   contain positive votes for this proposal from stakeholders owning at
@@ -1128,6 +1136,12 @@ CompileConfig :: !Int -> !Int -> !Int -> !Byte -> !Byte -> !Double -> !Double ->
 --   with some block version is bigger than this portion, this block
 --   version is adopted.
 [ccGenesisUpdateSoftforkThd] :: CompileConfig -> !Double
+
+-- | Maximum <tt>ReqMsg</tt> size in bytes
+[ccMaxReqSize] :: CompileConfig -> !Byte
+
+-- | Maximum <tt>InvMsg</tt> size in bytes
+[ccMaxInvSize] :: CompileConfig -> !Byte
 
 -- | Estimated time for broadcasting messages
 [ccNetworkDiameter] :: CompileConfig -> !Int
@@ -1247,8 +1261,17 @@ genesisSlotDuration :: Millisecond
 -- | Maximum size of a block (in bytes)
 genesisMaxBlockSize :: Byte
 
+-- | Maximum size of a block header (in bytes)
+genesisMaxHeaderSize :: Byte
+
 -- | See <a>ccGenesisMaxTxSize</a>.
 genesisMaxTxSize :: Byte
+
+-- | See <a>ccMaxReqSize</a>.
+maxReqSize :: Byte
+
+-- | See <a>ccMaxInvSize</a>.
+maxInvSize :: Byte
 
 -- | See <a>ccGenesisMpcThd</a>.
 genesisMpcThd :: CoinPortion
@@ -1258,6 +1281,9 @@ genesisHeavyDelThd :: CoinPortion
 
 -- | See <a>ccGenesisUpdateVoteThd</a>.
 genesisUpdateVoteThd :: CoinPortion
+
+-- | See <a>ccGenesisMaxUpdateProposalSize</a>.
+genesisMaxUpdateProposalSize :: Byte
 
 -- | See <a>ccGenesisUpdateProposalThd</a>.
 genesisUpdateProposalThd :: CoinPortion
@@ -1872,6 +1898,182 @@ instance GHC.Show.Show Pos.Util.JsonLog.JLEvent
 instance GHC.Show.Show Pos.Util.JsonLog.JLBlock
 
 
+-- | GState DB stores whole global state, i. e. result of application of
+--   all blocks up to <i>tip</i>.
+module Pos.DB.GState
+
+-- | Tries to retrieve next block using current one (given a block/header).
+resolveForwardLink :: (HasHeaderHash a, MonadDB m) => a -> m (Maybe HeaderHash)
+
+-- | Check if given hash representing block is in main chain.
+isBlockInMainChain :: (HasHeaderHash a, MonadDB m) => a -> m Bool
+data BlockExtraOp
+
+-- | Adds or overwrites forward link
+AddForwardLink :: HeaderHash -> HeaderHash -> BlockExtraOp
+
+-- | Removes forward link
+RemoveForwardLink :: HeaderHash -> BlockExtraOp
+
+-- | Enables or disables "in main chain" status of the block
+SetInMainChain :: Bool -> HeaderHash -> BlockExtraOp
+
+-- | Returns headers loaded up.
+loadHeadersUpWhile :: (SscHelpersClass ssc, MonadDB m, HasHeaderHash a) => a -> (BlockHeader ssc -> Int -> Bool) -> m (OldestFirst [] (BlockHeader ssc))
+
+-- | Returns blocks loaded up.
+loadBlocksUpWhile :: (SscHelpersClass ssc, MonadDB m, HasHeaderHash a) => a -> (Block ssc -> Int -> Bool) -> m (OldestFirst [] (Block ssc))
+prepareGStateBlockExtra :: MonadDB m => HeaderHash -> m ()
+
+-- | Put missing initial data into GState DB.
+prepareGStateDB :: forall ssc m. (WithNodeContext ssc m, MonadDB m) => HeaderHash -> m ()
+
+-- | Check that GState DB is consistent.
+sanityCheckGStateDB :: forall m. (MonadDB m, MonadMask m, WithLogger m) => m ()
+usingGStateSnapshot :: (MonadDB m, MonadMask m) => m a -> m a
+
+-- | Retrieves certificate by issuer address (hash of public key) if
+--   present.
+getPSKByIssuerAddressHash :: MonadDB m => StakeholderId -> m (Maybe ProxySKHeavy)
+
+-- | Retrieves certificate by issuer public key if present.
+getPSKByIssuer :: MonadDB m => PublicKey -> m (Maybe ProxySKHeavy)
+isIssuerByAddressHash :: MonadDB m => StakeholderId -> m Bool
+data DelegationOp
+
+-- | Adds PSK. Overwrites if present.
+AddPSK :: !ProxySKHeavy -> DelegationOp
+
+-- | Removes PSK by issuer PK.
+DelPSK :: !PublicKey -> DelegationOp
+runPskIterator :: forall m a. MonadDB m => DBnIterator PskIter a -> m a
+runPskMapIterator :: forall v m a. MonadDB m => DBnMapIterator PskIter v a -> (IterType PskIter -> v) -> m a
+
+-- | Get total amount of stake to be used for follow-the-satoshi. It's
+--   different from total amount of coins in the system.
+getTotalFtsStake :: MonadDB m => m Coin
+
+-- | Get stake owne by given stakeholder (according to rules used for FTS).
+getFtsStake :: MonadDB m => StakeholderId -> m (Maybe Coin)
+getFtsStakeFromDB :: (MonadIO m, MonadThrow m) => StakeholderId -> DB -> m (Maybe Coin)
+data BalancesOp
+PutFtsSum :: !Coin -> BalancesOp
+PutFtsStake :: !StakeholderId -> !Coin -> BalancesOp
+prepareGStateBalances :: forall m. MonadDB m => Utxo -> m ()
+data BalIter
+runBalanceIterator :: forall m a. MonadDB m => DBnIterator BalIter a -> m a
+runBalanceMapIterator :: forall v m a. MonadDB m => DBnMapIterator BalIter v a -> (IterType BalIter -> v) -> m a
+sanityCheckBalances :: (MonadMask m, MonadDB m, WithLogger m) => m ()
+getTxOutFromDB :: (MonadIO m, MonadThrow m) => TxIn -> DB -> m (Maybe TxOutAux)
+getTxOut :: MonadDB m => TxIn -> m (Maybe TxOutAux)
+data UtxoOp
+DelTxIn :: !TxIn -> UtxoOp
+AddTxOut :: !TxIn -> !TxOutAux -> UtxoOp
+AddGenTxOut :: !TxIn -> !TxOutAux -> UtxoOp
+prepareGStateUtxo :: forall m. MonadDB m => Utxo -> m ()
+data UtxoIter
+runUtxoIterator :: forall i m a. (MonadDB m, DBIteratorClass i, IterKey i ~ TxIn, IterValue i ~ TxOutAux) => DBnIterator i a -> m a
+runUtxoMapIterator :: forall i v m a. (MonadDB m, DBIteratorClass i, IterKey i ~ TxIn, IterValue i ~ TxOutAux) => DBnMapIterator i v a -> (IterType i -> v) -> m a
+getFilteredUtxo :: MonadDB m => Address -> m Utxo
+getFilteredGenUtxo :: MonadDB m => Address -> m Utxo
+sanityCheckUtxo :: (MonadDB m, WithLogger m) => Coin -> m ()
+
+-- | Get last adopted block version.
+getAdoptedBV :: MonadDB m => m BlockVersion
+
+-- | Get state of last adopted BlockVersion.
+getAdoptedBVData :: MonadDB m => m BlockVersionData
+
+-- | Get last adopted BlockVersion and data associated with it.
+getAdoptedBVFull :: MonadDB m => m (BlockVersion, BlockVersionData)
+
+-- | Get <a>BlockVersionState</a> associated with given BlockVersion.
+getBVState :: MonadDB m => BlockVersion -> m (Maybe BlockVersionState)
+
+-- | Get state of UpdateProposal for given UpId
+getProposalState :: MonadDB m => UpId -> m (Maybe ProposalState)
+
+-- | Get UpId of current proposal for given appName
+getAppProposal :: MonadDB m => ApplicationName -> m (Maybe UpId)
+
+-- | Get state of Update Proposal for given AppName
+getProposalStateByApp :: MonadDB m => ApplicationName -> m (Maybe ProposalState)
+
+-- | Get last confirmed SoftwareVersion of given application.
+getConfirmedSV :: MonadDB m => ApplicationName -> m (Maybe NumSoftwareVersion)
+
+-- | Get maximum block size (in bytes).
+getMaxBlockSize :: MonadDB m => m Byte
+
+-- | Get most recent <a>SlottingData</a>.
+getSlottingData :: MonadDB m => m SlottingData
+data UpdateOp
+PutProposal :: !ProposalState -> UpdateOp
+DeleteProposal :: !UpId -> !ApplicationName -> UpdateOp
+ConfirmVersion :: !SoftwareVersion -> UpdateOp
+DelConfirmedVersion :: !ApplicationName -> UpdateOp
+AddConfirmedProposal :: !ConfirmedProposalState -> UpdateOp
+DelConfirmedProposal :: !SoftwareVersion -> UpdateOp
+SetAdopted :: !BlockVersion -> BlockVersionData -> UpdateOp
+SetBVState :: !BlockVersion -> !BlockVersionState -> UpdateOp
+DelBV :: !BlockVersion -> UpdateOp
+PutSlottingData :: !SlottingData -> UpdateOp
+prepareGStateUS :: forall m. MonadDB m => Timestamp -> m ()
+data PropIter
+runProposalMapIterator :: forall v m a. MonadDB m => DBnMapIterator PropIter v a -> (IterType PropIter -> v) -> m a
+runProposalIterator :: forall m a. MonadDB m => DBnIterator PropIter a -> m a
+
+-- | Get all proposals which were issued no later than given slot.
+getOldProposals :: forall m. MonadDB m => SlotId -> m [UndecidedProposalState]
+
+-- | Get all decided proposals which were accepted deeper than given
+--   difficulty.
+getDeepProposals :: forall m. MonadDB m => ChainDifficulty -> m [DecidedProposalState]
+data ConfPropIter
+
+-- | Get confirmed proposals which update our application and have version
+--   bigger than argument (or all proposals if <a>Nothing</a> is passed).
+--   For instance, current software version can be passed to this function
+--   to get all proposals with bigger version.
+getConfirmedProposals :: MonadDB m => Maybe NumSoftwareVersion -> m [ConfirmedProposalState]
+data BVIter
+
+-- | Get all proposed <a>BlockVersion</a>s.
+getProposedBVs :: MonadDB m => m [BlockVersion]
+
+-- | Get all confirmed <a>BlockVersion</a>s and their states.
+getConfirmedBVStates :: MonadDB m => m [(BlockVersion, BlockVersionState)]
+getProposedBVStates :: MonadDB m => m [BlockVersionState]
+
+
+-- | Higher-level DB functionality.
+module Pos.DB.DB
+
+-- | Open all DBs stored on disk.
+openNodeDBs :: (MonadIO m) => Bool -> FilePath -> m NodeDBs
+
+-- | Initialize DBs if necessary.
+initNodeDBs :: forall ssc m. (SscHelpersClass ssc, WithNodeContext ssc m, MonadDB m) => m ()
+
+-- | Get current tip from GState DB.
+getTip :: MonadDB m => m HeaderHash
+
+-- | Get block corresponding to tip.
+getTipBlock :: (SscHelpersClass ssc, MonadDB m) => m (Block ssc)
+
+-- | Get BlockHeader corresponding to tip.
+getTipBlockHeader :: (SscHelpersClass ssc, MonadDB m) => m (BlockHeader ssc)
+
+-- | Load blunds from BlockDB starting from tip and while the
+--   <tt>condition</tt> is true.
+loadBlundsFromTipWhile :: (SscHelpersClass ssc, MonadDB m) => (Block ssc -> Bool) -> m (NewestFirst [] (Blund ssc))
+
+-- | Load blunds from BlockDB starting from tip which have depth less than
+--   given.
+loadBlundsFromTipByDepth :: (SscHelpersClass ssc, MonadDB m) => Word -> m (NewestFirst [] (Blund ssc))
+sanityCheckDB :: (MonadMask m, MonadDB m, WithLogger m) => m ()
+
+
 -- | Re-exports of Pos.Context.* functionality.
 module Pos.Context
 
@@ -2052,182 +2254,6 @@ runContextHolder :: NodeContext ssc -> ContextHolder ssc m a -> m a
 module Pos.Security.Util
 shouldIgnoreAddress :: NodeContext ssc -> NetworkAddress -> Bool
 shouldIgnorePkAddress :: NodeContext ssc -> StakeholderId -> Bool
-
-
--- | GState DB stores whole global state, i. e. result of application of
---   all blocks up to <i>tip</i>.
-module Pos.DB.GState
-
--- | Tries to retrieve next block using current one (given a block/header).
-resolveForwardLink :: (HasHeaderHash a, MonadDB m) => a -> m (Maybe HeaderHash)
-
--- | Check if given hash representing block is in main chain.
-isBlockInMainChain :: (HasHeaderHash a, MonadDB m) => a -> m Bool
-data BlockExtraOp
-
--- | Adds or overwrites forward link
-AddForwardLink :: HeaderHash -> HeaderHash -> BlockExtraOp
-
--- | Removes forward link
-RemoveForwardLink :: HeaderHash -> BlockExtraOp
-
--- | Enables or disables "in main chain" status of the block
-SetInMainChain :: Bool -> HeaderHash -> BlockExtraOp
-
--- | Returns headers loaded up.
-loadHeadersUpWhile :: (SscHelpersClass ssc, MonadDB m, HasHeaderHash a) => a -> (BlockHeader ssc -> Int -> Bool) -> m (OldestFirst [] (BlockHeader ssc))
-
--- | Returns blocks loaded up.
-loadBlocksUpWhile :: (SscHelpersClass ssc, MonadDB m, HasHeaderHash a) => a -> (Block ssc -> Int -> Bool) -> m (OldestFirst [] (Block ssc))
-prepareGStateBlockExtra :: MonadDB m => HeaderHash -> m ()
-
--- | Put missing initial data into GState DB.
-prepareGStateDB :: forall ssc m. (WithNodeContext ssc m, MonadDB m) => HeaderHash -> m ()
-
--- | Check that GState DB is consistent.
-sanityCheckGStateDB :: forall m. (MonadDB m, MonadMask m, WithLogger m) => m ()
-usingGStateSnapshot :: (MonadDB m, MonadMask m) => m a -> m a
-
--- | Retrieves certificate by issuer address (hash of public key) if
---   present.
-getPSKByIssuerAddressHash :: MonadDB m => StakeholderId -> m (Maybe ProxySKHeavy)
-
--- | Retrieves certificate by issuer public key if present.
-getPSKByIssuer :: MonadDB m => PublicKey -> m (Maybe ProxySKHeavy)
-isIssuerByAddressHash :: MonadDB m => StakeholderId -> m Bool
-data DelegationOp
-
--- | Adds PSK. Overwrites if present.
-AddPSK :: !ProxySKHeavy -> DelegationOp
-
--- | Removes PSK by issuer PK.
-DelPSK :: !PublicKey -> DelegationOp
-runPskIterator :: forall m a. MonadDB m => DBnIterator PskIter a -> m a
-runPskMapIterator :: forall v m a. MonadDB m => DBnMapIterator PskIter v a -> (IterType PskIter -> v) -> m a
-
--- | Get total amount of stake to be used for follow-the-satoshi. It's
---   different from total amount of coins in the system.
-getTotalFtsStake :: MonadDB m => m Coin
-
--- | Get stake owne by given stakeholder (according to rules used for FTS).
-getFtsStake :: MonadDB m => StakeholderId -> m (Maybe Coin)
-getFtsStakeFromDB :: (MonadIO m, MonadThrow m) => StakeholderId -> DB -> m (Maybe Coin)
-data BalancesOp
-PutFtsSum :: !Coin -> BalancesOp
-PutFtsStake :: !StakeholderId -> !Coin -> BalancesOp
-prepareGStateBalances :: forall m. MonadDB m => Utxo -> m ()
-data BalIter
-runBalanceIterator :: forall m a. MonadDB m => DBnIterator BalIter a -> m a
-runBalanceMapIterator :: forall v m a. MonadDB m => DBnMapIterator BalIter v a -> (IterType BalIter -> v) -> m a
-sanityCheckBalances :: (MonadMask m, MonadDB m, WithLogger m) => m ()
-getTxOutFromDB :: (MonadIO m, MonadThrow m) => TxIn -> DB -> m (Maybe TxOutAux)
-getTxOut :: MonadDB m => TxIn -> m (Maybe TxOutAux)
-data UtxoOp
-DelTxIn :: !TxIn -> UtxoOp
-AddTxOut :: !TxIn -> !TxOutAux -> UtxoOp
-AddGenTxOut :: !TxIn -> !TxOutAux -> UtxoOp
-prepareGStateUtxo :: forall m. MonadDB m => Utxo -> m ()
-data UtxoIter
-runUtxoIterator :: forall i m a. (MonadDB m, DBIteratorClass i, IterKey i ~ TxIn, IterValue i ~ TxOutAux) => DBnIterator i a -> m a
-runUtxoMapIterator :: forall i v m a. (MonadDB m, DBIteratorClass i, IterKey i ~ TxIn, IterValue i ~ TxOutAux) => DBnMapIterator i v a -> (IterType i -> v) -> m a
-getFilteredUtxo :: MonadDB m => Address -> m Utxo
-getFilteredGenUtxo :: MonadDB m => Address -> m Utxo
-sanityCheckUtxo :: (MonadDB m, WithLogger m) => Coin -> m ()
-
--- | Get last adopted block version.
-getAdoptedBV :: MonadDB m => m BlockVersion
-
--- | Get state of last adopted BlockVersion.
-getAdoptedBVData :: MonadDB m => m BlockVersionData
-
--- | Get last adopted BlockVersion and data associated with it.
-getAdoptedBVFull :: MonadDB m => m (BlockVersion, BlockVersionData)
-
--- | Get <a>BlockVersionState</a> associated with given BlockVersion.
-getBVState :: MonadDB m => BlockVersion -> m (Maybe BlockVersionState)
-
--- | Get state of UpdateProposal for given UpId
-getProposalState :: MonadDB m => UpId -> m (Maybe ProposalState)
-
--- | Get UpId of current proposal for given appName
-getAppProposal :: MonadDB m => ApplicationName -> m (Maybe UpId)
-
--- | Get state of Update Proposal for given AppName
-getProposalStateByApp :: MonadDB m => ApplicationName -> m (Maybe ProposalState)
-
--- | Get last confirmed SoftwareVersion of given application.
-getConfirmedSV :: MonadDB m => ApplicationName -> m (Maybe NumSoftwareVersion)
-
--- | Get maximum block size (in bytes).
-getMaxBlockSize :: MonadDB m => m Byte
-
--- | Get most recent <a>SlottingData</a>.
-getSlottingData :: MonadDB m => m SlottingData
-data UpdateOp
-PutProposal :: !ProposalState -> UpdateOp
-DeleteProposal :: !UpId -> !ApplicationName -> UpdateOp
-ConfirmVersion :: !SoftwareVersion -> UpdateOp
-DelConfirmedVersion :: !ApplicationName -> UpdateOp
-AddConfirmedProposal :: !ConfirmedProposalState -> UpdateOp
-DelConfirmedProposal :: !SoftwareVersion -> UpdateOp
-SetAdopted :: !BlockVersion -> BlockVersionData -> UpdateOp
-SetBVState :: !BlockVersion -> !BlockVersionState -> UpdateOp
-DelBV :: !BlockVersion -> UpdateOp
-PutSlottingData :: !SlottingData -> UpdateOp
-prepareGStateUS :: forall m. MonadDB m => Timestamp -> m ()
-data PropIter
-runProposalMapIterator :: forall v m a. MonadDB m => DBnMapIterator PropIter v a -> (IterType PropIter -> v) -> m a
-runProposalIterator :: forall m a. MonadDB m => DBnIterator PropIter a -> m a
-
--- | Get all proposals which were issued no later than given slot.
-getOldProposals :: forall m. MonadDB m => SlotId -> m [UndecidedProposalState]
-
--- | Get all decided proposals which were accepted deeper than given
---   difficulty.
-getDeepProposals :: forall m. MonadDB m => ChainDifficulty -> m [DecidedProposalState]
-data ConfPropIter
-
--- | Get confirmed proposals which update our application and have version
---   bigger than argument (or all proposals if <a>Nothing</a> is passed).
---   For instance, current software version can be passed to this function
---   to get all proposals with bigger version.
-getConfirmedProposals :: MonadDB m => Maybe NumSoftwareVersion -> m [ConfirmedProposalState]
-data BVIter
-
--- | Get all proposed <a>BlockVersion</a>s.
-getProposedBVs :: MonadDB m => m [BlockVersion]
-
--- | Get all confirmed <a>BlockVersion</a>s and their states.
-getConfirmedBVStates :: MonadDB m => m [(BlockVersion, BlockVersionState)]
-getProposedBVStates :: MonadDB m => m [BlockVersionState]
-
-
--- | Higher-level DB functionality.
-module Pos.DB.DB
-
--- | Open all DBs stored on disk.
-openNodeDBs :: (MonadIO m) => Bool -> FilePath -> m NodeDBs
-
--- | Initialize DBs if necessary.
-initNodeDBs :: forall ssc m. (SscHelpersClass ssc, WithNodeContext ssc m, MonadDB m) => m ()
-
--- | Get current tip from GState DB.
-getTip :: MonadDB m => m HeaderHash
-
--- | Get block corresponding to tip.
-getTipBlock :: (SscHelpersClass ssc, MonadDB m) => m (Block ssc)
-
--- | Get BlockHeader corresponding to tip.
-getTipBlockHeader :: (SscHelpersClass ssc, MonadDB m) => m (BlockHeader ssc)
-
--- | Load blunds from BlockDB starting from tip and while the
---   <tt>condition</tt> is true.
-loadBlundsFromTipWhile :: (SscHelpersClass ssc, MonadDB m) => (Block ssc -> Bool) -> m (NewestFirst [] (Blund ssc))
-
--- | Load blunds from BlockDB starting from tip which have depth less than
---   given.
-loadBlundsFromTipByDepth :: (SscHelpersClass ssc, MonadDB m) => Word -> m (NewestFirst [] (Blund ssc))
-sanityCheckDB :: (MonadMask m, MonadDB m, WithLogger m) => m ()
 
 
 -- | This module re-exports functionality from Pos.Ssc.Extra.* modules.
@@ -2439,7 +2465,7 @@ module Pos.WorkMode
 
 -- | Bunch of constraints to perform work for real world distributed
 --   system.
-type WorkMode ssc m = (MinWorkMode m, MonadMask m, MonadSlots m, MonadDB m, MonadTxpMem m, MonadDelegation m, MonadSscMem ssc m, SscGStateClass ssc, SscLocalDataClass ssc, SscHelpersClass ssc, WithNodeContext ssc m, MonadStats m, MonadJL m, WithKademliaDHTInstance m, WithPeerState m, MonadUSMem m)
+type WorkMode ssc m = (MinWorkMode m, MonadMask m, MonadSlots m, MonadDB m, MonadDBLimits m, MonadTxpMem m, MonadDelegation m, MonadSscMem ssc m, SscGStateClass ssc, SscLocalDataClass ssc, SscHelpersClass ssc, WithNodeContext ssc m, MonadStats m, MonadJL m, WithKademliaDHTInstance m, WithPeerState m, MonadUSMem m)
 
 -- | More relaxed version of <a>WorkMode</a>.
 type MinWorkMode m = (WithLogger m, MonadMockable m, MonadDHT m, MonadIO m, WithPeerState m)
@@ -2458,10 +2484,12 @@ type ServiceMode = PeerStateHolder (KademliaDHT (LoggerNameBox Production))
 type StatsMode ssc = StatsT (RawRealMode ssc)
 instance (GHC.Base.Monad m, Pos.Context.Class.WithNodeContext ssc m) => Pos.Context.Class.WithNodeContext ssc (Pos.DHT.Real.Types.KademliaDHT m)
 instance Pos.DB.Class.MonadDB m => Pos.DB.Class.MonadDB (Pos.DHT.Real.Types.KademliaDHT m)
+instance Pos.DB.Limits.MonadDBLimits m => Pos.DB.Limits.MonadDBLimits (Pos.DHT.Real.Types.KademliaDHT m)
 instance Pos.Delegation.Class.MonadDelegation m => Pos.Delegation.Class.MonadDelegation (Pos.DHT.Real.Types.KademliaDHT m)
 instance Pos.Update.MemState.Class.MonadUSMem m => Pos.Update.MemState.Class.MonadUSMem (Pos.DHT.Real.Types.KademliaDHT m)
 instance (GHC.Base.Monad m, Pos.Context.Class.WithNodeContext ssc m) => Pos.Context.Class.WithNodeContext ssc (Pos.Communication.PeerState.PeerStateHolder m)
 instance Pos.DB.Class.MonadDB m => Pos.DB.Class.MonadDB (Pos.Communication.PeerState.PeerStateHolder m)
+instance Pos.DB.Limits.MonadDBLimits m => Pos.DB.Limits.MonadDBLimits (Pos.Communication.PeerState.PeerStateHolder m)
 instance Pos.DHT.Model.Class.MonadDHT m => Pos.DHT.Model.Class.MonadDHT (Pos.Communication.PeerState.PeerStateHolder m)
 instance Pos.Ssc.Extra.Class.MonadSscMem ssc m => Pos.Ssc.Extra.Class.MonadSscMem ssc (Pos.Communication.PeerState.PeerStateHolder m)
 instance Pos.Delegation.Class.MonadDelegation m => Pos.Delegation.Class.MonadDelegation (Pos.Communication.PeerState.PeerStateHolder m)
@@ -2471,72 +2499,175 @@ instance Pos.Update.MemState.Class.MonadUSMem m => Pos.Update.MemState.Class.Mon
 instance (GHC.Base.Monad m, Pos.DHT.Real.Types.WithKademliaDHTInstance m) => Pos.DHT.Real.Types.WithKademliaDHTInstance (Pos.Communication.PeerState.PeerStateHolder m)
 instance Pos.Util.JsonLog.MonadJL m => Pos.Util.JsonLog.MonadJL (Pos.DHT.Real.Types.KademliaDHT m)
 
-
--- | Framework for Inv<i>Req</i>Dat message handling
-module Pos.Communication.Relay
-
--- | Typeclass for general Inv<i>Req</i>Dat framework. It describes monads,
---   that store data described by tag, where "key" stands for node
---   identifier.
-class (Buildable tag, Buildable contents, Buildable key, Typeable tag, Typeable contents, Typeable key, Message (InvOrData tag key contents), Message (ReqMsg key tag)) => Relay m tag key contents | tag -> contents, contents -> tag, contents -> key, tag -> key
-
--- | Converts data to tag. Tag returned in monad <tt>m</tt> for only type
---   matching reason (multiparam type classes are tricky)
-contentsToTag :: Relay m tag key contents => contents -> m tag
-
--- | Same for key. Sometime contents has key inside already, so it's
---   redundant to double-pass it everywhere.
-contentsToKey :: Relay m tag key contents => contents -> m key
-verifyInvTag :: Relay m tag key contents => tag -> m VerificationRes
-verifyReqTag :: Relay m tag key contents => tag -> m VerificationRes
-verifyDataContents :: Relay m tag key contents => contents -> m VerificationRes
-
--- | Handle inv msg and return whether it's useful or not
-handleInv :: Relay m tag key contents => tag -> key -> m Bool
-
--- | Handle req msg and return (Just data) in case requested data can be
---   provided
-handleReq :: Relay m tag key contents => tag -> key -> m (Maybe contents)
-
--- | Handle data msg and return True if message is to be propagated
-handleData :: Relay m tag key contents => contents -> m Bool
-
--- | Inventory message. Can be used to announce the fact that you have some
---   data.
-data InvMsg key tag
-InvMsg :: !tag -> !(NonEmpty key) -> InvMsg key tag
-[imTag] :: InvMsg key tag -> !tag
-[imKeys] :: InvMsg key tag -> !(NonEmpty key)
-
--- | Request message. Can be used to request data (ideally data which was
---   previously announced by inventory message).
-data ReqMsg key tag
-ReqMsg :: !tag -> !(NonEmpty key) -> ReqMsg key tag
-[rmTag] :: ReqMsg key tag -> !tag
-[rmKeys] :: ReqMsg key tag -> !(NonEmpty key)
-
--- | Data message. Can be used to send actual data.
-data DataMsg contents
-DataMsg :: !contents -> DataMsg contents
-[dmContents] :: DataMsg contents -> !contents
-relayListeners :: (MonadDHT m, Bi (InvMsg key tag), Bi (ReqMsg key tag), Bi (DataMsg contents), Bi (InvOrData tag key contents), MessagePart contents, MessagePart tag, Relay m tag key contents, Mockable Throw m, WithLogger m, WorkMode ssc m) => RelayProxy key tag contents -> ([ListenerSpec m], OutSpecs)
-relayStubListeners :: (WithLogger m, Bi (InvMsg key tag), Bi (ReqMsg key tag), Bi (DataMsg contents), Message (InvOrData tag key contents), Message (ReqMsg key tag)) => RelayProxy key tag contents -> ([ListenerSpec m], OutSpecs)
-relayWorkers :: forall ssc m. (Mockable Throw m, WorkMode ssc m, Bi NOP, Message NOP) => ([WorkerSpec m], OutSpecs)
-data RelayProxy key tag contents
-RelayProxy :: RelayProxy key tag contents
-type InvOrData tag key contents = Either (InvMsg key tag) (DataMsg contents)
-invReqDataFlow :: (Message (InvOrData tag id contents), Message (ReqMsg id tag), Buildable id, MinWorkMode m, Bi tag, Bi id, Bi (InvOrData tag id contents), Bi (ReqMsg id tag)) => Text -> SendActions m -> DHTNode -> tag -> id -> contents -> m ()
-invReqDataFlowNeighbors :: (Message (InvOrData tag id contents), Message (ReqMsg id tag), Buildable id, MinWorkMode m, Bi tag, Bi id, Bi (InvOrData tag id contents), Bi (ReqMsg id tag)) => Text -> SendActions m -> tag -> id -> contents -> m ()
-instance GHC.Show.Show Pos.Communication.Relay.RelayError
-instance GHC.Generics.Generic Pos.Communication.Relay.RelayError
-instance GHC.Exception.Exception Pos.Communication.Relay.RelayError
-
-
--- | Arbitrary instances for Update System types.
-module Pos.Update.Arbitrary
-
 module Pos.DHT.Workers
 dhtWorkers :: (WorkMode ssc m) => ([WorkerSpec m], OutSpecs)
+
+module Pos.Security.Class
+class Ssc ssc => SecurityWorkersClass ssc
+securityWorkers :: (SecurityWorkersClass ssc, WorkMode ssc m) => Tagged ssc ([WorkerSpec m], OutSpecs)
+
+module Pos.Security
+
+
+-- | Leaders and richmen computation.
+module Pos.Lrc
+
+-- | Datatype for LRC computation client. If you want to compute richmen,
+--   you should add such client to LRC framework
+data LrcConsumer m
+LrcConsumer :: (Coin -> Coin) -> (EpochIndex -> m Bool) -> (EpochIndex -> Coin -> RichmenStake -> m ()) -> Bool -> LrcConsumer m
+
+-- | Function which defines threshold depends on total stake
+[lcThreshold] :: LrcConsumer m -> Coin -> Coin
+
+-- | Function which defines necessity of richmen computation
+[lcIfNeedCompute] :: LrcConsumer m -> EpochIndex -> m Bool
+
+-- | Callback which will be called when richmen computed
+[lcComputedCallback] :: LrcConsumer m -> EpochIndex -> Coin -> RichmenStake -> m ()
+
+-- | Whether delegated stake should be considered
+[lcConsiderDelegated] :: LrcConsumer m -> Bool
+
+-- | Create LrcConsumer using constants from RichmenComponent and given
+--   actions.
+lrcConsumerFromComponent :: forall c m. RichmenComponent c => (EpochIndex -> m Bool) -> (EpochIndex -> Coin -> RichmenStake -> m ()) -> LrcConsumer m
+
+-- | Create simple LrcConsumer using constants from RichmenComponent which
+--   uses only LRC DB.
+lrcConsumerFromComponentSimple :: forall c m. (RichmenComponent c, MonadDB m) => LrcConsumer m
+allLrcConsumers :: (SscWorkersClass ssc, WorkMode ssc m) => [LrcConsumer m]
+
+-- | Find nodes which have at least 'eligibility threshold' coins.
+findRichmenStake :: forall m. MonadIterator (StakeholderId, Coin) m => Coin -> m RichmenStake
+
+-- | Pure version of findRichmen which uses in-memory Utxo.
+findRichmenPure :: [(StakeholderId, Coin)] -> (Coin -> Coin) -> RichmenType -> FullRichmenData
+
+-- | Function considers all variants of computation and compute using one
+--   pass by stake DB and one pass by delegation DB.
+findAllRichmenMaybe :: forall m. (MonadDB m, MonadIterator (StakeholderId, Coin) m) => Maybe Coin -> Maybe Coin -> m (RichmenStake, RichmenStake)
+
+-- | Find delegated richmen.
+findDelegatedRichmen :: (MonadDB m, MonadIterator (StakeholderId, Coin) m) => Coin -> m RichmenStake
+data RichmenType
+RTUsual :: RichmenType
+RTDelegation :: (HashMap StakeholderId [StakeholderId]) -> RichmenType
+
+-- | Addresses which have enough stake for participation in SSC.
+type Richmen = NonEmpty StakeholderId
+
+-- | Hashset of richmen.
+type RichmenSet = HashSet StakeholderId
+
+-- | Richmen with Stake
+type RichmenStake = HashMap StakeholderId Coin
+toRichmen :: RichmenStake -> Richmen
+
+-- | Full richmen data consists of total stake at some point and stake
+--   distribution among richmen.
+type FullRichmenData = (Coin, RichmenStake)
+
+
+-- | Re-exports of Pos.Ssc.Class.* modules.
+module Pos.Ssc.Class
+class Ssc ssc => SscHelpersClass ssc
+sscVerifyPayload :: SscHelpersClass ssc => Tagged ssc (Either EpochIndex (MainBlockHeader ssc) -> SscPayload ssc -> Either (SscVerifyError ssc) ())
+
+-- | Class for defining listeners in DHT <tt>SSC</tt> implementation.
+class Ssc ssc => SscListenersClass ssc
+sscListeners :: (SscListenersClass ssc, WorkMode ssc m) => m (Tagged ssc ([ListenerSpec m], OutSpecs))
+sscStubListeners :: (SscListenersClass ssc, WithLogger m) => Tagged ssc ([ListenerSpec m], OutSpecs)
+type LocalQuery ssc a = forall m. (MonadReader (SscLocalData ssc) m, WithLogger m) => m a
+type LocalUpdate ssc a = forall m. (MonadState (SscLocalData ssc) m, WithLogger m) => m a
+
+-- | This type class abstracts local data used for SSC. Local means that it
+--   is not stored in blocks.
+class Ssc ssc => SscLocalDataClass ssc
+
+-- | Get local payload to be put into main block and for given
+--   <a>SlotId</a>. If payload for given <a>SlotId</a> can't be
+--   constructed, empty payload can be returned.
+sscGetLocalPayloadQ :: SscLocalDataClass ssc => SlotId -> LocalQuery ssc (SscPayload ssc)
+
+-- | Make <a>SscLocalData</a> valid for given epoch, richmen and global
+--   state. of best known chain).
+sscNormalizeU :: SscLocalDataClass ssc => EpochIndex -> RichmenStake -> SscGlobalState ssc -> LocalUpdate ssc ()
+
+-- | Create new (empty) local data. We are using this function instead of
+--   <tt>Default</tt> class, because it gives more flexibility. For
+--   instance, one can read something from DB or get current slot.
+sscNewLocalData :: (SscLocalDataClass ssc, MonadSlots m, MonadDB m) => m (SscLocalData ssc)
+class Ssc ssc => SscGStateClass ssc
+
+-- | Load global state from DB by recreating it from recent blocks.
+sscLoadGlobalState :: (SscGStateClass ssc, WithNodeContext ssc m, MonadDB m, WithLogger m) => m (SscGlobalState ssc)
+
+-- | Rollback application of blocks.
+sscRollbackU :: SscGStateClass ssc => NewestFirst NE (Block ssc) -> SscGlobalUpdate ssc ()
+
+-- | Verify SSC-related part of given blocks with respect to current GState
+--   and apply them on success. Blocks must be from the same epoch.
+sscVerifyAndApplyBlocks :: SscGStateClass ssc => RichmenStake -> OldestFirst NE (Block ssc) -> SscVerifier ssc ()
+
+-- | Calculate <a>SharedSeed</a> for given epoch using
+--   <a>SscGlobalState</a>.
+sscCalculateSeedQ :: SscGStateClass ssc => EpochIndex -> SscGlobalQuery ssc (Either (SscSeedError ssc) SharedSeed)
+type SscGlobalQuery ssc a = forall m. (MonadReader (SscGlobalState ssc) m, WithLogger m) => m a
+type SscGlobalUpdate ssc a = forall m. (MonadState (SscGlobalState ssc) m, WithLogger m) => m a
+type SscVerifier ssc a = forall m. SscVerifyMode ssc m => m a
+
+-- | Main Shared Seed Calculation type class. Stores all needed type
+--   parameters for general implementation of SSC.
+class (Typeable ssc, Typeable (SscPayload ssc), Typeable (SscProof ssc), Typeable (SscSeedError ssc), Eq (SscProof ssc), Eq (SscGlobalState ssc), Show (SscProof ssc), Show (SscPayload ssc), Buildable (SscPayload ssc), Buildable (SscSeedError ssc), Buildable (SscVerifyError ssc), Buildable (SscGlobalState ssc), Bi (SscProof ssc), Bi (SscPayload ssc), NFData (SscPayload ssc), NFData (SscProof ssc)) => Ssc ssc where type SscLocalData ssc type SscPayload ssc type SscGlobalState ssc type SscProof ssc type SscSeedError ssc type SscNodeContext ssc type SscParams ssc type SscVerifyError ssc where {
+    type family SscLocalData ssc;
+    type family SscPayload ssc;
+    type family SscGlobalState ssc;
+    type family SscProof ssc;
+    type family SscSeedError ssc;
+    type family SscNodeContext ssc;
+    type family SscParams ssc;
+    type family SscVerifyError ssc;
+}
+
+-- | Create proof (for inclusion into block header) from payload
+mkSscProof :: Ssc ssc => Tagged ssc (SscPayload ssc -> SscProof ssc)
+
+-- | Create SscNodeContext
+sscCreateNodeContext :: (Ssc ssc, MonadIO m) => Tagged ssc (SscParams ssc -> m (SscNodeContext ssc))
+
+-- | Class for <tt>SSC</tt> workers.
+class Ssc ssc => SscWorkersClass ssc
+
+-- | All workers specific to SSC.
+sscWorkers :: (SscWorkersClass ssc, WorkMode ssc m) => Tagged ssc ([WorkerSpec m], OutSpecs)
+sscLrcConsumers :: (SscWorkersClass ssc, WorkMode ssc m) => Tagged ssc [LrcConsumer m]
+type SscConstraint ssc = (Ssc ssc, SscListenersClass ssc, SscLocalDataClass ssc, SscHelpersClass ssc, SscGStateClass ssc, SscWorkersClass ssc, SecurityWorkersClass ssc)
+type WorkModeSsc ssc = (SscLocalDataClass ssc, SscHelpersClass ssc)
+
+
+-- | Simplified NIST beacon implementation of SSC.
+module Pos.Ssc.NistBeacon
+
+-- | Data type tag for Nist Beacon implementation of Shared Seed
+--   Calculation.
+data SscNistBeacon
+instance GHC.Generics.Generic Pos.Ssc.NistBeacon.SscNistBeacon
+instance GHC.Show.Show Pos.Ssc.NistBeacon.SscNistBeacon
+instance GHC.Classes.Eq Pos.Ssc.NistBeacon.SscNistBeacon
+instance Data.Text.Buildable.Buildable ()
+instance Pos.Ssc.Class.Types.Ssc Pos.Ssc.NistBeacon.SscNistBeacon
+instance Pos.Ssc.Class.Helpers.SscHelpersClass Pos.Ssc.NistBeacon.SscNistBeacon
+instance Pos.Ssc.Class.Workers.SscWorkersClass Pos.Ssc.NistBeacon.SscNistBeacon
+instance Pos.Ssc.Class.Listeners.SscListenersClass Pos.Ssc.NistBeacon.SscNistBeacon
+instance Pos.Ssc.Class.LocalData.SscLocalDataClass Pos.Ssc.NistBeacon.SscNistBeacon
+instance Pos.Ssc.Class.Storage.SscGStateClass Pos.Ssc.NistBeacon.SscNistBeacon
+
+module Pos.Ssc.Arbitrary
+newtype SscPayloadDependsOnSlot ssc
+SscPayloadDependsOnSlot :: (SlotId -> Gen (SscPayload ssc)) -> SscPayloadDependsOnSlot ssc
+[genPayloadDependsOnSlot] :: SscPayloadDependsOnSlot ssc -> SlotId -> Gen (SscPayload ssc)
+instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Arbitrary.SscPayloadDependsOnSlot Pos.Ssc.NistBeacon.SscNistBeacon)
 
 
 -- | Reexport module
@@ -2739,172 +2870,69 @@ SendProxySKHeavy :: !ProxySKHeavy -> SendProxySK
 data ConfirmProxySK
 ConfirmProxySK :: !ProxySKLight -> !(ProxySigLight ProxySKLight) -> ConfirmProxySK
 
-module Pos.Security.Class
-class Ssc ssc => SecurityWorkersClass ssc
-securityWorkers :: (SecurityWorkersClass ssc, WorkMode ssc m) => Tagged ssc ([WorkerSpec m], OutSpecs)
 
-module Pos.Security
+-- | Framework for Inv<i>Req</i>Dat message handling
+module Pos.Communication.Relay
 
+-- | Typeclass for general Inv<i>Req</i>Dat framework. It describes monads,
+--   that store data described by tag, where "key" stands for node
+--   identifier.
+class (Buildable tag, Buildable contents, Buildable key, Typeable tag, Typeable contents, Typeable key, Message (ReqMsg key tag), Message (InvOrData tag key contents), MessageLimited (DataMsg contents)) => Relay m tag key contents | tag -> contents, contents -> tag, contents -> key, tag -> key
 
--- | Leaders and richmen computation.
-module Pos.Lrc
+-- | Converts data to tag. Tag returned in monad <tt>m</tt> for only type
+--   matching reason (multiparam type classes are tricky)
+contentsToTag :: Relay m tag key contents => contents -> m tag
 
--- | Datatype for LRC computation client. If you want to compute richmen,
---   you should add such client to LRC framework
-data LrcConsumer m
-LrcConsumer :: (Coin -> Coin) -> (EpochIndex -> m Bool) -> (EpochIndex -> Coin -> RichmenStake -> m ()) -> Bool -> LrcConsumer m
+-- | Same for key. Sometime contents has key inside already, so it's
+--   redundant to double-pass it everywhere.
+contentsToKey :: Relay m tag key contents => contents -> m key
+verifyInvTag :: Relay m tag key contents => tag -> m VerificationRes
+verifyReqTag :: Relay m tag key contents => tag -> m VerificationRes
+verifyDataContents :: Relay m tag key contents => contents -> m VerificationRes
 
--- | Function which defines threshold depends on total stake
-[lcThreshold] :: LrcConsumer m -> Coin -> Coin
+-- | Handle inv msg and return whether it's useful or not
+handleInv :: Relay m tag key contents => tag -> key -> m Bool
 
--- | Function which defines necessity of richmen computation
-[lcIfNeedCompute] :: LrcConsumer m -> EpochIndex -> m Bool
+-- | Handle req msg and return (Just data) in case requested data can be
+--   provided
+handleReq :: Relay m tag key contents => tag -> key -> m (Maybe contents)
 
--- | Callback which will be called when richmen computed
-[lcComputedCallback] :: LrcConsumer m -> EpochIndex -> Coin -> RichmenStake -> m ()
+-- | Handle data msg and return True if message is to be propagated
+handleData :: Relay m tag key contents => contents -> m Bool
 
--- | Whether delegated stake should be considered
-[lcConsiderDelegated] :: LrcConsumer m -> Bool
+-- | Inventory message. Can be used to announce the fact that you have some
+--   data.
+data InvMsg key tag
+InvMsg :: !tag -> !(NonEmpty key) -> InvMsg key tag
+[imTag] :: InvMsg key tag -> !tag
+[imKeys] :: InvMsg key tag -> !(NonEmpty key)
 
--- | Create LrcConsumer using constants from RichmenComponent and given
---   actions.
-lrcConsumerFromComponent :: forall c m. RichmenComponent c => (EpochIndex -> m Bool) -> (EpochIndex -> Coin -> RichmenStake -> m ()) -> LrcConsumer m
+-- | Request message. Can be used to request data (ideally data which was
+--   previously announced by inventory message).
+data ReqMsg key tag
+ReqMsg :: !tag -> !(NonEmpty key) -> ReqMsg key tag
+[rmTag] :: ReqMsg key tag -> !tag
+[rmKeys] :: ReqMsg key tag -> !(NonEmpty key)
 
--- | Create simple LrcConsumer using constants from RichmenComponent which
---   uses only LRC DB.
-lrcConsumerFromComponentSimple :: forall c m. (RichmenComponent c, MonadDB m) => LrcConsumer m
-allLrcConsumers :: (SscWorkersClass ssc, WorkMode ssc m) => [LrcConsumer m]
-
--- | Find nodes which have at least 'eligibility threshold' coins.
-findRichmenStake :: forall m. MonadIterator (StakeholderId, Coin) m => Coin -> m RichmenStake
-
--- | Pure version of findRichmen which uses in-memory Utxo.
-findRichmenPure :: [(StakeholderId, Coin)] -> (Coin -> Coin) -> RichmenType -> FullRichmenData
-
--- | Function considers all variants of computation and compute using one
---   pass by stake DB and one pass by delegation DB.
-findAllRichmenMaybe :: forall m. (MonadDB m, MonadIterator (StakeholderId, Coin) m) => Maybe Coin -> Maybe Coin -> m (RichmenStake, RichmenStake)
-
--- | Find delegated richmen.
-findDelegatedRichmen :: (MonadDB m, MonadIterator (StakeholderId, Coin) m) => Coin -> m RichmenStake
-data RichmenType
-RTUsual :: RichmenType
-RTDelegation :: (HashMap StakeholderId [StakeholderId]) -> RichmenType
-
--- | Addresses which have enough stake for participation in SSC.
-type Richmen = NonEmpty StakeholderId
-
--- | Hashset of richmen.
-type RichmenSet = HashSet StakeholderId
-
--- | Richmen with Stake
-type RichmenStake = HashMap StakeholderId Coin
-toRichmen :: RichmenStake -> Richmen
-
--- | Full richmen data consists of total stake at some point and stake
---   distribution among richmen.
-type FullRichmenData = (Coin, RichmenStake)
+-- | Data message. Can be used to send actual data.
+data DataMsg contents
+DataMsg :: !contents -> DataMsg contents
+[dmContents] :: DataMsg contents -> !contents
+relayListeners :: forall m key tag contents ssc. (MonadDHT m, Bi key, Bi tag, Bi (DataMsg contents), Bi (ReqMsg key tag), Bi (InvOrData tag key contents), MessagePart contents, MessagePart tag, Relay m tag key contents, Mockable Throw m, WithLogger m, WorkMode ssc m) => RelayProxy key tag contents -> m ([ListenerSpec m], OutSpecs)
+relayStubListeners :: (WithLogger m, Bi (InvMsg key tag), Bi (ReqMsg key tag), Bi (DataMsg contents), Message (InvOrData tag key contents), Message (ReqMsg key tag)) => RelayProxy key tag contents -> ([ListenerSpec m], OutSpecs)
+relayWorkers :: forall ssc m. (Mockable Throw m, WorkMode ssc m, Bi NOP, Message NOP) => ([WorkerSpec m], OutSpecs)
+data RelayProxy key tag contents
+RelayProxy :: RelayProxy key tag contents
+type InvOrData tag key contents = Either (InvMsg key tag) (DataMsg contents)
+invReqDataFlow :: forall tag id contents m. (Message (InvOrData tag id contents), Message (ReqMsg id tag), Buildable id, MinWorkMode m, MonadDBLimits m, Bi tag, Bi id, Bi (InvOrData tag id contents), Bi (ReqMsg id tag)) => Text -> SendActions m -> DHTNode -> tag -> id -> contents -> m ()
+invReqDataFlowNeighbors :: forall tag id contents m. (Message (InvOrData tag id contents), Message (ReqMsg id tag), Buildable id, MinWorkMode m, MonadDBLimits m, Bi tag, Bi id, Bi (InvOrData tag id contents), Bi (ReqMsg id tag)) => Text -> SendActions m -> tag -> id -> contents -> m ()
+instance GHC.Show.Show Pos.Communication.Relay.RelayError
+instance GHC.Generics.Generic Pos.Communication.Relay.RelayError
+instance GHC.Exception.Exception Pos.Communication.Relay.RelayError
 
 
--- | Re-exports of Pos.Ssc.Class.* modules.
-module Pos.Ssc.Class
-class Ssc ssc => SscHelpersClass ssc
-sscVerifyPayload :: SscHelpersClass ssc => Tagged ssc (Either EpochIndex (MainBlockHeader ssc) -> SscPayload ssc -> Either (SscVerifyError ssc) ())
-
--- | Class for defining listeners in DHT <tt>SSC</tt> implementation.
-class Ssc ssc => SscListenersClass ssc
-sscListeners :: (SscListenersClass ssc, WorkMode ssc m) => Tagged ssc ([ListenerSpec m], OutSpecs)
-sscStubListeners :: (SscListenersClass ssc, WithLogger m) => Tagged ssc ([ListenerSpec m], OutSpecs)
-type LocalQuery ssc a = forall m. (MonadReader (SscLocalData ssc) m, WithLogger m) => m a
-type LocalUpdate ssc a = forall m. (MonadState (SscLocalData ssc) m, WithLogger m) => m a
-
--- | This type class abstracts local data used for SSC. Local means that it
---   is not stored in blocks.
-class Ssc ssc => SscLocalDataClass ssc
-
--- | Get local payload to be put into main block and for given
---   <a>SlotId</a>. If payload for given <a>SlotId</a> can't be
---   constructed, empty payload can be returned.
-sscGetLocalPayloadQ :: SscLocalDataClass ssc => SlotId -> LocalQuery ssc (SscPayload ssc)
-
--- | Make <a>SscLocalData</a> valid for given epoch, richmen and global
---   state. of best known chain).
-sscNormalizeU :: SscLocalDataClass ssc => EpochIndex -> RichmenStake -> SscGlobalState ssc -> LocalUpdate ssc ()
-
--- | Create new (empty) local data. We are using this function instead of
---   <tt>Default</tt> class, because it gives more flexibility. For
---   instance, one can read something from DB or get current slot.
-sscNewLocalData :: (SscLocalDataClass ssc, MonadSlots m, MonadDB m) => m (SscLocalData ssc)
-class Ssc ssc => SscGStateClass ssc
-
--- | Load global state from DB by recreating it from recent blocks.
-sscLoadGlobalState :: (SscGStateClass ssc, WithNodeContext ssc m, MonadDB m, WithLogger m) => m (SscGlobalState ssc)
-
--- | Rollback application of blocks.
-sscRollbackU :: SscGStateClass ssc => NewestFirst NE (Block ssc) -> SscGlobalUpdate ssc ()
-
--- | Verify SSC-related part of given blocks with respect to current GState
---   and apply them on success. Blocks must be from the same epoch.
-sscVerifyAndApplyBlocks :: SscGStateClass ssc => RichmenStake -> OldestFirst NE (Block ssc) -> SscVerifier ssc ()
-
--- | Calculate <a>SharedSeed</a> for given epoch using
---   <a>SscGlobalState</a>.
-sscCalculateSeedQ :: SscGStateClass ssc => EpochIndex -> SscGlobalQuery ssc (Either (SscSeedError ssc) SharedSeed)
-type SscGlobalQuery ssc a = forall m. (MonadReader (SscGlobalState ssc) m, WithLogger m) => m a
-type SscGlobalUpdate ssc a = forall m. (MonadState (SscGlobalState ssc) m, WithLogger m) => m a
-type SscVerifier ssc a = forall m. SscVerifyMode ssc m => m a
-
--- | Main Shared Seed Calculation type class. Stores all needed type
---   parameters for general implementation of SSC.
-class (Typeable ssc, Typeable (SscPayload ssc), Typeable (SscProof ssc), Typeable (SscSeedError ssc), Eq (SscProof ssc), Eq (SscGlobalState ssc), Show (SscProof ssc), Show (SscPayload ssc), Buildable (SscPayload ssc), Buildable (SscSeedError ssc), Buildable (SscVerifyError ssc), Buildable (SscGlobalState ssc), Bi (SscProof ssc), Bi (SscPayload ssc), NFData (SscPayload ssc), NFData (SscProof ssc)) => Ssc ssc where type SscLocalData ssc type SscPayload ssc type SscGlobalState ssc type SscProof ssc type SscSeedError ssc type SscNodeContext ssc type SscParams ssc type SscVerifyError ssc where {
-    type family SscLocalData ssc;
-    type family SscPayload ssc;
-    type family SscGlobalState ssc;
-    type family SscProof ssc;
-    type family SscSeedError ssc;
-    type family SscNodeContext ssc;
-    type family SscParams ssc;
-    type family SscVerifyError ssc;
-}
-
--- | Create proof (for inclusion into block header) from payload
-mkSscProof :: Ssc ssc => Tagged ssc (SscPayload ssc -> SscProof ssc)
-
--- | Create SscNodeContext
-sscCreateNodeContext :: (Ssc ssc, MonadIO m) => Tagged ssc (SscParams ssc -> m (SscNodeContext ssc))
-
--- | Class for <tt>SSC</tt> workers.
-class Ssc ssc => SscWorkersClass ssc
-
--- | All workers specific to SSC.
-sscWorkers :: (SscWorkersClass ssc, WorkMode ssc m) => Tagged ssc ([WorkerSpec m], OutSpecs)
-sscLrcConsumers :: (SscWorkersClass ssc, WorkMode ssc m) => Tagged ssc [LrcConsumer m]
-type SscConstraint ssc = (Ssc ssc, SscListenersClass ssc, SscLocalDataClass ssc, SscHelpersClass ssc, SscGStateClass ssc, SscWorkersClass ssc, SecurityWorkersClass ssc)
-type WorkModeSsc ssc = (SscLocalDataClass ssc, SscHelpersClass ssc)
-
-
--- | Simplified NIST beacon implementation of SSC.
-module Pos.Ssc.NistBeacon
-
--- | Data type tag for Nist Beacon implementation of Shared Seed
---   Calculation.
-data SscNistBeacon
-instance GHC.Generics.Generic Pos.Ssc.NistBeacon.SscNistBeacon
-instance GHC.Show.Show Pos.Ssc.NistBeacon.SscNistBeacon
-instance GHC.Classes.Eq Pos.Ssc.NistBeacon.SscNistBeacon
-instance Data.Text.Buildable.Buildable ()
-instance Pos.Ssc.Class.Types.Ssc Pos.Ssc.NistBeacon.SscNistBeacon
-instance Pos.Ssc.Class.Helpers.SscHelpersClass Pos.Ssc.NistBeacon.SscNistBeacon
-instance Pos.Ssc.Class.Workers.SscWorkersClass Pos.Ssc.NistBeacon.SscNistBeacon
-instance Pos.Ssc.Class.Listeners.SscListenersClass Pos.Ssc.NistBeacon.SscNistBeacon
-instance Pos.Ssc.Class.LocalData.SscLocalDataClass Pos.Ssc.NistBeacon.SscNistBeacon
-instance Pos.Ssc.Class.Storage.SscGStateClass Pos.Ssc.NistBeacon.SscNistBeacon
-
-module Pos.Ssc.Arbitrary
-newtype SscPayloadDependsOnSlot ssc
-SscPayloadDependsOnSlot :: (SlotId -> Gen (SscPayload ssc)) -> SscPayloadDependsOnSlot ssc
-[genPayloadDependsOnSlot] :: SscPayloadDependsOnSlot ssc -> SlotId -> Gen (SscPayload ssc)
-instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Arbitrary.SscPayloadDependsOnSlot Pos.Ssc.NistBeacon.SscNistBeacon)
+-- | Arbitrary instances for Update System types.
+module Pos.Update.Arbitrary
 
 module Pos.Genesis.Arbitrary
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Genesis.Types.GenesisData
@@ -3125,7 +3153,7 @@ TxpLocalData :: !(TVar UtxoView) -> !(TVar MemPool) -> !(TVar UndoMap) -> !(TVar
 
 -- | Pure version of TxpLocalData.
 type TxpLocalDataPure = (UtxoView, MemPool, UndoMap, HeaderHash)
-txListeners :: WorkMode ssc m => ([ListenerSpec m], OutSpecs)
+txListeners :: WorkMode ssc m => m ([ListenerSpec m], OutSpecs)
 txStubListeners :: WithLogger m => ([ListenerSpec m], OutSpecs)
 data TxMsgTag
 TxMsgTag :: TxMsgTag
@@ -3927,6 +3955,10 @@ MCVssCertificate :: !VssCertificate -> GtMsgContents
 
 -- | GtTag appropriate for given DataMsg.
 msgContentsTag :: GtMsgContents -> GtTag
+_MCCommitment :: Prism' GtMsgContents SignedCommitment
+_MCOpening :: Prism' GtMsgContents (StakeholderId, Opening)
+_MCShares :: Prism' GtMsgContents (StakeholderId, InnerSharesMap)
+_MCVssCertificate :: Prism' GtMsgContents VssCertificate
 
 -- | Global state of GodTossing, contains relevant SSC data from blocks.
 data GtGlobalState
@@ -4063,7 +4095,7 @@ baseDocsText :: Text
 gtDocsText :: Text
 type MyWorkMode ssc m = (WorkMode ssc m, SscConstraint ssc)
 type WebHandler ssc = TxpHolder (ContextHolder ssc (DBHolder Production))
-serveImpl :: MonadIO m => m Application -> String -> Word16 -> m ()
+serveImpl :: MonadIO m => m Application -> Word16 -> m ()
 nat :: forall ssc m. (MyWorkMode ssc m) => m (WebHandler ssc :~> Handler)
 serveWebBase :: MyWorkMode ssc m => Word16 -> m ()
 applicationBase :: MyWorkMode ssc m => m Application
@@ -4075,16 +4107,16 @@ applicationGT :: MyWorkMode SscGodTossing m => m Application
 module Pos.Block.Network
 announceBlock :: WorkMode ssc m => SendActions m -> MainBlockHeader ssc -> m ()
 announceBlockOuts :: OutSpecs
-handleHeadersCommunication :: forall ssc m. WorkMode ssc m => ConversationActions (MsgHeaders ssc) MsgGetHeaders m -> m ()
-blockListeners :: (WorkMode ssc m) => ([ListenerSpec m], OutSpecs)
+handleHeadersCommunication :: forall ssc m s. (WorkMode ssc m, Reifies s (Limit MsgGetHeaders)) => ConversationActions (MsgHeaders ssc) (LimitedLength s MsgGetHeaders) m -> Proxy s -> m ()
+blockListeners :: (WorkMode ssc m) => m ([ListenerSpec m], OutSpecs)
 blockStubListeners :: (SscHelpersClass ssc, WithLogger m) => Tagged ssc ([ListenerSpec m], OutSpecs)
 retrievalWorker :: forall ssc m. (SscWorkersClass ssc, WorkMode ssc m) => (WorkerSpec m, OutSpecs)
 
 -- | Triggers recovery based on established communication.
-triggerRecovery :: WorkMode ssc m => SendActions m -> m ()
-handleUnsolicitedHeaders :: forall ssc m. (WorkMode ssc m) => NonEmpty (BlockHeader ssc) -> NodeId -> ConversationActions MsgGetHeaders (MsgHeaders ssc) m -> m ()
-requestTip :: forall ssc m. (WorkMode ssc m) => NodeId -> ConversationActions MsgGetHeaders (MsgHeaders ssc) m -> m ()
-requestHeaders :: forall ssc m. (WorkMode ssc m) => MsgGetHeaders -> Maybe (BlockHeader ssc) -> NodeId -> ConversationActions MsgGetHeaders (MsgHeaders ssc) m -> m ()
+triggerRecovery :: forall ssc m. WorkMode ssc m => SendActions m -> m ()
+handleUnsolicitedHeaders :: forall ssc s m. (WorkMode ssc m) => NonEmpty (BlockHeader ssc) -> NodeId -> ConversationActions MsgGetHeaders (LimitedLength s (MsgHeaders ssc)) m -> m ()
+requestTip :: forall ssc s m. (WorkMode ssc m) => Proxy s -> NodeId -> ConversationActions MsgGetHeaders (LimitedLength s (MsgHeaders ssc)) m -> m ()
+requestHeaders :: forall ssc s m. (WorkMode ssc m) => MsgGetHeaders -> Maybe (BlockHeader ssc) -> NodeId -> Proxy s -> ConversationActions MsgGetHeaders (LimitedLength s (MsgHeaders ssc)) m -> m ()
 
 -- | Given nonempty list of valid blockheaders and nodeid, this function
 --   will put them into download queue and they will be processed later.
@@ -4138,12 +4170,8 @@ newtype MsgHeaders ssc
 MsgHeaders :: (NewestFirst NE (BlockHeader ssc)) -> MsgHeaders ssc
 
 -- | <a>Block</a> message (see protocol specification).
---   
---   The <tt>s</tt> parameter is used for passing block size limit to
---   deserialization instances (using <a>Data.Reflection</a>). Grep for
---   <tt>reify</tt> and <tt>reflect</tt> to see usage examples.
-newtype MsgBlock s ssc
-MsgBlock :: (Block ssc) -> MsgBlock s ssc
+newtype MsgBlock ssc
+MsgBlock :: (Block ssc) -> MsgBlock ssc
 
 module Pos.Block.Arbitrary
 newtype BlockHeaderList ssc
@@ -4171,7 +4199,7 @@ instance (Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Class.Types.SscProof ssc)
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Block.Network.Types.MsgGetHeaders
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Block.Network.Types.MsgGetBlocks
 instance (Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Class.Types.SscProof ssc), Pos.Binary.Class.Bi Pos.Binary.Class.Raw, Pos.Ssc.Class.Types.Ssc ssc) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Block.Network.Types.MsgHeaders ssc)
-instance (Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Class.Types.SscProof ssc), Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Arbitrary.SscPayloadDependsOnSlot ssc), Pos.Ssc.Class.Helpers.SscHelpersClass ssc) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Block.Network.Types.MsgBlock s ssc)
+instance (Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Class.Types.SscProof ssc), Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Arbitrary.SscPayloadDependsOnSlot ssc), Pos.Ssc.Class.Helpers.SscHelpersClass ssc) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Block.Network.Types.MsgBlock ssc)
 instance Pos.Types.Block.Types.BiSsc ssc => Data.Text.Buildable.Buildable (Pos.Types.Block.Types.BlockHeader ssc, Pos.Crypto.Signing.PublicKey)
 instance Pos.Types.Block.Types.BiSsc ssc => GHC.Show.Show (Pos.Block.Arbitrary.BlockHeaderList ssc)
 instance (Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Class.Types.SscPayload ssc), Pos.Ssc.Class.Helpers.SscHelpersClass ssc) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Block.Arbitrary.BlockHeaderList ssc)
@@ -4337,7 +4365,7 @@ mkMemState :: MemState
 newMemVar :: MonadIO m => m MemVar
 
 -- | Listeners for requests related to update system
-usListeners :: (WorkMode ssc m) => ([ListenerSpec m], OutSpecs)
+usListeners :: (WorkMode ssc m) => m ([ListenerSpec m], OutSpecs)
 usStubListeners :: (WithLogger m) => ([ListenerSpec m], OutSpecs)
 
 -- | Tag for proposal messages
@@ -4833,7 +4861,7 @@ module Pos.Aeson
 module Pos.Wallet.Web
 
 -- | Servant API which provides access to wallet.
-type WalletApi = ("api" :> ("test_reset" :> Post '[JSON] (Either WalletError ()))) :<|> (("api" :> ("get_wallet" :> (Capture "address" CAddress :> Get '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("get_wallets" :> Get '[JSON] (Either WalletError [CWallet]))) :<|> (("api" :> ("send" :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> Post '[JSON] (Either WalletError CTx)))))) :<|> (("api" :> ("send" :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> (Capture "currency" CCurrency :> (Capture "title" Text :> (Capture "description" Text :> Post '[JSON] (Either WalletError CTx))))))))) :<|> (("api" :> ("txhistory" :> (Capture "address" CAddress :> (Capture "skip" Word :> (Capture "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word))))))) :<|> (("api" :> ("search_txhistory" :> (Capture "address" CAddress :> (Capture "search" Text :> (Capture "skip" Word :> (Capture "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word)))))))) :<|> (("api" :> ("update_transaction" :> (Capture "address" CAddress :> (Capture "transaction" CTxId :> (ReqBody '[JSON] CTxMeta :> Post '[JSON] (Either WalletError ())))))) :<|> (("api" :> ("new_wallet" :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("restore_wallet" :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("update_wallet" :> (Capture "address" CAddress :> (ReqBody '[JSON] CWalletMeta :> Post '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("delete_wallet" :> (Capture "address" CAddress :> Post '[JSON] (Either WalletError ())))) :<|> (("api" :> ("valid_address" :> (Capture "currency" CCurrency :> (Capture "address" Text :> Get '[JSON] (Either WalletError Bool))))) :<|> (("api" :> ("get_profile" :> Get '[JSON] (Either WalletError CProfile))) :<|> (("api" :> ("update_profile" :> (ReqBody '[JSON] CProfile :> Post '[JSON] (Either WalletError CProfile)))) :<|> (("api" :> ("redeem_ada" :> (ReqBody '[JSON] CWalletRedeem :> Post '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("next_update" :> Get '[JSON] (Either WalletError CUpdateInfo))) :<|> (("api" :> ("apply_update" :> Post '[JSON] (Either WalletError ()))) :<|> (("api" :> ("slot_duration" :> Get '[JSON] (Either WalletError Word))) :<|> (("api" :> ("system_version" :> Get '[JSON] (Either WalletError SoftwareVersion))) :<|> ("api" :> ("import_key" :> (ReqBody '[JSON] Text :> Post '[JSON] (Either WalletError CWallet)))))))))))))))))))))))
+type WalletApi = ("api" :> ("get_wallet" :> (Capture "address" CAddress :> Get '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("get_wallets" :> Get '[JSON] (Either WalletError [CWallet]))) :<|> (("api" :> ("send" :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> Post '[JSON] (Either WalletError CTx)))))) :<|> (("api" :> ("send" :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> (Capture "currency" CCurrency :> (Capture "title" Text :> (Capture "description" Text :> Post '[JSON] (Either WalletError CTx))))))))) :<|> (("api" :> ("txhistory" :> (Capture "address" CAddress :> (Capture "skip" Word :> (Capture "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word))))))) :<|> (("api" :> ("search_txhistory" :> (Capture "address" CAddress :> (Capture "search" Text :> (Capture "skip" Word :> (Capture "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word)))))))) :<|> (("api" :> ("update_transaction" :> (Capture "address" CAddress :> (Capture "transaction" CTxId :> (ReqBody '[JSON] CTxMeta :> Post '[JSON] (Either WalletError ())))))) :<|> (("api" :> ("new_wallet" :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("restore_wallet" :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("update_wallet" :> (Capture "address" CAddress :> (ReqBody '[JSON] CWalletMeta :> Post '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("delete_wallet" :> (Capture "address" CAddress :> Post '[JSON] (Either WalletError ())))) :<|> (("api" :> ("valid_address" :> (Capture "currency" CCurrency :> (Capture "address" Text :> Get '[JSON] (Either WalletError Bool))))) :<|> (("api" :> ("get_profile" :> Get '[JSON] (Either WalletError CProfile))) :<|> (("api" :> ("update_profile" :> (ReqBody '[JSON] CProfile :> Post '[JSON] (Either WalletError CProfile)))) :<|> (("api" :> ("redeem_ada" :> (ReqBody '[JSON] CWalletRedeem :> Post '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("next_update" :> Get '[JSON] (Either WalletError CUpdateInfo))) :<|> (("api" :> ("apply_update" :> Post '[JSON] (Either WalletError ()))) :<|> (("api" :> ("slot_duration" :> Get '[JSON] (Either WalletError Word))) :<|> (("api" :> ("system_version" :> Get '[JSON] (Either WalletError SoftwareVersion))) :<|> ("api" :> ("import_key" :> (ReqBody '[JSON] Text :> Post '[JSON] (Either WalletError CWallet))))))))))))))))))))))
 
 -- | Helper Proxy.
 walletApi :: Proxy WalletApi
@@ -5030,7 +5058,6 @@ getTxMeta :: WebWalletModeDB m => CAddress -> CTxId -> m (Maybe CTxMeta)
 getWalletHistory :: WebWalletModeDB m => CAddress -> m (Maybe [CTxMeta])
 getUpdates :: WebWalletModeDB m => m [CUpdateInfo]
 getNextUpdate :: WebWalletModeDB m => m (Maybe CUpdateInfo)
-testReset :: WebWalletModeDB m => m ()
 createWallet :: WebWalletModeDB m => CAddress -> CWalletMeta -> m ()
 setProfile :: WebWalletModeDB m => CProfile -> m ()
 setWalletMeta :: WebWalletModeDB m => CAddress -> CWalletMeta -> m ()
@@ -5144,7 +5171,7 @@ NodeParams :: !FilePath -> !Bool -> !Timestamp -> !SecretKey -> !UserSecret -> !
 [npReportServers] :: NodeParams -> ![Text]
 
 -- | RawRealMode runner.
-runRawRealMode :: forall ssc a. SscConstraint ssc => RealModeResources -> NodeParams -> SscParams ssc -> ListenersWithOut (RawRealMode ssc) -> OutSpecs -> ActionSpec (RawRealMode ssc) a -> Production a
+runRawRealMode :: forall ssc a. SscConstraint ssc => RealModeResources -> NodeParams -> SscParams ssc -> RawRealMode ssc (ListenersWithOut (RawRealMode ssc)) -> OutSpecs -> ActionSpec (RawRealMode ssc) a -> Production a
 
 -- | ProductionMode runner.
 runProductionMode :: forall ssc a. (SscConstraint ssc) => RealModeResources -> NodeParams -> SscParams ssc -> (ActionSpec (ProductionMode ssc) a, OutSpecs) -> Production a
@@ -5165,7 +5192,7 @@ runTimeLordReal :: LoggingParams -> Production Timestamp
 addDevListeners :: MinWorkMode m => Timestamp -> ListenersWithOut m -> ListenersWithOut m
 setupLoggers :: MonadIO m => LoggingParams -> m ()
 bracketDHTInstance :: BaseParams -> (KademliaDHTInstance -> Production a) -> Production a
-runServer :: (MonadIO m, MonadMockable m, MonadFix m, WithLogger m, MonadDHT m) => Transport -> ListenersWithOut m -> OutSpecs -> (Node m -> m t) -> (t -> m ()) -> ActionSpec m b -> m b
+runServer :: (MonadIO m, MonadMockable m, MonadFix m, WithLogger m, MonadDHT m) => Transport -> m (ListenersWithOut m) -> OutSpecs -> (Node m -> m t) -> (t -> m ()) -> ActionSpec m b -> m b
 runServer_ :: (MonadIO m, MonadMockable m, MonadFix m, WithLogger m, MonadDHT m) => Transport -> ListenersWithOut m -> OutSpecs -> ActionSpec m b -> m b
 
 -- | RAII for node starter.
@@ -5213,7 +5240,7 @@ makeMOfNTx :: Script -> [Maybe SecretKey] -> TxInputs -> TxOutputs -> TxAux
 submitTx :: TxMode ssc m => SendActions m -> SecretKey -> [DHTNode] -> [TxOutAux] -> m (Either TxError TxAux)
 
 -- | Send the ready-to-use transaction
-submitTxRaw :: MinWorkMode m => SendActions m -> [DHTNode] -> TxAux -> m ()
+submitTxRaw :: (MinWorkMode m, MonadDBLimits m) => SendActions m -> [DHTNode] -> TxAux -> m ()
 
 -- | Make a multi-transaction using given secret key and info for outputs
 createTx :: Utxo -> SecretKey -> TxOutputs -> Either TxError TxAux
@@ -5223,10 +5250,10 @@ createMOfNTx :: Utxo -> [(PublicKey, Maybe SecretKey)] -> TxOutputs -> Either Tx
 sendTxOuts :: OutSpecs
 
 -- | Send UpdateVote to given addresses
-submitVote :: MinWorkMode m => SendActions m -> [DHTNode] -> UpdateVote -> m ()
+submitVote :: (MinWorkMode m, MonadDBLimits m) => SendActions m -> [DHTNode] -> UpdateVote -> m ()
 
 -- | Send UpdateProposal with one positive vote to given addresses
-submitUpdateProposal :: MinWorkMode m => SendActions m -> SecretKey -> [DHTNode] -> UpdateProposal -> m ()
+submitUpdateProposal :: (MinWorkMode m, MonadDBLimits m) => SendActions m -> SecretKey -> [DHTNode] -> UpdateProposal -> m ()
 sendVoteOuts :: OutSpecs
 sendProposalOuts :: OutSpecs
 
@@ -5258,6 +5285,6 @@ waitForUpdate :: MonadUpdates m => m ConfirmedProposalState
 applyLastUpdate :: MonadUpdates m => m ()
 waitForUpdate :: (MonadUpdates m, MonadTrans t, MonadUpdates m', t m' ~ m) => m ConfirmedProposalState
 applyLastUpdate :: (MonadUpdates m, MonadTrans t, MonadUpdates m', t m' ~ m) => m ()
-type TxMode ssc m = (MinWorkMode m, MonadBalances m, MonadTxHistory m, MonadMockable m, MonadMask m)
+type TxMode ssc m = (MinWorkMode m, MonadBalances m, MonadTxHistory m, MonadMockable m, MonadMask m, MonadDBLimits m)
 type WalletMode ssc m = (TxMode ssc m, MonadKeys m, MonadBlockchainInfo m, MonadUpdates m, WithWalletContext m, MonadDHT m, WithPeerState m)
 type WalletRealMode = PeerStateHolder (KademliaDHT (KeyStorage (WalletDB (ContextHolder (LoggerNameBox Production)))))
