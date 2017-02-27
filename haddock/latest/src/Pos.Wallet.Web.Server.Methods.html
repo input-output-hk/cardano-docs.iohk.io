@@ -77,19 +77,19 @@
 </span><a name="line-77"></a><span>                                                </span><a href="Pos.Wallet.Web.State.State.html#getTxMeta"><span class="hs-identifier hs-var">getTxMeta</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Wallet.Web.State.State.html#getWalletMeta"><span class="hs-identifier hs-var">getWalletMeta</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Wallet.Web.State.Holder.html#getWalletState"><span class="hs-identifier hs-var">getWalletState</span></a><span class="hs-special">,</span><span>
 </span><a name="line-78"></a><span>                                                </span><a href="Pos.Wallet.Web.State.Acidic.html#openState"><span class="hs-identifier hs-var">openState</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Wallet.Web.State.State.html#removeNextUpdate"><span class="hs-identifier hs-var">removeNextUpdate</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Wallet.Web.State.State.html#removeWallet"><span class="hs-identifier hs-var">removeWallet</span></a><span class="hs-special">,</span><span>
 </span><a name="line-79"></a><span>                                                </span><a href="Pos.Wallet.Web.State.Holder.html#runWalletWebDB"><span class="hs-identifier hs-var">runWalletWebDB</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Wallet.Web.State.State.html#setProfile"><span class="hs-identifier hs-var">setProfile</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Wallet.Web.State.State.html#setWalletMeta"><span class="hs-identifier hs-var">setWalletMeta</span></a><span class="hs-special">,</span><span>
-</span><a name="line-80"></a><span>                                                </span><a href="Pos.Wallet.Web.State.State.html#setWalletTransactionMeta"><span class="hs-identifier hs-var">setWalletTransactionMeta</span></a><span class="hs-special">)</span><span>
+</span><a name="line-80"></a><span>                                                </span><a href="Pos.Wallet.Web.State.State.html#setWalletTransactionMeta"><span class="hs-identifier hs-var">setWalletTransactionMeta</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Wallet.Web.State.State.html#testReset"><span class="hs-identifier hs-var">testReset</span></a><span class="hs-special">)</span><span>
 </span><a name="line-81"></a><span class="hs-keyword">import</span><span>           </span><a href="Pos.Web.Server.html"><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Web</span><span class="hs-operator">.</span><span class="hs-identifier">Server</span></a><span>                </span><span class="hs-special">(</span><a href="Pos.Web.Server.html#serveImpl"><span class="hs-identifier hs-var">serveImpl</span></a><span class="hs-special">)</span><span>
 </span><a name="line-82"></a><span>
 </span><a name="line-83"></a><span class="hs-comment">----------------------------------------------------------------------------</span><span>
 </span><a name="line-84"></a><span class="hs-comment">-- Top level functionality</span><span>
 </span><a name="line-85"></a><span class="hs-comment">----------------------------------------------------------------------------</span><span>
 </span><a name="line-86"></a><span>
-</span><a name="line-87"></a><span class="hs-keyword">type</span><span> </span><a name="WalletWebHandler"><a href="Pos.Wallet.Web.Server.Methods.html#WalletWebHandler"><span class="hs-identifier">WalletWebHandler</span></a></a><span> </span><a name="local-6989586621682043558"><a href="#local-6989586621682043558"><span class="hs-identifier">m</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="Pos.Wallet.Web.Server.Sockets.html#WalletWebSockets"><span class="hs-identifier hs-type">WalletWebSockets</span></a><span> </span><span class="hs-special">(</span><a href="Pos.Wallet.Web.State.Holder.html#WalletWebDB"><span class="hs-identifier hs-type">WalletWebDB</span></a><span> </span><a href="#local-6989586621682043558"><span class="hs-identifier hs-type">m</span></a><span class="hs-special">)</span><span>
+</span><a name="line-87"></a><span class="hs-keyword">type</span><span> </span><a name="WalletWebHandler"><a href="Pos.Wallet.Web.Server.Methods.html#WalletWebHandler"><span class="hs-identifier">WalletWebHandler</span></a></a><span> </span><a name="local-6989586621682044936"><a href="#local-6989586621682044936"><span class="hs-identifier">m</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="Pos.Wallet.Web.Server.Sockets.html#WalletWebSockets"><span class="hs-identifier hs-type">WalletWebSockets</span></a><span> </span><span class="hs-special">(</span><a href="Pos.Wallet.Web.State.Holder.html#WalletWebDB"><span class="hs-identifier hs-type">WalletWebDB</span></a><span> </span><a href="#local-6989586621682044936"><span class="hs-identifier hs-type">m</span></a><span class="hs-special">)</span><span>
 </span><a name="line-88"></a><span>
-</span><a name="line-89"></a><span class="hs-keyword">type</span><span> </span><a name="WalletWebMode"><a href="Pos.Wallet.Web.Server.Methods.html#WalletWebMode"><span class="hs-identifier">WalletWebMode</span></a></a><span> </span><a name="local-6989586621682043556"><a href="#local-6989586621682043556"><span class="hs-identifier">ssc</span></a></a><span> </span><a name="local-6989586621682043557"><a href="#local-6989586621682043557"><span class="hs-identifier">m</span></a></a><span>
-</span><a name="line-90"></a><span>    </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span> </span><a href="Pos.Wallet.WalletMode.html#WalletMode"><span class="hs-identifier hs-type">WalletMode</span></a><span> </span><a href="#local-6989586621682043556"><span class="hs-identifier hs-type">ssc</span></a><span> </span><a href="#local-6989586621682043557"><span class="hs-identifier hs-type">m</span></a><span>
-</span><a name="line-91"></a><span>      </span><span class="hs-special">,</span><span> </span><a href="Pos.Wallet.Web.State.State.html#MonadWalletWebDB"><span class="hs-identifier hs-type">MonadWalletWebDB</span></a><span> </span><a href="#local-6989586621682043557"><span class="hs-identifier hs-type">m</span></a><span>
-</span><a name="line-92"></a><span>      </span><span class="hs-special">,</span><span> </span><a href="Pos.Wallet.Web.Server.Sockets.html#MonadWalletWebSockets"><span class="hs-identifier hs-type">MonadWalletWebSockets</span></a><span> </span><a href="#local-6989586621682043557"><span class="hs-identifier hs-type">m</span></a><span>
+</span><a name="line-89"></a><span class="hs-keyword">type</span><span> </span><a name="WalletWebMode"><a href="Pos.Wallet.Web.Server.Methods.html#WalletWebMode"><span class="hs-identifier">WalletWebMode</span></a></a><span> </span><a name="local-6989586621682044934"><a href="#local-6989586621682044934"><span class="hs-identifier">ssc</span></a></a><span> </span><a name="local-6989586621682044935"><a href="#local-6989586621682044935"><span class="hs-identifier">m</span></a></a><span>
+</span><a name="line-90"></a><span>    </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span> </span><a href="Pos.Wallet.WalletMode.html#WalletMode"><span class="hs-identifier hs-type">WalletMode</span></a><span> </span><a href="#local-6989586621682044934"><span class="hs-identifier hs-type">ssc</span></a><span> </span><a href="#local-6989586621682044935"><span class="hs-identifier hs-type">m</span></a><span>
+</span><a name="line-91"></a><span>      </span><span class="hs-special">,</span><span> </span><a href="Pos.Wallet.Web.State.State.html#MonadWalletWebDB"><span class="hs-identifier hs-type">MonadWalletWebDB</span></a><span> </span><a href="#local-6989586621682044935"><span class="hs-identifier hs-type">m</span></a><span>
+</span><a name="line-92"></a><span>      </span><span class="hs-special">,</span><span> </span><a href="Pos.Wallet.Web.Server.Sockets.html#MonadWalletWebSockets"><span class="hs-identifier hs-type">MonadWalletWebSockets</span></a><span> </span><a href="#local-6989586621682044935"><span class="hs-identifier hs-type">m</span></a><span>
 </span><a name="line-93"></a><span>      </span><span class="hs-special">)</span><span>
 </span><a name="line-94"></a><span>
 </span><a name="line-95"></a><span class="hs-comment">-- | Notifier state (moved here due to `makeLenses` and scoping issues)</span><span>
@@ -236,6 +236,10 @@ servantHandlers
        (SscHelpersClass ssc, WalletWebMode ssc m)
     =&gt; SendActions m -&gt; ServerT WalletApi m
 servantHandlers sendActions =
+#ifdef DEV_MODE
+     catchWalletError testResetAll
+    :&lt;|&gt;
+#endif
      (catchWalletError . getWallet)
     :&lt;|&gt;
      catchWalletError getWallets
@@ -470,6 +474,15 @@ importKey sendActions (toString -&gt; fp) = do
 #endif
     getWallet importedCAddr
 
+
+#ifdef DEV_MODE
+testResetAll :: WalletWebMode ssc m =&gt; m ()
+testResetAll = deleteAllKeys &gt;&gt; testReset
+  where
+    deleteAllKeys = do
+        keyNum &lt;- fromIntegral . pred . length &lt;$&gt; getSecretKeys
+        sequence_ $ replicate keyNum $ deleteSecretKey 1
+#endif
 
 ---------------------------------------------------------------------------
 -- Helpers
