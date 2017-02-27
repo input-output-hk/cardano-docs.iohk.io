@@ -4063,12 +4063,129 @@ baseDocsText :: Text
 gtDocsText :: Text
 type MyWorkMode ssc m = (WorkMode ssc m, SscConstraint ssc)
 type WebHandler ssc = TxpHolder (ContextHolder ssc (DBHolder Production))
-serveImpl :: MonadIO m => m Application -> Word16 -> m ()
+serveImpl :: MonadIO m => m Application -> String -> Word16 -> m ()
 nat :: forall ssc m. (MyWorkMode ssc m) => m (WebHandler ssc :~> Handler)
 serveWebBase :: MyWorkMode ssc m => Word16 -> m ()
 applicationBase :: MyWorkMode ssc m => m Application
 serveWebGT :: MyWorkMode SscGodTossing m => Word16 -> m ()
 applicationGT :: MyWorkMode SscGodTossing m => m Application
+
+
+-- | Logic of blocks processing.
+module Pos.Block.Logic
+
+-- | Find LCA of headers list and main chain, including oldest header's
+--   parent hash. Iterates from newest to oldest until meets first header
+--   that's in main chain. O(n).
+lcaWithMainChain :: (WorkMode ssc m) => OldestFirst NE (BlockHeader ssc) -> m (Maybe HeaderHash)
+
+-- | Common error message
+tipMismatchMsg :: Text -> HeaderHash -> HeaderHash -> Text
+
+-- | Run action acquiring lock on block application. Argument of action is
+--   an old tip, result is put as a new tip.
+withBlkSemaphore :: WorkMode ssc m => (HeaderHash -> m (a, HeaderHash)) -> m a
+
+-- | Version of withBlkSemaphore which doesn't have any result.
+withBlkSemaphore_ :: WorkMode ssc m => (HeaderHash -> m HeaderHash) -> m ()
+
+-- | Result of single (new) header classification.
+data ClassifyHeaderRes
+
+-- | Header is direct continuation of main chain (i.e. its parent is our
+--   tip).
+CHContinues :: ClassifyHeaderRes
+
+-- | Header continues main or alternative chain, it's more difficult than
+--   tip.
+CHAlternative :: ClassifyHeaderRes
+
+-- | Header is useless.
+CHUseless :: !Text -> ClassifyHeaderRes
+
+-- | Header is invalid.
+CHInvalid :: !Text -> ClassifyHeaderRes
+
+-- | Classify new header announced by some node. Result is represented as
+--   ClassifyHeaderRes type.
+classifyNewHeader :: (WorkMode ssc m) => BlockHeader ssc -> m ClassifyHeaderRes
+
+-- | Result of multiple headers classification.
+data ClassifyHeadersRes ssc
+
+-- | Header list can be applied, LCA child attached.
+CHsValid :: (BlockHeader ssc) -> ClassifyHeadersRes ssc
+
+-- | Header is useless.
+CHsUseless :: !Text -> ClassifyHeadersRes ssc
+
+-- | Header is invalid.
+CHsInvalid :: !Text -> ClassifyHeadersRes ssc
+
+-- | Classify headers received in response to <tt>GetHeaders</tt> message.
+--   
+--   <ul>
+--   <li>If there are any errors in chain of headers, CHsInvalid is
+--   returned.</li>
+--   <li>If chain of headers is a valid continuation or alternative branch,
+--   lca child is returned.</li>
+--   <li>If chain of headers forks from our main chain too much, CHsUseless
+--   is returned, because paper suggests doing so.</li>
+--   </ul>
+classifyHeaders :: forall ssc m. WorkMode ssc m => NewestFirst NE (BlockHeader ssc) -> m (ClassifyHeadersRes ssc)
+
+-- | Given a set of checkpoints <tt>c</tt> to stop at and a terminating
+--   header hash <tt>h</tt>, we take <tt>h</tt> block (or tip if latter is
+--   <tt>Nothing</tt>) and fetch the blocks until one of checkpoints is
+--   encountered. In case we got deeper than <a>recoveryHeadersMessage</a>,
+--   we return <a>recoveryHeadersMessage</a> headers starting from the the
+--   newest checkpoint that's in our main chain to the newest ones.
+getHeadersFromManyTo :: forall ssc m. (MonadDB m, SscHelpersClass ssc, CanLog m, HasLoggerName m) => NonEmpty HeaderHash -> Maybe HeaderHash -> m (Maybe (NewestFirst NE (BlockHeader ssc)))
+
+-- | Given a starting point hash (we take tip if it's not in storage) it
+--   returns not more than <a>blkSecurityParam</a> blocks distributed
+--   exponentially base 2 relatively to the depth in the blockchain.
+getHeadersOlderExp :: forall ssc m. (MonadDB m, SscHelpersClass ssc) => Maybe HeaderHash -> m (OldestFirst [] HeaderHash)
+
+-- | Given <tt>from</tt> and <tt>to</tt> headers where <tt>from</tt> is
+--   older (not strict) than <tt>to</tt>, and valid chain in between can be
+--   found, headers in range <tt>[from..to]</tt> will be found.
+getHeadersFromToIncl :: forall ssc m. (MonadDB m, SscHelpersClass ssc) => HeaderHash -> HeaderHash -> m (Maybe (OldestFirst NE HeaderHash))
+
+-- | Applies blocks if they're valid. Takes one boolean flag "rollback".
+--   Returns header hash of last applied block (new tip) on success.
+--   Failure behaviour depends on "rollback" flag. If it's on, all blocks
+--   applied inside this function will be rollbacked, so it will do
+--   effectively nothing and return 'Left error'. If it's off, it will try
+--   to apply as much blocks as it's possible and return header hash of new
+--   tip. It's up to caller to log warning that partial application
+--   happened.
+verifyAndApplyBlocks :: (WorkMode ssc m, SscWorkersClass ssc) => Bool -> OldestFirst NE (Block ssc) -> m (Either Text HeaderHash)
+
+-- | Rollbacks blocks. Head must be the current tip.
+rollbackBlocks :: (WorkMode ssc m) => NewestFirst NE (Blund ssc) -> m (Maybe Text)
+
+-- | Rollbacks some blocks and then applies some blocks.
+applyWithRollback :: (WorkMode ssc m, SscWorkersClass ssc) => NewestFirst NE (Blund ssc) -> OldestFirst NE (Block ssc) -> m (Either Text HeaderHash)
+
+-- | Create genesis block if necessary.
+--   
+--   We create genesis block for current epoch when head of currently known
+--   best chain is MainBlock corresponding to one of last
+--   <a>slotSecurityParam</a> slots of (i - 1)-th epoch. Main check is that
+--   epoch is `(last stored epoch + 1)`, but we also don't want to create
+--   genesis block on top of blocks from previous epoch which are not from
+--   last slotSecurityParam slots, because it's practically impossible for
+--   them to be valid. [CSL-481] We can do consider doing it though.
+createGenesisBlock :: forall ssc m. WorkMode ssc m => EpochIndex -> m (Maybe (GenesisBlock ssc))
+
+-- | Create a new main block on top of best chain if possible. Block can be
+--   created if: • we know genesis block for epoch from given SlotId • last
+--   known block is not more than <a>slotSecurityParam</a> blocks away from
+--   given SlotId
+createMainBlock :: forall ssc m. WorkMode ssc m => SlotId -> Maybe ProxySKEither -> m (Either Text (MainBlock ssc))
+instance Pos.Ssc.Class.Types.Ssc ssc => GHC.Show.Show (Pos.Block.Logic.ClassifyHeadersRes ssc)
+instance GHC.Show.Show Pos.Block.Logic.ClassifyHeaderRes
 
 
 -- | Re-export of Pos.Block.Network.*
@@ -4833,7 +4950,7 @@ module Pos.Aeson
 module Pos.Wallet.Web
 
 -- | Servant API which provides access to wallet.
-type WalletApi = ("api" :> ("test_reset" :> Post '[JSON] (Either WalletError ()))) :<|> (("api" :> ("get_wallet" :> (Capture "address" CAddress :> Get '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("get_wallets" :> Get '[JSON] (Either WalletError [CWallet]))) :<|> (("api" :> ("send" :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> Post '[JSON] (Either WalletError CTx)))))) :<|> (("api" :> ("send" :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> (Capture "currency" CCurrency :> (Capture "title" Text :> (Capture "description" Text :> Post '[JSON] (Either WalletError CTx))))))))) :<|> (("api" :> ("txhistory" :> (Capture "address" CAddress :> (Capture "skip" Word :> (Capture "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word))))))) :<|> (("api" :> ("search_txhistory" :> (Capture "address" CAddress :> (Capture "search" Text :> (Capture "skip" Word :> (Capture "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word)))))))) :<|> (("api" :> ("update_transaction" :> (Capture "address" CAddress :> (Capture "transaction" CTxId :> (ReqBody '[JSON] CTxMeta :> Post '[JSON] (Either WalletError ())))))) :<|> (("api" :> ("new_wallet" :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("restore_wallet" :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("update_wallet" :> (Capture "address" CAddress :> (ReqBody '[JSON] CWalletMeta :> Post '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("delete_wallet" :> (Capture "address" CAddress :> Post '[JSON] (Either WalletError ())))) :<|> (("api" :> ("valid_address" :> (Capture "currency" CCurrency :> (Capture "address" Text :> Get '[JSON] (Either WalletError Bool))))) :<|> (("api" :> ("get_profile" :> Get '[JSON] (Either WalletError CProfile))) :<|> (("api" :> ("update_profile" :> (ReqBody '[JSON] CProfile :> Post '[JSON] (Either WalletError CProfile)))) :<|> (("api" :> ("redeem_ada" :> (ReqBody '[JSON] CWalletRedeem :> Post '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("next_update" :> Get '[JSON] (Either WalletError CUpdateInfo))) :<|> (("api" :> ("apply_update" :> Post '[JSON] (Either WalletError ()))) :<|> (("api" :> ("slot_duration" :> Get '[JSON] (Either WalletError Word))) :<|> (("api" :> ("system_version" :> Get '[JSON] (Either WalletError SoftwareVersion))) :<|> ("api" :> ("import_key" :> (ReqBody '[JSON] Text :> Post '[JSON] (Either WalletError CWallet)))))))))))))))))))))))
+type WalletApi = ("api" :> ("get_wallet" :> (Capture "address" CAddress :> Get '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("get_wallets" :> Get '[JSON] (Either WalletError [CWallet]))) :<|> (("api" :> ("send" :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> Post '[JSON] (Either WalletError CTx)))))) :<|> (("api" :> ("send" :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> (Capture "currency" CCurrency :> (Capture "title" Text :> (Capture "description" Text :> Post '[JSON] (Either WalletError CTx))))))))) :<|> (("api" :> ("txhistory" :> (Capture "address" CAddress :> (Capture "skip" Word :> (Capture "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word))))))) :<|> (("api" :> ("search_txhistory" :> (Capture "address" CAddress :> (Capture "search" Text :> (Capture "skip" Word :> (Capture "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word)))))))) :<|> (("api" :> ("update_transaction" :> (Capture "address" CAddress :> (Capture "transaction" CTxId :> (ReqBody '[JSON] CTxMeta :> Post '[JSON] (Either WalletError ())))))) :<|> (("api" :> ("new_wallet" :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("restore_wallet" :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("update_wallet" :> (Capture "address" CAddress :> (ReqBody '[JSON] CWalletMeta :> Post '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("delete_wallet" :> (Capture "address" CAddress :> Post '[JSON] (Either WalletError ())))) :<|> (("api" :> ("valid_address" :> (Capture "currency" CCurrency :> (Capture "address" Text :> Get '[JSON] (Either WalletError Bool))))) :<|> (("api" :> ("get_profile" :> Get '[JSON] (Either WalletError CProfile))) :<|> (("api" :> ("update_profile" :> (ReqBody '[JSON] CProfile :> Post '[JSON] (Either WalletError CProfile)))) :<|> (("api" :> ("redeem_ada" :> (ReqBody '[JSON] CWalletRedeem :> Post '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("next_update" :> Get '[JSON] (Either WalletError CUpdateInfo))) :<|> (("api" :> ("apply_update" :> Post '[JSON] (Either WalletError ()))) :<|> (("api" :> ("slot_duration" :> Get '[JSON] (Either WalletError Word))) :<|> (("api" :> ("system_version" :> Get '[JSON] (Either WalletError SoftwareVersion))) :<|> ("api" :> ("import_key" :> (ReqBody '[JSON] Text :> Post '[JSON] (Either WalletError CWallet))))))))))))))))))))))
 
 -- | Helper Proxy.
 walletApi :: Proxy WalletApi
@@ -5030,7 +5147,6 @@ getTxMeta :: WebWalletModeDB m => CAddress -> CTxId -> m (Maybe CTxMeta)
 getWalletHistory :: WebWalletModeDB m => CAddress -> m (Maybe [CTxMeta])
 getUpdates :: WebWalletModeDB m => m [CUpdateInfo]
 getNextUpdate :: WebWalletModeDB m => m (Maybe CUpdateInfo)
-testReset :: WebWalletModeDB m => m ()
 createWallet :: WebWalletModeDB m => CAddress -> CWalletMeta -> m ()
 setProfile :: WebWalletModeDB m => CProfile -> m ()
 setWalletMeta :: WebWalletModeDB m => CAddress -> CWalletMeta -> m ()
