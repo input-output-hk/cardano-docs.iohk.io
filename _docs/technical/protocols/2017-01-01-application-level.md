@@ -212,6 +212,8 @@ both issuer and delegate.
 
 ### Messages table
 
+[//]: # (Updated at 15b8b777fde5a8ab4a85af71affeffdf31ad219c)
+
 This table describes delegation-related messages, found in
 [Pos.Delegation.Types](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Delegation/Types.hs)
 module. The format of delegation messages is described in _Binary protocols_
@@ -221,8 +223,10 @@ section.
 |--------------------------+----------------------------------------------------------------------------------------|
 | SendProxySK              | Message with proxy delegation certificate                                              |
 | ConfirmProxySK           | Used to confirm proxy signature delivery                                               |
-| CheckProxySKConfirmed    | Checks if node is aware of PSK delivery. To be responded with CheckProxySKConfirmedRes |
-| CheckProxySKConfirmedRes | Returns _True_ if node aware of asked proxy certificate                                |
+
+[//]: # (Unused messages)
+[//]: # | CheckProxySKConfirmed    | Checks if node is aware of PSK delivery. To be responded with CheckProxySKConfirmedRes |
+[//]: # | CheckProxySKConfirmedRes | Returns _True_ if node aware of asked proxy certificate                                |
 
 ## Update System Messages
 
