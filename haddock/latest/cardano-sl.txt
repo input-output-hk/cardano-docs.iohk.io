@@ -2512,21 +2512,6 @@ module Pos.Security
 -- | Leaders and richmen computation.
 module Pos.Lrc
 
--- | Wrapper over <a>RichmenStake</a>. Its <a>Arbitrary</a> instance
---   enforces that the stake distribution inside must be invalid, i.e. one
---   of the stakeholders does not have sufficient coins to participate.
-newtype InvalidRichmenStake
-Invalid :: RichmenStake -> InvalidRichmenStake
-[getInvalid] :: InvalidRichmenStake -> RichmenStake
-
--- | Wrapper over <a>RichmenStake</a>. Its <a>Arbitrary</a> instance
---   enforces that the stake distribution inside must be valid, i.e. all of
---   the coins are non-zero and every stakeholder has sufficient coins to
---   participate.
-newtype ValidRichmenStake
-Valid :: RichmenStake -> ValidRichmenStake
-[getValid] :: ValidRichmenStake -> RichmenStake
-
 -- | Datatype for LRC computation client. If you want to compute richmen,
 --   you should add such client to LRC framework
 data LrcConsumer m
