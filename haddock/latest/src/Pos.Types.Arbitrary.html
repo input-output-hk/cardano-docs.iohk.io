@@ -1,4 +1,4 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE TemplateHaskell #-}</span><span>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE TemplateHaskell      #-}</span><span>
 </span><a name="line-2"></a><span>
 </span><a name="line-3"></a><span class="hs-comment">-- | `Arbitrary` instances for core types for using in tests and benchmarks</span><span>
 </span><a name="line-4"></a><span>
@@ -67,11 +67,11 @@
 </span><a name="line-67"></a><span class="hs-comment">----------------------------------------------------------------------------</span><span>
 </span><a name="line-68"></a><span>
 </span><a name="line-69"></a><span class="hs-keyword">instance</span><span> </span><span class="hs-identifier hs-type">Arbitrary</span><span> </span><span class="hs-identifier hs-type">Script</span><span> </span><span class="hs-keyword">where</span><span>
-</span><a name="line-70"></a><span>    </span><a name="local-8214565720323901712"><span class="hs-identifier">arbitrary</span></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-var">elements</span><span>
+</span><a name="line-70"></a><span>    </span><a name="local-8214565720323785628"><span class="hs-identifier">arbitrary</span></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-var">elements</span><span>
 </span><a name="line-71"></a><span>        </span><span class="hs-special">[</span><a href="Pos.Script.Examples.html#intValidator"><span class="hs-identifier hs-var">intValidator</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Script.Examples.html#goodIntRedeemer"><span class="hs-identifier hs-var">goodIntRedeemer</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Script.Examples.html#badIntRedeemer"><span class="hs-identifier hs-var">badIntRedeemer</span></a><span class="hs-special">]</span><span>
 </span><a name="line-72"></a><span>
 </span><a name="line-73"></a><span class="hs-keyword">instance</span><span> </span><span class="hs-identifier hs-type">Arbitrary</span><span> </span><span class="hs-identifier hs-type">Address</span><span> </span><span class="hs-keyword">where</span><span>
-</span><a name="line-74"></a><span>    </span><a name="local-8214565720323901712"><span class="hs-identifier">arbitrary</span></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-var">oneof</span><span> </span><span class="hs-special">[</span><span>
+</span><a name="line-74"></a><span>    </span><a name="local-8214565720323785628"><span class="hs-identifier">arbitrary</span></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-var">oneof</span><span> </span><span class="hs-special">[</span><span>
 </span><a name="line-75"></a><span>        </span><span class="hs-identifier hs-var">makePubKeyAddress</span><span> </span><span class="hs-operator hs-var">&lt;$&gt;</span><span> </span><span class="hs-identifier hs-var">arbitrary</span><span class="hs-special">,</span><span>
 </span><a name="line-76"></a><span>        </span><span class="hs-identifier hs-var">makeScriptAddress</span><span> </span><span class="hs-operator hs-var">&lt;$&gt;</span><span> </span><span class="hs-identifier hs-var">arbitrary</span><span class="hs-special">,</span><span>
 </span><a name="line-77"></a><span>        </span><span class="hs-identifier hs-var">UnknownAddressType</span><span> </span><span class="hs-operator hs-var">&lt;$&gt;</span><span> </span><span class="hs-identifier hs-var">choose</span><span> </span><span class="hs-special">(</span><span class="hs-number">2</span><span class="hs-special">,</span><span> </span><span class="hs-number">255</span><span class="hs-special">)</span><span> </span><span class="hs-operator hs-var">&lt;*&gt;</span><span> </span><span class="hs-identifier hs-var">scale</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">min</span><span> </span><span class="hs-number">150</span><span class="hs-special">)</span><span> </span><span class="hs-identifier hs-var">arbitrary</span><span>
@@ -277,14 +277,15 @@ derive makeArbitrary ''TxDistribution
 derive makeArbitrary ''TxIn
 
 -- | Arbitrary transactions generated from this instance will only be valid
--- with regards to 'mxTx'
+-- with regards to 'verifyTxAlone'
+
 instance Arbitrary Tx where
     arbitrary = do
         txIns &lt;- getNonEmpty &lt;$&gt; arbitrary
         txOuts &lt;- getNonEmpty &lt;$&gt; arbitrary
-        pure $ Tx txIns txOuts (mkAttributes ())
+        return $ Tx txIns txOuts (mkAttributes ())
 
--- | Type used to generate valid ('verifyTx')
+-- | Type used to generate valid (w.r.t 'verifyTxAlone' and 'verifyTx')
 -- transactions and accompanying input information.
 -- It's not entirely general because it only generates transactions whose
 -- outputs are in the same number as its inputs in a one-to-one correspondence.
