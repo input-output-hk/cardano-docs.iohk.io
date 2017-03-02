@@ -250,6 +250,9 @@ _neLast :: Lens' (NonEmpty a) a
 --   <a>MonadState</a>, it only works in a handful of state monads and
 --   their combinations defined by <tt>Zoom</tt>.
 zoom' :: MonadState s m => LensLike' (Zoomed (State s) a) s t -> StateT t Identity a -> m a
+
+-- | ANSI colors: come in various intensities, which are controlled by
+--   <a>ColorIntensity</a>
 data Color :: *
 Black :: Color
 Red :: Color
@@ -1501,9 +1504,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679074716 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679074716)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679074709 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679074709)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679074705 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679074705)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679118617 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679118617)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679118610 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679118610)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679118606 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679118606)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Core.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Core.SoftwareVersion
