@@ -1056,16 +1056,13 @@ genesisHash :: Hash a
 --   references previous block and/or is referenced by next block, use
 --   header verification (via vbpVerifyHeader).
 data VerifyBlockParams ssc
-VerifyBlockParams :: !(Maybe (VerifyHeaderParams ssc)) -> !Bool -> !Bool -> !Bool -> !Bool -> !(Maybe BlockVersion) -> VerifyBlockParams ssc
+VerifyBlockParams :: !(Maybe (VerifyHeaderParams ssc)) -> !Bool -> !Bool -> !Bool -> !(Maybe BlockVersion) -> VerifyBlockParams ssc
 
 -- | Verifies header accordingly to params (<a>verifyHeader</a>)
 [vbpVerifyHeader] :: VerifyBlockParams ssc -> !(Maybe (VerifyHeaderParams ssc))
 
 -- | Checks <tt>verifyGenesisBlock</tt> property.
 [vbpVerifyGeneric] :: VerifyBlockParams ssc -> !Bool
-
--- | Checks that each transaction passes <a>verifyTxAlone</a> check.
-[vbpVerifyTxs] :: VerifyBlockParams ssc -> !Bool
 
 -- | Verifies ssc payload with <a>sscVerifyPayload</a>.
 [vbpVerifySsc] :: VerifyBlockParams ssc -> !Bool
@@ -2949,11 +2946,6 @@ type FullRichmenData = (Coin, RichmenStake)
 -- | Txp system reexports.
 module Pos.Txp
 
--- | Verify that Tx itself is correct. Most likely you will also want to
---   verify that inputs are legal, signed properly and have enough coins;
---   <a>verifyTxAlone</a> doesn't do that.
-verifyTxAlone :: Tx -> VerificationRes
-
 -- | Global context data needed for script execution -- is same for the
 --   whole transaction. VT stands for "Verify Tx". Currently empty.
 data VTxGlobalContext
@@ -2967,8 +2959,7 @@ VTxLocalContext :: TxOutAux -> VTxLocalContext
 [vtlTxOut] :: VTxLocalContext -> TxOutAux
 
 -- | CHECK: Verify Tx correctness using magic function which resolves input
---   into Address and Coin. It optionally does checks from
---   <a>verifyTxAlone</a> and also the following checks:
+--   into Address and Coin. And also the following checks:
 --   
 --   <ul>
 --   <li>sum of inputs &gt;= sum of outputs;</li>
@@ -3064,6 +3055,10 @@ Tx :: ![TxIn] -> ![TxOut] -> !TxAttributes -> Tx
 
 -- | Attributes of transaction
 [_txAttributes] :: Tx -> !TxAttributes
+
+-- | Create valid Tx or fail. Verify inputs and outputs are non empty; have
+--   enough coins.
+mkTx :: MonadFail m => [TxIn] -> [TxOut] -> TxAttributes -> m Tx
 txInputs :: Lens' Tx [TxIn]
 txOutputs :: Lens' Tx [TxOut]
 txAttributes :: Lens' Tx TxAttributes
