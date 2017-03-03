@@ -1715,6 +1715,49 @@ instance GHC.Enum.Enum Pos.Types.Core.EpochOrSlot
 module Pos.Types
 
 
+-- | Interface to Blocks DB.
+module Pos.DB.Block
+
+-- | Get block with given hash from Block DB.
+getBlock :: (SscHelpersClass ssc, MonadDB m) => HeaderHash -> m (Maybe (Block ssc))
+
+-- | Returns header of block that was requested from Block DB.
+getBlockHeader :: (SscHelpersClass ssc, MonadDB m) => HeaderHash -> m (Maybe (BlockHeader ssc))
+
+-- | Get undo data for block with given hash from Block DB.
+getUndo :: MonadDB m => HeaderHash -> m (Maybe Undo)
+
+-- | Retrieves block and undo together.
+getBlockWithUndo :: (SscHelpersClass ssc, MonadDB m) => HeaderHash -> m (Maybe (Block ssc, Undo))
+deleteBlock :: (MonadDB m) => HeaderHash -> m ()
+
+-- | Put given block, its metadata and Undo data into Block DB.
+putBlock :: (SscHelpersClass ssc, MonadDB m) => Undo -> Block ssc -> m ()
+prepareBlockDB :: forall ssc m. (SscHelpersClass ssc, MonadDB m) => GenesisBlock ssc -> m ()
+
+-- | Load blunds starting from block with header hash equal to given hash
+--   and while <tt>predicate</tt> is true.
+loadBlundsWhile :: (SscHelpersClass ssc, MonadDB m) => (Block ssc -> Bool) -> HeaderHash -> m (NewestFirst [] (Blund ssc))
+
+-- | Load blunds which have depth less than given.
+loadBlundsByDepth :: (SscHelpersClass ssc, MonadDB m) => Word -> HeaderHash -> m (NewestFirst [] (Blund ssc))
+
+-- | Load blocks starting from block with header hash equal to given hash
+--   and while <tt>predicate</tt> is true.
+loadBlocksWhile :: (SscHelpersClass ssc, MonadDB m) => (Block ssc -> Bool) -> HeaderHash -> m (NewestFirst [] (Block ssc))
+
+-- | Load headers starting from block with header hash equal to given hash
+--   and while <tt>predicate</tt> is true.
+loadHeadersWhile :: (SscHelpersClass ssc, MonadDB m) => (BlockHeader ssc -> Bool) -> HeaderHash -> m (NewestFirst [] (BlockHeader ssc))
+
+-- | Load headers which have depth less than given.
+loadHeadersByDepth :: (SscHelpersClass ssc, MonadDB m) => Word -> HeaderHash -> m (NewestFirst [] (BlockHeader ssc))
+
+-- | Load headers which have depth less than given and match some
+--   criterion.
+loadHeadersByDepthWhile :: (SscHelpersClass ssc, MonadDB m) => (BlockHeader ssc -> Bool) -> Word -> HeaderHash -> m (NewestFirst [] (BlockHeader ssc))
+
+
 -- | Reexports of Pos.Binary.* classes
 module Pos.Binary
 
@@ -3185,13 +3228,13 @@ setStake :: MonadBalances m => StakeholderId -> Coin -> m ()
 setTotalStake :: MonadBalances m => Coin -> m ()
 setStake :: (MonadBalances m, MonadTrans t, MonadBalances m', t m' ~ m) => StakeholderId -> Coin -> m ()
 setTotalStake :: (MonadBalances m, MonadTrans t, MonadBalances m', t m' ~ m) => Coin -> m ()
-class Monad m => MonadTxPool m where hasTx = lift . hasTx putTxWithUndo id tx = lift . putTxWithUndo id tx poolSize = lift poolSize
+class Monad m => MonadTxPool m where hasTx = lift . hasTx poolSize = lift poolSize putTxWithUndo id tx = lift . putTxWithUndo id tx
 hasTx :: MonadTxPool m => TxId -> m Bool
-putTxWithUndo :: MonadTxPool m => TxId -> TxAux -> TxUndo -> m ()
 poolSize :: MonadTxPool m => m Int
+putTxWithUndo :: MonadTxPool m => TxId -> TxAux -> TxUndo -> m ()
 hasTx :: (MonadTxPool m, MonadTrans t, MonadTxPool m', t m' ~ m) => TxId -> m Bool
-putTxWithUndo :: (MonadTxPool m, MonadTrans t, MonadTxPool m', t m' ~ m) => TxId -> TxAux -> TxUndo -> m ()
 poolSize :: (MonadTxPool m, MonadTrans t, MonadTxPool m', t m' ~ m) => m Int
+putTxWithUndo :: (MonadTxPool m, MonadTrans t, MonadTxPool m', t m' ~ m) => TxId -> TxAux -> TxUndo -> m ()
 newtype DBTxp m a
 DBTxp :: m a -> DBTxp m a
 [runDBTxp] :: DBTxp m a -> m a
