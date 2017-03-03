@@ -1,4 +1,4 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE TemplateHaskell      #-}</span><span>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE TemplateHaskell #-}</span><span>
 </span><a name="line-2"></a><span>
 </span><a name="line-3"></a><span class="hs-comment">-- | `Arbitrary` instances for core types for using in tests and benchmarks</span><span>
 </span><a name="line-4"></a><span>
@@ -276,15 +276,14 @@ derive makeArbitrary ''TxDistribution
 derive makeArbitrary ''TxIn
 
 -- | Arbitrary transactions generated from this instance will only be valid
--- with regards to 'verifyTxAlone'
-
+-- with regards to 'mxTx'
 instance Arbitrary Tx where
     arbitrary = do
         txIns &lt;- getNonEmpty &lt;$&gt; arbitrary
         txOuts &lt;- getNonEmpty &lt;$&gt; arbitrary
-        return $ Tx txIns txOuts (mkAttributes ())
+        pure $ Tx txIns txOuts (mkAttributes ())
 
--- | Type used to generate valid (w.r.t 'verifyTxAlone' and 'verifyTx')
+-- | Type used to generate valid ('verifyTx')
 -- transactions and accompanying input information.
 -- It's not entirely general because it only generates transactions whose
 -- outputs are in the same number as its inputs in a one-to-one correspondence.
