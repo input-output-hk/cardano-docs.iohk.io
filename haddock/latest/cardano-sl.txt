@@ -50,6 +50,67 @@ instance Data.Default.Class.Default Pos.Util.UserSecret.UserSecret
 instance Pos.Binary.Class.Bi Pos.Util.UserSecret.UserSecret
 
 
+-- | Wrapper for modifier pattern which is used intensively in code
+module Pos.Util.Modifier
+
+-- | <a>MapModifier</a> is a type which collects modifications (insertions
+--   and deletions) of something map-like.
+data MapModifier k v
+
+-- | Perform monadic lookup taking <a>MapModifier</a> into account.
+lookupM :: (Applicative m, Eq k, Hashable k) => (k -> m (Maybe v)) -> k -> MapModifier k v -> m (Maybe v)
+
+-- | Perform lookup taking <a>MapModifier</a> into account.
+lookup :: (Eq k, Hashable k) => (k -> Maybe v) -> k -> MapModifier k v -> Maybe v
+
+-- | Get keys of something map-like in Functor context taking
+--   <a>MapModifier</a> into account.
+keysM :: (Functor m, Eq k, Hashable k) => m [k] -> MapModifier k v -> m [k]
+
+-- | Get keys of something map-like taking <a>MapModifier</a> into account.
+keys :: (Eq k, Hashable k) => [k] -> MapModifier k v -> [k]
+
+-- | Get values of something map-like in Functor context taking
+--   <a>MapModifier</a> into account.
+valuesM :: (Functor m, Eq k, Hashable k) => m [(k, v)] -> MapModifier k v -> m [v]
+
+-- | Get values of something map-like taking <a>MapModifier</a> into
+--   account.
+values :: (Eq k, Hashable k) => [(k, v)] -> MapModifier k v -> [v]
+
+-- | Get contents of something map-like in Functor context taking
+--   <a>MapModifier</a> into account.
+toListM :: (Functor m, Eq k, Hashable k) => m [(k, v)] -> MapModifier k v -> m [(k, v)]
+
+-- | Get contents of something map-like taking <a>MapModifier</a> into
+--   account.
+toList :: (Eq k, Hashable k) => [(k, v)] -> MapModifier k v -> [(k, v)]
+
+-- | Get all insertions into <a>MapModifier</a>.
+insertions :: MapModifier k v -> [(k, v)]
+
+-- | Get all deletions from <a>MapModifier</a>.
+deletions :: MapModifier k v -> [k]
+
+-- | Insert something into <a>MapModifier</a>. Effect of it is like
+--   inserting something into underlying container (which replaces existing
+--   value if it exists).
+insert :: (Eq k, Hashable k) => k -> v -> MapModifier k v -> MapModifier k v
+
+-- | Delete something into <a>MapModifier</a>. Nothing is actually deleted
+--   from <a>MapModifier</a> itself. Effect is akin to deleting value from
+--   underlying container.
+delete :: (Eq k, Hashable k) => k -> MapModifier k v -> MapModifier k v
+
+-- | Transform this modifer by applying a function to every insertion and
+--   retaining only some of them. Underlying map should be already
+--   transformed.
+mapMaybeM :: (Functor m, Eq k, Hashable k) => m [(k, v2)] -> (v1 -> Maybe v2) -> MapModifier k v1 -> m [(k, v2)]
+instance (GHC.Show.Show v, GHC.Show.Show k) => GHC.Show.Show (Pos.Util.Modifier.MapModifier k v)
+instance (GHC.Classes.Eq k, Data.Hashable.Class.Hashable k) => GHC.Base.Monoid (Pos.Util.Modifier.MapModifier k v)
+instance (GHC.Classes.Eq k, Data.Hashable.Class.Hashable k) => Data.Semigroup.Semigroup (Pos.Util.Modifier.MapModifier k v)
+
+
 -- | Miscellaneous unclassified utility functions.
 module Pos.Util
 
@@ -944,9 +1005,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679119504 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679119504)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679119497 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679119497)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679119493 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679119493)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679119500 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679119500)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679119493 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679119493)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679119489 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679119489)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SoftwareVersion
@@ -3432,16 +3493,8 @@ askUSMemVar :: (MonadUSMem m, MonadTrans t, MonadUSMem m', t m' ~ m) => m MemVar
 askUSMemState :: MonadUSMem m => m (TVar MemState)
 withUSLock :: (MonadUSMem m, MonadIO m, MonadMask m) => m a -> m a
 
--- | Modify MemPool using UpdatePayload and PollModifier.
---   
---   UpdatePayload is used to add new data to MemPool. Data must be
---   verified by caller. It's added directly to MemPool.
---   
---   PollModifier is used to remove or modify some data in MemPool. All
---   deleted proposals and votes for them are removed. TODO [CSL-625]
---   Deleted and modified votes from non-deleted proposals are not handled
---   properly.
-modifyMemPool :: UpdatePayload -> PollModifier -> MemPool -> MemPool
+-- | Add given payload to MemPool.
+addToMemPool :: UpdatePayload -> MemPool -> MemPool
 
 -- | Trivial monad transformer based on <tt>ReaderT (MemVar)</tt>.
 newtype USHolder m a
@@ -3927,28 +3980,20 @@ bvsMaxBlockSize :: BlockVersionState -> Byte
 --   one should apply to global state to obtain result of application of
 --   MemPool or blocks which are verified.
 data PollModifier
-PollModifier :: !(HashMap BlockVersion BlockVersionState) -> !(HashSet BlockVersion) -> !(Maybe (BlockVersion, BlockVersionData)) -> !(HashMap ApplicationName NumSoftwareVersion) -> !(HashSet ApplicationName) -> !(HashMap SoftwareVersion ConfirmedProposalState) -> !(HashSet SoftwareVersion) -> !(HashMap UpId ProposalState) -> !(HashSet UpId) -> !(HashMap ApplicationName UpId) -> !(HashMap ApplicationName UpId) -> !(Maybe SlottingData) -> PollModifier
-[pmNewBVs] :: PollModifier -> !(HashMap BlockVersion BlockVersionState)
-[pmDelBVs] :: PollModifier -> !(HashSet BlockVersion)
+PollModifier :: !(MapModifier BlockVersion BlockVersionState) -> !(Maybe (BlockVersion, BlockVersionData)) -> !(MapModifier ApplicationName NumSoftwareVersion) -> !(MapModifier SoftwareVersion ConfirmedProposalState) -> !(MapModifier UpId ProposalState) -> !(HashMap ApplicationName UpId) -> !(HashMap ApplicationName UpId) -> !(Maybe SlottingData) -> PollModifier
+[pmBVs] :: PollModifier -> !(MapModifier BlockVersion BlockVersionState)
 [pmAdoptedBVFull] :: PollModifier -> !(Maybe (BlockVersion, BlockVersionData))
-[pmNewConfirmed] :: PollModifier -> !(HashMap ApplicationName NumSoftwareVersion)
-[pmDelConfirmed] :: PollModifier -> !(HashSet ApplicationName)
-[pmNewConfirmedProps] :: PollModifier -> !(HashMap SoftwareVersion ConfirmedProposalState)
-[pmDelConfirmedProps] :: PollModifier -> !(HashSet SoftwareVersion)
-[pmNewActiveProps] :: PollModifier -> !(HashMap UpId ProposalState)
-[pmDelActiveProps] :: PollModifier -> !(HashSet UpId)
+[pmConfirmed] :: PollModifier -> !(MapModifier ApplicationName NumSoftwareVersion)
+[pmConfirmedProps] :: PollModifier -> !(MapModifier SoftwareVersion ConfirmedProposalState)
+[pmActiveProps] :: PollModifier -> !(MapModifier UpId ProposalState)
 [pmNewActivePropsIdx] :: PollModifier -> !(HashMap ApplicationName UpId)
 [pmDelActivePropsIdx] :: PollModifier -> !(HashMap ApplicationName UpId)
 [pmSlottingData] :: PollModifier -> !(Maybe SlottingData)
-pmNewBVsL :: Lens' PollModifier (HashMap BlockVersion BlockVersionState)
-pmDelBVsL :: Lens' PollModifier (HashSet BlockVersion)
+pmBVsL :: Lens' PollModifier (MapModifier BlockVersion BlockVersionState)
 pmAdoptedBVFullL :: Lens' PollModifier (Maybe (BlockVersion, BlockVersionData))
-pmNewConfirmedL :: Lens' PollModifier (HashMap ApplicationName NumSoftwareVersion)
-pmDelConfirmedL :: Lens' PollModifier (HashSet ApplicationName)
-pmNewConfirmedPropsL :: Lens' PollModifier (HashMap SoftwareVersion ConfirmedProposalState)
-pmDelConfirmedPropsL :: Lens' PollModifier (HashSet SoftwareVersion)
-pmNewActivePropsL :: Lens' PollModifier (HashMap UpId ProposalState)
-pmDelActivePropsL :: Lens' PollModifier (HashSet UpId)
+pmConfirmedL :: Lens' PollModifier (MapModifier ApplicationName NumSoftwareVersion)
+pmConfirmedPropsL :: Lens' PollModifier (MapModifier SoftwareVersion ConfirmedProposalState)
+pmActivePropsL :: Lens' PollModifier (MapModifier UpId ProposalState)
 pmNewActivePropsIdxL :: Lens' PollModifier (HashMap ApplicationName UpId)
 pmDelActivePropsIdxL :: Lens' PollModifier (HashMap ApplicationName UpId)
 pmSlottingDataL :: Lens' PollModifier (Maybe SlottingData)
