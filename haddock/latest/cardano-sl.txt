@@ -1005,9 +1005,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679119507 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679119507)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679119500 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679119500)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679119496 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679119496)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679119504 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679119504)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679119497 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679119497)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679119493 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679119493)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SoftwareVersion
@@ -3559,7 +3559,7 @@ VoteMsgTag :: VoteMsgTag
 
 -- | Type class which provides function necessary for read-only
 --   verification of US data.
-class (Monad m, WithLogger m) => MonadPollRead m where getAdoptedBV = fst <$> getAdoptedBVFull getAdoptedBVData = snd <$> getAdoptedBVFull getBVState = lift . getBVState getProposedBVs = lift getProposedBVs getConfirmedBVStates = lift getConfirmedBVStates getAdoptedBVFull = lift getAdoptedBVFull getLastConfirmedSV = lift . getLastConfirmedSV hasActiveProposal = lift . hasActiveProposal getProposal = lift . getProposal getConfirmedProposals = lift getConfirmedProposals getEpochTotalStake = lift . getEpochTotalStake getRichmanStake e = lift . getRichmanStake e getOldProposals = lift . getOldProposals getDeepProposals = lift . getDeepProposals getBlockIssuerStake e = lift . getBlockIssuerStake e getSlottingData = lift getSlottingData
+class (Monad m, WithLogger m) => MonadPollRead m where getAdoptedBV = fst <$> getAdoptedBVFull getAdoptedBVData = snd <$> getAdoptedBVFull getBVState = lift . getBVState getProposedBVs = lift getProposedBVs getConfirmedBVStates = lift getConfirmedBVStates getAdoptedBVFull = lift getAdoptedBVFull getLastConfirmedSV = lift . getLastConfirmedSV getProposal = lift . getProposal getConfirmedProposals = lift getConfirmedProposals getEpochTotalStake = lift . getEpochTotalStake getRichmanStake e = lift . getRichmanStake e getOldProposals = lift . getOldProposals getDeepProposals = lift . getDeepProposals getBlockIssuerStake e = lift . getBlockIssuerStake e getSlottingData = lift getSlottingData
 
 -- | Retrieve state of given block version.
 getBVState :: MonadPollRead m => BlockVersion -> m (Maybe BlockVersionState)
@@ -3575,9 +3575,6 @@ getAdoptedBVFull :: MonadPollRead m => m (BlockVersion, BlockVersionData)
 
 -- | Get numeric component of last confirmed version of application
 getLastConfirmedSV :: MonadPollRead m => ApplicationName -> m (Maybe NumSoftwareVersion)
-
--- | Check if given application has an active (non-confirmed) proposal
-hasActiveProposal :: MonadPollRead m => ApplicationName -> m Bool
 
 -- | Get active proposal
 getProposal :: MonadPollRead m => UpId -> m (Maybe ProposalState)
@@ -3625,9 +3622,6 @@ getAdoptedBVFull :: (MonadPollRead m, MonadTrans t, MonadPollRead m', t m' ~ m) 
 
 -- | Get numeric component of last confirmed version of application
 getLastConfirmedSV :: (MonadPollRead m, MonadTrans t, MonadPollRead m', t m' ~ m) => ApplicationName -> m (Maybe Word32)
-
--- | Check if given application has an active (non-confirmed) proposal
-hasActiveProposal :: (MonadPollRead m, MonadTrans t, MonadPollRead m', t m' ~ m) => ApplicationName -> m Bool
 
 -- | Get active proposal
 getProposal :: (MonadPollRead m, MonadTrans t, MonadPollRead m', t m' ~ m) => UpId -> m (Maybe ProposalState)
@@ -3767,7 +3761,6 @@ PollUnknownProposal :: !StakeholderId -> !UpId -> PollVerFailure
 [pupStakeholder] :: PollVerFailure -> !StakeholderId
 [pupProposal] :: PollVerFailure -> !UpId
 PollUnknownStakes :: !EpochIndex -> PollVerFailure
-Poll2ndActiveProposal :: !SoftwareVersion -> PollVerFailure
 PollWrongSoftwareVersion :: !(Maybe NumSoftwareVersion) -> !ApplicationName -> !NumSoftwareVersion -> !UpId -> PollVerFailure
 [pwsvStored] :: PollVerFailure -> !(Maybe NumSoftwareVersion)
 [pwsvApp] :: PollVerFailure -> !ApplicationName
@@ -3980,22 +3973,20 @@ bvsMaxBlockSize :: BlockVersionState -> Byte
 --   one should apply to global state to obtain result of application of
 --   MemPool or blocks which are verified.
 data PollModifier
-PollModifier :: !(MapModifier BlockVersion BlockVersionState) -> !(Maybe (BlockVersion, BlockVersionData)) -> !(MapModifier ApplicationName NumSoftwareVersion) -> !(MapModifier SoftwareVersion ConfirmedProposalState) -> !(MapModifier UpId ProposalState) -> !(HashMap ApplicationName UpId) -> !(HashMap ApplicationName UpId) -> !(Maybe SlottingData) -> PollModifier
+PollModifier :: !(MapModifier BlockVersion BlockVersionState) -> !(Maybe (BlockVersion, BlockVersionData)) -> !(MapModifier ApplicationName NumSoftwareVersion) -> !(MapModifier SoftwareVersion ConfirmedProposalState) -> !(MapModifier UpId ProposalState) -> !(HashMap ApplicationName (HashSet UpId)) -> !(Maybe SlottingData) -> PollModifier
 [pmBVs] :: PollModifier -> !(MapModifier BlockVersion BlockVersionState)
 [pmAdoptedBVFull] :: PollModifier -> !(Maybe (BlockVersion, BlockVersionData))
 [pmConfirmed] :: PollModifier -> !(MapModifier ApplicationName NumSoftwareVersion)
 [pmConfirmedProps] :: PollModifier -> !(MapModifier SoftwareVersion ConfirmedProposalState)
 [pmActiveProps] :: PollModifier -> !(MapModifier UpId ProposalState)
-[pmNewActivePropsIdx] :: PollModifier -> !(HashMap ApplicationName UpId)
-[pmDelActivePropsIdx] :: PollModifier -> !(HashMap ApplicationName UpId)
+[pmDelActivePropsIdx] :: PollModifier -> !(HashMap ApplicationName (HashSet UpId))
 [pmSlottingData] :: PollModifier -> !(Maybe SlottingData)
 pmBVsL :: Lens' PollModifier (MapModifier BlockVersion BlockVersionState)
 pmAdoptedBVFullL :: Lens' PollModifier (Maybe (BlockVersion, BlockVersionData))
 pmConfirmedL :: Lens' PollModifier (MapModifier ApplicationName NumSoftwareVersion)
 pmConfirmedPropsL :: Lens' PollModifier (MapModifier SoftwareVersion ConfirmedProposalState)
 pmActivePropsL :: Lens' PollModifier (MapModifier UpId ProposalState)
-pmNewActivePropsIdxL :: Lens' PollModifier (HashMap ApplicationName UpId)
-pmDelActivePropsIdxL :: Lens' PollModifier (HashMap ApplicationName UpId)
+pmDelActivePropsIdxL :: Lens' PollModifier (HashMap ApplicationName (HashSet UpId))
 pmSlottingDataL :: Lens' PollModifier (Maybe SlottingData)
 
 -- | Previous value of something that could be missing.
