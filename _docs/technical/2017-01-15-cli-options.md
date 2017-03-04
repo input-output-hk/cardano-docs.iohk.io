@@ -53,7 +53,7 @@ Available options:
     <br/>Default value: none.
     <br/>&nbsp;
 8.  `--listen IP:PORT`
-    <br>Specify IP-address and port node uses to listen requests.
+    <br>Specify IP-address and port node uses to listen requests from other nodes.
     <br/>Default value: `0.0.0.0:3000`.
     <br/>**Please make sure that IP-address and port are accessible, otherwise work of the node isn't guaranteed**.
     <br/>&nbsp;
@@ -96,7 +96,7 @@ Available options:
     <br/>Default value: `kademlia.dump`.
     <br/>&nbsp;
 17. `--web`
-    <br/>Run web server.
+    <br/>Run web server (node's web API, it's not linked with a wallet web API).
     <br/>&nbsp;
 18. `--web-port PORT`
     <br/>Port for web server.
@@ -287,7 +287,7 @@ An executable `cardano-avvmmigrate` is an AVVM converter. AVVM is a mechanism pe
 
 Example of part of an input JSON file:
 
-~~~json
+~~~ json
 {
     "utxo": [{
         "coin": {
@@ -333,7 +333,7 @@ An executable `cardano-checks` is an extractor of special check-comments. We nee
 
 These comments are based on `CHECK` word, for example in [`Pos.Txp.Toil.Utxo.Pure`](https://github.com/input-output-hk/cardano-sl/blob/master/src/Pos/Txp/Toil/Utxo/Pure.hs#L111) module:
 
-~~~haskell
+~~~ haskell
 -- CHECK: @TxUtxoPure
 ~~~
 
@@ -358,7 +358,7 @@ stack exec -- cardano-checks /tmp/cardano-sl /tmp/checks.md
 
 Example of result document:
 
-~~~markdown
+~~~ markdown
 ## Module Pos.Crypto.SecretSharing
 Verify an encrypted share using SecretSharingExtra.
 _(line 182)_
