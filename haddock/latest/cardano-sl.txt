@@ -4434,7 +4434,7 @@ MsgGetHeaders :: ![HeaderHash] -> !(Maybe HeaderHash) -> MsgGetHeaders
 [mghFrom] :: MsgGetHeaders -> ![HeaderHash]
 [mghTo] :: MsgGetHeaders -> !(Maybe HeaderHash)
 
--- | <tt>GetBlocks</tt> message (see protocol specification).
+-- | <tt>GetHeaders</tt> message (see protocol specification).
 data MsgGetBlocks
 MsgGetBlocks :: !HeaderHash -> !HeaderHash -> MsgGetBlocks
 [mgbFrom] :: MsgGetBlocks -> !HeaderHash
@@ -4449,20 +4449,9 @@ newtype MsgBlock ssc
 MsgBlock :: (Block ssc) -> MsgBlock ssc
 
 module Pos.Block.Arbitrary
-
--- | This type is used to generate a valid blockheader and associated
---   header verification params. With regards to the block header function
---   <a>verifyHeader</a>, the blockheaders that may be part of the
---   verification parameters are guaranteed to be valid, as are the slot
---   leaders and the current slot.
-newtype HeaderAndParams ssc
-HAndP :: (VerifyHeaderParams ssc, BlockHeader ssc) -> HeaderAndParams ssc
-[getHAndP] :: HeaderAndParams ssc -> (VerifyHeaderParams ssc, BlockHeader ssc)
 newtype BlockHeaderList ssc
 BHL :: ([BlockHeader ssc], [PublicKey]) -> BlockHeaderList ssc
 [getHeaderList] :: BlockHeaderList ssc -> ([BlockHeader ssc], [PublicKey])
-instance Pos.Ssc.Class.Types.Ssc ssc => GHC.Show.Show (Pos.Block.Arbitrary.HeaderAndParams ssc)
-instance Pos.Ssc.Class.Types.Ssc ssc => GHC.Classes.Eq (Pos.Block.Arbitrary.HeaderAndParams ssc)
 instance Pos.Ssc.Class.Types.Ssc ssc => GHC.Classes.Eq (Pos.Block.Arbitrary.BlockHeaderList ssc)
 instance (Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Class.Types.SscProof ssc), Pos.Binary.Class.Bi Pos.Binary.Class.Raw, Pos.Ssc.Class.Types.Ssc ssc) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Types.Block.Types.BlockSignature ssc)
 instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Types.Block.Types.GenesisBlockHeader ssc)
@@ -4489,7 +4478,6 @@ instance (Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Class.Types.SscProof ssc)
 instance Pos.Types.Block.Types.BiSsc ssc => Data.Text.Buildable.Buildable (Pos.Types.Block.Types.BlockHeader ssc, Pos.Crypto.Signing.PublicKey)
 instance Pos.Types.Block.Types.BiSsc ssc => GHC.Show.Show (Pos.Block.Arbitrary.BlockHeaderList ssc)
 instance (Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Class.Types.SscPayload ssc), Pos.Ssc.Class.Helpers.SscHelpersClass ssc) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Block.Arbitrary.BlockHeaderList ssc)
-instance (Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Class.Types.SscPayload ssc), Pos.Ssc.Class.Helpers.SscHelpersClass ssc) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Block.Arbitrary.HeaderAndParams ssc)
 
 
 -- | Re-exports of Pos.Communication.*
