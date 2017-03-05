@@ -21,12 +21,12 @@ When reading the source code, you often encounter things
 -- | 'GetHeaders' message (see protocol specification).
 data MsgGetHeaders = MsgGetHeaders
     { -- not guaranteed to be in any particular order
-      mghFrom :: !(NonEmpty HeaderHash)
+      mghFrom :: ![HeaderHash]
     , mghTo   :: !(Maybe HeaderHash)
     } deriving (Generic, Show, Eq)
 
 instance Message MsgGetHeaders where
-    messageName _ = MessageName $ BC.pack "GetHeaders"
+    messageName _ = varIntMName 4
     formatMessage _ = "GetHeaders"
 ~~~
 
@@ -110,14 +110,18 @@ module for the examples of messages that are using `Inv/Req/Data`.
 
 ## Block Exchange Messages
 
-This table explains [Pos.Block.Network.Types](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Types.hs) module.
+[//]: # (Updated at 3b657302dede832b908f7ba792a164c83b362712)
 
-| Message type | Payload | Commentaries |
-|--------------|---------|--------------|
-| GetHeaders | Oldest header hash we're interested in; Newest hash we're interested in, or blank | Expect newest header first |
-| GetBlocks | Oldest header hash; Newest hash | As opposed to GetHeaders, both hashes have to be present |
-| BlockHeaders | Non-empty collection of block headers, newest first | Polymorphic in scc |
-| Block | A single block | Polymorphic in scc |
+This table explains [Pos.Block.Network.Types](https://github.com/input-output-hk/cardano-sl/blob/3b657302dede832b908f7ba792a164c83b362712/src/Pos/Block/Network/Types.hs) module.
+
+| Message type | Payload                                                           | Commentaries                                             |
+|--------------+-------------------------------------------------------------------+----------------------------------------------------------|
+| GetHeaders   | Header hash checkpoints; Optional newest hash we're interested in | Expect newest header first                               |
+| GetBlocks    | Oldest header hash; Newest hash                                   | As opposed to GetHeaders, both hashes have to be present |
+| BlockHeaders | Non-empty collection of block headers, newest first               | Polymorphic in scc                                       |
+| Block        | A single block                                                    | Polymorphic in scc                                       |
+
+For more details see [binary protocols](/technical/protocols/binary-protocols/#block-exchange-messages).
 
 ## Message names
 
