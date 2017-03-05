@@ -2515,23 +2515,6 @@ module Pos.Security
 -- | Leaders and richmen computation.
 module Pos.Lrc
 
--- | Wrapper over <a>RichmenStake</a>. Its <a>Arbitrary</a> instance
---   enforces that the stake distribution inside must be invalid, i.e. one
---   of the stakeholders does not have sufficient coins to participate.
-newtype InvalidRichmenStake thd
-Invalid :: RichmenStake -> InvalidRichmenStake thd
-[getInvalid] :: InvalidRichmenStake thd -> RichmenStake
-
--- | Wrapper over <a>RichmenStake</a>. Its <a>Arbitrary</a> instance
---   enforces that the stake distribution inside must be valid with respect
---   to the threshold <tt>thd</tt>, i.e. all of the coins are non-zero and
---   every stakeholder has sufficient coins (above 'coinPortionToDouble
---   thd' %) to participate. Using reflection, the <tt>thd</tt> phantom
---   type is used to get the threshold desired in each case.
-newtype ValidRichmenStake thd
-Valid :: RichmenStake -> ValidRichmenStake thd
-[getValid] :: ValidRichmenStake thd -> RichmenStake
-
 -- | Datatype for LRC computation client. If you want to compute richmen,
 --   you should add such client to LRC framework
 data LrcConsumer m
@@ -3467,6 +3450,24 @@ waitSystemStart :: (WithNodeContext ssc m, Mockable Delay m, WithLogger m, Monad
 --   See <a>https://eprint.iacr.org/2015/889.pdf</a> (“A Provably Secure
 --   Proof-of-Stake Blockchain Protocol”), section 4 for more details.
 module Pos.Ssc.GodTossing
+
+-- | Wrapper over '(Commitment, Opening)'. Creates an invalid pair of a
+--   Commitment and an Opening w.r.t. <tt>verifyOpening</tt>.
+data BadCommAndOpening
+BadCommAndOpening :: (Commitment, Opening) -> BadCommAndOpening
+[getBadCAndO] :: BadCommAndOpening -> (Commitment, Opening)
+
+-- | Wrapper over <a>Commitment</a>. Creates an invalid Commitment w.r.t.
+--   <tt>verifyCommitment</tt>.
+newtype BadCommitment
+BadComm :: Commitment -> BadCommitment
+[getBadComm] :: BadCommitment -> Commitment
+
+-- | Wrapper over <a>SignedCommitment</a>. Creates an invalid
+--   SignedCommitment w.r.t. <tt>verifyCommitmentSignature</tt>.
+newtype BadSignedCommitment
+BadSignedComm :: SignedCommitment -> BadSignedCommitment
+[getBadSignedC] :: BadSignedCommitment -> SignedCommitment
 
 -- | Pair of <a>Commitment</a> and <a>Opening</a>.
 data CommitmentOpening
