@@ -1005,9 +1005,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679119463 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679119463)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679119456 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679119456)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679119452 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679119452)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679119507 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679119507)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679119500 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679119500)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679119496 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679119496)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SoftwareVersion
@@ -2950,6 +2950,23 @@ filter :: (StakeholderId -> Bool) -> VssCertData -> VssCertData
 -- | Leaders and richmen computation.
 module Pos.Lrc
 
+-- | Wrapper over <a>RichmenStake</a>. Its <a>Arbitrary</a> instance
+--   enforces that the stake distribution inside must be invalid, i.e. one
+--   of the stakeholders does not have sufficient coins to participate.
+newtype InvalidRichmenStake thd
+Invalid :: RichmenStake -> InvalidRichmenStake thd
+[getInvalid] :: InvalidRichmenStake thd -> RichmenStake
+
+-- | Wrapper over <a>RichmenStake</a>. Its <a>Arbitrary</a> instance
+--   enforces that the stake distribution inside must be valid with respect
+--   to the threshold <tt>thd</tt>, i.e. all of the coins are non-zero and
+--   every stakeholder has sufficient coins (above 'coinPortionToDouble
+--   thd' %) to participate. Using reflection, the <tt>thd</tt> phantom
+--   type is used to get the threshold desired in each case.
+newtype ValidRichmenStake thd
+Valid :: RichmenStake -> ValidRichmenStake thd
+[getValid] :: ValidRichmenStake thd -> RichmenStake
+
 -- | Datatype for LRC computation client. If you want to compute richmen,
 --   you should add such client to LRC framework
 data LrcConsumer m
@@ -4432,9 +4449,20 @@ newtype MsgBlock ssc
 MsgBlock :: (Block ssc) -> MsgBlock ssc
 
 module Pos.Block.Arbitrary
+
+-- | This type is used to generate a valid blockheader and associated
+--   header verification params. With regards to the block header function
+--   <a>verifyHeader</a>, the blockheaders that may be part of the
+--   verification parameters are guaranteed to be valid, as are the slot
+--   leaders and the current slot.
+newtype HeaderAndParams ssc
+HAndP :: (VerifyHeaderParams ssc, BlockHeader ssc) -> HeaderAndParams ssc
+[getHAndP] :: HeaderAndParams ssc -> (VerifyHeaderParams ssc, BlockHeader ssc)
 newtype BlockHeaderList ssc
 BHL :: ([BlockHeader ssc], [PublicKey]) -> BlockHeaderList ssc
 [getHeaderList] :: BlockHeaderList ssc -> ([BlockHeader ssc], [PublicKey])
+instance Pos.Ssc.Class.Types.Ssc ssc => GHC.Show.Show (Pos.Block.Arbitrary.HeaderAndParams ssc)
+instance Pos.Ssc.Class.Types.Ssc ssc => GHC.Classes.Eq (Pos.Block.Arbitrary.HeaderAndParams ssc)
 instance Pos.Ssc.Class.Types.Ssc ssc => GHC.Classes.Eq (Pos.Block.Arbitrary.BlockHeaderList ssc)
 instance (Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Class.Types.SscProof ssc), Pos.Binary.Class.Bi Pos.Binary.Class.Raw, Pos.Ssc.Class.Types.Ssc ssc) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Types.Block.Types.BlockSignature ssc)
 instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Types.Block.Types.GenesisBlockHeader ssc)
@@ -4461,6 +4489,7 @@ instance (Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Class.Types.SscProof ssc)
 instance Pos.Types.Block.Types.BiSsc ssc => Data.Text.Buildable.Buildable (Pos.Types.Block.Types.BlockHeader ssc, Pos.Crypto.Signing.PublicKey)
 instance Pos.Types.Block.Types.BiSsc ssc => GHC.Show.Show (Pos.Block.Arbitrary.BlockHeaderList ssc)
 instance (Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Class.Types.SscPayload ssc), Pos.Ssc.Class.Helpers.SscHelpersClass ssc) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Block.Arbitrary.BlockHeaderList ssc)
+instance (Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Class.Types.SscPayload ssc), Pos.Ssc.Class.Helpers.SscHelpersClass ssc) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Block.Arbitrary.HeaderAndParams ssc)
 
 
 -- | Re-exports of Pos.Communication.*
