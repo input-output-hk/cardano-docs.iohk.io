@@ -42,7 +42,7 @@ It should be noted that sometimes you see messages that are parametrized with a
 `ssc` type variable. That is done for the code to be polymorphic with respect
 to the way we carry out shared seed computation.
 [Here](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Types.hs#L42-L44)
-is an example of a message that sends newest headers first, minding scc.
+is an example of a message that sends newest headers first, minding ssc.
 
 The way messages are serialized can be seen in
 [Pos.Binary.Communication](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Binary/Communication.hs)
@@ -118,8 +118,8 @@ This table explains [Pos.Block.Network.Types](https://github.com/input-output-hk
 |--------------+-------------------------------------------------------------------+----------------------------------------------------------|
 | GetHeaders   | Header hash checkpoints; Optional newest hash we're interested in | Expect newest header first                               |
 | GetBlocks    | Oldest header hash; Newest hash                                   | As opposed to GetHeaders, both hashes have to be present |
-| BlockHeaders | Non-empty collection of block headers, newest first               | Polymorphic in scc                                       |
-| Block        | A single block                                                    | Polymorphic in scc                                       |
+| BlockHeaders | Non-empty collection of block headers, newest first               | Polymorphic in ssc                                       |
+| Block        | A single block                                                    | Polymorphic in ssc                                       |
 
 For more details see [binary protocols](/technical/protocols/binary-protocols/#block-exchange-messages).
 
