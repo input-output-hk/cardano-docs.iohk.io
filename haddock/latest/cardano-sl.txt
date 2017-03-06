@@ -50,67 +50,6 @@ instance Data.Default.Class.Default Pos.Util.UserSecret.UserSecret
 instance Pos.Binary.Class.Bi Pos.Util.UserSecret.UserSecret
 
 
--- | Wrapper for modifier pattern which is used intensively in code
-module Pos.Util.Modifier
-
--- | <a>MapModifier</a> is a type which collects modifications (insertions
---   and deletions) of something map-like.
-data MapModifier k v
-
--- | Perform monadic lookup taking <a>MapModifier</a> into account.
-lookupM :: (Applicative m, Eq k, Hashable k) => (k -> m (Maybe v)) -> k -> MapModifier k v -> m (Maybe v)
-
--- | Perform lookup taking <a>MapModifier</a> into account.
-lookup :: (Eq k, Hashable k) => (k -> Maybe v) -> k -> MapModifier k v -> Maybe v
-
--- | Get keys of something map-like in Functor context taking
---   <a>MapModifier</a> into account.
-keysM :: (Functor m, Eq k, Hashable k) => m [k] -> MapModifier k v -> m [k]
-
--- | Get keys of something map-like taking <a>MapModifier</a> into account.
-keys :: (Eq k, Hashable k) => [k] -> MapModifier k v -> [k]
-
--- | Get values of something map-like in Functor context taking
---   <a>MapModifier</a> into account.
-valuesM :: (Functor m, Eq k, Hashable k) => m [(k, v)] -> MapModifier k v -> m [v]
-
--- | Get values of something map-like taking <a>MapModifier</a> into
---   account.
-values :: (Eq k, Hashable k) => [(k, v)] -> MapModifier k v -> [v]
-
--- | Get contents of something map-like in Functor context taking
---   <a>MapModifier</a> into account.
-toListM :: (Functor m, Eq k, Hashable k) => m [(k, v)] -> MapModifier k v -> m [(k, v)]
-
--- | Get contents of something map-like taking <a>MapModifier</a> into
---   account.
-toList :: (Eq k, Hashable k) => [(k, v)] -> MapModifier k v -> [(k, v)]
-
--- | Get all insertions into <a>MapModifier</a>.
-insertions :: MapModifier k v -> [(k, v)]
-
--- | Get all deletions from <a>MapModifier</a>.
-deletions :: MapModifier k v -> [k]
-
--- | Insert something into <a>MapModifier</a>. Effect of it is like
---   inserting something into underlying container (which replaces existing
---   value if it exists).
-insert :: (Eq k, Hashable k) => k -> v -> MapModifier k v -> MapModifier k v
-
--- | Delete something into <a>MapModifier</a>. Nothing is actually deleted
---   from <a>MapModifier</a> itself. Effect is akin to deleting value from
---   underlying container.
-delete :: (Eq k, Hashable k) => k -> MapModifier k v -> MapModifier k v
-
--- | Transform this modifer by applying a function to every insertion and
---   retaining only some of them. Underlying map should be already
---   transformed.
-mapMaybeM :: (Functor m, Eq k, Hashable k) => m [(k, v2)] -> (v1 -> Maybe v2) -> MapModifier k v1 -> m [(k, v2)]
-instance (GHC.Show.Show v, GHC.Show.Show k) => GHC.Show.Show (Pos.Util.Modifier.MapModifier k v)
-instance (GHC.Classes.Eq k, Data.Hashable.Class.Hashable k) => GHC.Base.Monoid (Pos.Util.Modifier.MapModifier k v)
-instance (GHC.Classes.Eq k, Data.Hashable.Class.Hashable k) => Data.Semigroup.Semigroup (Pos.Util.Modifier.MapModifier k v)
-
-
 -- | Miscellaneous unclassified utility functions.
 module Pos.Util
 
@@ -1005,9 +944,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679119507 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679119507)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679119500 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679119500)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679119496 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679119496)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679119529 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679119529)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679119522 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679119522)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679119518 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679119518)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SoftwareVersion
@@ -1691,8 +1630,9 @@ getProposalState :: MonadDB m => UpId -> m (Maybe ProposalState)
 -- | Get UpId of current proposal for given appName
 getAppProposal :: MonadDB m => ApplicationName -> m (Maybe UpId)
 
--- | Get state of Update Proposal for given AppName
-getProposalStateByApp :: MonadDB m => ApplicationName -> m (Maybe ProposalState)
+-- | Get states of all active <a>UpdateProposal</a>s for given
+--   <a>ApplicationName</a>.
+getProposalsByApp :: MonadDB m => ApplicationName -> m [ProposalState]
 
 -- | Get last confirmed SoftwareVersion of given application.
 getConfirmedSV :: MonadDB m => ApplicationName -> m (Maybe NumSoftwareVersion)
@@ -3585,7 +3525,7 @@ VoteMsgTag :: VoteMsgTag
 
 -- | Type class which provides function necessary for read-only
 --   verification of US data.
-class (Monad m, WithLogger m) => MonadPollRead m where getAdoptedBV = fst <$> getAdoptedBVFull getAdoptedBVData = snd <$> getAdoptedBVFull getBVState = lift . getBVState getProposedBVs = lift getProposedBVs getConfirmedBVStates = lift getConfirmedBVStates getAdoptedBVFull = lift getAdoptedBVFull getLastConfirmedSV = lift . getLastConfirmedSV hasActiveProposal = lift . hasActiveProposal getProposal = lift . getProposal getConfirmedProposals = lift getConfirmedProposals getEpochTotalStake = lift . getEpochTotalStake getRichmanStake e = lift . getRichmanStake e getOldProposals = lift . getOldProposals getDeepProposals = lift . getDeepProposals getBlockIssuerStake e = lift . getBlockIssuerStake e getSlottingData = lift getSlottingData
+class (Monad m, WithLogger m) => MonadPollRead m where getAdoptedBV = fst <$> getAdoptedBVFull getAdoptedBVData = snd <$> getAdoptedBVFull getBVState = lift . getBVState getProposedBVs = lift getProposedBVs getConfirmedBVStates = lift getConfirmedBVStates getAdoptedBVFull = lift getAdoptedBVFull getLastConfirmedSV = lift . getLastConfirmedSV getProposal = lift . getProposal getProposalsByApp = lift . getProposalsByApp getConfirmedProposals = lift getConfirmedProposals getEpochTotalStake = lift . getEpochTotalStake getRichmanStake e = lift . getRichmanStake e getOldProposals = lift . getOldProposals getDeepProposals = lift . getDeepProposals getBlockIssuerStake e = lift . getBlockIssuerStake e getSlottingData = lift getSlottingData
 
 -- | Retrieve state of given block version.
 getBVState :: MonadPollRead m => BlockVersion -> m (Maybe BlockVersionState)
@@ -3602,11 +3542,11 @@ getAdoptedBVFull :: MonadPollRead m => m (BlockVersion, BlockVersionData)
 -- | Get numeric component of last confirmed version of application
 getLastConfirmedSV :: MonadPollRead m => ApplicationName -> m (Maybe NumSoftwareVersion)
 
--- | Check if given application has an active (non-confirmed) proposal
-hasActiveProposal :: MonadPollRead m => ApplicationName -> m Bool
-
 -- | Get active proposal
 getProposal :: MonadPollRead m => UpId -> m (Maybe ProposalState)
+
+-- | Get active proposals for the specified application.
+getProposalsByApp :: MonadPollRead m => ApplicationName -> m [ProposalState]
 
 -- | Get all known confirmed proposals.
 getConfirmedProposals :: MonadPollRead m => m [ConfirmedProposalState]
@@ -3652,11 +3592,11 @@ getAdoptedBVFull :: (MonadPollRead m, MonadTrans t, MonadPollRead m', t m' ~ m) 
 -- | Get numeric component of last confirmed version of application
 getLastConfirmedSV :: (MonadPollRead m, MonadTrans t, MonadPollRead m', t m' ~ m) => ApplicationName -> m (Maybe Word32)
 
--- | Check if given application has an active (non-confirmed) proposal
-hasActiveProposal :: (MonadPollRead m, MonadTrans t, MonadPollRead m', t m' ~ m) => ApplicationName -> m Bool
-
 -- | Get active proposal
 getProposal :: (MonadPollRead m, MonadTrans t, MonadPollRead m', t m' ~ m) => UpId -> m (Maybe ProposalState)
+
+-- | Get active proposals for the specified application.
+getProposalsByApp :: (MonadPollRead m, MonadTrans t, MonadPollRead m', t m' ~ m) => ApplicationName -> m [ProposalState]
 
 -- | Get all known confirmed proposals.
 getConfirmedProposals :: (MonadPollRead m, MonadTrans t, MonadPollRead m', t m' ~ m) => m [ConfirmedProposalState]
@@ -3781,6 +3721,7 @@ PollLargeMaxBlockSize :: !Byte -> !Byte -> !UpId -> PollVerFailure
 [plmbsFound] :: PollVerFailure -> !Byte
 [plmbsUpId] :: PollVerFailure -> !UpId
 PollNotFoundScriptVersion :: !BlockVersion -> PollVerFailure
+PollProposalAlreadyActive :: !UpId -> PollVerFailure
 PollSmallProposalStake :: !Coin -> !Coin -> !UpId -> PollVerFailure
 [pspsThreshold] :: PollVerFailure -> !Coin
 [pspsActual] :: PollVerFailure -> !Coin
@@ -3793,7 +3734,6 @@ PollUnknownProposal :: !StakeholderId -> !UpId -> PollVerFailure
 [pupStakeholder] :: PollVerFailure -> !StakeholderId
 [pupProposal] :: PollVerFailure -> !UpId
 PollUnknownStakes :: !EpochIndex -> PollVerFailure
-Poll2ndActiveProposal :: !SoftwareVersion -> PollVerFailure
 PollWrongSoftwareVersion :: !(Maybe NumSoftwareVersion) -> !ApplicationName -> !NumSoftwareVersion -> !UpId -> PollVerFailure
 [pwsvStored] :: PollVerFailure -> !(Maybe NumSoftwareVersion)
 [pwsvApp] :: PollVerFailure -> !ApplicationName
@@ -4006,22 +3946,20 @@ bvsMaxBlockSize :: BlockVersionState -> Byte
 --   one should apply to global state to obtain result of application of
 --   MemPool or blocks which are verified.
 data PollModifier
-PollModifier :: !(MapModifier BlockVersion BlockVersionState) -> !(Maybe (BlockVersion, BlockVersionData)) -> !(MapModifier ApplicationName NumSoftwareVersion) -> !(MapModifier SoftwareVersion ConfirmedProposalState) -> !(MapModifier UpId ProposalState) -> !(HashMap ApplicationName UpId) -> !(HashMap ApplicationName UpId) -> !(Maybe SlottingData) -> PollModifier
+PollModifier :: !(MapModifier BlockVersion BlockVersionState) -> !(Maybe (BlockVersion, BlockVersionData)) -> !(MapModifier ApplicationName NumSoftwareVersion) -> !(MapModifier SoftwareVersion ConfirmedProposalState) -> !(MapModifier UpId ProposalState) -> !(HashMap ApplicationName (HashSet UpId)) -> !(Maybe SlottingData) -> PollModifier
 [pmBVs] :: PollModifier -> !(MapModifier BlockVersion BlockVersionState)
 [pmAdoptedBVFull] :: PollModifier -> !(Maybe (BlockVersion, BlockVersionData))
 [pmConfirmed] :: PollModifier -> !(MapModifier ApplicationName NumSoftwareVersion)
 [pmConfirmedProps] :: PollModifier -> !(MapModifier SoftwareVersion ConfirmedProposalState)
 [pmActiveProps] :: PollModifier -> !(MapModifier UpId ProposalState)
-[pmNewActivePropsIdx] :: PollModifier -> !(HashMap ApplicationName UpId)
-[pmDelActivePropsIdx] :: PollModifier -> !(HashMap ApplicationName UpId)
+[pmDelActivePropsIdx] :: PollModifier -> !(HashMap ApplicationName (HashSet UpId))
 [pmSlottingData] :: PollModifier -> !(Maybe SlottingData)
 pmBVsL :: Lens' PollModifier (MapModifier BlockVersion BlockVersionState)
 pmAdoptedBVFullL :: Lens' PollModifier (Maybe (BlockVersion, BlockVersionData))
 pmConfirmedL :: Lens' PollModifier (MapModifier ApplicationName NumSoftwareVersion)
 pmConfirmedPropsL :: Lens' PollModifier (MapModifier SoftwareVersion ConfirmedProposalState)
 pmActivePropsL :: Lens' PollModifier (MapModifier UpId ProposalState)
-pmNewActivePropsIdxL :: Lens' PollModifier (HashMap ApplicationName UpId)
-pmDelActivePropsIdxL :: Lens' PollModifier (HashMap ApplicationName UpId)
+pmDelActivePropsIdxL :: Lens' PollModifier (HashMap ApplicationName (HashSet UpId))
 pmSlottingDataL :: Lens' PollModifier (Maybe SlottingData)
 
 -- | Previous value of something that could be missing.
