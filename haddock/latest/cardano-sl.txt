@@ -1117,16 +1117,13 @@ genesisHash :: Hash a
 --   references previous block and/or is referenced by next block, use
 --   header verification (via vbpVerifyHeader).
 data VerifyBlockParams ssc
-VerifyBlockParams :: !(Maybe (VerifyHeaderParams ssc)) -> !Bool -> !Bool -> !Bool -> !Bool -> !(Maybe BlockVersion) -> VerifyBlockParams ssc
+VerifyBlockParams :: !(Maybe (VerifyHeaderParams ssc)) -> !Bool -> !Bool -> !Bool -> !(Maybe BlockVersion) -> VerifyBlockParams ssc
 
 -- | Verifies header accordingly to params (<a>verifyHeader</a>)
 [vbpVerifyHeader] :: VerifyBlockParams ssc -> !(Maybe (VerifyHeaderParams ssc))
 
 -- | Checks <tt>verifyGenesisBlock</tt> property.
 [vbpVerifyGeneric] :: VerifyBlockParams ssc -> !Bool
-
--- | Checks that each transaction passes <a>verifyTxAlone</a> check.
-[vbpVerifyTxs] :: VerifyBlockParams ssc -> !Bool
 
 -- | Verifies ssc payload with <a>sscVerifyPayload</a>.
 [vbpVerifySsc] :: VerifyBlockParams ssc -> !Bool
@@ -3010,11 +3007,6 @@ type FullRichmenData = (Coin, RichmenStake)
 -- | Txp system reexports.
 module Pos.Txp
 
--- | Verify that Tx itself is correct. Most likely you will also want to
---   verify that inputs are legal, signed properly and have enough coins;
---   <a>verifyTxAlone</a> doesn't do that.
-verifyTxAlone :: Tx -> VerificationRes
-
 -- | Global context data needed for script execution -- is same for the
 --   whole transaction. VT stands for "Verify Tx". Currently empty.
 data VTxGlobalContext
@@ -3028,8 +3020,7 @@ VTxLocalContext :: TxOutAux -> VTxLocalContext
 [vtlTxOut] :: VTxLocalContext -> TxOutAux
 
 -- | CHECK: Verify Tx correctness using magic function which resolves input
---   into Address and Coin. It optionally does checks from
---   <a>verifyTxAlone</a> and also the following checks:
+--   into Address and Coin. And also the following checks:
 --   
 --   <ul>
 --   <li>sum of inputs &gt;= sum of outputs;</li>
@@ -3043,8 +3034,8 @@ VTxLocalContext :: TxOutAux -> VTxLocalContext
 --   because we want blocks with such transactions to be accepted (to avoid
 --   hard forks). However, we won't include such transactions into blocks
 --   when we're creating a block.
-verifyTx :: Monad m => Bool -> Bool -> VTxGlobalContext -> (TxIn -> m (Maybe VTxLocalContext)) -> TxAux -> m (Either [Text] TxUndo)
-verifyTxPure :: Bool -> Bool -> VTxGlobalContext -> (TxIn -> Maybe VTxLocalContext) -> TxAux -> Either [Text] TxUndo
+verifyTx :: Monad m => Bool -> VTxGlobalContext -> (TxIn -> m (Maybe VTxLocalContext)) -> TxAux -> m (Either [Text] TxUndo)
+verifyTxPure :: Bool -> VTxGlobalContext -> (TxIn -> Maybe VTxLocalContext) -> TxAux -> Either [Text] TxUndo
 
 -- | Does topological sort on things that contain transactions – e.g. can
 --   be used both for sorting <tt>[Tx]</tt> and <tt>[(Tx, TxWitness)]</tt>.
@@ -3115,7 +3106,7 @@ txOutStake :: TxOutAux -> [(StakeholderId, Coin)]
 --   
 --   NB: transaction witnesses are stored separately.
 data Tx
-Tx :: ![TxIn] -> ![TxOut] -> !TxAttributes -> Tx
+UnsafeTx :: ![TxIn] -> ![TxOut] -> !TxAttributes -> Tx
 
 -- | Inputs of transaction.
 [_txInputs] :: Tx -> ![TxIn]
@@ -3125,6 +3116,10 @@ Tx :: ![TxIn] -> ![TxOut] -> !TxAttributes -> Tx
 
 -- | Attributes of transaction
 [_txAttributes] :: Tx -> !TxAttributes
+
+-- | Create valid Tx or fail. Verify inputs and outputs are non empty; have
+--   enough coins.
+mkTx :: MonadFail m => [TxIn] -> [TxOut] -> TxAttributes -> m Tx
 txInputs :: Lens' Tx [TxIn]
 txOutputs :: Lens' Tx [TxOut]
 txAttributes :: Lens' Tx TxAttributes
@@ -3357,19 +3352,15 @@ execUtxoState :: UtxoState a -> Utxo -> Utxo
 -- | Pure version of applyTxToUtxo.
 applyTxToUtxoPure :: WithHash Tx -> TxDistribution -> Utxo -> Utxo
 
--- | Pure version of applyTxToUtxo'.
-applyTxToUtxoPure' :: (TxId, TxAux) -> Utxo -> Utxo
-
 -- | Pure version of verifyTxUtxo.
-verifyTxUtxoPure :: Bool -> Bool -> Utxo -> TxAux -> VerificationRes
+verifyTxUtxoPure :: Bool -> Utxo -> TxAux -> VerificationRes
 
 -- | Verify single Tx using MonadUtxoRead as TxIn resolver.
-verifyTxUtxo :: (MonadUtxoRead m, MonadError TxpVerFailure m) => Bool -> Bool -> TxAux -> m TxUndo
+verifyTxUtxo :: (MonadUtxoRead m, MonadError TxpVerFailure m) => Bool -> TxAux -> m TxUndo
 
 -- | Remove unspent outputs used in given transaction, add new unspent
 --   outputs.
 applyTxToUtxo :: MonadUtxo m => WithHash Tx -> TxDistribution -> m ()
-applyTxToUtxo' :: MonadUtxo m => (TxId, TxAux) -> m ()
 rollbackTxUtxo :: (MonadError TxpVerFailure m, MonadUtxo m) => (TxAux, TxUndo) -> m ()
 
 -- | Delete given TxIn from Utxo if any.
@@ -3559,7 +3550,7 @@ VoteMsgTag :: VoteMsgTag
 
 -- | Type class which provides function necessary for read-only
 --   verification of US data.
-class (Monad m, WithLogger m) => MonadPollRead m where getAdoptedBV = fst <$> getAdoptedBVFull getAdoptedBVData = snd <$> getAdoptedBVFull getBVState = lift . getBVState getProposedBVs = lift getProposedBVs getConfirmedBVStates = lift getConfirmedBVStates getAdoptedBVFull = lift getAdoptedBVFull getLastConfirmedSV = lift . getLastConfirmedSV getProposal = lift . getProposal getConfirmedProposals = lift getConfirmedProposals getEpochTotalStake = lift . getEpochTotalStake getRichmanStake e = lift . getRichmanStake e getOldProposals = lift . getOldProposals getDeepProposals = lift . getDeepProposals getBlockIssuerStake e = lift . getBlockIssuerStake e getSlottingData = lift getSlottingData
+class (Monad m, WithLogger m) => MonadPollRead m where getAdoptedBV = fst <$> getAdoptedBVFull getAdoptedBVData = snd <$> getAdoptedBVFull getBVState = lift . getBVState getProposedBVs = lift getProposedBVs getConfirmedBVStates = lift getConfirmedBVStates getAdoptedBVFull = lift getAdoptedBVFull getLastConfirmedSV = lift . getLastConfirmedSV hasActiveProposal = lift . hasActiveProposal getProposal = lift . getProposal getConfirmedProposals = lift getConfirmedProposals getEpochTotalStake = lift . getEpochTotalStake getRichmanStake e = lift . getRichmanStake e getOldProposals = lift . getOldProposals getDeepProposals = lift . getDeepProposals getBlockIssuerStake e = lift . getBlockIssuerStake e getSlottingData = lift getSlottingData
 
 -- | Retrieve state of given block version.
 getBVState :: MonadPollRead m => BlockVersion -> m (Maybe BlockVersionState)
@@ -3575,6 +3566,9 @@ getAdoptedBVFull :: MonadPollRead m => m (BlockVersion, BlockVersionData)
 
 -- | Get numeric component of last confirmed version of application
 getLastConfirmedSV :: MonadPollRead m => ApplicationName -> m (Maybe NumSoftwareVersion)
+
+-- | Check if given application has an active (non-confirmed) proposal
+hasActiveProposal :: MonadPollRead m => ApplicationName -> m Bool
 
 -- | Get active proposal
 getProposal :: MonadPollRead m => UpId -> m (Maybe ProposalState)
@@ -3622,6 +3616,9 @@ getAdoptedBVFull :: (MonadPollRead m, MonadTrans t, MonadPollRead m', t m' ~ m) 
 
 -- | Get numeric component of last confirmed version of application
 getLastConfirmedSV :: (MonadPollRead m, MonadTrans t, MonadPollRead m', t m' ~ m) => ApplicationName -> m (Maybe Word32)
+
+-- | Check if given application has an active (non-confirmed) proposal
+hasActiveProposal :: (MonadPollRead m, MonadTrans t, MonadPollRead m', t m' ~ m) => ApplicationName -> m Bool
 
 -- | Get active proposal
 getProposal :: (MonadPollRead m, MonadTrans t, MonadPollRead m', t m' ~ m) => UpId -> m (Maybe ProposalState)
@@ -3749,7 +3746,6 @@ PollLargeMaxBlockSize :: !Byte -> !Byte -> !UpId -> PollVerFailure
 [plmbsFound] :: PollVerFailure -> !Byte
 [plmbsUpId] :: PollVerFailure -> !UpId
 PollNotFoundScriptVersion :: !BlockVersion -> PollVerFailure
-PollProposalAlreadyActive :: !UpId -> PollVerFailure
 PollSmallProposalStake :: !Coin -> !Coin -> !UpId -> PollVerFailure
 [pspsThreshold] :: PollVerFailure -> !Coin
 [pspsActual] :: PollVerFailure -> !Coin
@@ -3762,6 +3758,7 @@ PollUnknownProposal :: !StakeholderId -> !UpId -> PollVerFailure
 [pupStakeholder] :: PollVerFailure -> !StakeholderId
 [pupProposal] :: PollVerFailure -> !UpId
 PollUnknownStakes :: !EpochIndex -> PollVerFailure
+Poll2ndActiveProposal :: !SoftwareVersion -> PollVerFailure
 PollWrongSoftwareVersion :: !(Maybe NumSoftwareVersion) -> !ApplicationName -> !NumSoftwareVersion -> !UpId -> PollVerFailure
 [pwsvStored] :: PollVerFailure -> !(Maybe NumSoftwareVersion)
 [pwsvApp] :: PollVerFailure -> !ApplicationName
@@ -3974,20 +3971,22 @@ bvsMaxBlockSize :: BlockVersionState -> Byte
 --   one should apply to global state to obtain result of application of
 --   MemPool or blocks which are verified.
 data PollModifier
-PollModifier :: !(MapModifier BlockVersion BlockVersionState) -> !(Maybe (BlockVersion, BlockVersionData)) -> !(MapModifier ApplicationName NumSoftwareVersion) -> !(MapModifier SoftwareVersion ConfirmedProposalState) -> !(MapModifier UpId ProposalState) -> !(HashMap ApplicationName (HashSet UpId)) -> !(Maybe SlottingData) -> PollModifier
+PollModifier :: !(MapModifier BlockVersion BlockVersionState) -> !(Maybe (BlockVersion, BlockVersionData)) -> !(MapModifier ApplicationName NumSoftwareVersion) -> !(MapModifier SoftwareVersion ConfirmedProposalState) -> !(MapModifier UpId ProposalState) -> !(HashMap ApplicationName UpId) -> !(HashMap ApplicationName UpId) -> !(Maybe SlottingData) -> PollModifier
 [pmBVs] :: PollModifier -> !(MapModifier BlockVersion BlockVersionState)
 [pmAdoptedBVFull] :: PollModifier -> !(Maybe (BlockVersion, BlockVersionData))
 [pmConfirmed] :: PollModifier -> !(MapModifier ApplicationName NumSoftwareVersion)
 [pmConfirmedProps] :: PollModifier -> !(MapModifier SoftwareVersion ConfirmedProposalState)
 [pmActiveProps] :: PollModifier -> !(MapModifier UpId ProposalState)
-[pmDelActivePropsIdx] :: PollModifier -> !(HashMap ApplicationName (HashSet UpId))
+[pmNewActivePropsIdx] :: PollModifier -> !(HashMap ApplicationName UpId)
+[pmDelActivePropsIdx] :: PollModifier -> !(HashMap ApplicationName UpId)
 [pmSlottingData] :: PollModifier -> !(Maybe SlottingData)
 pmBVsL :: Lens' PollModifier (MapModifier BlockVersion BlockVersionState)
 pmAdoptedBVFullL :: Lens' PollModifier (Maybe (BlockVersion, BlockVersionData))
 pmConfirmedL :: Lens' PollModifier (MapModifier ApplicationName NumSoftwareVersion)
 pmConfirmedPropsL :: Lens' PollModifier (MapModifier SoftwareVersion ConfirmedProposalState)
 pmActivePropsL :: Lens' PollModifier (MapModifier UpId ProposalState)
-pmDelActivePropsIdxL :: Lens' PollModifier (HashMap ApplicationName (HashSet UpId))
+pmNewActivePropsIdxL :: Lens' PollModifier (HashMap ApplicationName UpId)
+pmDelActivePropsIdxL :: Lens' PollModifier (HashMap ApplicationName UpId)
 pmSlottingDataL :: Lens' PollModifier (Maybe SlottingData)
 
 -- | Previous value of something that could be missing.
@@ -4409,7 +4408,7 @@ MsgGetHeaders :: ![HeaderHash] -> !(Maybe HeaderHash) -> MsgGetHeaders
 [mghFrom] :: MsgGetHeaders -> ![HeaderHash]
 [mghTo] :: MsgGetHeaders -> !(Maybe HeaderHash)
 
--- | <tt>GetBlocks</tt> message (see protocol specification).
+-- | <tt>GetHeaders</tt> message (see protocol specification).
 data MsgGetBlocks
 MsgGetBlocks :: !HeaderHash -> !HeaderHash -> MsgGetBlocks
 [mgbFrom] :: MsgGetBlocks -> !HeaderHash
@@ -4424,20 +4423,9 @@ newtype MsgBlock ssc
 MsgBlock :: (Block ssc) -> MsgBlock ssc
 
 module Pos.Block.Arbitrary
-
--- | This type is used to generate a valid blockheader and associated
---   header verification params. With regards to the block header function
---   <a>verifyHeader</a>, the blockheaders that may be part of the
---   verification parameters are guaranteed to be valid, as are the slot
---   leaders and the current slot.
-newtype HeaderAndParams ssc
-HAndP :: (VerifyHeaderParams ssc, BlockHeader ssc) -> HeaderAndParams ssc
-[getHAndP] :: HeaderAndParams ssc -> (VerifyHeaderParams ssc, BlockHeader ssc)
 newtype BlockHeaderList ssc
 BHL :: ([BlockHeader ssc], [PublicKey]) -> BlockHeaderList ssc
 [getHeaderList] :: BlockHeaderList ssc -> ([BlockHeader ssc], [PublicKey])
-instance Pos.Ssc.Class.Types.Ssc ssc => GHC.Show.Show (Pos.Block.Arbitrary.HeaderAndParams ssc)
-instance Pos.Ssc.Class.Types.Ssc ssc => GHC.Classes.Eq (Pos.Block.Arbitrary.HeaderAndParams ssc)
 instance Pos.Ssc.Class.Types.Ssc ssc => GHC.Classes.Eq (Pos.Block.Arbitrary.BlockHeaderList ssc)
 instance (Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Class.Types.SscProof ssc), Pos.Binary.Class.Bi Pos.Binary.Class.Raw, Pos.Ssc.Class.Types.Ssc ssc) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Types.Block.Types.BlockSignature ssc)
 instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Types.Block.Types.GenesisBlockHeader ssc)
@@ -4464,7 +4452,6 @@ instance (Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Class.Types.SscProof ssc)
 instance Pos.Types.Block.Types.BiSsc ssc => Data.Text.Buildable.Buildable (Pos.Types.Block.Types.BlockHeader ssc, Pos.Crypto.Signing.PublicKey)
 instance Pos.Types.Block.Types.BiSsc ssc => GHC.Show.Show (Pos.Block.Arbitrary.BlockHeaderList ssc)
 instance (Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Class.Types.SscPayload ssc), Pos.Ssc.Class.Helpers.SscHelpersClass ssc) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Block.Arbitrary.BlockHeaderList ssc)
-instance (Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Class.Types.SscPayload ssc), Pos.Ssc.Class.Helpers.SscHelpersClass ssc) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Block.Arbitrary.HeaderAndParams ssc)
 
 
 -- | Re-exports of Pos.Communication.*
