@@ -114,12 +114,12 @@ module for the examples of messages that are using `Inv/Req/Data`.
 
 This table explains [Pos.Block.Network.Types](https://github.com/input-output-hk/cardano-sl/blob/3b657302dede832b908f7ba792a164c83b362712/src/Pos/Block/Network/Types.hs) module.
 
-| Message type | Payload                                                           | Commentaries                                             |
-|--------------+-------------------------------------------------------------------+----------------------------------------------------------|
-| GetHeaders   | Header hash checkpoints; Optional newest hash we're interested in | Expect newest header first                               |
+| Message type | Payload                                                           | Commentaries                   |
+|--------------+-------------------------------------------------------------------+--------------------------------|
+| GetHeaders   | Header hash checkpoints; Optional newest hash we're interested in | Expect newest header first     |
 | GetBlocks    | Oldest header hash; Newest hash                                   | Both hashes have to be present |
-| BlockHeaders | Non-empty collection of block headers, newest first               | Polymorphic in ssc                                       |
-| Block        | A single block                                                    | Polymorphic in ssc                                       |
+| BlockHeaders | Non-empty collection of block headers, newest first               | Polymorphic in ssc             |
+| Block        | A single block                                                    | Polymorphic in ssc             |
 
 For more details see [binary protocols](/technical/protocols/binary-protocols/#block-exchange-messages).
 
