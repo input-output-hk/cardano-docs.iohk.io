@@ -1117,7 +1117,7 @@ genesisHash :: Hash a
 --   references previous block and/or is referenced by next block, use
 --   header verification (via vbpVerifyHeader).
 data VerifyBlockParams ssc
-VerifyBlockParams :: !(Maybe (VerifyHeaderParams ssc)) -> !Bool -> !Bool -> !Bool -> !(Maybe BlockVersion) -> VerifyBlockParams ssc
+VerifyBlockParams :: !(Maybe (VerifyHeaderParams ssc)) -> !Bool -> !Bool -> !Bool -> !(Maybe BlockVersion) -> !Byte -> VerifyBlockParams ssc
 
 -- | Verifies header accordingly to params (<a>verifyHeader</a>)
 [vbpVerifyHeader] :: VerifyBlockParams ssc -> !(Maybe (VerifyHeaderParams ssc))
@@ -1139,10 +1139,13 @@ VerifyBlockParams :: !(Maybe (VerifyHeaderParams ssc)) -> !Bool -> !Bool -> !Boo
 --   shouldn't be anything unparseable in the block.
 [vbpVerifyVersions] :: VerifyBlockParams ssc -> !(Maybe BlockVersion)
 
+-- | Maximal block size.
+[vbpMaxSize] :: VerifyBlockParams ssc -> !Byte
+
 -- | Extra data which may be used by verifyHeader function to do more
 --   checks.
 data VerifyHeaderParams ssc
-VerifyHeaderParams :: !Bool -> !(Maybe (BlockHeader ssc)) -> !(Maybe (BlockHeader ssc)) -> !(Maybe SlotId) -> !(Maybe SlotLeaders) -> VerifyHeaderParams ssc
+VerifyHeaderParams :: !Bool -> !(Maybe (BlockHeader ssc)) -> !(Maybe (BlockHeader ssc)) -> !(Maybe SlotId) -> !(Maybe SlotLeaders) -> !Byte -> VerifyHeaderParams ssc
 [vhpVerifyConsensus] :: VerifyHeaderParams ssc -> !Bool
 
 -- | Nothing means that block is unknown, not genesis.
@@ -1150,6 +1153,7 @@ VerifyHeaderParams :: !Bool -> !(Maybe (BlockHeader ssc)) -> !(Maybe (BlockHeade
 [vhpNextHeader] :: VerifyHeaderParams ssc -> !(Maybe (BlockHeader ssc))
 [vhpCurrentSlot] :: VerifyHeaderParams ssc -> !(Maybe SlotId)
 [vhpLeaders] :: VerifyHeaderParams ssc -> !(Maybe SlotLeaders)
+[vhpMaxSize] :: VerifyHeaderParams ssc -> !Byte
 
 -- | Check predicates defined by VerifyBlockParams. #verifyHeader
 --   #verifyGenericBlock
@@ -1160,7 +1164,7 @@ verifyBlock :: (SscHelpersClass ssc, BiSsc ssc) => VerifyBlockParams ssc -> Bloc
 --   foldl' is used here which eliminates laziness of triple. It doesn't
 --   affect laziness of <a>VerificationRes</a> which is good because
 --   laziness for this data type is crucial.
-verifyBlocks :: forall ssc f t. (SscHelpersClass ssc, BiSsc ssc, t ~ OldestFirst f (Block ssc), NontrivialContainer t) => Maybe SlotId -> Maybe SlotLeaders -> Maybe BlockVersion -> OldestFirst f (Block ssc) -> VerificationRes
+verifyBlocks :: forall ssc f t. (SscHelpersClass ssc, BiSsc ssc, t ~ OldestFirst f (Block ssc), NontrivialContainer t) => Maybe SlotId -> BlockVersionData -> Maybe SlotLeaders -> Maybe BlockVersion -> OldestFirst f (Block ssc) -> VerificationRes
 
 -- | Perform cheap checks of GenericBlock, which can be done using only
 --   block itself. Checks which can be done using only header are ignored
@@ -1173,9 +1177,6 @@ verifyHeader :: forall ssc. BiSsc ssc => VerifyHeaderParams ssc -> BlockHeader s
 
 -- | Verifies a set of block headers.
 verifyHeaders :: BiSsc ssc => Bool -> NewestFirst [] (BlockHeader ssc) -> VerificationRes
-
--- | Compute size of <a>MainBlock</a> in bytes.
-blockSize :: SscHelpersClass ssc => MainBlock ssc -> Byte
 instance Pos.Ssc.Class.Types.Ssc ssc => GHC.Classes.Eq (Pos.Types.Block.Functions.VerifyHeaderParams ssc)
 instance Pos.Ssc.Class.Types.Ssc ssc => GHC.Show.Show (Pos.Types.Block.Functions.VerifyHeaderParams ssc)
 instance Data.Default.Class.Default (Pos.Types.Block.Functions.VerifyHeaderParams ssc)
@@ -3818,10 +3819,6 @@ PollTooLargeProposal :: !UpId -> !Byte -> !Byte -> PollVerFailure
 [ptlpUpId] :: PollVerFailure -> !UpId
 [ptlpSize] :: PollVerFailure -> !Byte
 [ptlpLimit] :: PollVerFailure -> !Byte
-PollTooBigBlock :: !HeaderHash -> !Byte -> !Byte -> PollVerFailure
-[ptbbHash] :: PollVerFailure -> !HeaderHash
-[ptbbSize] :: PollVerFailure -> !Byte
-[ptbbLimit] :: PollVerFailure -> !Byte
 PollInternalError :: !Text -> PollVerFailure
 
 -- | Verify UpdatePayload with respect to data provided by MonadPoll. If
@@ -3852,9 +3849,6 @@ filterProposalsByThd :: forall m. (MonadPollRead m) => EpochIndex -> UpdatePropo
 --   minor)' of given block version is greater than '(major, minor)' of
 --   adopted block version and this block version is confirmed.
 canCreateBlockBV :: MonadPollRead m => BlockVersion -> m Bool
-
--- | Verify that size of block doesn't exceed currently adopted limit.
-verifyBlockSize :: (MonadError PollVerFailure m, MonadPollRead m) => HeaderHash -> Byte -> m ()
 
 -- | Process creation of genesis block for given epoch.
 processGenesisBlock :: (MonadError PollVerFailure m, MonadPoll m) => EpochIndex -> m ()
