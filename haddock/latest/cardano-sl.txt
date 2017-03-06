@@ -3146,51 +3146,50 @@ txProcessTransaction :: TxpLocalWorkMode m => (TxId, TxAux) -> m ()
 --   </ol>
 txNormalize :: (MonadDB m, MonadTxpMem m) => m ()
 
--- | Reduced equivalent of <tt>MonadReader TxpLDWrap m</tt>.
+-- | Reduced equivalent of <tt>MonadReader TxpLocalData m</tt>.
 class Monad m => MonadTxpMem m where askTxpMem = lift askTxpMem
 
--- | Retrieve <tt>TxpLDWrap</tt>.
+-- | Retrieve <a>TxpLocalData</a>.
 askTxpMem :: MonadTxpMem m => m TxpLocalData
 
--- | Retrieve <tt>TxpLDWrap</tt>.
+-- | Retrieve <a>TxpLocalData</a>.
 askTxpMem :: (MonadTxpMem m, MonadTrans t, MonadTxpMem m', t m' ~ m) => m TxpLocalData
-getTxpLocalData :: (MonadIO m, MonadTxpMem m) => m TxpLocalDataPure
-modifyTxpLocalData :: (MonadIO m, MonadTxpMem m) => (TxpLocalDataPure -> (a, TxpLocalDataPure)) -> m a
-setTxpLocalData :: (MonadIO m, MonadTxpMem m) => TxpLocalDataPure -> m ()
-getUtxoView :: (MonadTxpMem m, MonadIO m) => m UtxoView
+getUtxoModifier :: (MonadTxpMem m, MonadIO m) => m UtxoModifier
 getLocalTxsNUndo :: (MonadIO m, MonadTxpMem m) => m ([(TxId, TxAux)], HashMap TxId [TxOutAux])
 getMemPool :: (MonadIO m, MonadTxpMem m) => m MemPool
 getLocalTxs :: (MonadIO m, MonadTxpMem m) => m [(TxId, TxAux)]
+modifyTxpLocalData :: (MonadIO m, MonadTxpMem m) => (TxpLocalDataPure -> (a, TxpLocalDataPure)) -> m a
+setTxpLocalData :: (MonadIO m, MonadTxpMem m) => TxpLocalDataPure -> m ()
 newtype TxpHolder m a
 TxpHolder :: ReaderT TxpLocalData m a -> TxpHolder m a
 [getTxpHolder] :: TxpHolder m a -> ReaderT TxpLocalData m a
-runTxpHolder :: MonadIO m => UtxoView -> HeaderHash -> TxpHolder m a -> m a
+runTxpHolder :: MonadIO m => UtxoModifier -> HeaderHash -> TxpHolder m a -> m a
 
 -- | Local run needed for validation txs. For validation need only
---   UtxoView.
-runLocalTxpHolder :: MonadIO m => TxpHolder m a -> UtxoView -> m a
+--   UtxoModifier.
+runLocalTxpHolder :: MonadIO m => TxpHolder m a -> UtxoModifier -> m a
 runTxpHolderReader :: TxpLocalData -> TxpHolder m a -> m a
 
 -- | LocalData of transactions processing. There are two invariants which
---   must hold for local data (where uv is UtxoView, memPool is MemPool and
---   tip is HeaderHash): 1. Suppose <tt>blks</tt> is sequence of blocks
---   from the very beggining up to <tt>tip</tt>. If one applies
+--   must hold for local data (where um is UtxoModifier, memPool is MemPool
+--   and tip is HeaderHash): 1. Suppose <tt>blks</tt> is sequence of blocks
+--   from the very beginning up to <tt>tip</tt>. If one applies
 --   <tt>blks</tt> to genesis Utxo, resulting Utxo (let's call it
 --   <tt>utxo1</tt>) will be such that all transactions from
 --   <tt>memPool</tt> are valid with respect to it. 2. If one applies all
 --   transactions from <tt>memPool</tt> to <tt>utxo1</tt>, resulting Utxo
---   will be equivalent to <tt>uv</tt> with respect to MonadUtxo.
+--   will be equivalent to <tt>um</tt> with respect to MonadUtxo.
 --   
 --   Real data inside TxpHolder.
 data TxpLocalData
-TxpLocalData :: !(TVar UtxoView) -> !(TVar MemPool) -> !(TVar UndoMap) -> !(TVar HeaderHash) -> TxpLocalData
-[txpUtxoView] :: TxpLocalData -> !(TVar UtxoView)
+TxpLocalData :: !(TVar UtxoModifier) -> !(TVar MemPool) -> !(TVar UndoMap) -> !(TVar HeaderHash) -> TxpLocalData
+[txpUtxoModifier] :: TxpLocalData -> !(TVar UtxoModifier)
 [txpMemPool] :: TxpLocalData -> !(TVar MemPool)
 [txpUndos] :: TxpLocalData -> !(TVar UndoMap)
 [txpTip] :: TxpLocalData -> !(TVar HeaderHash)
 
 -- | Pure version of TxpLocalData.
-type TxpLocalDataPure = (UtxoView, MemPool, UndoMap, HeaderHash)
+type TxpLocalDataPure = (UtxoModifier, MemPool, UndoMap, HeaderHash)
 txListeners :: WorkMode ssc m => m ([ListenerSpec m], OutSpecs)
 txStubListeners :: WithLogger m => ([ListenerSpec m], OutSpecs)
 data TxMsgTag
@@ -3272,14 +3271,8 @@ TxpT :: StateT TxpModifier m a -> TxpT m a
 [getTxpT] :: TxpT m a -> StateT TxpModifier m a
 runTxpT :: TxpModifier -> TxpT m a -> m (a, TxpModifier)
 runTxpTGlobal :: Functor m => BalancesView -> TxpT m a -> m (a, TxpModifier)
-runTxpTLocal :: Functor m => UtxoView -> MemPool -> UndoMap -> TxpT m a -> m (a, TxpModifier)
-execTxpTLocal :: Functor m => UtxoView -> MemPool -> UndoMap -> TxpT m a -> m TxpModifier
-data UtxoView
-UtxoView :: !(HashMap TxIn TxOutAux) -> !(HashSet TxIn) -> UtxoView
-[_uvAddUtxo] :: UtxoView -> !(HashMap TxIn TxOutAux)
-[_uvDelUtxo] :: UtxoView -> !(HashSet TxIn)
-uvAddUtxo :: Lens' UtxoView (HashMap TxIn TxOutAux)
-uvDelUtxo :: Lens' UtxoView (HashSet TxIn)
+runTxpTLocal :: Functor m => UtxoModifier -> MemPool -> UndoMap -> TxpT m a -> m (a, TxpModifier)
+execTxpTLocal :: Functor m => UtxoModifier -> MemPool -> UndoMap -> TxpT m a -> m TxpModifier
 data MemPool
 MemPool :: !TxMap -> !Int -> MemPool
 [_mpLocalTxs] :: MemPool -> !TxMap
@@ -3297,13 +3290,14 @@ BalancesView :: !(HashMap StakeholderId Coin) -> !Coin -> BalancesView
 bvStakes :: Lens' BalancesView (HashMap StakeholderId Coin)
 bvTotal :: Lens' BalancesView Coin
 type UndoMap = HashMap TxId TxUndo
+type UtxoModifier = MapModifier TxIn TxOutAux
 data TxpModifier
-TxpModifier :: !UtxoView -> !BalancesView -> !MemPool -> !UndoMap -> TxpModifier
-[_txmUtxoView] :: TxpModifier -> !UtxoView
+TxpModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> TxpModifier
+[_txmUtxoModifier] :: TxpModifier -> !UtxoModifier
 [_txmBalances] :: TxpModifier -> !BalancesView
 [_txmMemPool] :: TxpModifier -> !MemPool
 [_txmUndos] :: TxpModifier -> !UndoMap
-txmUtxoView :: Lens' TxpModifier UtxoView
+txmUtxoModifier :: Lens' TxpModifier UtxoModifier
 txmBalances :: Lens' TxpModifier BalancesView
 txmMemPool :: Lens' TxpModifier MemPool
 txmUndos :: Lens' TxpModifier UndoMap
