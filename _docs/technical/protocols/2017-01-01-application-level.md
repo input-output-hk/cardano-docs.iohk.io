@@ -117,7 +117,7 @@ This table explains [Pos.Block.Network.Types](https://github.com/input-output-hk
 | Message type | Payload                                                           | Commentaries                                             |
 |--------------+-------------------------------------------------------------------+----------------------------------------------------------|
 | GetHeaders   | Header hash checkpoints; Optional newest hash we're interested in | Expect newest header first                               |
-| GetBlocks    | Oldest header hash; Newest hash                                   | As opposed to GetHeaders, both hashes have to be present |
+| GetBlocks    | Oldest header hash; Newest hash                                   | Both hashes have to be present |
 | BlockHeaders | Non-empty collection of block headers, newest first               | Polymorphic in ssc                                       |
 | Block        | A single block                                                    | Polymorphic in ssc                                       |
 
