@@ -91,13 +91,13 @@
 </span><a name="line-91"></a><span class="hs-comment">-- Top level functionality</span><span>
 </span><a name="line-92"></a><span class="hs-comment">----------------------------------------------------------------------------</span><span>
 </span><a name="line-93"></a><span>
-</span><a name="line-94"></a><span class="hs-keyword">type</span><span> </span><a name="WalletWebHandler"><a href="Pos.Wallet.Web.Server.Methods.html#WalletWebHandler"><span class="hs-identifier">WalletWebHandler</span></a></a><span> </span><a name="local-6989586621681405109"><a href="#local-6989586621681405109"><span class="hs-identifier">m</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="Pos.Wallet.Web.Server.Sockets.html#WalletWebSockets"><span class="hs-identifier hs-type">WalletWebSockets</span></a><span> </span><span class="hs-special">(</span><a href="Pos.Wallet.Web.State.Holder.html#WalletWebDB"><span class="hs-identifier hs-type">WalletWebDB</span></a><span> </span><a href="#local-6989586621681405109"><span class="hs-identifier hs-type">m</span></a><span class="hs-special">)</span><span>
+</span><a name="line-94"></a><span class="hs-keyword">type</span><span> </span><a name="WalletWebHandler"><a href="Pos.Wallet.Web.Server.Methods.html#WalletWebHandler"><span class="hs-identifier">WalletWebHandler</span></a></a><span> </span><a name="local-6989586621681406126"><a href="#local-6989586621681406126"><span class="hs-identifier">m</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="Pos.Wallet.Web.Server.Sockets.html#WalletWebSockets"><span class="hs-identifier hs-type">WalletWebSockets</span></a><span> </span><span class="hs-special">(</span><a href="Pos.Wallet.Web.State.Holder.html#WalletWebDB"><span class="hs-identifier hs-type">WalletWebDB</span></a><span> </span><a href="#local-6989586621681406126"><span class="hs-identifier hs-type">m</span></a><span class="hs-special">)</span><span>
 </span><a name="line-95"></a><span>
-</span><a name="line-96"></a><span class="hs-keyword">type</span><span> </span><a name="WalletWebMode"><a href="Pos.Wallet.Web.Server.Methods.html#WalletWebMode"><span class="hs-identifier">WalletWebMode</span></a></a><span> </span><a name="local-6989586621681405107"><a href="#local-6989586621681405107"><span class="hs-identifier">ssc</span></a></a><span> </span><a name="local-6989586621681405108"><a href="#local-6989586621681405108"><span class="hs-identifier">m</span></a></a><span>
-</span><a name="line-97"></a><span>    </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span> </span><a href="Pos.Wallet.WalletMode.html#WalletMode"><span class="hs-identifier hs-type">WalletMode</span></a><span> </span><a href="#local-6989586621681405107"><span class="hs-identifier hs-type">ssc</span></a><span> </span><a href="#local-6989586621681405108"><span class="hs-identifier hs-type">m</span></a><span>
-</span><a name="line-98"></a><span>      </span><span class="hs-special">,</span><span> </span><a href="Pos.Wallet.Web.State.State.html#MonadWalletWebDB"><span class="hs-identifier hs-type">MonadWalletWebDB</span></a><span> </span><a href="#local-6989586621681405108"><span class="hs-identifier hs-type">m</span></a><span>
-</span><a name="line-99"></a><span>      </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">MonadDBLimits</span><span> </span><a href="#local-6989586621681405108"><span class="hs-identifier hs-type">m</span></a><span>
-</span><a name="line-100"></a><span>      </span><span class="hs-special">,</span><span> </span><a href="Pos.Wallet.Web.Server.Sockets.html#MonadWalletWebSockets"><span class="hs-identifier hs-type">MonadWalletWebSockets</span></a><span> </span><a href="#local-6989586621681405108"><span class="hs-identifier hs-type">m</span></a><span>
+</span><a name="line-96"></a><span class="hs-keyword">type</span><span> </span><a name="WalletWebMode"><a href="Pos.Wallet.Web.Server.Methods.html#WalletWebMode"><span class="hs-identifier">WalletWebMode</span></a></a><span> </span><a name="local-6989586621681406124"><a href="#local-6989586621681406124"><span class="hs-identifier">ssc</span></a></a><span> </span><a name="local-6989586621681406125"><a href="#local-6989586621681406125"><span class="hs-identifier">m</span></a></a><span>
+</span><a name="line-97"></a><span>    </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span> </span><a href="Pos.Wallet.WalletMode.html#WalletMode"><span class="hs-identifier hs-type">WalletMode</span></a><span> </span><a href="#local-6989586621681406124"><span class="hs-identifier hs-type">ssc</span></a><span> </span><a href="#local-6989586621681406125"><span class="hs-identifier hs-type">m</span></a><span>
+</span><a name="line-98"></a><span>      </span><span class="hs-special">,</span><span> </span><a href="Pos.Wallet.Web.State.State.html#MonadWalletWebDB"><span class="hs-identifier hs-type">MonadWalletWebDB</span></a><span> </span><a href="#local-6989586621681406125"><span class="hs-identifier hs-type">m</span></a><span>
+</span><a name="line-99"></a><span>      </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">MonadDBLimits</span><span> </span><a href="#local-6989586621681406125"><span class="hs-identifier hs-type">m</span></a><span>
+</span><a name="line-100"></a><span>      </span><span class="hs-special">,</span><span> </span><a href="Pos.Wallet.Web.Server.Sockets.html#MonadWalletWebSockets"><span class="hs-identifier hs-type">MonadWalletWebSockets</span></a><span> </span><a href="#local-6989586621681406125"><span class="hs-identifier hs-type">m</span></a><span>
 </span><a name="line-101"></a><span>      </span><span class="hs-special">)</span><span>
 </span><a name="line-102"></a><span>
 </span><a name="line-103"></a><span class="hs-identifier hs-var">makeLenses</span><span> </span><span class="hs-char">''SyncProgress
@@ -230,55 +230,78 @@ servantHandlers
     =&gt; SendActions m -&gt; ServerT WalletApi m
 servantHandlers sendActions =
 #ifdef DEV_MODE
-     catchWalletError testResetAll
+     apiTestReset
     :&lt;|&gt;
 #endif
-     (catchWalletError . getWallet)
+     apiGetWallet
     :&lt;|&gt;
-     catchWalletError getWallets
+     apiGetWallets
     :&lt;|&gt;
-     (\a b -&gt; catchWalletError . send sendActions a b)
+     apiUpdateWallet
     :&lt;|&gt;
-     (\a b c d e -&gt; catchWalletError . sendExtended sendActions a b c d e)
+     apiNewWallet
     :&lt;|&gt;
-     (\a b -&gt; catchWalletError . getHistory @ssc a b )
+     apiDeleteWallet
     :&lt;|&gt;
-     (\a b c -&gt; catchWalletError . searchHistory @ssc a b c)
+     apiImportKey
     :&lt;|&gt;
-     (\a b -&gt; catchWalletError . updateTransaction a b)
+     apiRestoreWallet
     :&lt;|&gt;
-     catchWalletError . newWallet
+     apiIsValidAddress
     :&lt;|&gt;
-     catchWalletError . restoreWallet
+     apiGetUserProfile
     :&lt;|&gt;
-     (\a -&gt; catchWalletError . updateWallet a)
+     apiUpdateUserProfile
     :&lt;|&gt;
-     catchWalletError . deleteWallet
+     apiTxsPayments
     :&lt;|&gt;
-     (\a -&gt; catchWalletError . isValidAddress a)
+     apiTxsPaymentsExt
     :&lt;|&gt;
-     catchWalletError getUserProfile
+     apiUpdateTransaction
     :&lt;|&gt;
-     catchWalletError . updateUserProfile
+     apiGetHistory
     :&lt;|&gt;
-     catchWalletError . redeemADA sendActions
+     apiSearchHistory
     :&lt;|&gt;
-     catchWalletError nextUpdate
+     apiNextUpdate
     :&lt;|&gt;
-     catchWalletError applyUpdate
+     apiApplyUpdate
     :&lt;|&gt;
-     catchWalletError (fromIntegral &lt;$&gt; blockchainSlotDuration)
+     apiRedeemAda
     :&lt;|&gt;
-     catchWalletError (pure curSoftwareVersion)
+     apiSettingsSlotDuration
     :&lt;|&gt;
-     catchWalletError . importKey sendActions
+     apiSettingsSoftwareVersion
     :&lt;|&gt;
-     catchWalletError syncProgress
+     apiSettingsSyncProgress
+
   where
     -- TODO: can we with Traversable map catchWalletError over :&lt;|&gt;
     -- TODO: add logging on error
-    catchWalletError = try
+    apiTestReset            	  = catchWalletError testResetAll
+    apiGetWallet            	  = (catchWalletError . getWallet)
+    apiGetWallets           	  = catchWalletError getWallets
+    apiUpdateWallet         	  = (\a -&gt; catchWalletError . updateWallet a)
+    apiNewWallet            	  = catchWalletError . newWallet
+    apiDeleteWallet         	  = catchWalletError . deleteWallet
+    apiImportKey            	  = catchWalletError . importKey sendActions
+    apiRestoreWallet        	  = catchWalletError . restoreWallet
+    apiIsValidAddress       	  = (\a -&gt; catchWalletError . isValidAddress a)
+    apiGetUserProfile       	  = catchWalletError getUserProfile
+    apiUpdateUserProfile    	  = catchWalletError . updateUserProfile
+    apiTxsPayments          	  = (\a b -&gt; catchWalletError . send sendActions a b)
+    apiTxsPaymentsExt       	  = (\a b c d e -&gt; catchWalletError . sendExtended sendActions a b c d e)
+    apiUpdateTransaction    	  = (\a b -&gt; catchWalletError . updateTransaction a b)
+    apiGetHistory           	  = (\a b -&gt; catchWalletError . getHistory @ssc a b )
+    apiSearchHistory        	  = (\a b c -&gt; catchWalletError . searchHistory @ssc a b c)
+    apiNextUpdate           	  = catchWalletError nextUpdate
+    apiApplyUpdate          	  = catchWalletError applyUpdate
+    apiRedeemAda            	  = catchWalletError . redeemADA sendActions
+    apiSettingsSlotDuration     = catchWalletError (fromIntegral &lt;$&gt; blockchainSlotDuration)
+    apiSettingsSoftwareVersion  = catchWalletError (pure curSoftwareVersion)
+    apiSettingsSyncProgress     = catchWalletError syncProgress
 
+    catchWalletError            = try
 -- getAddresses :: WalletWebMode ssc m =&gt; m [CAddress]
 -- getAddresses = map addressToCAddress &lt;$&gt; myAddresses
 
@@ -340,19 +363,21 @@ sendExtended sendActions srcCAddr dstCAddr c curr title desc = do
 getHistory
     :: forall ssc m.
        (SscHelpersClass ssc, WalletWebMode ssc m)
-    =&gt; CAddress -&gt; Word -&gt; Word -&gt; m ([CTx], Word)
+    =&gt; CAddress -&gt; Maybe Word -&gt; Maybe Word -&gt; m ([CTx], Word)
 getHistory cAddr skip limit = do
     history &lt;- untag @ssc getTxHistory =&lt;&lt; decodeCAddressOrFail cAddr
     cHistory &lt;- mapM (addHistoryTx cAddr ADA mempty mempty) history
     pure (paginate cHistory, fromIntegral $ length cHistory)
   where
-    paginate = take (fromIntegral limit) . drop (fromIntegral skip)
+    paginate     = take defaultLimit . drop defaultSkip
+    defaultLimit = (fromIntegral $ fromMaybe 100 limit) 
+    defaultSkip  = (fromIntegral $ fromMaybe 0 skip)
 
 -- FIXME: is Word enough for length here?
 searchHistory
     :: forall ssc m.
        (SscHelpersClass ssc, WalletWebMode ssc m)
-    =&gt; CAddress -&gt; Text -&gt; Word -&gt; Word -&gt; m ([CTx], Word)
+    =&gt; CAddress -&gt; Text -&gt; Maybe Word -&gt; Maybe Word -&gt; m ([CTx], Word)
 searchHistory cAddr search skip limit = first (filter $ txContainsTitle search) &lt;$&gt; getHistory @ssc cAddr skip limit
 
 addHistoryTx
@@ -408,8 +433,8 @@ deleteWallet cAddr = do
         sformat (&quot;Error while deleting wallet: &quot;%stext) err
 
 -- NOTE: later we will have `isValidAddress :: CCurrency -&gt; CAddress -&gt; m Bool` which should work for arbitrary crypto
-isValidAddress :: WalletWebMode ssc m =&gt; CCurrency -&gt; Text -&gt; m Bool
-isValidAddress ADA sAddr = pure . either (const False) (const True) $ decodeTextAddress sAddr
+isValidAddress :: WalletWebMode ssc m =&gt; Text -&gt; CCurrency -&gt; m Bool
+isValidAddress sAddr ADA = pure . either (const False) (const True) $ decodeTextAddress sAddr
 isValidAddress _ _       = pure False
 
 -- | Get last update info
