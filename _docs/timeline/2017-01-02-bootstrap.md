@@ -9,10 +9,10 @@ group: timeline
 
 # Bootstrap Era
 
-As Cardano SL goes live in February 2017, it will operate in “bootstrap mode”
-for the initial ninety days. As people who purchased Ada redeem their coins,
-the stake will automatically get delegated to a pool of trusted nodes that will
-maintain the network. During this time no block rewards will
+After Cardano SL test net resets in late March 2017, network will operate
+in “bootstrap mode” for the initial 90 days after that. As people who purchased
+Ada redeem their coins, the stake will automatically get delegated to a pool of
+trusted nodes that will maintain the network. During this time no block rewards will
 be issued — we will maintain the network pro bono. This is required
 because in order for the protocol to function properly, some of
 the stakeholders who jointly posses majority of stake have to be online,
