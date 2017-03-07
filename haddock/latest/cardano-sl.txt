@@ -329,6 +329,152 @@ instance Control.DeepSeq.NFData Pos.Types.Block.Types.MainExtraHeaderData
 instance Data.Text.Buildable.Buildable Pos.Types.Block.Types.MainExtraHeaderData
 instance Data.Text.Buildable.Buildable Pos.Types.Block.Types.MainExtraBodyData
 
+module Pos.Security.CLI
+data AttackType
+AttackNoBlocks :: AttackType
+AttackNoCommitments :: AttackType
+data AttackTarget
+NetworkAddressTarget :: NetworkAddress -> AttackTarget
+[attNetworkAddr] :: AttackTarget -> NetworkAddress
+PubKeyAddressTarget :: StakeholderId -> AttackTarget
+[attPkAddr] :: AttackTarget -> StakeholderId
+data NodeAttackedError
+AttackNoBlocksTriggered :: NodeAttackedError
+instance GHC.Show.Show Pos.Security.CLI.NodeAttackedError
+instance GHC.Show.Show Pos.Security.CLI.AttackTarget
+instance GHC.Classes.Eq Pos.Security.CLI.AttackTarget
+instance GHC.Show.Show Pos.Security.CLI.AttackType
+instance GHC.Classes.Eq Pos.Security.CLI.AttackType
+instance GHC.Exception.Exception Pos.Security.CLI.NodeAttackedError
+
+
+-- | A wrapper over Plutus (the scripting language used in transactions).
+module Pos.Script
+
+-- | A script for inclusion into a transaction.
+data Script :: *
+Script :: ScriptVersion -> LByteString -> Script
+
+-- | Version
+[scrVersion] :: Script -> ScriptVersion
+
+-- | Serialized script
+[scrScript] :: Script -> LByteString
+type TxScriptError = String
+
+-- | Validate a transaction, given a validator and a redeemer.
+txScriptCheck :: Bi Script_v0 => TxSigData -> Script -> Script -> Either TxScriptError ()
+
+-- | Parse a script intended to serve as a validator (or “lock”) in a
+--   transaction output.
+parseValidator :: Bi Script_v0 => Text -> Either String Script
+
+-- | Parse a script intended to serve as a redeemer (or “proof”) in a
+--   transaction input.
+--   
+--   Can be given an optional validator (e.g. if the redeemer uses
+--   functions or types defined by the validator).
+parseRedeemer :: Bi Script_v0 => Maybe Script -> Text -> Either String Script
+stdlib :: Program
+isKnownScriptVersion :: ScriptVersion -> Bool
+
+
+-- | Some example scripts used in tests.
+module Pos.Script.Examples
+alwaysSuccessValidator :: Script
+alwaysFailureValidator :: Script
+idValidator :: Script
+intValidator :: Script
+goodIntRedeemer :: Script
+badIntRedeemer :: Script
+stdlibValidator :: Script
+goodStdlibRedeemer :: Script
+multisigValidator :: Int -> [PublicKey] -> Script
+multisigRedeemer :: TxSigData -> [Maybe SafeSigner] -> Script
+intValidatorWithBlah :: Script
+goodIntRedeemerWithBlah :: Script
+
+-- | Does N rounds of SHA3-256. Should be used with <a>idValidator</a>.
+--   
+--   Actually it does (N div 10) * 10 rounds. Unrolling the loop is done so
+--   that more petrol would be spent on hashing and less – on substraction
+--   and function calls.
+shaStressRedeemer :: Int -> Script
+
+-- | Checks a signature N times. Should be used with <a>idValidator</a>.
+sigStressRedeemer :: Int -> Script
+
+
+-- | <tt>Arbitrary</tt> unsafe instances for some types from <a>Types</a>.
+module Pos.Types.Arbitrary.Unsafe
+instance Pos.Util.Arbitrary.ArbitraryUnsafe Pos.Core.Types.SharedSeed
+instance Pos.Util.Arbitrary.ArbitraryUnsafe Pos.Core.Types.EpochIndex
+instance Pos.Util.Arbitrary.ArbitraryUnsafe Pos.Core.Types.LocalSlotIndex
+instance Pos.Util.Arbitrary.ArbitraryUnsafe Pos.Core.Types.Coin
+instance Pos.Util.Arbitrary.ArbitraryUnsafe Pos.Core.Types.Address
+instance Pos.Util.Arbitrary.ArbitraryUnsafe Pos.Core.Types.SlotId
+instance Pos.Util.Arbitrary.ArbitraryUnsafe Pos.Txp.Core.Types.TxOut
+
+
+-- | Module for command-line utilites, parsers and convenient handlers.
+module Pos.CLI
+
+-- | Parsed for network address in format <tt>host:port</tt>.
+addrParser :: Parser NetworkAddress
+attackTypeParser :: Parser AttackType
+attackTargetParser :: Parser AttackTarget
+
+-- | Default logger config. Will be used if `--log-config` argument is not
+--   passed. Corresponds to next logger config:
+--   
+--   <pre>
+--   node:
+--     severity: Info
+--     comm:
+--       severity: Warning
+--   </pre>
+defaultLoggerConfig :: LoggerConfig
+
+-- | Parser for DHT key.
+dhtKeyParser :: Parser DHTKey
+
+-- | Parser for <a>DHTNode</a>.
+dhtNodeParser :: Parser DHTNode
+
+-- | Reads logger config from given path. By default return
+--   <a>defaultLoggerConfig</a>.
+readLoggerConfig :: MonadIO m => Maybe FilePath -> m LoggerConfig
+
+-- | Decides which secret-sharing algorithm to use.
+sscAlgoParser :: Parser SscAlgo
+data CommonArgs
+CommonArgs :: !Bool -> ![DHTNode] -> !(Maybe FilePath) -> !(Maybe FilePath) -> !(Maybe FilePath) -> !SscAlgo -> !Bool -> ![Text] -> ![Text] -> !(Maybe (Int, Int)) -> !(Maybe (Int, Int)) -> !Bool -> CommonArgs
+[dhtExplicitInitial] :: CommonArgs -> !Bool
+[dhtPeers] :: CommonArgs -> ![DHTNode]
+[dhtPeersFile] :: CommonArgs -> !(Maybe FilePath)
+[logConfig] :: CommonArgs -> !(Maybe FilePath)
+[logPrefix] :: CommonArgs -> !(Maybe FilePath)
+[sscAlgo] :: CommonArgs -> !SscAlgo
+[disablePropagation] :: CommonArgs -> !Bool
+[reportServers] :: CommonArgs -> ![Text]
+[updateServers] :: CommonArgs -> ![Text]
+[flatDistr] :: CommonArgs -> !(Maybe (Int, Int))
+[bitcoinDistr] :: CommonArgs -> !(Maybe (Int, Int))
+[expDistr] :: CommonArgs -> !Bool
+commonArgsParser :: String -> Parser CommonArgs
+optionalJSONPath :: Parser (Maybe FilePath)
+optionalLogPrefix :: Parser (Maybe String)
+portOption :: Word16 -> Parser Word16
+timeLordOption :: Parser Bool
+webPortOption :: Word16 -> String -> Parser Word16
+walletPortOption :: Word16 -> String -> Parser Word16
+ipPortOption :: NetworkAddress -> Parser NetworkAddress
+
+-- | Parse <a>DHTNode</a>s from a file (nodes should be separated by
+--   newlines).
+readPeersFile :: FilePath -> IO [DHTNode]
+instance GHC.Show.Show Pos.CLI.CommonArgs
+
 module Pos.Types.Block.Instances
 
 -- | Proof of data stored in the body. Ensures immutability.
@@ -481,152 +627,6 @@ instance Pos.Core.Block.HasPrevBlock s => Pos.Core.Block.HasPrevBlock (s, z)
 instance Pos.Core.Block.BHeaderHash b ~ Pos.Core.Types.HeaderHash => Pos.Core.Block.HasPrevBlock (Pos.Core.Block.GenericBlockHeader b)
 instance Pos.Core.Block.BHeaderHash b ~ Pos.Core.Types.HeaderHash => Pos.Core.Block.HasPrevBlock (Pos.Core.Block.GenericBlock b)
 instance (Pos.Core.Block.HasPrevBlock s, Pos.Core.Block.HasPrevBlock s') => Pos.Core.Block.HasPrevBlock (Data.Either.Either s s')
-
-module Pos.Security.CLI
-data AttackType
-AttackNoBlocks :: AttackType
-AttackNoCommitments :: AttackType
-data AttackTarget
-NetworkAddressTarget :: NetworkAddress -> AttackTarget
-[attNetworkAddr] :: AttackTarget -> NetworkAddress
-PubKeyAddressTarget :: StakeholderId -> AttackTarget
-[attPkAddr] :: AttackTarget -> StakeholderId
-data NodeAttackedError
-AttackNoBlocksTriggered :: NodeAttackedError
-instance GHC.Show.Show Pos.Security.CLI.NodeAttackedError
-instance GHC.Show.Show Pos.Security.CLI.AttackTarget
-instance GHC.Classes.Eq Pos.Security.CLI.AttackTarget
-instance GHC.Show.Show Pos.Security.CLI.AttackType
-instance GHC.Classes.Eq Pos.Security.CLI.AttackType
-instance GHC.Exception.Exception Pos.Security.CLI.NodeAttackedError
-
-
--- | A wrapper over Plutus (the scripting language used in transactions).
-module Pos.Script
-
--- | A script for inclusion into a transaction.
-data Script :: *
-Script :: ScriptVersion -> LByteString -> Script
-
--- | Version
-[scrVersion] :: Script -> ScriptVersion
-
--- | Serialized script
-[scrScript] :: Script -> LByteString
-type TxScriptError = String
-
--- | Validate a transaction, given a validator and a redeemer.
-txScriptCheck :: Bi Script_v0 => TxSigData -> Script -> Script -> Either TxScriptError ()
-
--- | Parse a script intended to serve as a validator (or “lock”) in a
---   transaction output.
-parseValidator :: Bi Script_v0 => Text -> Either String Script
-
--- | Parse a script intended to serve as a redeemer (or “proof”) in a
---   transaction input.
---   
---   Can be given an optional validator (e.g. if the redeemer uses
---   functions or types defined by the validator).
-parseRedeemer :: Bi Script_v0 => Maybe Script -> Text -> Either String Script
-stdlib :: Program
-isKnownScriptVersion :: ScriptVersion -> Bool
-
-
--- | Some example scripts used in tests.
-module Pos.Script.Examples
-alwaysSuccessValidator :: Script
-alwaysFailureValidator :: Script
-idValidator :: Script
-intValidator :: Script
-goodIntRedeemer :: Script
-badIntRedeemer :: Script
-stdlibValidator :: Script
-goodStdlibRedeemer :: Script
-multisigValidator :: Int -> [PublicKey] -> Script
-multisigRedeemer :: TxSigData -> [Maybe SafeSigner] -> Script
-intValidatorWithBlah :: Script
-goodIntRedeemerWithBlah :: Script
-
--- | Does N rounds of SHA3-256. Should be used with <a>idValidator</a>.
---   
---   Actually it does (N div 10) * 10 rounds. Unrolling the loop is done so
---   that more petrol would be spent on hashing and less – on substraction
---   and function calls.
-shaStressRedeemer :: Int -> Script
-
--- | Checks a signature N times. Should be used with <a>idValidator</a>.
-sigStressRedeemer :: Int -> Script
-
-
--- | <tt>Arbitrary</tt> unsafe instances for some types from <a>Types</a>.
-module Pos.Types.Arbitrary.Unsafe
-instance Pos.Util.Arbitrary.ArbitraryUnsafe Pos.Core.Types.SharedSeed
-instance Pos.Util.Arbitrary.ArbitraryUnsafe Pos.Core.Types.EpochIndex
-instance Pos.Util.Arbitrary.ArbitraryUnsafe Pos.Core.Types.LocalSlotIndex
-instance Pos.Util.Arbitrary.ArbitraryUnsafe Pos.Core.Types.Coin
-instance Pos.Util.Arbitrary.ArbitraryUnsafe Pos.Core.Types.Address
-instance Pos.Util.Arbitrary.ArbitraryUnsafe Pos.Core.Types.SlotId
-instance Pos.Util.Arbitrary.ArbitraryUnsafe Pos.Txp.Core.Types.TxOut
-
-
--- | Module for command-line utilites, parsers and convenient handlers.
-module Pos.CLI
-
--- | Parsed for network address in format <tt>host:port</tt>.
-addrParser :: Parser NetworkAddress
-attackTypeParser :: Parser AttackType
-attackTargetParser :: Parser AttackTarget
-
--- | Default logger config. Will be used if `--log-config` argument is not
---   passed. Corresponds to next logger config:
---   
---   <pre>
---   node:
---     severity: Info
---     comm:
---       severity: Warning
---   </pre>
-defaultLoggerConfig :: LoggerConfig
-
--- | Parser for DHT key.
-dhtKeyParser :: Parser DHTKey
-
--- | Parser for <a>DHTNode</a>.
-dhtNodeParser :: Parser DHTNode
-
--- | Reads logger config from given path. By default return
---   <a>defaultLoggerConfig</a>.
-readLoggerConfig :: MonadIO m => Maybe FilePath -> m LoggerConfig
-
--- | Decides which secret-sharing algorithm to use.
-sscAlgoParser :: Parser SscAlgo
-data CommonArgs
-CommonArgs :: !Bool -> ![DHTNode] -> !(Maybe FilePath) -> !(Maybe FilePath) -> !(Maybe FilePath) -> !SscAlgo -> !Bool -> ![Text] -> ![Text] -> !(Maybe (Int, Int)) -> !(Maybe (Int, Int)) -> !Bool -> CommonArgs
-[dhtExplicitInitial] :: CommonArgs -> !Bool
-[dhtPeers] :: CommonArgs -> ![DHTNode]
-[dhtPeersFile] :: CommonArgs -> !(Maybe FilePath)
-[logConfig] :: CommonArgs -> !(Maybe FilePath)
-[logPrefix] :: CommonArgs -> !(Maybe FilePath)
-[sscAlgo] :: CommonArgs -> !SscAlgo
-[disablePropagation] :: CommonArgs -> !Bool
-[reportServers] :: CommonArgs -> ![Text]
-[updateServers] :: CommonArgs -> ![Text]
-[flatDistr] :: CommonArgs -> !(Maybe (Int, Int))
-[bitcoinDistr] :: CommonArgs -> !(Maybe (Int, Int))
-[expDistr] :: CommonArgs -> !Bool
-commonArgsParser :: String -> Parser CommonArgs
-optionalJSONPath :: Parser (Maybe FilePath)
-optionalLogPrefix :: Parser (Maybe String)
-portOption :: Word16 -> Parser Word16
-timeLordOption :: Parser Bool
-webPortOption :: Word16 -> String -> Parser Word16
-walletPortOption :: Word16 -> String -> Parser Word16
-ipPortOption :: NetworkAddress -> Parser NetworkAddress
-
--- | Parse <a>DHTNode</a>s from a file (nodes should be separated by
---   newlines).
-readPeersFile :: FilePath -> IO [DHTNode]
-instance GHC.Show.Show Pos.CLI.CommonArgs
 
 
 -- | Compile-time configuration support.
@@ -849,8 +849,8 @@ module Pos.Types.Arbitrary
 
 -- | Ill-formed <a>Tx</a> with bad signatures.
 newtype BadSigsTx
-BadSigsTx :: [((Tx, TxDistribution), TxIn, TxOutAux, TxInWitness)] -> BadSigsTx
-[getBadSigsTx] :: BadSigsTx -> [((Tx, TxDistribution), TxIn, TxOutAux, TxInWitness)]
+BadSigsTx :: NonEmpty ((Tx, TxDistribution), TxIn, TxOutAux, TxInWitness) -> BadSigsTx
+[getBadSigsTx] :: BadSigsTx -> NonEmpty ((Tx, TxDistribution), TxIn, TxOutAux, TxInWitness)
 
 -- | This datatype has two coins that will always overflow when added. It
 --   is used in tests to make sure addition raises the appropriate
@@ -899,8 +899,8 @@ LargeInteger :: Integer -> IntegerToCoinOverflow
 
 -- | Well-formed transaction <a>Tx</a>.
 newtype GoodTx
-GoodTx :: [((Tx, TxDistribution), TxIn, TxOutAux, TxInWitness)] -> GoodTx
-[getGoodTx] :: GoodTx -> [((Tx, TxDistribution), TxIn, TxOutAux, TxInWitness)]
+GoodTx :: NonEmpty ((Tx, TxDistribution), TxIn, TxOutAux, TxInWitness) -> GoodTx
+[getGoodTx] :: GoodTx -> NonEmpty ((Tx, TxDistribution), TxIn, TxOutAux, TxInWitness)
 
 -- | A wrapper over <a>Double</a>. Its <a>Arbitrary</a> instance ensures
 --   the <a>Double</a> within can never be converted into a
@@ -965,6 +965,9 @@ instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Arbitrary.GoodTx
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Arbitrary.SmallGoodTx
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Arbitrary.BadSigsTx
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Arbitrary.SmallBadSigsTx
+instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Merkle.MerkleRoot Pos.Txp.Core.Types.Tx)
+instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Merkle.MerkleTree Pos.Txp.Core.Types.Tx)
+instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Txp.Core.Types.TxProof
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SharedSeed
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.ApplicationName
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Txp.Core.Types.TxDistribution
@@ -1035,9 +1038,6 @@ mkGenericHeader :: forall b. (HasHeaderHash (BBlockHeader b), Blockchain b, BHea
 -- | Smart constructor for <a>MainBlock</a>. Uses <a>mkMainHeader</a>.
 mkMainBlock :: (BiSsc ssc, SscHelpersClass ssc, MonadFail m) => Maybe (BlockHeader ssc) -> SlotId -> SecretKey -> Maybe ProxySKEither -> Body (MainBlockchain ssc) -> MainExtraHeaderData -> MainExtraBodyData -> m (MainBlock ssc)
 recreateMainBlock :: (BiSsc ssc, SscHelpersClass ssc, MonadFail m) => MainBlockHeader ssc -> Body (MainBlockchain ssc) -> MainExtraBodyData -> m (MainBlock ssc)
-
--- | Smart constructor for <a>Body</a> of <a>MainBlockchain</a>.
-mkMainBody :: [(Tx, TxWitness, TxDistribution)] -> SscPayload ssc -> [ProxySKHeavy] -> UpdatePayload -> Body (MainBlockchain ssc)
 
 -- | Smart constructor for <a>MainBlockHeader</a>.
 mkMainHeader :: (BiSsc ssc, SscHelpersClass ssc) => Maybe (BlockHeader ssc) -> SlotId -> SecretKey -> Maybe ProxySKEither -> Body (MainBlockchain ssc) -> MainExtraHeaderData -> MainBlockHeader ssc
@@ -2985,6 +2985,20 @@ type FullRichmenData = (Coin, RichmenStake)
 -- | Txp system reexports.
 module Pos.Txp
 
+-- | Make a pair from <a>TxIn</a>.
+txInToPair :: TxIn -> (TxId, Word32)
+
+-- | Use this function if you need to know how a <a>TxOut</a> distributes
+--   stake (e.g. for the purpose of running follow-the-satoshi).
+txOutStake :: TxOutAux -> [(StakeholderId, Coin)]
+
+-- | Construct <a>TxProof</a> which proves given <a>TxPayload</a>.
+mkTxProof :: TxPayload -> TxProof
+
+-- | Construct <a>TxPayload</a> from transactions and their witnesses and
+--   distributions.
+mkTxPayload :: [(Tx, TxWitness, TxDistribution)] -> TxPayload
+
 -- | Global context data needed for script execution -- is same for the
 --   whole transaction. VT stands for "Verify Tx". Currently empty.
 data VTxGlobalContext
@@ -3022,10 +3036,8 @@ verifyTxPure :: Bool -> VTxGlobalContext -> (TxIn -> Maybe VTxLocalContext) -> T
 --   Returns nothing on loop encountered. Return order is head-first.)
 topsortTxs :: forall a. (a -> WithHash Tx) -> [a] -> Maybe [a]
 
--- | Represents transaction attributes: map from 1-byte integer to
---   arbitrary-type value. To be used for extending transaction with new
---   fields via softfork.
-type TxAttributes = Attributes ()
+-- | Represents transaction identifier as <a>Hash</a> of <a>Tx</a>.
+type TxId = Hash Tx
 
 -- | A witness for a single input.
 data TxInWitness
@@ -3046,19 +3058,17 @@ UnknownWitnessType :: !Word8 -> !ByteString -> TxInWitness
 type TxWitness = Vector TxInWitness
 
 -- | Distribution of “fake” stake that follow-the-satoshi would use for a
---   particular transaction.
+--   particular transaction. Length of stored list must be same as length
+--   of <a>_txOutputs</a> of corresponding transaction.
 newtype TxDistribution
-TxDistribution :: [[(StakeholderId, Coin)]] -> TxDistribution
-[getTxDistribution] :: TxDistribution -> [[(StakeholderId, Coin)]]
+TxDistribution :: NonEmpty [(StakeholderId, Coin)] -> TxDistribution
+[getTxDistribution] :: TxDistribution -> NonEmpty [(StakeholderId, Coin)]
 
 -- | Data that is being signed when creating a TxSig.
-type TxSigData = (TxId, Word32, Hash [TxOut], Hash TxDistribution)
+type TxSigData = (TxId, Word32, Hash (NonEmpty TxOut), Hash TxDistribution)
 
 -- | <a>Signature</a> of addrId.
 type TxSig = Signature TxSigData
-
--- | Represents transaction identifier as <a>Hash</a> of <a>Tx</a>.
-type TxId = Hash Tx
 
 -- | Transaction input.
 data TxIn
@@ -3070,73 +3080,90 @@ TxIn :: !TxId -> !Word32 -> TxIn
 -- | Index of the output in transaction's outputs
 [txInIndex] :: TxIn -> !Word32
 
--- | Make pair from TxIn
-toPair :: TxIn -> (TxId, Word32)
-
 -- | Transaction output.
 data TxOut
 TxOut :: !Address -> !Coin -> TxOut
 [txOutAddress] :: TxOut -> !Address
 [txOutValue] :: TxOut -> !Coin
+type TxOutAux = (TxOut, [(StakeholderId, Coin)])
 
--- | Use this function if you need to know how a <a>TxOut</a> distributes
---   stake (e.g. for the purpose of running follow-the-satoshi).
-txOutStake :: TxOutAux -> [(StakeholderId, Coin)]
+-- | Represents transaction attributes: map from 1-byte integer to
+--   arbitrary-type value. To be used for extending transaction with new
+--   fields via softfork.
+type TxAttributes = Attributes ()
 
 -- | Transaction.
 --   
 --   NB: transaction witnesses are stored separately.
 data Tx
-UnsafeTx :: ![TxIn] -> ![TxOut] -> !TxAttributes -> Tx
+UnsafeTx :: !(NonEmpty TxIn) -> !(NonEmpty TxOut) -> !TxAttributes -> Tx
 
 -- | Inputs of transaction.
-[_txInputs] :: Tx -> ![TxIn]
+[_txInputs] :: Tx -> !(NonEmpty TxIn)
 
 -- | Outputs of transaction.
-[_txOutputs] :: Tx -> ![TxOut]
+[_txOutputs] :: Tx -> !(NonEmpty TxOut)
 
 -- | Attributes of transaction
 [_txAttributes] :: Tx -> !TxAttributes
 
+-- | Transaction + auxiliary data
+type TxAux = (Tx, TxWitness, TxDistribution)
+
 -- | Create valid Tx or fail. Verify inputs and outputs are non empty; have
 --   enough coins.
-mkTx :: MonadFail m => [TxIn] -> [TxOut] -> TxAttributes -> m Tx
-txInputs :: Lens' Tx [TxIn]
-txOutputs :: Lens' Tx [TxOut]
+mkTx :: MonadFail m => NonEmpty TxIn -> NonEmpty TxOut -> TxAttributes -> m Tx
+txInputs :: Lens' Tx (NonEmpty TxIn)
+txOutputs :: Lens' Tx (NonEmpty TxOut)
 txAttributes :: Lens' Tx TxAttributes
 
 -- | Specialized formatter for <a>Tx</a>.
-txF :: Bi Address => Format r (Tx -> r)
+txF :: Format r (Tx -> r)
 
 -- | Specialized formatter for <a>Tx</a> with auxiliary data
-txaF :: (Bi PublicKey, Bi Script, Bi Address) => Format r (TxAux -> r)
+txaF :: Format r (TxAux -> r)
+data TxProof
+TxProof :: !Word32 -> !(MerkleRoot Tx) -> !(Hash [TxWitness]) -> TxProof
+[txpNumber] :: TxProof -> !Word32
+[txpRoot] :: TxProof -> !(MerkleRoot Tx)
+[txpWitnessesHash] :: TxProof -> !(Hash [TxWitness])
+data TxPayload
+TxPayload :: !(MerkleTree Tx) -> ![TxDistribution] -> ![TxWitness] -> TxPayload
 
--- | Transaction + auxiliary data
-type TxAux = (Tx, TxWitness, TxDistribution)
-type TxOutAux = (TxOut, [(StakeholderId, Coin)])
+-- | Transactions are the main payload.
+[_txpTxs] :: TxPayload -> !(MerkleTree Tx)
 
--- | Unspent transaction outputs.
+-- | Distributions for P2SH addresses in transaction outputs. * length
+--   mbTxAddrDistributions == length mbTxs * i-th element is <a>Just</a> if
+--   at least one output of i-th transaction is P2SH * n-th element of i-th
+--   element is <a>Just</a> if n-th output of i-th transaction is P2SH Ask
+--   @neongreen if you don't understand wtf is going on. Basically, address
+--   distributions are needed so that (potential) receivers of P2SH funds
+--   would count as stakeholders.
+[_txpDistributions] :: TxPayload -> ![TxDistribution]
+
+-- | Transaction witnesses. Invariant: there are as many witnesses as there
+--   are transactions in the block. This is checked during deserialisation.
+--   We can't put them into the same Merkle tree with transactions, as the
+--   whole point of segwit is to separate transactions and witnesses.
 --   
---   Transaction inputs are identified by (transaction ID, index in list of
---   output) pairs.
-type Utxo = Map TxIn TxOutAux
-
--- | Format <a>Utxo</a> map as json.
-formatUtxo :: Bi Address => Utxo -> Builder
-
--- | Specialized formatter for <a>Utxo</a>.
-utxoF :: Bi Address => Format r (Utxo -> r)
+--   TODO: should they be put into a separate Merkle tree or left as a
+--   list?
+[_txpWitnesses] :: TxPayload -> ![TxWitness]
+txpTxs :: Lens' TxPayload (MerkleTree Tx)
+txpWitnesses :: Lens' TxPayload [TxWitness]
+txpDistributions :: Lens' TxPayload [TxDistribution]
 
 -- | Particular undo needed for transactions
 type TxUndo = [TxOutAux]
-type TxsUndo = [TxUndo]
+type TxpUndo = [TxUndo]
 data TxpError
 
 -- | Something bad happened inside Txp
 TxpInternalError :: !Text -> TxpError
 
 -- | Verify chain of blocks and return transaction undos of blocks.
-txVerifyBlocks :: forall ssc m. TxpWorkMode m => OldestFirst NE (Block ssc) -> m (Either Text (OldestFirst NE TxsUndo))
+txVerifyBlocks :: forall ssc m. TxpWorkMode m => OldestFirst NE (Block ssc) -> m (Either Text (OldestFirst NE TxpUndo))
 
 -- | Apply chain of <i>definitely</i> valid blocks to state on transactions
 --   processing.
@@ -3152,51 +3179,50 @@ txProcessTransaction :: TxpLocalWorkMode m => (TxId, TxAux) -> m ()
 --   </ol>
 txNormalize :: (MonadDB m, MonadTxpMem m) => m ()
 
--- | Reduced equivalent of <tt>MonadReader TxpLDWrap m</tt>.
+-- | Reduced equivalent of <tt>MonadReader TxpLocalData m</tt>.
 class Monad m => MonadTxpMem m where askTxpMem = lift askTxpMem
 
--- | Retrieve <tt>TxpLDWrap</tt>.
+-- | Retrieve <a>TxpLocalData</a>.
 askTxpMem :: MonadTxpMem m => m TxpLocalData
 
--- | Retrieve <tt>TxpLDWrap</tt>.
+-- | Retrieve <a>TxpLocalData</a>.
 askTxpMem :: (MonadTxpMem m, MonadTrans t, MonadTxpMem m', t m' ~ m) => m TxpLocalData
-getTxpLocalData :: (MonadIO m, MonadTxpMem m) => m TxpLocalDataPure
-modifyTxpLocalData :: (MonadIO m, MonadTxpMem m) => (TxpLocalDataPure -> (a, TxpLocalDataPure)) -> m a
-setTxpLocalData :: (MonadIO m, MonadTxpMem m) => TxpLocalDataPure -> m ()
-getUtxoView :: (MonadTxpMem m, MonadIO m) => m UtxoView
+getUtxoModifier :: (MonadTxpMem m, MonadIO m) => m UtxoModifier
 getLocalTxsNUndo :: (MonadIO m, MonadTxpMem m) => m ([(TxId, TxAux)], HashMap TxId [TxOutAux])
 getMemPool :: (MonadIO m, MonadTxpMem m) => m MemPool
 getLocalTxs :: (MonadIO m, MonadTxpMem m) => m [(TxId, TxAux)]
+modifyTxpLocalData :: (MonadIO m, MonadTxpMem m) => (TxpLocalDataPure -> (a, TxpLocalDataPure)) -> m a
+setTxpLocalData :: (MonadIO m, MonadTxpMem m) => TxpLocalDataPure -> m ()
 newtype TxpHolder m a
 TxpHolder :: ReaderT TxpLocalData m a -> TxpHolder m a
 [getTxpHolder] :: TxpHolder m a -> ReaderT TxpLocalData m a
-runTxpHolder :: MonadIO m => UtxoView -> HeaderHash -> TxpHolder m a -> m a
+runTxpHolder :: MonadIO m => UtxoModifier -> HeaderHash -> TxpHolder m a -> m a
 
 -- | Local run needed for validation txs. For validation need only
---   UtxoView.
-runLocalTxpHolder :: MonadIO m => TxpHolder m a -> UtxoView -> m a
+--   UtxoModifier.
+runLocalTxpHolder :: MonadIO m => TxpHolder m a -> UtxoModifier -> m a
 runTxpHolderReader :: TxpLocalData -> TxpHolder m a -> m a
 
 -- | LocalData of transactions processing. There are two invariants which
---   must hold for local data (where uv is UtxoView, memPool is MemPool and
---   tip is HeaderHash): 1. Suppose <tt>blks</tt> is sequence of blocks
---   from the very beggining up to <tt>tip</tt>. If one applies
+--   must hold for local data (where um is UtxoModifier, memPool is MemPool
+--   and tip is HeaderHash): 1. Suppose <tt>blks</tt> is sequence of blocks
+--   from the very beginning up to <tt>tip</tt>. If one applies
 --   <tt>blks</tt> to genesis Utxo, resulting Utxo (let's call it
 --   <tt>utxo1</tt>) will be such that all transactions from
 --   <tt>memPool</tt> are valid with respect to it. 2. If one applies all
 --   transactions from <tt>memPool</tt> to <tt>utxo1</tt>, resulting Utxo
---   will be equivalent to <tt>uv</tt> with respect to MonadUtxo.
+--   will be equivalent to <tt>um</tt> with respect to MonadUtxo.
 --   
 --   Real data inside TxpHolder.
 data TxpLocalData
-TxpLocalData :: !(TVar UtxoView) -> !(TVar MemPool) -> !(TVar UndoMap) -> !(TVar HeaderHash) -> TxpLocalData
-[txpUtxoView] :: TxpLocalData -> !(TVar UtxoView)
+TxpLocalData :: !(TVar UtxoModifier) -> !(TVar MemPool) -> !(TVar UndoMap) -> !(TVar HeaderHash) -> TxpLocalData
+[txpUtxoModifier] :: TxpLocalData -> !(TVar UtxoModifier)
 [txpMemPool] :: TxpLocalData -> !(TVar MemPool)
 [txpUndos] :: TxpLocalData -> !(TVar UndoMap)
 [txpTip] :: TxpLocalData -> !(TVar HeaderHash)
 
 -- | Pure version of TxpLocalData.
-type TxpLocalDataPure = (UtxoView, MemPool, UndoMap, HeaderHash)
+type TxpLocalDataPure = (UtxoModifier, MemPool, UndoMap, HeaderHash)
 txListeners :: WorkMode ssc m => m ([ListenerSpec m], OutSpecs)
 txStubListeners :: WithLogger m => ([ListenerSpec m], OutSpecs)
 data TxMsgTag
@@ -3253,7 +3279,7 @@ TxpInvalidUndoLength :: !Int -> !Int -> TxpVerFailure
 --   one-by-one. Note: transactions must be topsorted to pass check.
 --   Warning: this function may apply some transactions and fail
 --   eventually. Use it only on temporary data.
-verifyTxp :: GlobalTxpMode m => [TxAux] -> m TxsUndo
+verifyTxp :: GlobalTxpMode m => [TxAux] -> m TxpUndo
 
 -- | Apply transactions from one block.
 applyTxp :: GlobalTxpMode m => [(TxAux, TxUndo)] -> m ()
@@ -3278,14 +3304,20 @@ TxpT :: StateT TxpModifier m a -> TxpT m a
 [getTxpT] :: TxpT m a -> StateT TxpModifier m a
 runTxpT :: TxpModifier -> TxpT m a -> m (a, TxpModifier)
 runTxpTGlobal :: Functor m => BalancesView -> TxpT m a -> m (a, TxpModifier)
-runTxpTLocal :: Functor m => UtxoView -> MemPool -> UndoMap -> TxpT m a -> m (a, TxpModifier)
-execTxpTLocal :: Functor m => UtxoView -> MemPool -> UndoMap -> TxpT m a -> m TxpModifier
-data UtxoView
-UtxoView :: !(HashMap TxIn TxOutAux) -> !(HashSet TxIn) -> UtxoView
-[_uvAddUtxo] :: UtxoView -> !(HashMap TxIn TxOutAux)
-[_uvDelUtxo] :: UtxoView -> !(HashSet TxIn)
-uvAddUtxo :: Lens' UtxoView (HashMap TxIn TxOutAux)
-uvDelUtxo :: Lens' UtxoView (HashSet TxIn)
+runTxpTLocal :: Functor m => UtxoModifier -> MemPool -> UndoMap -> TxpT m a -> m (a, TxpModifier)
+execTxpTLocal :: Functor m => UtxoModifier -> MemPool -> UndoMap -> TxpT m a -> m TxpModifier
+
+-- | Unspent transaction outputs.
+--   
+--   Transaction inputs are identified by (transaction ID, index in list of
+--   output) pairs.
+type Utxo = Map TxIn TxOutAux
+
+-- | Format <a>Utxo</a> map as json.
+formatUtxo :: Utxo -> Builder
+
+-- | Specialized formatter for <a>Utxo</a>.
+utxoF :: Format r (Utxo -> r)
 data MemPool
 MemPool :: !TxMap -> !Int -> MemPool
 [_mpLocalTxs] :: MemPool -> !TxMap
@@ -3303,13 +3335,14 @@ BalancesView :: !(HashMap StakeholderId Coin) -> !Coin -> BalancesView
 bvStakes :: Lens' BalancesView (HashMap StakeholderId Coin)
 bvTotal :: Lens' BalancesView Coin
 type UndoMap = HashMap TxId TxUndo
+type UtxoModifier = MapModifier TxIn TxOutAux
 data TxpModifier
-TxpModifier :: !UtxoView -> !BalancesView -> !MemPool -> !UndoMap -> TxpModifier
-[_txmUtxoView] :: TxpModifier -> !UtxoView
+TxpModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> TxpModifier
+[_txmUtxoModifier] :: TxpModifier -> !UtxoModifier
 [_txmBalances] :: TxpModifier -> !BalancesView
 [_txmMemPool] :: TxpModifier -> !MemPool
 [_txmUndos] :: TxpModifier -> !UndoMap
-txmUtxoView :: Lens' TxpModifier UtxoView
+txmUtxoModifier :: Lens' TxpModifier UtxoModifier
 txmBalances :: Lens' TxpModifier BalancesView
 txmMemPool :: Lens' TxpModifier MemPool
 txmUndos :: Lens' TxpModifier UndoMap
@@ -3992,10 +4025,8 @@ usWorkers :: WorkMode ssc m => ([WorkerSpec m], OutSpecs)
 -- | Web part of wallet.
 module Pos.Wallet.Web
 
--- | Servant API which provides access to wallet. TODO: Should be composed
---   depending on the resource - wallets, txs, ...
---   <a>http://haskell-servant.github.io/tutorial/0.4/server.html#nested-apis</a>
-type WalletApi = ("api" :> ("test" :> ("reset" :> Post '[JSON] (Either WalletError ())))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> Get '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("wallets" :> Get '[JSON] (Either WalletError [CWallet]))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> (ReqBody '[JSON] CWalletMeta :> Put '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("wallets" :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> Delete '[JSON] (Either WalletError ())))) :<|> (("api" :> ("wallets" :> ("keys" :> (ReqBody '[JSON] Text :> Post '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("wallets" :> ("restore" :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("addresses" :> (Capture "address" Text :> ("currencies" :> (Capture "currency" CCurrency :> Get '[JSON] (Either WalletError Bool)))))) :<|> (("api" :> ("profile" :> Get '[JSON] (Either WalletError CProfile))) :<|> (("api" :> ("profile" :> (ReqBody '[JSON] CProfile :> Post '[JSON] (Either WalletError CProfile)))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> Post '[JSON] (Either WalletError CTx))))))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> (Capture "currency" CCurrency :> (Capture "title" Text :> (Capture "description" Text :> Post '[JSON] (Either WalletError CTx)))))))))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "address" CAddress :> (Capture "transaction" CTxId :> (ReqBody '[JSON] CTxMeta :> Post '[JSON] (Either WalletError ()))))))) :<|> (("api" :> ("txs" :> ("histories" :> (Capture "address" CAddress :> (QueryParam "skip" Word :> (QueryParam "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word)))))))) :<|> (("api" :> ("txs" :> ("histories" :> (Capture "address" CAddress :> (Capture "search" Text :> (QueryParam "skip" Word :> (QueryParam "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word))))))))) :<|> (("api" :> ("update" :> Get '[JSON] (Either WalletError CUpdateInfo))) :<|> (("api" :> ("update" :> Post '[JSON] (Either WalletError ()))) :<|> (("api" :> ("redemptions" :> ("ada" :> (ReqBody '[JSON] CWalletRedeem :> Post '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("settings" :> ("slots" :> ("duration" :> Get '[JSON] (Either WalletError Word))))) :<|> (("api" :> ("settings" :> ("version" :> Get '[JSON] (Either WalletError SoftwareVersion)))) :<|> ("api" :> ("settings" :> ("sync" :> ("progress" :> Get '[JSON] (Either WalletError SyncProgress)))))))))))))))))))))))))
+-- | Servant API which provides access to wallet.
+type WalletApi = ("api" :> ("test_reset" :> Post '[JSON] (Either WalletError ()))) :<|> (("api" :> ("get_wallet" :> (Capture "address" CAddress :> Get '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("get_wallets" :> Get '[JSON] (Either WalletError [CWallet]))) :<|> (("api" :> ("send" :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> Post '[JSON] (Either WalletError CTx)))))) :<|> (("api" :> ("send" :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> (Capture "currency" CCurrency :> (Capture "title" Text :> (Capture "description" Text :> Post '[JSON] (Either WalletError CTx))))))))) :<|> (("api" :> ("txhistory" :> (Capture "address" CAddress :> (Capture "skip" Word :> (Capture "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word))))))) :<|> (("api" :> ("search_txhistory" :> (Capture "address" CAddress :> (Capture "search" Text :> (Capture "skip" Word :> (Capture "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word)))))))) :<|> (("api" :> ("update_transaction" :> (Capture "address" CAddress :> (Capture "transaction" CTxId :> (ReqBody '[JSON] CTxMeta :> Post '[JSON] (Either WalletError ())))))) :<|> (("api" :> ("new_wallet" :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("restore_wallet" :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("update_wallet" :> (Capture "address" CAddress :> (ReqBody '[JSON] CWalletMeta :> Post '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("delete_wallet" :> (Capture "address" CAddress :> Post '[JSON] (Either WalletError ())))) :<|> (("api" :> ("valid_address" :> (Capture "currency" CCurrency :> (Capture "address" Text :> Get '[JSON] (Either WalletError Bool))))) :<|> (("api" :> ("get_profile" :> Get '[JSON] (Either WalletError CProfile))) :<|> (("api" :> ("update_profile" :> (ReqBody '[JSON] CProfile :> Post '[JSON] (Either WalletError CProfile)))) :<|> (("api" :> ("redeem_ada" :> (ReqBody '[JSON] CWalletRedeem :> Post '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("next_update" :> Get '[JSON] (Either WalletError CUpdateInfo))) :<|> (("api" :> ("apply_update" :> Post '[JSON] (Either WalletError ()))) :<|> (("api" :> ("slot_duration" :> Get '[JSON] (Either WalletError Word))) :<|> (("api" :> ("system_version" :> Get '[JSON] (Either WalletError SoftwareVersion))) :<|> (("api" :> ("import_key" :> (ReqBody '[JSON] Text :> Post '[JSON] (Either WalletError CWallet)))) :<|> ("api" :> ("sync_progress" :> Get '[JSON] (Either WalletError SyncProgress)))))))))))))))))))))))
 
 -- | Helper Proxy.
 walletApi :: Proxy WalletApi
@@ -4423,8 +4454,6 @@ instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Core.Block.ConsensusData (Pos.
 instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Block.Arbitrary.BodyDependsOnConsensus (Pos.Types.Block.Types.GenesisBlockchain ssc))
 instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Core.Block.Body (Pos.Types.Block.Types.GenesisBlockchain ssc))
 instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Core.Block.GenericBlock (Pos.Types.Block.Types.GenesisBlockchain ssc))
-instance Pos.Binary.Class.Bi Pos.Binary.Class.Raw => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Merkle.MerkleRoot Pos.Txp.Core.Types.Tx)
-instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Merkle.MerkleTree Pos.Txp.Core.Types.Tx)
 instance (Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Class.Types.SscProof ssc), Pos.Binary.Class.Bi Pos.Binary.Class.Raw, Pos.Ssc.Class.Types.Ssc ssc) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Types.Block.Types.MainBlockHeader ssc)
 instance Test.QuickCheck.Arbitrary.Arbitrary h => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Data.Attributes.Attributes h)
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Block.Types.MainExtraHeaderData
@@ -4622,7 +4651,7 @@ makePubKeyTx :: SafeSigner -> TxInputs -> TxOutputs -> TxAux
 makeMOfNTx :: Script -> [Maybe SafeSigner] -> TxInputs -> TxOutputs -> TxAux
 
 -- | Construct Tx using secret key and given list of desired outputs
-submitTx :: TxMode ssc m => SendActions m -> SafeSigner -> [DHTNode] -> [TxOutAux] -> m (Either TxError TxAux)
+submitTx :: TxMode ssc m => SendActions m -> SafeSigner -> [DHTNode] -> NonEmpty TxOutAux -> m (Either TxError TxAux)
 
 -- | Construct redemption Tx using redemption secret key and a output
 --   address
