@@ -5,55 +5,47 @@ layout: page-404
 <html>
 
   {% include head.html %}
-
   <body>
 
     {% include header.html %}
 
-    <div id="middle" class="middle">
-      <div id="main" class="">
 
 
-            <div id="subheader" class="banner">
-                <div class="container">
 
-                    <div class="title_block">
-                        <h1 class=" uppercase clear"><span class="title"><span class="c_f00">NO</span> Page found</span></h1>
-                    </div>
+      <div class="container{%if page.fullwidth %}-fluid{% endif %}">
+          <!-- left, vertical navbar & content -->
+          <div class="row">
 
+              <!-- content -->
+              <div class="col-md-12 text">
+                <div id="search-output" class="none"></div>
+                <div class="searching" id="searching"></div>
+                <div class="main text-center" id="main">
+                  <h1>Page not found</h1>
+                  <h3><span class="">Page not found. The requested URL is invalid.</span></h3>
+                  <br>
+                  <br>
+                  <br>
+
+                  <br>
+                  <br>
+                  <br>
+                  <br>
+                  <br>
                 </div>
-            </div>
-
-
-
-        <div class="container">
-          <div class="topcol">
-            <div id="io_loader">
-              <div id="io_load">
-
-
-                <div class="welcome bigger text-center ">
-                  <div class="fader">
-
-                    <div id="" class="entry">
-                      <h3><span class="">Page not found. The requested URL is invalid.</span></h3>
-                      <hr class="sm" />
-
-                    </div>
-
-                  </div>
-                </div>
-
 
               </div>
-            </div>
+              <!-- end content -->
           </div>
-        </div>
+
       </div>
-    </div>
+
+
 
     {% include footer.html %}
 
   </body>
+
+
 
 </html>

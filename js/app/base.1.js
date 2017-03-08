@@ -154,7 +154,8 @@ io_intro_colors.random = function() {
 };
 
 
-  $("h2, h3, h4, h5, h6").each(function(i, el) {
+$(function() {
+  return $("h2, h3, h4, h5, h6").each(function(i, el) {
     var $el, icon, id;
     $el = $(el);
     id = $el.attr('id');
@@ -163,7 +164,7 @@ io_intro_colors.random = function() {
       return $el.prepend($("<a />").addClass("header-link").attr("href", "#" + id).html(icon));
     }
   });
-
+});
 
 
 var io_months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
