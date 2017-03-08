@@ -16,9 +16,8 @@ module Pos.Util.UserSecret
 -- | User secret data. Includes secret keys only for now (not including
 --   auxiliary <tt>_usPath</tt>).
 data UserSecret
-usKeys :: Lens' UserSecret [EncryptedSecretKey]
+usKeys :: Lens' UserSecret [SecretKey]
 usVss :: Lens' UserSecret (Maybe VssKeyPair)
-usPrimKey :: Lens' UserSecret (Maybe SecretKey)
 getUSPath :: UserSecret -> FilePath
 
 -- | Create a simple UserSecret from secret key and file path
@@ -481,6 +480,17 @@ instance Pos.Core.Block.HasPrevBlock s => Pos.Core.Block.HasPrevBlock (s, z)
 instance Pos.Core.Block.BHeaderHash b ~ Pos.Core.Types.HeaderHash => Pos.Core.Block.HasPrevBlock (Pos.Core.Block.GenericBlockHeader b)
 instance Pos.Core.Block.BHeaderHash b ~ Pos.Core.Types.HeaderHash => Pos.Core.Block.HasPrevBlock (Pos.Core.Block.GenericBlock b)
 instance (Pos.Core.Block.HasPrevBlock s, Pos.Core.Block.HasPrevBlock s') => Pos.Core.Block.HasPrevBlock (Data.Either.Either s s')
+instance Pos.Core.Types.HasBlockVersion Pos.Types.Block.Types.MainExtraHeaderData
+instance Pos.Core.Types.HasSoftwareVersion Pos.Types.Block.Types.MainExtraHeaderData
+instance Pos.Core.Types.HasBlockVersion (Pos.Types.Block.Types.MainBlockHeader ssc)
+instance Pos.Core.Types.HasSoftwareVersion (Pos.Types.Block.Types.MainBlockHeader ssc)
+instance Pos.Core.Types.HasBlockVersion (Pos.Types.Block.Types.MainBlock ssc)
+instance Pos.Core.Types.HasSoftwareVersion (Pos.Types.Block.Types.MainBlock ssc)
+instance Pos.Types.Block.Types.BiHeader ssc => Pos.Core.Block.IsHeader (Pos.Types.Block.Types.GenesisBlockHeader ssc)
+instance Pos.Types.Block.Types.BiHeader ssc => Pos.Core.Block.IsGenesisHeader (Pos.Types.Block.Types.GenesisBlockHeader ssc)
+instance Pos.Types.Block.Types.BiHeader ssc => Pos.Core.Block.IsHeader (Pos.Types.Block.Types.MainBlockHeader ssc)
+instance Pos.Types.Block.Types.BiHeader ssc => Pos.Core.Block.IsMainHeader (Pos.Types.Block.Types.MainBlockHeader ssc)
+instance Pos.Types.Block.Types.BiHeader ssc => Pos.Core.Block.IsHeader (Pos.Types.Block.Types.BlockHeader ssc)
 
 module Pos.Security.CLI
 data AttackType
@@ -543,7 +553,7 @@ badIntRedeemer :: Script
 stdlibValidator :: Script
 goodStdlibRedeemer :: Script
 multisigValidator :: Int -> [PublicKey] -> Script
-multisigRedeemer :: TxSigData -> [Maybe SafeSigner] -> Script
+multisigRedeemer :: TxSigData -> [Maybe SecretKey] -> Script
 intValidatorWithBlah :: Script
 goodIntRedeemerWithBlah :: Script
 
@@ -945,9 +955,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679120029 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679120029)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679120022 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679120022)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679120018 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679120018)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679119573 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679119573)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679119566 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679119566)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679119562 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679119562)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SoftwareVersion
@@ -1020,10 +1030,10 @@ instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.Address
 module Pos.Types.Block.Functions
 
 -- | Difficulty of the Block, which is determined from header.
-blockDifficulty :: Block ssc -> ChainDifficulty
+blockDifficultyIncrement :: Block ssc -> ChainDifficulty
 
 -- | Difficulty of the BlockHeader. 0 for genesis block, 1 for main block.
-headerDifficulty :: BlockHeader ssc -> ChainDifficulty
+headerDifficultyIncrement :: BlockHeader ssc -> ChainDifficulty
 
 -- | Smart constructor for <a>GenericBlock</a>. Uses
 --   <tt>mkGenericBlockHeader</tt>.
@@ -1057,7 +1067,7 @@ genesisHash :: Hash a
 --   references previous block and/or is referenced by next block, use
 --   header verification (via vbpVerifyHeader).
 data VerifyBlockParams ssc
-VerifyBlockParams :: !(Maybe (VerifyHeaderParams ssc)) -> !Bool -> !Bool -> !Bool -> !(Maybe BlockVersion) -> !Byte -> VerifyBlockParams ssc
+VerifyBlockParams :: !(Maybe (VerifyHeaderParams ssc)) -> !Bool -> !Bool -> !Bool -> !(Maybe BlockVersion) -> VerifyBlockParams ssc
 
 -- | Verifies header accordingly to params (<a>verifyHeader</a>)
 [vbpVerifyHeader] :: VerifyBlockParams ssc -> !(Maybe (VerifyHeaderParams ssc))
@@ -1079,13 +1089,10 @@ VerifyBlockParams :: !(Maybe (VerifyHeaderParams ssc)) -> !Bool -> !Bool -> !Boo
 --   shouldn't be anything unparseable in the block.
 [vbpVerifyVersions] :: VerifyBlockParams ssc -> !(Maybe BlockVersion)
 
--- | Maximal block size.
-[vbpMaxSize] :: VerifyBlockParams ssc -> !Byte
-
 -- | Extra data which may be used by verifyHeader function to do more
 --   checks.
 data VerifyHeaderParams ssc
-VerifyHeaderParams :: !Bool -> !(Maybe (BlockHeader ssc)) -> !(Maybe (BlockHeader ssc)) -> !(Maybe SlotId) -> !(Maybe SlotLeaders) -> !Byte -> VerifyHeaderParams ssc
+VerifyHeaderParams :: !Bool -> !(Maybe (BlockHeader ssc)) -> !(Maybe (BlockHeader ssc)) -> !(Maybe SlotId) -> !(Maybe SlotLeaders) -> VerifyHeaderParams ssc
 [vhpVerifyConsensus] :: VerifyHeaderParams ssc -> !Bool
 
 -- | Nothing means that block is unknown, not genesis.
@@ -1093,7 +1100,6 @@ VerifyHeaderParams :: !Bool -> !(Maybe (BlockHeader ssc)) -> !(Maybe (BlockHeade
 [vhpNextHeader] :: VerifyHeaderParams ssc -> !(Maybe (BlockHeader ssc))
 [vhpCurrentSlot] :: VerifyHeaderParams ssc -> !(Maybe SlotId)
 [vhpLeaders] :: VerifyHeaderParams ssc -> !(Maybe SlotLeaders)
-[vhpMaxSize] :: VerifyHeaderParams ssc -> !Byte
 
 -- | Check predicates defined by VerifyBlockParams. #verifyHeader
 --   #verifyGenericBlock
@@ -1104,7 +1110,7 @@ verifyBlock :: (SscHelpersClass ssc, BiSsc ssc) => VerifyBlockParams ssc -> Bloc
 --   foldl' is used here which eliminates laziness of triple. It doesn't
 --   affect laziness of <a>VerificationRes</a> which is good because
 --   laziness for this data type is crucial.
-verifyBlocks :: forall ssc f t. (SscHelpersClass ssc, BiSsc ssc, t ~ OldestFirst f (Block ssc), NontrivialContainer t) => Maybe SlotId -> BlockVersionData -> Maybe SlotLeaders -> Maybe BlockVersion -> OldestFirst f (Block ssc) -> VerificationRes
+verifyBlocks :: forall ssc f t. (SscHelpersClass ssc, BiSsc ssc, t ~ OldestFirst f (Block ssc), NontrivialContainer t) => Maybe SlotId -> Maybe SlotLeaders -> Maybe BlockVersion -> OldestFirst f (Block ssc) -> VerificationRes
 
 -- | Perform cheap checks of GenericBlock, which can be done using only
 --   block itself. Checks which can be done using only header are ignored
@@ -1117,6 +1123,9 @@ verifyHeader :: forall ssc. BiSsc ssc => VerifyHeaderParams ssc -> BlockHeader s
 
 -- | Verifies a set of block headers.
 verifyHeaders :: BiSsc ssc => Bool -> NewestFirst [] (BlockHeader ssc) -> VerificationRes
+
+-- | Compute size of <a>MainBlock</a> in bytes.
+blockSize :: SscHelpersClass ssc => MainBlock ssc -> Byte
 instance Pos.Ssc.Class.Types.Ssc ssc => GHC.Classes.Eq (Pos.Types.Block.Functions.VerifyHeaderParams ssc)
 instance Pos.Ssc.Class.Types.Ssc ssc => GHC.Show.Show (Pos.Types.Block.Functions.VerifyHeaderParams ssc)
 instance Data.Default.Class.Default (Pos.Types.Block.Functions.VerifyHeaderParams ssc)
@@ -1192,7 +1201,6 @@ backupPhraseWordsNum :: Int
 bpToList :: BackupPhrase -> [Text]
 toSeed :: BackupPhrase -> ByteString
 keysFromPhrase :: BackupPhrase -> (SecretKey, VssKeyPair)
-safeKeysFromPhrase :: PassPhrase -> BackupPhrase -> (EncryptedSecretKey, VssKeyPair)
 instance GHC.Generics.Generic Pos.Util.BackupPhrase.BackupPhrase
 instance GHC.Classes.Eq Pos.Util.BackupPhrase.BackupPhrase
 instance GHC.Show.Show Pos.Util.BackupPhrase.BackupPhrase
@@ -3035,9 +3043,6 @@ PkWitness :: !PublicKey -> !TxSig -> TxInWitness
 ScriptWitness :: !Script -> !Script -> TxInWitness
 [twValidator] :: TxInWitness -> !Script
 [twRedeemer] :: TxInWitness -> !Script
-RedeemWitness :: !RedeemPublicKey -> !(RedeemSignature TxSigData) -> TxInWitness
-[twRedeemKey] :: TxInWitness -> !RedeemPublicKey
-[twRedeemSig] :: TxInWitness -> !(RedeemSignature TxSigData)
 UnknownWitnessType :: !Word8 -> !ByteString -> TxInWitness
 
 -- | A witness is a proof that a transaction is allowed to spend the funds
@@ -3109,7 +3114,7 @@ txAttributes :: Lens' Tx TxAttributes
 txF :: Bi Address => Format r (Tx -> r)
 
 -- | Specialized formatter for <a>Tx</a> with auxiliary data
-txaF :: (Bi PublicKey, Bi Script, Bi Address, Bi RedeemPublicKey) => Format r (TxAux -> r)
+txaF :: (Bi PublicKey, Bi Script, Bi Address) => Format r (TxAux -> r)
 
 -- | Transaction + auxiliary data
 type TxAux = (Tx, TxWitness, TxDistribution)
@@ -3759,10 +3764,10 @@ PollBadBlockVersion :: !UpId -> !BlockVersion -> !BlockVersion -> PollVerFailure
 [pbpvUpId] :: PollVerFailure -> !UpId
 [pbpvGiven] :: PollVerFailure -> !BlockVersion
 [pbpvAdopted] :: PollVerFailure -> !BlockVersion
-PollTooLargeProposal :: !UpId -> !Byte -> !Byte -> PollVerFailure
-[ptlpUpId] :: PollVerFailure -> !UpId
-[ptlpSize] :: PollVerFailure -> !Byte
-[ptlpLimit] :: PollVerFailure -> !Byte
+PollTooBigBlock :: !HeaderHash -> !Byte -> !Byte -> PollVerFailure
+[ptbbHash] :: PollVerFailure -> !HeaderHash
+[ptbbSize] :: PollVerFailure -> !Byte
+[ptbbLimit] :: PollVerFailure -> !Byte
 PollInternalError :: !Text -> PollVerFailure
 
 -- | Verify UpdatePayload with respect to data provided by MonadPoll. If
@@ -3773,7 +3778,7 @@ PollInternalError :: !Text -> PollVerFailure
 --   it means that temporary payload for given slot is applied. When it is
 --   'Right header', it means that payload from block with given header is
 --   applied.
-verifyAndApplyUSPayload :: forall ssc m. (ApplyMode m, Ssc ssc) => Bool -> Either SlotId (MainBlockHeader ssc) -> UpdatePayload -> m ()
+verifyAndApplyUSPayload :: ApplyMode m => Bool -> Either SlotId (Some IsMainHeader) -> UpdatePayload -> m ()
 
 -- | Rollback application of UpdatePayload in MonadPoll using payload
 --   itself and undo data.
@@ -3782,7 +3787,7 @@ rollbackUS :: forall m. MonadPoll m => USUndo -> m ()
 -- | Normalize given proposals and votes with respect to current Poll
 --   state, i. e. remove everything that is invalid. Valid data is applied.
 --   This function doesn't consider <a>genesisUpdateProposalThd</a>.
-normalizePoll :: forall ssc m. (MonadPoll m, Ssc ssc) => SlotId -> UpdateProposals -> LocalVotes -> m (UpdateProposals, LocalVotes)
+normalizePoll :: MonadPoll m => SlotId -> UpdateProposals -> LocalVotes -> m (UpdateProposals, LocalVotes)
 filterProposalsByThd :: forall m. (MonadPollRead m) => EpochIndex -> UpdateProposals -> m (UpdateProposals, HashSet UpId)
 
 -- | Check whether block with given <a>BlockVersion</a> can be created
@@ -3793,6 +3798,9 @@ filterProposalsByThd :: forall m. (MonadPollRead m) => EpochIndex -> UpdatePropo
 --   minor)' of given block version is greater than '(major, minor)' of
 --   adopted block version and this block version is confirmed.
 canCreateBlockBV :: MonadPollRead m => BlockVersion -> m Bool
+
+-- | Verify that size of block doesn't exceed currently adopted limit.
+verifyBlockSize :: (MonadError PollVerFailure m, MonadPollRead m) => HeaderHash -> Byte -> m ()
 
 -- | Process creation of genesis block for given epoch.
 processGenesisBlock :: (MonadError PollVerFailure m, MonadPoll m) => EpochIndex -> m ()
@@ -4616,24 +4624,20 @@ runWalletReal :: RealModeResources -> WalletParams -> ([WorkerSpec WalletRealMod
 runWallet :: WalletMode ssc m => ([WorkerSpec m], OutSpecs) -> (WorkerSpec m, OutSpecs)
 
 -- | Makes a transaction which use P2PKH addresses as a source
-makePubKeyTx :: SafeSigner -> TxInputs -> TxOutputs -> TxAux
-makeMOfNTx :: Script -> [Maybe SafeSigner] -> TxInputs -> TxOutputs -> TxAux
+makePubKeyTx :: SecretKey -> TxInputs -> TxOutputs -> TxAux
+makeMOfNTx :: Script -> [Maybe SecretKey] -> TxInputs -> TxOutputs -> TxAux
 
 -- | Construct Tx using secret key and given list of desired outputs
-submitTx :: TxMode ssc m => SendActions m -> SafeSigner -> [DHTNode] -> [TxOutAux] -> m (Either TxError TxAux)
-
--- | Construct redemption Tx using redemption secret key and a output
---   address
-submitRedemptionTx :: TxMode ssc m => SendActions m -> RedeemSecretKey -> [DHTNode] -> Address -> m (Either TxError TxAux)
+submitTx :: TxMode ssc m => SendActions m -> SecretKey -> [DHTNode] -> [TxOutAux] -> m (Either TxError TxAux)
 
 -- | Send the ready-to-use transaction
 submitTxRaw :: (MinWorkMode m, MonadDBLimits m) => SendActions m -> [DHTNode] -> TxAux -> m ()
 
 -- | Make a multi-transaction using given secret key and info for outputs
-createTx :: Utxo -> SafeSigner -> TxOutputs -> Either TxError TxAux
+createTx :: Utxo -> SecretKey -> TxOutputs -> Either TxError TxAux
 
 -- | Make a transaction, using M-of-N script as a source
-createMOfNTx :: Utxo -> [(PublicKey, Maybe SafeSigner)] -> TxOutputs -> Either TxError TxAux
+createMOfNTx :: Utxo -> [(PublicKey, Maybe SecretKey)] -> TxOutputs -> Either TxError TxAux
 sendTxOuts :: OutSpecs
 
 -- | Send UpdateVote to given addresses
