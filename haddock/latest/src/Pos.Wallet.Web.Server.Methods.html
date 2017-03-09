@@ -442,7 +442,7 @@ nextUpdate = getNextUpdate &gt;&gt;=
 applyUpdate :: WalletWebMode ssc m =&gt; m ()
 applyUpdate = removeNextUpdate &gt;&gt; applyLastUpdate
 
-redeemADA :: WalletWebMode ssc m =&gt; SendActions m -&gt; CWalletRedeem -&gt; m CWallet
+redeemADA :: WalletWebMode ssc m =&gt; SendActions m -&gt; CWalletRedeem -&gt; m CTx
 redeemADA sendActions CWalletRedeem {..} = do
     seedBs &lt;- either
         (\e -&gt; throwM $ Internal (&quot;Seed is invalid base64 string: &quot; &lt;&gt; toText e))
@@ -461,9 +461,8 @@ redeemADA sendActions CWalletRedeem {..} = do
         Left err -&gt; throwM . Internal $ &quot;Cannot send redemption transaction: &quot; &lt;&gt; err
         Right (tx, _, _) -&gt; do
             -- add redemption transaction to the history of new wallet
-            () &lt;$ addHistoryTx dstCAddr ADA &quot;ADA redemption&quot; &quot;&quot;
-                (THEntry (hash tx) tx False Nothing)
-            pure walletB
+            addHistoryTx dstCAddr ADA &quot;ADA redemption&quot; &quot;&quot;
+              (THEntry (hash tx) tx False Nothing)
 
 importKey :: WalletWebMode ssc m =&gt; SendActions m -&gt; Text -&gt; m CWallet
 importKey sendActions (toString -&gt; fp) = do
