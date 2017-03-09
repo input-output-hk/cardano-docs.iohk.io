@@ -120,10 +120,6 @@ inAssertMode :: Applicative m => m a -> m ()
 
 -- | Remove elements which are in <tt>b</tt> from <tt>a</tt>
 diffDoubleMap :: forall k1 k2 v. (Eq k1, Eq k2, Hashable k1, Hashable k2) => HashMap k1 (HashMap k2 v) -> HashMap k1 (HashMap k2 v) -> HashMap k1 (HashMap k2 v)
-
--- | Create HashSet from HashMap's keys
-getKeys :: HashMap k v -> HashSet k
-maybeThrow :: (MonadThrow m, Exception e) => e -> Maybe a -> m a
 maybeThrow' :: (Mockable Throw m, Exception e) => e -> Maybe a -> m a
 type NE = NonEmpty
 neZipWith3 :: (x -> y -> z -> q) -> NonEmpty x -> NonEmpty y -> NonEmpty z -> NonEmpty q
@@ -956,9 +952,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679120073 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679120073)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679120066 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679120066)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679120062 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679120062)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679120117 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679120117)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679120110 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679120110)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679120106 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679120106)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SoftwareVersion
@@ -1235,9 +1231,9 @@ module Pos.Lrc.FollowTheSatoshi
 --   as “owning” funds for the purposes of follow-the-satoshi.
 followTheSatoshi :: SharedSeed -> Utxo -> NonEmpty StakeholderId
 
--- | A version of <a>followTheSatoshi</a> that uses an iterator over
---   <tt>TxOut</tt>s instead of <a>Utxo</a>.
-followTheSatoshiM :: forall m. MonadIterator (StakeholderId, Coin) m => SharedSeed -> Coin -> m (NonEmpty StakeholderId)
+-- | A version of <tt>followTheSatoshi</tt> that uses an iterator over
+--   <tt>TxOut</tt>s instead of <tt>Utxo</tt>.
+followTheSatoshiM :: MonadIterator (StakeholderId, Coin) m => SharedSeed -> Coin -> m (NonEmpty StakeholderId)
 
 
 -- | Blockchain genesis. Not to be confused with genesis block in epoch.
@@ -1596,19 +1592,11 @@ AddPSK :: !ProxySKHeavy -> DelegationOp
 DelPSK :: !PublicKey -> DelegationOp
 runPskIterator :: forall m a. MonadDB m => DBnIterator PskIter a -> m a
 runPskMapIterator :: forall v m a. MonadDB m => DBnMapIterator PskIter v a -> (IterType PskIter -> v) -> m a
-
--- | Get total amount of stake to be used for follow-the-satoshi. It's
---   different from total amount of coins in the system.
-getTotalFtsStake :: MonadDB m => m Coin
-
--- | Get stake owne by given stakeholder (according to rules used for FTS).
-getFtsStake :: MonadDB m => StakeholderId -> m (Maybe Coin)
-getFtsStakeFromDB :: (MonadIO m, MonadThrow m) => StakeholderId -> DB -> m (Maybe Coin)
 data BalancesOp
 PutFtsSum :: !Coin -> BalancesOp
 PutFtsStake :: !StakeholderId -> !Coin -> BalancesOp
 prepareGStateBalances :: forall m. MonadDB m => Utxo -> m ()
-data BalIter
+data BalIter :: *
 runBalanceIterator :: forall m a. MonadDB m => DBnIterator BalIter a -> m a
 runBalanceMapIterator :: forall v m a. MonadDB m => DBnMapIterator BalIter v a -> (IterType BalIter -> v) -> m a
 sanityCheckBalances :: (MonadMask m, MonadDB m, WithLogger m) => m ()
@@ -2938,24 +2926,11 @@ Valid :: RichmenStake -> ValidRichmenStake thd
 
 -- | Datatype for LRC computation client. If you want to compute richmen,
 --   you should add such client to LRC framework
-data LrcConsumer m
-LrcConsumer :: (Coin -> Coin) -> (EpochIndex -> m Bool) -> (EpochIndex -> Coin -> RichmenStake -> m ()) -> Bool -> LrcConsumer m
-
--- | Function which defines threshold depends on total stake
-[lcThreshold] :: LrcConsumer m -> Coin -> Coin
-
--- | Function which defines necessity of richmen computation
-[lcIfNeedCompute] :: LrcConsumer m -> EpochIndex -> m Bool
-
--- | Callback which will be called when richmen computed
-[lcComputedCallback] :: LrcConsumer m -> EpochIndex -> Coin -> RichmenStake -> m ()
-
--- | Whether delegated stake should be considered
-[lcConsiderDelegated] :: LrcConsumer m -> Bool
+data LrcConsumer (m :: * -> *) :: (* -> *) -> *
 
 -- | Create LrcConsumer using constants from RichmenComponent and given
 --   actions.
-lrcConsumerFromComponent :: forall c m. RichmenComponent c => (EpochIndex -> m Bool) -> (EpochIndex -> Coin -> RichmenStake -> m ()) -> LrcConsumer m
+lrcConsumerFromComponent :: RichmenComponent c => (EpochIndex -> m Bool) -> (EpochIndex -> Coin -> RichmenStake -> m ()) -> LrcConsumer m
 
 -- | Create simple LrcConsumer using constants from RichmenComponent which
 --   uses only LRC DB.
@@ -2963,7 +2938,7 @@ lrcConsumerFromComponentSimple :: forall c m. (RichmenComponent c, MonadDB m) =>
 allLrcConsumers :: (SscWorkersClass ssc, WorkMode ssc m) => [LrcConsumer m]
 
 -- | Find nodes which have at least 'eligibility threshold' coins.
-findRichmenStake :: forall m. MonadIterator (StakeholderId, Coin) m => Coin -> m RichmenStake
+findRichmenStake :: MonadIterator (StakeholderId, Coin) m => Coin -> m RichmenStake
 
 -- | Pure version of findRichmen which uses in-memory Utxo.
 findRichmenPure :: [(StakeholderId, Coin)] -> (Coin -> Coin) -> RichmenType -> FullRichmenData
@@ -2977,20 +2952,6 @@ findDelegatedRichmen :: (MonadDB m, MonadIterator (StakeholderId, Coin) m) => Co
 data RichmenType
 RTUsual :: RichmenType
 RTDelegation :: (HashMap StakeholderId [StakeholderId]) -> RichmenType
-
--- | Addresses which have enough stake for participation in SSC.
-type Richmen = NonEmpty StakeholderId
-
--- | Hashset of richmen.
-type RichmenSet = HashSet StakeholderId
-
--- | Richmen with Stake
-type RichmenStake = HashMap StakeholderId Coin
-toRichmen :: RichmenStake -> Richmen
-
--- | Full richmen data consists of total stake at some point and stake
---   distribution among richmen.
-type FullRichmenData = (Coin, RichmenStake)
 
 
 -- | Txp system reexports.
