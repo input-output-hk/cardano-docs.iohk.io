@@ -3006,6 +3006,10 @@ txOutStake :: TxOutAux -> [(StakeholderId, Coin)]
 -- | Construct <a>TxProof</a> which proves given <a>TxPayload</a>.
 mkTxProof :: TxPayload -> TxProof
 
+-- | Construct <a>TxPayload</a> from transactions and their witnesses and
+--   distributions.
+mkTxPayload :: [(Tx, TxWitness, TxDistribution)] -> TxPayload
+
 -- | Global context data needed for script execution -- is same for the
 --   whole transaction. VT stands for "Verify Tx". Currently empty.
 data VTxGlobalContext
@@ -3134,24 +3138,11 @@ TxProof :: !Word32 -> !(MerkleRoot Tx) -> !(Hash [TxWitness]) -> TxProof
 [txpNumber] :: TxProof -> !Word32
 [txpRoot] :: TxProof -> !(MerkleRoot Tx)
 [txpWitnessesHash] :: TxProof -> !(Hash [TxWitness])
-
--- | Payload of Txp component which is part of main block. Constructor is
---   unsafe, because it lets one create invalid payload, for example with
---   different number of transactions and witnesses.
 data TxPayload
-UnsafeTxPayload :: !(MerkleTree Tx) -> ![TxWitness] -> ![TxDistribution] -> TxPayload
+TxPayload :: !(MerkleTree Tx) -> ![TxDistribution] -> ![TxWitness] -> TxPayload
 
 -- | Transactions are the main payload.
 [_txpTxs] :: TxPayload -> !(MerkleTree Tx)
-
--- | Transaction witnesses. Invariant: there are as many witnesses as there
---   are transactions in the block. This is checked during deserialisation.
---   We can't put them into the same Merkle tree with transactions, as the
---   whole point of segwit is to separate transactions and witnesses.
---   
---   TODO: should they be put into a separate Merkle tree or left as a
---   list?
-[_txpWitnesses] :: TxPayload -> ![TxWitness]
 
 -- | Distributions for P2SH addresses in transaction outputs. * length
 --   mbTxAddrDistributions == length mbTxs * i-th element is <a>Just</a> if
@@ -3162,9 +3153,14 @@ UnsafeTxPayload :: !(MerkleTree Tx) -> ![TxWitness] -> ![TxDistribution] -> TxPa
 --   would count as stakeholders.
 [_txpDistributions] :: TxPayload -> ![TxDistribution]
 
--- | Smart constructor of <a>TxPayload</a> which can fail if invariant is
---   violated.
-mkTxPayload :: (Bi Tx, MonadFail m) => [(Tx, TxWitness, TxDistribution)] -> m TxPayload
+-- | Transaction witnesses. Invariant: there are as many witnesses as there
+--   are transactions in the block. This is checked during deserialisation.
+--   We can't put them into the same Merkle tree with transactions, as the
+--   whole point of segwit is to separate transactions and witnesses.
+--   
+--   TODO: should they be put into a separate Merkle tree or left as a
+--   list?
+[_txpWitnesses] :: TxPayload -> ![TxWitness]
 txpTxs :: Lens' TxPayload (MerkleTree Tx)
 txpWitnesses :: Lens' TxPayload [TxWitness]
 txpDistributions :: Lens' TxPayload [TxDistribution]
