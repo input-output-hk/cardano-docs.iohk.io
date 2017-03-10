@@ -447,10 +447,6 @@ readLoggerConfig :: MonadIO m => Maybe FilePath -> m LoggerConfig
 
 -- | Decides which secret-sharing algorithm to use.
 sscAlgoParser :: Parser SscAlgo
-data RateLimiting
-NoRateLimitingUnbounded :: RateLimiting
-NoRateLimitingFair :: RateLimiting
-RateLimitingBlocking :: !Int -> RateLimiting
 data CommonArgs
 CommonArgs :: !Bool -> ![DHTNode] -> !(Maybe FilePath) -> !(Maybe FilePath) -> !(Maybe FilePath) -> !SscAlgo -> !Bool -> ![Text] -> ![Text] -> !(Maybe (Int, Int)) -> !(Maybe (Int, Int)) -> !Bool -> CommonArgs
 [dhtExplicitInitial] :: CommonArgs -> !Bool
@@ -465,12 +461,6 @@ CommonArgs :: !Bool -> ![DHTNode] -> !(Maybe FilePath) -> !(Maybe FilePath) -> !
 [flatDistr] :: CommonArgs -> !(Maybe (Int, Int))
 [bitcoinDistr] :: CommonArgs -> !(Maybe (Int, Int))
 [expDistr] :: CommonArgs -> !Bool
-
--- | Simulate an abusive node, that needlessly resends requests to its
---   neighbours
-data Abusiveness
-Unabusive :: Abusiveness
-AbusiveGetBlocks :: Abusiveness
 commonArgsParser :: String -> Parser CommonArgs
 optionalJSONPath :: Parser (Maybe FilePath)
 optionalLogPrefix :: Parser (Maybe String)
@@ -484,10 +474,171 @@ ipPortOption :: NetworkAddress -> Parser NetworkAddress
 --   newlines).
 readPeersFile :: FilePath -> IO [DHTNode]
 instance GHC.Show.Show Pos.CLI.CommonArgs
-instance GHC.Show.Show Pos.CLI.Abusiveness
-instance GHC.Read.Read Pos.CLI.Abusiveness
-instance GHC.Show.Show Pos.CLI.RateLimiting
-instance GHC.Read.Read Pos.CLI.RateLimiting
+
+
+-- | Basic functionality of Txp.
+module Pos.Txp.Core
+
+-- | A predicate for <a>TxOutAux</a> which checks whether given address
+--   belongs to it.
+addrBelongsTo :: TxOutAux -> Address -> Bool
+
+-- | Construct <a>TxProof</a> which proves given <a>TxPayload</a>.
+mkTxProof :: TxPayload -> TxProof
+
+-- | Make a pair from <a>TxIn</a>.
+txInToPair :: TxIn -> (TxId, Word32)
+
+-- | Use this function if you need to know how a <a>TxOut</a> distributes
+--   stake (e.g. for the purpose of running follow-the-satoshi).
+txOutStake :: TxOutAux -> [(StakeholderId, Coin)]
+
+-- | Does topological sort on things that contain transactions – e.g. can
+--   be used both for sorting <tt>[Tx]</tt> and <tt>[(Tx, TxWitness)]</tt>.
+--   
+--   (Backwards dfs from every node with reverse visiting order recording.
+--   Returns nothing on loop encountered. Return order is head-first.)
+topsortTxs :: forall a. (a -> WithHash Tx) -> [a] -> Maybe [a]
+
+-- | Represents transaction identifier as <a>Hash</a> of <a>Tx</a>.
+type TxId = Hash Tx
+
+-- | A witness for a single input.
+data TxInWitness
+PkWitness :: !PublicKey -> !TxSig -> TxInWitness
+[twKey] :: TxInWitness -> !PublicKey
+[twSig] :: TxInWitness -> !TxSig
+ScriptWitness :: !Script -> !Script -> TxInWitness
+[twValidator] :: TxInWitness -> !Script
+[twRedeemer] :: TxInWitness -> !Script
+RedeemWitness :: !RedeemPublicKey -> !(RedeemSignature TxSigData) -> TxInWitness
+[twRedeemKey] :: TxInWitness -> !RedeemPublicKey
+[twRedeemSig] :: TxInWitness -> !(RedeemSignature TxSigData)
+UnknownWitnessType :: !Word8 -> !ByteString -> TxInWitness
+
+-- | A witness is a proof that a transaction is allowed to spend the funds
+--   it spends (by providing signatures, redeeming scripts, etc). A
+--   separate proof is provided for each input.
+type TxWitness = Vector TxInWitness
+
+-- | Distribution of “fake” stake that follow-the-satoshi would use for a
+--   particular transaction. Length of stored list must be same as length
+--   of <a>_txOutputs</a> of corresponding transaction.
+newtype TxDistribution
+TxDistribution :: NonEmpty [(StakeholderId, Coin)] -> TxDistribution
+[getTxDistribution] :: TxDistribution -> NonEmpty [(StakeholderId, Coin)]
+
+-- | Data that is being signed when creating a TxSig.
+type TxSigData = (TxId, Word32, Hash (NonEmpty TxOut), Hash TxDistribution)
+
+-- | <a>Signature</a> of addrId.
+type TxSig = Signature TxSigData
+
+-- | Transaction input.
+data TxIn
+TxIn :: !TxId -> !Word32 -> TxIn
+
+-- | Which transaction's output is used
+[txInHash] :: TxIn -> !TxId
+
+-- | Index of the output in transaction's outputs
+[txInIndex] :: TxIn -> !Word32
+
+-- | Transaction output.
+data TxOut
+TxOut :: !Address -> !Coin -> TxOut
+[txOutAddress] :: TxOut -> !Address
+[txOutValue] :: TxOut -> !Coin
+
+-- | Transaction output and auxilary data corresponding to it. [CSL-366]
+--   Add more data.
+data TxOutAux
+TxOutAux :: !TxOut -> ![(StakeholderId, Coin)] -> TxOutAux
+
+-- | Tx output
+[toaOut] :: TxOutAux -> !TxOut
+
+-- | Stake distribution associated with output
+[toaDistr] :: TxOutAux -> ![(StakeholderId, Coin)]
+
+-- | Represents transaction attributes: map from 1-byte integer to
+--   arbitrary-type value. To be used for extending transaction with new
+--   fields via softfork.
+type TxAttributes = Attributes ()
+
+-- | Transaction.
+--   
+--   NB: transaction witnesses are stored separately.
+data Tx
+UnsafeTx :: !(NonEmpty TxIn) -> !(NonEmpty TxOut) -> !TxAttributes -> Tx
+
+-- | Inputs of transaction.
+[_txInputs] :: Tx -> !(NonEmpty TxIn)
+
+-- | Outputs of transaction.
+[_txOutputs] :: Tx -> !(NonEmpty TxOut)
+
+-- | Attributes of transaction
+[_txAttributes] :: Tx -> !TxAttributes
+
+-- | Transaction + auxiliary data
+type TxAux = (Tx, TxWitness, TxDistribution)
+
+-- | Create valid Tx or fail. Verify inputs and outputs are non empty; have
+--   enough coins.
+mkTx :: MonadFail m => NonEmpty TxIn -> NonEmpty TxOut -> TxAttributes -> m Tx
+txInputs :: Lens' Tx (NonEmpty TxIn)
+txOutputs :: Lens' Tx (NonEmpty TxOut)
+txAttributes :: Lens' Tx TxAttributes
+
+-- | Specialized formatter for <a>Tx</a>.
+txF :: Format r (Tx -> r)
+
+-- | Specialized formatter for <a>Tx</a> with auxiliary data
+txaF :: Format r (TxAux -> r)
+data TxProof
+TxProof :: !Word32 -> !(MerkleRoot Tx) -> !(Hash [TxWitness]) -> TxProof
+[txpNumber] :: TxProof -> !Word32
+[txpRoot] :: TxProof -> !(MerkleRoot Tx)
+[txpWitnessesHash] :: TxProof -> !(Hash [TxWitness])
+
+-- | Payload of Txp component which is part of main block. Constructor is
+--   unsafe, because it lets one create invalid payload, for example with
+--   different number of transactions and witnesses.
+data TxPayload
+UnsafeTxPayload :: !(MerkleTree Tx) -> ![TxWitness] -> ![TxDistribution] -> TxPayload
+
+-- | Transactions are the main payload.
+[_txpTxs] :: TxPayload -> !(MerkleTree Tx)
+
+-- | Transaction witnesses. Invariant: there are as many witnesses as there
+--   are transactions in the block. This is checked during deserialisation.
+--   We can't put them into the same Merkle tree with transactions, as the
+--   whole point of segwit is to separate transactions and witnesses.
+--   
+--   TODO: should they be put into a separate Merkle tree or left as a
+--   list?
+[_txpWitnesses] :: TxPayload -> ![TxWitness]
+
+-- | Distributions for P2SH addresses in transaction outputs. * length
+--   mbTxAddrDistributions == length mbTxs * i-th element is <a>Just</a> if
+--   at least one output of i-th transaction is P2SH * n-th element of i-th
+--   element is <a>Just</a> if n-th output of i-th transaction is P2SH Ask
+--   @neongreen if you don't understand wtf is going on. Basically, address
+--   distributions are needed so that (potential) receivers of P2SH funds
+--   would count as stakeholders.
+[_txpDistributions] :: TxPayload -> ![TxDistribution]
+
+-- | Smart constructor of <a>TxPayload</a> which can fail if invariant is
+--   violated.
+mkTxPayload :: (Bi Tx, MonadFail m) => [(Tx, TxWitness, TxDistribution)] -> m TxPayload
+txpTxs :: Lens' TxPayload (MerkleTree Tx)
+txpWitnesses :: Lens' TxPayload [TxWitness]
+txpDistributions :: Lens' TxPayload [TxDistribution]
+
+-- | Particular undo needed for transactions
+type TxUndo = NonEmpty TxOutAux
+type TxpUndo = [TxUndo]
 
 module Pos.Types.Block.Instances
 
@@ -970,9 +1121,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679120145 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679120145)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679120138 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679120138)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679120134 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679120134)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679120077 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679120077)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679120070 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679120070)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679120066 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679120066)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SoftwareVersion
@@ -1020,7 +1171,7 @@ instance GHC.Classes.Eq Pos.Types.Arbitrary.CoinPairOverflowSum
 instance GHC.Show.Show Pos.Types.Arbitrary.CoinPairOverflowSum
 instance System.Random.Random Pos.Core.Types.EpochIndex
 instance System.Random.Random Pos.Core.Types.LocalSlotIndex
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Txp.Core.Types.TxOut
+instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Txp.Core.Types.TxOutAux
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.Coin
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Arbitrary.CoinPairOverflowSum
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Arbitrary.SafeCoinPairSum
@@ -1039,6 +1190,7 @@ instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.LocalSlotIndex
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SlotId
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.EpochOrSlot
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Txp.Core.Types.TxInWitness
+instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Txp.Core.Types.TxOut
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.ChainDifficulty
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.Script
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.Address
@@ -1199,32 +1351,6 @@ loadHeadersByDepth :: (SscHelpersClass ssc, MonadDB m) => Word -> HeaderHash -> 
 loadHeadersByDepthWhile :: (SscHelpersClass ssc, MonadDB m) => (BlockHeader ssc -> Bool) -> Word -> HeaderHash -> m (NewestFirst [] (BlockHeader ssc))
 
 
--- | Reexports of Pos.Binary.* classes
-module Pos.Binary
-
-
--- | Module providing restoring from backup phrase functionality
-module Pos.Util.BackupPhrase
-
--- | Datatype to contain a valid backup phrase
-data BackupPhrase
-
--- | Make backup phrase from list
-mkBackupPhrase :: [Text] -> BackupPhrase
-
--- | Number of words in backup phrase
-backupPhraseWordsNum :: Int
-bpToList :: BackupPhrase -> [Text]
-toSeed :: BackupPhrase -> ByteString
-keysFromPhrase :: BackupPhrase -> (SecretKey, VssKeyPair)
-safeKeysFromPhrase :: PassPhrase -> BackupPhrase -> (EncryptedSecretKey, VssKeyPair)
-instance GHC.Generics.Generic Pos.Util.BackupPhrase.BackupPhrase
-instance GHC.Classes.Eq Pos.Util.BackupPhrase.BackupPhrase
-instance GHC.Show.Show Pos.Util.BackupPhrase.BackupPhrase
-instance Data.Text.Buildable.Buildable Pos.Util.BackupPhrase.BackupPhrase
-instance GHC.Read.Read Pos.Util.BackupPhrase.BackupPhrase
-
-
 -- | Everything related to <i>follow-the-satoshi</i> procedure.
 module Pos.Lrc.FollowTheSatoshi
 
@@ -1326,6 +1452,32 @@ genesisMaxBlockSize :: Byte
 instance Data.Default.Class.Default Pos.Genesis.Types.StakeDistribution
 
 
+-- | Reexports of Pos.Binary.* classes
+module Pos.Binary
+
+
+-- | Module providing restoring from backup phrase functionality
+module Pos.Util.BackupPhrase
+
+-- | Datatype to contain a valid backup phrase
+data BackupPhrase
+
+-- | Make backup phrase from list
+mkBackupPhrase :: [Text] -> BackupPhrase
+
+-- | Number of words in backup phrase
+backupPhraseWordsNum :: Int
+bpToList :: BackupPhrase -> [Text]
+toSeed :: BackupPhrase -> ByteString
+keysFromPhrase :: BackupPhrase -> (SecretKey, VssKeyPair)
+safeKeysFromPhrase :: PassPhrase -> BackupPhrase -> (EncryptedSecretKey, VssKeyPair)
+instance GHC.Generics.Generic Pos.Util.BackupPhrase.BackupPhrase
+instance GHC.Classes.Eq Pos.Util.BackupPhrase.BackupPhrase
+instance GHC.Show.Show Pos.Util.BackupPhrase.BackupPhrase
+instance Data.Text.Buildable.Buildable Pos.Util.BackupPhrase.BackupPhrase
+instance GHC.Read.Read Pos.Util.BackupPhrase.BackupPhrase
+
+
 -- | Monadic represantion of something that has <tt>json</tt> journaled log
 --   of operations.
 module Pos.Util.JsonLog
@@ -1394,7 +1546,7 @@ type LrcSyncData = (Bool, EpochIndex)
 
 -- | NodeContext contains runtime context of node.
 data NodeContext ssc
-NodeContext :: !(Maybe (MVar FilePath)) -> !(SscNodeContext ssc) -> !(MVar HeaderHash) -> !(TVar LrcSyncData) -> !(TVar UserSecret) -> !(TBQueue (NodeId, NewestFirst NE (BlockHeader ssc))) -> !(TMVar (NodeId, BlockHeader ssc)) -> !(TMVar (BlockHeader ssc)) -> !(MVar ConfirmedProposalState) -> !RelayInvQueue -> !LoggerConfig -> !NodeParams -> !(TVar Bool) -> !(TBQueue ()) -> !(Maybe (MVar ())) -> !UTCTime -> !(TVar (Maybe (BlockHeader ssc))) -> NodeContext ssc
+NodeContext :: !(Maybe (MVar FilePath)) -> !(SscNodeContext ssc) -> !(MVar HeaderHash) -> !(TVar LrcSyncData) -> !(TVar UserSecret) -> !(TBQueue (NodeId, NewestFirst NE (BlockHeader ssc))) -> !(TMVar (NodeId, BlockHeader ssc)) -> !(TMVar (BlockHeader ssc)) -> !(MVar ConfirmedProposalState) -> !RelayInvQueue -> !LoggerConfig -> !NodeParams -> !(TVar Bool) -> !(TBQueue ()) -> !(Maybe (MVar ())) -> !UTCTime -> NodeContext ssc
 [ncJLFile] :: NodeContext ssc -> !(Maybe (MVar FilePath))
 [ncSscContext] :: NodeContext ssc -> !(SscNodeContext ssc)
 
@@ -1452,11 +1604,6 @@ NodeContext :: !(Maybe (MVar FilePath)) -> !(SscNodeContext ssc) -> !(MVar Heade
 -- | Time when node was started (<a>NodeContext</a> initialized).
 [ncStartTime] :: NodeContext ssc -> !UTCTime
 
--- | Header of last known block, generated by network (announcement of
---   which reached us). Should be use only for informational purposes
---   (status in Daedalus). It's easy to falsify this value.
-[ncLastKnownHeader] :: NodeContext ssc -> !(TVar (Maybe (BlockHeader ssc)))
-
 -- | Generate <a>PublicKey</a> from <tt>SecretKey</tt> of
 --   <a>NodeContext</a>.
 ncPublicKey :: NodeContext ssc -> PublicKey
@@ -1469,7 +1616,7 @@ ncSystemStart :: NodeContext __ -> Timestamp
 
 -- | Contains algorithm specific &amp; storage parameters for Node.
 data NodeParams
-NodeParams :: !FilePath -> !Bool -> !Timestamp -> !SecretKey -> !UserSecret -> !BaseParams -> !Utxo -> !Bool -> !(Maybe FilePath) -> ![AttackType] -> ![AttackTarget] -> !Bool -> !FilePath -> !Bool -> ![Text] -> ![Text] -> !(Maybe Abusiveness) -> NodeParams
+NodeParams :: !FilePath -> !Bool -> !Timestamp -> !SecretKey -> !UserSecret -> !BaseParams -> !Utxo -> !Bool -> !(Maybe FilePath) -> ![AttackType] -> ![AttackTarget] -> !Bool -> !FilePath -> !Bool -> ![Text] -> ![Text] -> NodeParams
 
 -- | Path to node's database.
 [npDbPathM] :: NodeParams -> !FilePath
@@ -1517,12 +1664,9 @@ NodeParams :: !FilePath -> !Bool -> !Timestamp -> !SecretKey -> !UserSecret -> !
 -- | List of report server URLs
 [npReportServers] :: NodeParams -> ![Text]
 
--- | Allows simulating an abusive node
-[npAbusiveness] :: NodeParams -> !(Maybe Abusiveness)
-
 -- | Contains basic &amp; networking parameters for running node.
 data BaseParams
-BaseParams :: !NetworkAddress -> ![DHTNode] -> !(Maybe DHTKey) -> !Bool -> !LoggingParams -> !FilePath -> !RateLimiting -> BaseParams
+BaseParams :: !NetworkAddress -> ![DHTNode] -> !(Maybe DHTKey) -> !Bool -> !LoggingParams -> !FilePath -> BaseParams
 
 -- | Port to run on
 [bpIpPort] :: BaseParams -> !NetworkAddress
@@ -1537,9 +1681,6 @@ BaseParams :: !NetworkAddress -> ![DHTNode] -> !(Maybe DHTKey) -> !Bool -> !Logg
 
 -- | Path to kademlia dump file
 [bpKademliaDump] :: BaseParams -> !FilePath
-
--- | Rate-limiting strategy
-[bpRateLimiting] :: BaseParams -> !RateLimiting
 genesisUtxoM :: (Functor m, WithNodeContext ssc m) => m Utxo
 genesisLeadersM :: (Functor m, WithNodeContext ssc m) => m SlotLeaders
 putBlkSemaphore :: (MonadIO m, WithNodeContext ssc m) => HeaderHash -> m ()
@@ -3020,179 +3161,6 @@ type FullRichmenData = (Coin, RichmenStake)
 
 -- | Txp system reexports.
 module Pos.Txp
-
--- | Make a pair from <a>TxIn</a>.
-txInToPair :: TxIn -> (TxId, Word32)
-
--- | Use this function if you need to know how a <a>TxOut</a> distributes
---   stake (e.g. for the purpose of running follow-the-satoshi).
-txOutStake :: TxOutAux -> [(StakeholderId, Coin)]
-
--- | Construct <a>TxProof</a> which proves given <a>TxPayload</a>.
-mkTxProof :: TxPayload -> TxProof
-
--- | Construct <a>TxPayload</a> from transactions and their witnesses and
---   distributions.
-mkTxPayload :: [(Tx, TxWitness, TxDistribution)] -> TxPayload
-
--- | Global context data needed for script execution -- is same for the
---   whole transaction. VT stands for "Verify Tx". Currently empty.
-data VTxGlobalContext
-VTxGlobalContext :: VTxGlobalContext
-
--- | Local context data for scripts -- differs per input.
-data VTxLocalContext
-VTxLocalContext :: TxOutAux -> VTxLocalContext
-
--- | Transaction output
-[vtlTxOut] :: VTxLocalContext -> TxOutAux
-
--- | CHECK: Verify Tx correctness using magic function which resolves input
---   into Address and Coin. And also the following checks:
---   
---   <ul>
---   <li>sum of inputs &gt;= sum of outputs;</li>
---   <li>every input has a proper witness verifying that input;</li>
---   <li>script witnesses have matching script versions;</li>
---   <li>every input is a known unspent output.</li>
---   </ul>
---   
---   Note that <a>verifyTx</a> doesn't attempt to verify scripts with
---   versions higher than maximum script version we can handle. That's
---   because we want blocks with such transactions to be accepted (to avoid
---   hard forks). However, we won't include such transactions into blocks
---   when we're creating a block.
-verifyTx :: Monad m => Bool -> VTxGlobalContext -> (TxIn -> m (Maybe VTxLocalContext)) -> TxAux -> m (Either [Text] TxUndo)
-verifyTxPure :: Bool -> VTxGlobalContext -> (TxIn -> Maybe VTxLocalContext) -> TxAux -> Either [Text] TxUndo
-
--- | Does topological sort on things that contain transactions – e.g. can
---   be used both for sorting <tt>[Tx]</tt> and <tt>[(Tx, TxWitness)]</tt>.
---   
---   (Backwards dfs from every node with reverse visiting order recording.
---   Returns nothing on loop encountered. Return order is head-first.)
-topsortTxs :: forall a. (a -> WithHash Tx) -> [a] -> Maybe [a]
-
--- | Represents transaction identifier as <a>Hash</a> of <a>Tx</a>.
-type TxId = Hash Tx
-
--- | A witness for a single input.
-data TxInWitness
-PkWitness :: !PublicKey -> !TxSig -> TxInWitness
-[twKey] :: TxInWitness -> !PublicKey
-[twSig] :: TxInWitness -> !TxSig
-ScriptWitness :: !Script -> !Script -> TxInWitness
-[twValidator] :: TxInWitness -> !Script
-[twRedeemer] :: TxInWitness -> !Script
-RedeemWitness :: !RedeemPublicKey -> !(RedeemSignature TxSigData) -> TxInWitness
-[twRedeemKey] :: TxInWitness -> !RedeemPublicKey
-[twRedeemSig] :: TxInWitness -> !(RedeemSignature TxSigData)
-UnknownWitnessType :: !Word8 -> !ByteString -> TxInWitness
-
--- | A witness is a proof that a transaction is allowed to spend the funds
---   it spends (by providing signatures, redeeming scripts, etc). A
---   separate proof is provided for each input.
-type TxWitness = Vector TxInWitness
-
--- | Distribution of “fake” stake that follow-the-satoshi would use for a
---   particular transaction. Length of stored list must be same as length
---   of <a>_txOutputs</a> of corresponding transaction.
-newtype TxDistribution
-TxDistribution :: NonEmpty [(StakeholderId, Coin)] -> TxDistribution
-[getTxDistribution] :: TxDistribution -> NonEmpty [(StakeholderId, Coin)]
-
--- | Data that is being signed when creating a TxSig.
-type TxSigData = (TxId, Word32, Hash (NonEmpty TxOut), Hash TxDistribution)
-
--- | <a>Signature</a> of addrId.
-type TxSig = Signature TxSigData
-
--- | Transaction input.
-data TxIn
-TxIn :: !TxId -> !Word32 -> TxIn
-
--- | Which transaction's output is used
-[txInHash] :: TxIn -> !TxId
-
--- | Index of the output in transaction's outputs
-[txInIndex] :: TxIn -> !Word32
-
--- | Transaction output.
-data TxOut
-TxOut :: !Address -> !Coin -> TxOut
-[txOutAddress] :: TxOut -> !Address
-[txOutValue] :: TxOut -> !Coin
-type TxOutAux = (TxOut, [(StakeholderId, Coin)])
-
--- | Represents transaction attributes: map from 1-byte integer to
---   arbitrary-type value. To be used for extending transaction with new
---   fields via softfork.
-type TxAttributes = Attributes ()
-
--- | Transaction.
---   
---   NB: transaction witnesses are stored separately.
-data Tx
-UnsafeTx :: !(NonEmpty TxIn) -> !(NonEmpty TxOut) -> !TxAttributes -> Tx
-
--- | Inputs of transaction.
-[_txInputs] :: Tx -> !(NonEmpty TxIn)
-
--- | Outputs of transaction.
-[_txOutputs] :: Tx -> !(NonEmpty TxOut)
-
--- | Attributes of transaction
-[_txAttributes] :: Tx -> !TxAttributes
-
--- | Transaction + auxiliary data
-type TxAux = (Tx, TxWitness, TxDistribution)
-
--- | Create valid Tx or fail. Verify inputs and outputs are non empty; have
---   enough coins.
-mkTx :: MonadFail m => NonEmpty TxIn -> NonEmpty TxOut -> TxAttributes -> m Tx
-txInputs :: Lens' Tx (NonEmpty TxIn)
-txOutputs :: Lens' Tx (NonEmpty TxOut)
-txAttributes :: Lens' Tx TxAttributes
-
--- | Specialized formatter for <a>Tx</a>.
-txF :: Format r (Tx -> r)
-
--- | Specialized formatter for <a>Tx</a> with auxiliary data
-txaF :: Format r (TxAux -> r)
-data TxProof
-TxProof :: !Word32 -> !(MerkleRoot Tx) -> !(Hash [TxWitness]) -> TxProof
-[txpNumber] :: TxProof -> !Word32
-[txpRoot] :: TxProof -> !(MerkleRoot Tx)
-[txpWitnessesHash] :: TxProof -> !(Hash [TxWitness])
-data TxPayload
-TxPayload :: !(MerkleTree Tx) -> ![TxDistribution] -> ![TxWitness] -> TxPayload
-
--- | Transactions are the main payload.
-[_txpTxs] :: TxPayload -> !(MerkleTree Tx)
-
--- | Distributions for P2SH addresses in transaction outputs. * length
---   mbTxAddrDistributions == length mbTxs * i-th element is <a>Just</a> if
---   at least one output of i-th transaction is P2SH * n-th element of i-th
---   element is <a>Just</a> if n-th output of i-th transaction is P2SH Ask
---   @neongreen if you don't understand wtf is going on. Basically, address
---   distributions are needed so that (potential) receivers of P2SH funds
---   would count as stakeholders.
-[_txpDistributions] :: TxPayload -> ![TxDistribution]
-
--- | Transaction witnesses. Invariant: there are as many witnesses as there
---   are transactions in the block. This is checked during deserialisation.
---   We can't put them into the same Merkle tree with transactions, as the
---   whole point of segwit is to separate transactions and witnesses.
---   
---   TODO: should they be put into a separate Merkle tree or left as a
---   list?
-[_txpWitnesses] :: TxPayload -> ![TxWitness]
-txpTxs :: Lens' TxPayload (MerkleTree Tx)
-txpWitnesses :: Lens' TxPayload [TxWitness]
-txpDistributions :: Lens' TxPayload [TxDistribution]
-
--- | Particular undo needed for transactions
-type TxUndo = [TxOutAux]
-type TxpUndo = [TxUndo]
 data TxpError
 
 -- | Something bad happened inside Txp
@@ -3224,7 +3192,7 @@ askTxpMem :: MonadTxpMem m => m TxpLocalData
 -- | Retrieve <a>TxpLocalData</a>.
 askTxpMem :: (MonadTxpMem m, MonadTrans t, MonadTxpMem m', t m' ~ m) => m TxpLocalData
 getUtxoModifier :: (MonadTxpMem m, MonadIO m) => m UtxoModifier
-getLocalTxsNUndo :: (MonadIO m, MonadTxpMem m) => m ([(TxId, TxAux)], HashMap TxId [TxOutAux])
+getLocalTxsNUndo :: (MonadIO m, MonadTxpMem m) => m ([(TxId, TxAux)], HashMap TxId (NonEmpty TxOutAux))
 getMemPool :: (MonadIO m, MonadTxpMem m) => m MemPool
 getLocalTxs :: (MonadIO m, MonadTxpMem m) => m [(TxId, TxAux)]
 modifyTxpLocalData :: (MonadIO m, MonadTxpMem m) => (TxpLocalDataPure -> (a, TxpLocalDataPure)) -> m a
@@ -3300,16 +3268,25 @@ DBTxp :: m a -> DBTxp m a
 [runDBTxp] :: DBTxp m a -> m a
 
 -- | Result of transaction processing
-data TxpVerFailure
+data ToilVerFailure
 
 -- | Transaction is already in the storage (cache)
-TxpKnown :: TxpVerFailure
-TxpInvalid :: !Text -> TxpVerFailure
+ToilKnown :: ToilVerFailure
+ToilInvalid :: !Text -> ToilVerFailure
 
 -- | Local transaction storage is full -- can't accept more txs
-TxpOverwhelmed :: TxpVerFailure
-TxpCantTopsort :: TxpVerFailure
-TxpInvalidUndoLength :: !Int -> !Int -> TxpVerFailure
+ToilOverwhelmed :: ToilVerFailure
+ToilCantTopsort :: ToilVerFailure
+ToilInvalidUndoLength :: !Int -> !Int -> ToilVerFailure
+
+-- | Tx input is not a known unspent input.
+ToilNotUnspent :: !TxIn -> ToilVerFailure
+ToilOutGTIn :: !Integer -> !Integer -> ToilVerFailure
+[tInputSum] :: ToilVerFailure -> !Integer
+[tOutputSum] :: ToilVerFailure -> !Integer
+ToilInconsistentTxAux :: !Text -> ToilVerFailure
+ToilInvalidOutputs :: !Text -> ToilVerFailure
+ToilInvalidInputs :: !Text -> ToilVerFailure
 
 -- | Verify transactions correctness with respect to Utxo applying them
 --   one-by-one. Note: transactions must be topsorted to pass check.
@@ -3328,20 +3305,20 @@ rollbackTxp :: GlobalTxpMode m => [(TxAux, TxUndo)] -> m ()
 normalizeTxp :: LocalTxpMode m => [(TxId, TxAux)] -> m ()
 processTx :: LocalTxpMode m => (TxId, TxAux) -> m ()
 
--- | Monad transformer which stores TxpModifier and implements writable
---   MonadTxp.
+-- | Monad transformer which stores ToilModifier and implements writable
+--   Toil type classes.
 --   
 --   <ul>
 --   <li><i>WARNING</i> This transformer uses StateT and is intended for
 --   single-threaded usage only. Used for block application now.</li>
 --   </ul>
-newtype TxpT m a
-TxpT :: StateT TxpModifier m a -> TxpT m a
-[getTxpT] :: TxpT m a -> StateT TxpModifier m a
-runTxpT :: TxpModifier -> TxpT m a -> m (a, TxpModifier)
-runTxpTGlobal :: Functor m => BalancesView -> TxpT m a -> m (a, TxpModifier)
-runTxpTLocal :: Functor m => UtxoModifier -> MemPool -> UndoMap -> TxpT m a -> m (a, TxpModifier)
-execTxpTLocal :: Functor m => UtxoModifier -> MemPool -> UndoMap -> TxpT m a -> m TxpModifier
+newtype ToilT m a
+ToilT :: StateT ToilModifier m a -> ToilT m a
+[getToilT] :: ToilT m a -> StateT ToilModifier m a
+runToilT :: ToilModifier -> ToilT m a -> m (a, ToilModifier)
+runToilTGlobal :: Functor m => BalancesView -> ToilT m a -> m (a, ToilModifier)
+runToilTLocal :: Functor m => UtxoModifier -> MemPool -> UndoMap -> ToilT m a -> m (a, ToilModifier)
+execToilTLocal :: Functor m => UtxoModifier -> MemPool -> UndoMap -> ToilT m a -> m ToilModifier
 
 -- | Unspent transaction outputs.
 --   
@@ -3372,16 +3349,50 @@ bvStakes :: Lens' BalancesView (HashMap StakeholderId Coin)
 bvTotal :: Lens' BalancesView Coin
 type UndoMap = HashMap TxId TxUndo
 type UtxoModifier = MapModifier TxIn TxOutAux
-data TxpModifier
-TxpModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> TxpModifier
-[_txmUtxoModifier] :: TxpModifier -> !UtxoModifier
-[_txmBalances] :: TxpModifier -> !BalancesView
-[_txmMemPool] :: TxpModifier -> !MemPool
-[_txmUndos] :: TxpModifier -> !UndoMap
-txmUtxoModifier :: Lens' TxpModifier UtxoModifier
-txmBalances :: Lens' TxpModifier BalancesView
-txmMemPool :: Lens' TxpModifier MemPool
-txmUndos :: Lens' TxpModifier UndoMap
+data ToilModifier
+ToilModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> ToilModifier
+[_tmUtxo] :: ToilModifier -> !UtxoModifier
+[_tmBalances] :: ToilModifier -> !BalancesView
+[_tmMemPool] :: ToilModifier -> !MemPool
+[_tmUndos] :: ToilModifier -> !UndoMap
+tmUtxo :: Lens' ToilModifier UtxoModifier
+tmBalances :: Lens' ToilModifier BalancesView
+tmMemPool :: Lens' ToilModifier MemPool
+tmUndos :: Lens' ToilModifier UndoMap
+
+-- | Global context data needed for tx verification. VT stands for "Verify
+--   Tx". To be populated in further versions.
+data VTxContext
+VTxContext :: !Bool -> VTxContext
+
+-- | Verify that script &amp; address versions in tx are known
+[vtcVerifyVersions] :: VTxContext -> !Bool
+
+-- | CHECK: Verify Tx correctness using <a>MonadUtxoRead</a>. Specifically
+--   there are the following checks:
+--   
+--   <ul>
+--   <li>every input is a known unspent output;</li>
+--   <li>sum of inputs &gt;= sum of outputs;</li>
+--   <li>every input has a proper witness verifying that input;</li>
+--   <li>script witnesses have matching script versions;</li>
+--   <li>if <a>vtcVerifyVersions</a> is <a>True</a>, addresses' versions
+--   are verified to be known.</li>
+--   </ul>
+--   
+--   Note that <tt>verifyTx</tt> doesn't attempt to verify scripts with
+--   versions higher than maximum script version we can handle. That's
+--   because we want blocks with such transactions to be accepted (to avoid
+--   hard forks). However, we won't include such transactions into blocks
+--   when we're creating a block.
+verifyTxUtxo :: (MonadUtxoRead m, MonadError ToilVerFailure m) => VTxContext -> TxAux -> m TxUndo
+
+-- | Remove unspent outputs used in given transaction, add new unspent
+--   outputs.
+applyTxToUtxo :: MonadUtxo m => WithHash Tx -> TxDistribution -> m ()
+
+-- | Rollback application of given transaction to Utxo using Undo data.
+rollbackTxUtxo :: (MonadError ToilVerFailure m, MonadUtxo m) => (TxAux, TxUndo) -> m ()
 newtype UtxoReaderT m a
 UtxoReaderT :: ReaderT Utxo m a -> UtxoReaderT m a
 [getUtxoReaderT] :: UtxoReaderT m a -> ReaderT Utxo m a
@@ -3403,27 +3414,12 @@ execUtxoState :: UtxoState a -> Utxo -> Utxo
 applyTxToUtxoPure :: WithHash Tx -> TxDistribution -> Utxo -> Utxo
 
 -- | Pure version of verifyTxUtxo.
-verifyTxUtxoPure :: Bool -> Utxo -> TxAux -> VerificationRes
-
--- | Verify single Tx using MonadUtxoRead as TxIn resolver.
-verifyTxUtxo :: (MonadUtxoRead m, MonadError TxpVerFailure m) => Bool -> TxAux -> m TxUndo
-
--- | Remove unspent outputs used in given transaction, add new unspent
---   outputs.
-applyTxToUtxo :: MonadUtxo m => WithHash Tx -> TxDistribution -> m ()
-rollbackTxUtxo :: (MonadError TxpVerFailure m, MonadUtxo m) => (TxAux, TxUndo) -> m ()
-
--- | Delete given TxIn from Utxo if any.
-deleteTxIn :: TxIn -> Utxo -> Utxo
-
--- | Find transaction input in Utxo assuming it is valid.
-findTxIn :: TxIn -> Utxo -> Maybe TxOutAux
-
--- | A predicate for <a>TxOut</a> which selects outputs for given address
-belongsTo :: TxOutAux -> Address -> Bool
+verifyTxUtxoPure :: MonadError ToilVerFailure m => VTxContext -> Utxo -> TxAux -> m TxUndo
 
 -- | Select only TxOuts for given addresses
 filterUtxoByAddr :: Address -> Utxo -> Utxo
+
+-- | Convert <a>Utxo</a> to map from <a>StakeholderId</a> to stake.
 utxoToStakes :: Utxo -> HashMap StakeholderId Coin
 
 
@@ -4266,7 +4262,6 @@ getTxMeta :: WebWalletModeDB m => CAddress -> CTxId -> m (Maybe CTxMeta)
 getWalletHistory :: WebWalletModeDB m => CAddress -> m (Maybe [CTxMeta])
 getUpdates :: WebWalletModeDB m => m [CUpdateInfo]
 getNextUpdate :: WebWalletModeDB m => m (Maybe CUpdateInfo)
-getHistoryCache :: WebWalletModeDB m => CAddress -> m (Maybe (HeaderHash, Utxo, [CTx]))
 testReset :: WebWalletModeDB m => m ()
 createWallet :: WebWalletModeDB m => CAddress -> CWalletMeta -> m ()
 setProfile :: WebWalletModeDB m => CProfile -> m ()
@@ -4277,7 +4272,6 @@ addOnlyNewTxMeta :: WebWalletModeDB m => CAddress -> CTxId -> CTxMeta -> m ()
 removeWallet :: WebWalletModeDB m => CAddress -> m ()
 addUpdate :: WebWalletModeDB m => CUpdateInfo -> m ()
 removeNextUpdate :: WebWalletModeDB m => m ()
-updateHistoryCache :: WebWalletModeDB m => CAddress -> HeaderHash -> Utxo -> [CTx] -> m ()
 
 
 -- | Module for exposing JSON instances for Cardano types
@@ -4406,32 +4400,28 @@ module Pos.Block.Network
 announceBlock :: WorkMode ssc m => SendActions m -> MainBlockHeader ssc -> m ()
 announceBlockOuts :: OutSpecs
 handleHeadersCommunication :: forall ssc m s. (WorkMode ssc m, Reifies s (Limit MsgGetHeaders)) => ConversationActions (MsgHeaders ssc) (LimitedLength s MsgGetHeaders) m -> Proxy s -> m ()
-blockListeners :: (SscWorkersClass ssc, WorkMode ssc m) => m ([ListenerSpec m], OutSpecs)
+blockListeners :: (WorkMode ssc m) => m ([ListenerSpec m], OutSpecs)
 blockStubListeners :: (SscHelpersClass ssc, WithLogger m) => Tagged ssc ([ListenerSpec m], OutSpecs)
 retrievalWorker :: forall ssc m. (SscWorkersClass ssc, WorkMode ssc m) => (WorkerSpec m, OutSpecs)
 
 -- | Triggers recovery based on established communication.
-triggerRecovery :: forall ssc m. (SscWorkersClass ssc, WorkMode ssc m) => SendActions m -> m ()
-handleUnsolicitedHeaders :: forall ssc s m. (SscWorkersClass ssc, WorkMode ssc m) => NonEmpty (BlockHeader ssc) -> NodeId -> ConversationActions MsgGetHeaders (LimitedLength s (MsgHeaders ssc)) m -> m ()
-requestTip :: forall ssc s m. (SscWorkersClass ssc, WorkMode ssc m) => Proxy s -> NodeId -> ConversationActions MsgGetHeaders (LimitedLength s (MsgHeaders ssc)) m -> m ()
+triggerRecovery :: forall ssc m. WorkMode ssc m => SendActions m -> m ()
+handleUnsolicitedHeaders :: forall ssc s m. (WorkMode ssc m) => NonEmpty (BlockHeader ssc) -> NodeId -> ConversationActions MsgGetHeaders (LimitedLength s (MsgHeaders ssc)) m -> m ()
+requestTip :: forall ssc s m. (WorkMode ssc m) => Proxy s -> NodeId -> ConversationActions MsgGetHeaders (LimitedLength s (MsgHeaders ssc)) m -> m ()
+requestHeaders :: forall ssc s m. (WorkMode ssc m) => MsgGetHeaders -> Maybe (BlockHeader ssc) -> NodeId -> Proxy s -> ConversationActions MsgGetHeaders (LimitedLength s (MsgHeaders ssc)) m -> m ()
 
 -- | Given nonempty list of valid blockheaders and nodeid, this function
 --   will put them into download queue and they will be processed later.
 --   Second argument is optional recovery mode tip -- after pack of blocks
 --   is processed, next pack of headers will be requested until this header
 --   hash is received.
-addToBlockRequestQueue :: forall ssc m. (WorkMode ssc m) => NewestFirst NE (BlockHeader ssc) -> NodeId -> BlockHeader ssc -> m ()
+addToBlockRequestQueue :: forall ssc m. (WorkMode ssc m) => NewestFirst NE (BlockHeader ssc) -> Maybe (BlockHeader ssc) -> NodeId -> m ()
 
 -- | Make <tt>GetHeaders</tt> message using our main chain. This function
 --   chooses appropriate <tt>from</tt> hashes and puts them into
 --   <tt>GetHeaders</tt> message.
 mkHeadersRequest :: forall ssc m. WorkMode ssc m => Maybe HeaderHash -> m (Maybe MsgGetHeaders)
 requestTipOuts :: OutSpecs
-needRecovery :: forall ssc m. (SscWorkersClass ssc, WorkMode ssc m) => Proxy ssc -> m Bool
-
--- | Ask our neighbours for their latest block, but return immediately
---   without using the result
-requestAndDiscardTip :: WorkMode ssc m => SendActions m -> m ()
 
 -- | <tt>GetHeaders</tt> message. Behaviour of the response depends on
 --   particular combination of <a>mghFrom</a> and <a>mghTo</a>.
@@ -4562,7 +4552,7 @@ LoggingParams :: !LoggerName -> !(Maybe FilePath) -> !(Maybe FilePath) -> !(Mayb
 
 -- | Contains basic &amp; networking parameters for running node.
 data BaseParams
-BaseParams :: !NetworkAddress -> ![DHTNode] -> !(Maybe DHTKey) -> !Bool -> !LoggingParams -> !FilePath -> !RateLimiting -> BaseParams
+BaseParams :: !NetworkAddress -> ![DHTNode] -> !(Maybe DHTKey) -> !Bool -> !LoggingParams -> !FilePath -> BaseParams
 
 -- | Port to run on
 [bpIpPort] :: BaseParams -> !NetworkAddress
@@ -4578,12 +4568,9 @@ BaseParams :: !NetworkAddress -> ![DHTNode] -> !(Maybe DHTKey) -> !Bool -> !Logg
 -- | Path to kademlia dump file
 [bpKademliaDump] :: BaseParams -> !FilePath
 
--- | Rate-limiting strategy
-[bpRateLimiting] :: BaseParams -> !RateLimiting
-
 -- | Contains algorithm specific &amp; storage parameters for Node.
 data NodeParams
-NodeParams :: !FilePath -> !Bool -> !Timestamp -> !SecretKey -> !UserSecret -> !BaseParams -> !Utxo -> !Bool -> !(Maybe FilePath) -> ![AttackType] -> ![AttackTarget] -> !Bool -> !FilePath -> !Bool -> ![Text] -> ![Text] -> !(Maybe Abusiveness) -> NodeParams
+NodeParams :: !FilePath -> !Bool -> !Timestamp -> !SecretKey -> !UserSecret -> !BaseParams -> !Utxo -> !Bool -> !(Maybe FilePath) -> ![AttackType] -> ![AttackTarget] -> !Bool -> !FilePath -> !Bool -> ![Text] -> ![Text] -> NodeParams
 
 -- | Path to node's database.
 [npDbPathM] :: NodeParams -> !FilePath
@@ -4631,9 +4618,6 @@ NodeParams :: !FilePath -> !Bool -> !Timestamp -> !SecretKey -> !UserSecret -> !
 -- | List of report server URLs
 [npReportServers] :: NodeParams -> ![Text]
 
--- | Allows simulating an abusive node
-[npAbusiveness] :: NodeParams -> !(Maybe Abusiveness)
-
 -- | RawRealMode runner.
 runRawRealMode :: forall ssc a. SscConstraint ssc => RealModeResources -> NodeParams -> SscParams ssc -> RawRealMode ssc (ListenersWithOut (RawRealMode ssc)) -> OutSpecs -> ActionSpec (RawRealMode ssc) a -> Production a
 
@@ -4656,28 +4640,21 @@ runTimeLordReal :: LoggingParams -> Production Timestamp
 addDevListeners :: MinWorkMode m => Timestamp -> ListenersWithOut m -> ListenersWithOut m
 setupLoggers :: MonadIO m => LoggingParams -> m ()
 bracketDHTInstance :: BaseParams -> (KademliaDHTInstance -> Production a) -> Production a
-runServer :: (MonadIO m, MonadMockable m, MonadFix m, WithLogger m, MonadDHT m) => Transport -> RateLimiting m -> m (ListenersWithOut m) -> OutSpecs -> (Node m -> m t) -> (t -> m ()) -> ActionSpec m b -> m b
-runServer_ :: (MonadIO m, MonadMockable m, MonadFix m, WithLogger m, MonadDHT m) => Transport -> RateLimiting m -> ListenersWithOut m -> OutSpecs -> ActionSpec m b -> m b
+runServer :: (MonadIO m, MonadMockable m, MonadFix m, WithLogger m, MonadDHT m) => Transport -> m (ListenersWithOut m) -> OutSpecs -> (Node m -> m t) -> (t -> m ()) -> ActionSpec m b -> m b
+runServer_ :: (MonadIO m, MonadMockable m, MonadFix m, WithLogger m, MonadDHT m) => Transport -> ListenersWithOut m -> OutSpecs -> ActionSpec m b -> m b
 
 -- | RAII for node starter.
 loggerBracket :: LoggingParams -> IO a -> IO a
-createTransport :: (MonadIO m, WithLogger m, Mockable Throw m) => String -> Word16 -> RateLimiting m2 -> m Transport
-bracketTransport :: BaseParams -> RateLimiting Production -> (Transport -> Production a) -> Production a
+createTransport :: (MonadIO m, WithLogger m, Mockable Throw m) => String -> Word16 -> m Transport
+bracketTransport :: BaseParams -> (Transport -> Production a) -> Production a
 bracketResources :: BaseParams -> (RealModeResources -> Production a) -> IO a
 data RealModeResources
-RealModeResources :: Transport -> KademliaDHTInstance -> RateLimiting Production -> RealModeResources
+RealModeResources :: Transport -> KademliaDHTInstance -> RealModeResources
 [rmTransport] :: RealModeResources -> Transport
 [rmDHT] :: RealModeResources -> KademliaDHTInstance
-[rmRateLimiting] :: RealModeResources -> RateLimiting Production
 
 -- | Run full node in any WorkMode.
 runNode :: (SscConstraint ssc, WorkMode ssc m) => ([WorkerSpec m], OutSpecs) -> (WorkerSpec m, OutSpecs)
-
--- | Run an "abusive" node.
---   
---   In addition to all normal functions, this node will bombard its
---   neighbors with requests to send blocks at a high rate.
-runAbusiveNode :: (SscConstraint ssc, WorkMode ssc m) => ([WorkerSpec m], OutSpecs) -> (WorkerSpec m, OutSpecs)
 initSemaphore :: (WorkMode ssc m) => m ()
 initLrc :: WorkMode ssc m => m ()
 
@@ -4733,23 +4710,17 @@ sendVoteOuts :: OutSpecs
 sendProposalOuts :: OutSpecs
 
 -- | A class which have the methods to get state of address' balance
-class Monad m => MonadBalances m where getBalance addr = unsafeIntegerToCoin . sumCoins . map (txOutValue . fst) . toList <$> getOwnUtxo addr getOwnUtxo = lift . getOwnUtxo
+class Monad m => MonadBalances m where getBalance addr = unsafeIntegerToCoin . sumCoins . map (txOutValue . toaOut) . toList <$> getOwnUtxo addr getOwnUtxo = lift . getOwnUtxo
 getOwnUtxo :: MonadBalances m => Address -> m Utxo
 getBalance :: MonadBalances m => Address -> m Coin
 getOwnUtxo :: (MonadBalances m, MonadTrans t, MonadBalances m', t m' ~ m) => Address -> m Utxo
 
 -- | A class which have methods to get transaction history
-class Monad m => MonadTxHistory m where getTxHistory = fmap (fmap lift) <$> getTxHistory saveTx = lift . saveTx
-getTxHistory :: (MonadTxHistory m, SscHelpersClass ssc) => Tagged ssc (Address -> Maybe (HeaderHash, Utxo) -> m TxHistoryAnswer)
+class Monad m => MonadTxHistory m where getTxHistory = fmap lift <$> getTxHistory saveTx = lift . saveTx
+getTxHistory :: (MonadTxHistory m, SscHelpersClass ssc) => Tagged ssc (Address -> m [TxHistoryEntry])
 saveTx :: MonadTxHistory m => (TxId, TxAux) -> m ()
-getTxHistory :: (MonadTxHistory m, SscHelpersClass ssc, MonadTrans t, MonadTxHistory m', t m' ~ m) => Tagged ssc (Address -> Maybe (HeaderHash, Utxo) -> m TxHistoryAnswer)
+getTxHistory :: (MonadTxHistory m, SscHelpersClass ssc, MonadTrans t, MonadTxHistory m', t m' ~ m) => Tagged ssc (Address -> m [TxHistoryEntry])
 saveTx :: (MonadTxHistory m, MonadTrans t, MonadTxHistory m', t m' ~ m) => (TxId, TxAux) -> m ()
-data TxHistoryAnswer
-TxHistoryAnswer :: HeaderHash -> Int -> Utxo -> [TxHistoryEntry] -> TxHistoryAnswer
-[taLastCachedHash] :: TxHistoryAnswer -> HeaderHash
-[taCachedNum] :: TxHistoryAnswer -> Int
-[taCachedUtxo] :: TxHistoryAnswer -> Utxo
-[taHistory] :: TxHistoryAnswer -> [TxHistoryEntry]
 class Monad m => MonadBlockchainInfo m where networkChainDifficulty = lift networkChainDifficulty localChainDifficulty = lift localChainDifficulty blockchainSlotDuration = lift blockchainSlotDuration connectedPeers = lift connectedPeers
 networkChainDifficulty :: MonadBlockchainInfo m => m (Maybe ChainDifficulty)
 localChainDifficulty :: MonadBlockchainInfo m => m ChainDifficulty
