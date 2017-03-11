@@ -123,6 +123,9 @@ diffDoubleMap :: forall k1 k2 v. (Eq k1, Eq k2, Hashable k1, Hashable k2) => Has
 maybeThrow' :: (Mockable Throw m, Exception e) => e -> Maybe a -> m a
 type NE = NonEmpty
 neZipWith3 :: (x -> y -> z -> q) -> NonEmpty x -> NonEmpty y -> NonEmpty z -> NonEmpty q
+class Chrono f
+toNewestFirst :: Chrono f => OldestFirst f a -> NewestFirst f a
+toOldestFirst :: Chrono f => NewestFirst f a -> OldestFirst f a
 newtype NewestFirst f a
 NewestFirst :: f a -> NewestFirst f a
 [getNewestFirst] :: NewestFirst f a -> f a
@@ -952,9 +955,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679120186 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679120186)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679120179 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679120179)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679120175 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679120175)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679120190 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679120190)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679120183 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679120183)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679120179 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679120179)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SoftwareVersion
