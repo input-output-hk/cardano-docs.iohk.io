@@ -123,6 +123,9 @@ diffDoubleMap :: forall k1 k2 v. (Eq k1, Eq k2, Hashable k1, Hashable k2) => Has
 maybeThrow' :: (Mockable Throw m, Exception e) => e -> Maybe a -> m a
 type NE = NonEmpty
 neZipWith3 :: (x -> y -> z -> q) -> NonEmpty x -> NonEmpty y -> NonEmpty z -> NonEmpty q
+class Chrono f
+toNewestFirst :: Chrono f => OldestFirst f a -> NewestFirst f a
+toOldestFirst :: Chrono f => NewestFirst f a -> OldestFirst f a
 newtype NewestFirst f a
 NewestFirst :: f a -> NewestFirst f a
 [getNewestFirst] :: NewestFirst f a -> f a
