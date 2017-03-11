@@ -14,10 +14,10 @@
 </span><a name="line-14"></a><span>
 </span><a name="line-15"></a><span class="hs-keyword">import</span><span>           </span><a href="Pos.Ssc.Class.Types.html"><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Ssc</span><span class="hs-operator">.</span><span class="hs-identifier">Class</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>   </span><span class="hs-special">(</span><a href="Pos.Ssc.Class.Types.html#Ssc"><span class="hs-identifier hs-type">Ssc</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
 </span><a name="line-16"></a><span class="hs-comment">-- FIXME</span><span>
-</span><a name="line-17"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Core</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span><span>
-</span><a name="line-18"></a><span class="hs-keyword">import</span><span>           </span><a href="Pos.Txp.Core.Types.html"><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Txp</span><span class="hs-operator">.</span><span class="hs-identifier">Core</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
-</span><a name="line-19"></a><span class="hs-keyword">import</span><span>           </span><a href="Pos.Types.Block.html"><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span><span class="hs-operator">.</span><span class="hs-identifier">Block</span></a><span>
-</span><a name="line-20"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Update</span><span class="hs-operator">.</span><span class="hs-identifier">Core</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span><span>
+</span><a name="line-17"></a><span class="hs-keyword">import</span><span>           </span><a href="Pos.Types.Block.html"><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span><span class="hs-operator">.</span><span class="hs-identifier">Block</span></a><span>
+</span><a name="line-18"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span><span class="hs-operator">.</span><span class="hs-identifier">Core</span><span>
+</span><a name="line-19"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span><span>
+</span><a name="line-20"></a><span class="hs-keyword">import</span><span>           </span><a href="Pos.Update.Core.Types.html"><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Update</span><span class="hs-operator">.</span><span class="hs-identifier">Core</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
 </span><a name="line-21"></a><span>
 </span><a name="line-22"></a><span class="hs-identifier hs-var">deriveSafeCopySimple</span><span> </span><span class="hs-number">0</span><span> </span><span class="hs-char">'base ''CoinPortion
 deriveSafeCopySimple 0 'base ''EpochIndex
@@ -33,10 +33,7 @@ deriveSafeCopySimple 0 'base ''TxInWitness
 deriveSafeCopySimple 0 'base ''TxDistribution
 deriveSafeCopySimple 0 'base ''TxIn
 deriveSafeCopySimple 0 'base ''TxOut
-deriveSafeCopySimple 0 'base ''TxOutAux
 deriveSafeCopySimple 0 'base ''Tx
-deriveSafeCopySimple 0 'base ''TxProof
-deriveSafeCopySimple 0 'base ''TxPayload
 deriveSafeCopySimple 0 'base ''SharedSeed
 
 deriveSafeCopySimple 0 'base ''MainExtraBodyData
@@ -97,13 +94,17 @@ deriveSafeCopySimple 0 'base ''ChainDifficulty
 instance (Ssc ssc, SafeCopy (SscProof ssc)) =&gt;
          SafeCopy (BodyProof (MainBlockchain ssc)) where
     getCopy = contain $ do
-        mpTxProof &lt;- safeGet
+        mpNumber        &lt;- safeGet
+        mpRoot          &lt;- safeGet
+        mpWitnessesHash &lt;- safeGet
         mpMpcProof      &lt;- safeGet
         mpProxySKsProof &lt;- safeGet
         mpUpdateProof   &lt;- safeGet
         return $! MainProof{..}
     putCopy MainProof {..} = contain $ do
-        safePut mpTxProof
+        safePut mpNumber
+        safePut mpRoot
+        safePut mpWitnessesHash
         safePut mpMpcProof
         safePut mpProxySKsProof
         safePut mpUpdateProof
@@ -156,13 +157,17 @@ instance SafeCopy (ConsensusData (GenesisBlockchain ssc)) where
 instance (Ssc ssc, SafeCopy (SscPayload ssc)) =&gt;
          SafeCopy (Body (MainBlockchain ssc)) where
     getCopy = contain $ do
-        _mbTxPayload     &lt;- safeGet
-        _mbMpc           &lt;- safeGet
-        _mbProxySKs      &lt;- safeGet
-        _mbUpdatePayload &lt;- safeGet
+        _mbTxs                 &lt;- safeGet
+        _mbWitnesses           &lt;- safeGet
+        _mbTxAddrDistributions &lt;- safeGet
+        _mbMpc                 &lt;- safeGet
+        _mbProxySKs            &lt;- safeGet
+        _mbUpdatePayload       &lt;- safeGet
         return $! MainBody{..}
     putCopy MainBody {..} = contain $ do
-        safePut _mbTxPayload
+        safePut _mbTxs
+        safePut _mbWitnesses
+        safePut _mbTxAddrDistributions
         safePut _mbMpc
         safePut _mbProxySKs
         safePut _mbUpdatePayload
