@@ -3217,13 +3217,13 @@ setStake :: MonadBalances m => StakeholderId -> Coin -> m ()
 setTotalStake :: MonadBalances m => Coin -> m ()
 setStake :: (MonadBalances m, MonadTrans t, MonadBalances m', t m' ~ m) => StakeholderId -> Coin -> m ()
 setTotalStake :: (MonadBalances m, MonadTrans t, MonadBalances m', t m' ~ m) => Coin -> m ()
-class Monad m => MonadTxPool m where hasTx = lift . hasTx putTxWithUndo id tx = lift . putTxWithUndo id tx poolSize = lift poolSize
+class Monad m => MonadTxPool m where hasTx = lift . hasTx poolSize = lift poolSize putTxWithUndo id tx = lift . putTxWithUndo id tx
 hasTx :: MonadTxPool m => TxId -> m Bool
-putTxWithUndo :: MonadTxPool m => TxId -> TxAux -> TxUndo -> m ()
 poolSize :: MonadTxPool m => m Int
+putTxWithUndo :: MonadTxPool m => TxId -> TxAux -> TxUndo -> m ()
 hasTx :: (MonadTxPool m, MonadTrans t, MonadTxPool m', t m' ~ m) => TxId -> m Bool
-putTxWithUndo :: (MonadTxPool m, MonadTrans t, MonadTxPool m', t m' ~ m) => TxId -> TxAux -> TxUndo -> m ()
 poolSize :: (MonadTxPool m, MonadTrans t, MonadTxPool m', t m' ~ m) => m Int
+putTxWithUndo :: (MonadTxPool m, MonadTrans t, MonadTxPool m', t m' ~ m) => TxId -> TxAux -> TxUndo -> m ()
 newtype DBTxp m a
 DBTxp :: m a -> DBTxp m a
 [runDBTxp] :: DBTxp m a -> m a
@@ -4004,8 +4004,7 @@ SyncProgress :: ChainDifficulty -> Maybe ChainDifficulty -> Word -> SyncProgress
 [_spPeers] :: SyncProgress -> Word
 
 -- | Client address
-newtype CAddress
-CAddress :: CHash -> CAddress
+data CAddress
 
 -- | currencies handled by client Note: Cardano does not deal with other
 --   currency than ADA yet
@@ -4015,8 +4014,7 @@ BTC :: CCurrency
 ETH :: CCurrency
 
 -- | Client hash
-newtype CHash
-CHash :: Text -> CHash
+data CHash
 
 -- | type of transactions It can be an input <i> output </i> exchange
 --   transaction CTInOut CTExMeta -- Ex == exchange
