@@ -952,9 +952,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679120189 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679120189)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679120182 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679120182)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679120178 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679120178)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679120186 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679120186)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679120179 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679120179)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679120175 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679120175)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SoftwareVersion
@@ -3217,13 +3217,13 @@ setStake :: MonadBalances m => StakeholderId -> Coin -> m ()
 setTotalStake :: MonadBalances m => Coin -> m ()
 setStake :: (MonadBalances m, MonadTrans t, MonadBalances m', t m' ~ m) => StakeholderId -> Coin -> m ()
 setTotalStake :: (MonadBalances m, MonadTrans t, MonadBalances m', t m' ~ m) => Coin -> m ()
-class Monad m => MonadTxPool m where hasTx = lift . hasTx putTxWithUndo id tx = lift . putTxWithUndo id tx poolSize = lift poolSize
+class Monad m => MonadTxPool m where hasTx = lift . hasTx poolSize = lift poolSize putTxWithUndo id tx = lift . putTxWithUndo id tx
 hasTx :: MonadTxPool m => TxId -> m Bool
-putTxWithUndo :: MonadTxPool m => TxId -> TxAux -> TxUndo -> m ()
 poolSize :: MonadTxPool m => m Int
+putTxWithUndo :: MonadTxPool m => TxId -> TxAux -> TxUndo -> m ()
 hasTx :: (MonadTxPool m, MonadTrans t, MonadTxPool m', t m' ~ m) => TxId -> m Bool
-putTxWithUndo :: (MonadTxPool m, MonadTrans t, MonadTxPool m', t m' ~ m) => TxId -> TxAux -> TxUndo -> m ()
 poolSize :: (MonadTxPool m, MonadTrans t, MonadTxPool m', t m' ~ m) => m Int
+putTxWithUndo :: (MonadTxPool m, MonadTrans t, MonadTxPool m', t m' ~ m) => TxId -> TxAux -> TxUndo -> m ()
 newtype DBTxp m a
 DBTxp :: m a -> DBTxp m a
 [runDBTxp] :: DBTxp m a -> m a
@@ -3987,6 +3987,228 @@ unChangedConfPropsL :: Lens' USUndo (HashMap SoftwareVersion (PrevValue Confirme
 usWorkers :: WorkMode ssc m => ([WorkerSpec m], OutSpecs)
 
 
+-- | Web part of wallet.
+module Pos.Wallet.Web
+
+-- | Servant API which provides access to wallet. TODO: Should be composed
+--   depending on the resource - wallets, txs, ...
+--   <a>http://haskell-servant.github.io/tutorial/0.4/server.html#nested-apis</a>
+type WalletApi = ("api" :> ("test" :> ("reset" :> Post '[JSON] (Either WalletError ())))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> Get '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("wallets" :> Get '[JSON] (Either WalletError [CWallet]))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> (ReqBody '[JSON] CWalletMeta :> Put '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("wallets" :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> Delete '[JSON] (Either WalletError ())))) :<|> (("api" :> ("wallets" :> ("keys" :> (ReqBody '[JSON] Text :> Post '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("wallets" :> ("restore" :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("addresses" :> (Capture "address" Text :> ("currencies" :> (Capture "currency" CCurrency :> Get '[JSON] (Either WalletError Bool)))))) :<|> (("api" :> ("profile" :> Get '[JSON] (Either WalletError CProfile))) :<|> (("api" :> ("profile" :> (ReqBody '[JSON] CProfile :> Post '[JSON] (Either WalletError CProfile)))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> Post '[JSON] (Either WalletError CTx))))))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> (Capture "currency" CCurrency :> (Capture "title" Text :> (Capture "description" Text :> Post '[JSON] (Either WalletError CTx)))))))))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "address" CAddress :> (Capture "transaction" CTxId :> (ReqBody '[JSON] CTxMeta :> Post '[JSON] (Either WalletError ()))))))) :<|> (("api" :> ("txs" :> ("histories" :> (Capture "address" CAddress :> (QueryParam "skip" Word :> (QueryParam "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word)))))))) :<|> (("api" :> ("txs" :> ("histories" :> (Capture "address" CAddress :> (Capture "search" Text :> (QueryParam "skip" Word :> (QueryParam "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word))))))))) :<|> (("api" :> ("update" :> Get '[JSON] (Either WalletError CUpdateInfo))) :<|> (("api" :> ("update" :> Post '[JSON] (Either WalletError ()))) :<|> (("api" :> ("redemptions" :> ("ada" :> (ReqBody '[JSON] CWalletRedeem :> Post '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("settings" :> ("slots" :> ("duration" :> Get '[JSON] (Either WalletError Word))))) :<|> (("api" :> ("settings" :> ("version" :> Get '[JSON] (Either WalletError SoftwareVersion)))) :<|> ("api" :> ("settings" :> ("sync" :> ("progress" :> Get '[JSON] (Either WalletError SyncProgress)))))))))))))))))))))))))
+
+-- | Helper Proxy.
+walletApi :: Proxy WalletApi
+data SyncProgress
+SyncProgress :: ChainDifficulty -> Maybe ChainDifficulty -> Word -> SyncProgress
+[_spLocalCD] :: SyncProgress -> ChainDifficulty
+[_spNetworkCD] :: SyncProgress -> Maybe ChainDifficulty
+[_spPeers] :: SyncProgress -> Word
+
+-- | Client address
+data CAddress
+
+-- | currencies handled by client Note: Cardano does not deal with other
+--   currency than ADA yet
+data CCurrency
+ADA :: CCurrency
+BTC :: CCurrency
+ETH :: CCurrency
+
+-- | Client hash
+data CHash
+
+-- | type of transactions It can be an input <i> output </i> exchange
+--   transaction CTInOut CTExMeta -- Ex == exchange
+data CTType
+CTIn :: CTxMeta -> CTType
+CTOut :: CTxMeta -> CTType
+
+-- | Client profile (CP) all data of client are "meta data" - that is not
+--   provided by Cardano (Flow type: accountType)
+data CProfile
+CProfile :: Text -> Text -> Text -> CPwHash -> POSIXTime -> Text -> Text -> CProfile
+[cpName] :: CProfile -> Text
+[cpEmail] :: CProfile -> Text
+[cpPhoneNumber] :: CProfile -> Text
+[cpPwHash] :: CProfile -> CPwHash
+[cpPwCreated] :: CProfile -> POSIXTime
+[cpLocale] :: CProfile -> Text
+[cpPicture] :: CProfile -> Text
+
+-- | Password hash of client profile
+type CPwHash = Text
+
+-- | Client transaction (CTx) Provides all Data about a transaction needed
+--   by client. It includes meta data which are not part of Cardano, too
+--   (Flow type: transactionType)
+data CTx
+CTx :: CTxId -> Coin -> Word -> CTType -> CTx
+[ctId] :: CTx -> CTxId
+[ctAmount] :: CTx -> Coin
+[ctConfirmations] :: CTx -> Word
+[ctType] :: CTx -> CTType
+
+-- | Client transaction id
+data CTxId
+
+-- | meta data of transactions
+data CTxMeta
+CTxMeta :: CCurrency -> Text -> Text -> POSIXTime -> CTxMeta
+[ctmCurrency] :: CTxMeta -> CCurrency
+[ctmTitle] :: CTxMeta -> Text
+[ctmDescription] :: CTxMeta -> Text
+[ctmDate] :: CTxMeta -> POSIXTime
+
+-- | meta data of exchanges
+data CTExMeta
+CTExMeta :: CCurrency -> Text -> Text -> POSIXTime -> Text -> Text -> CAddress -> CTExMeta
+[cexCurrency] :: CTExMeta -> CCurrency
+[cexTitle] :: CTExMeta -> Text
+[cexDescription] :: CTExMeta -> Text
+[cexDate] :: CTExMeta -> POSIXTime
+[cexRate] :: CTExMeta -> Text
+[cexLabel] :: CTExMeta -> Text
+[cexAddress] :: CTExMeta -> CAddress
+
+-- | Client Wallet (CW) (Flow type: walletType)
+data CWallet
+CWallet :: !CAddress -> !Coin -> !CWalletMeta -> CWallet
+[cwAddress] :: CWallet -> !CAddress
+[cwAmount] :: CWallet -> !Coin
+[cwMeta] :: CWallet -> !CWalletMeta
+
+-- | A wallet can be used as personal or shared wallet
+data CWalletType
+CWTPersonal :: CWalletType
+CWTShared :: CWalletType
+
+-- | Meta data of CWallet Includes data which are not provided by Cardano
+data CWalletMeta
+CWalletMeta :: !CWalletType -> !CCurrency -> !Text -> CWalletMeta
+[cwType] :: CWalletMeta -> !CWalletType
+[cwCurrency] :: CWalletMeta -> !CCurrency
+[cwName] :: CWalletMeta -> !Text
+
+-- | Query data for wallet creation (wallet meta + backup phrase)
+data CWalletInit
+CWalletInit :: !BackupPhrase -> !CWalletMeta -> CWalletInit
+[cwBackupPhrase] :: CWalletInit -> !BackupPhrase
+[cwInitMeta] :: CWalletInit -> !CWalletMeta
+
+-- | Update system data
+data CUpdateInfo
+CUpdateInfo :: !SoftwareVersion -> !BlockVersion -> !ScriptVersion -> !Bool -> !Int -> !Int -> !Coin -> !Coin -> CUpdateInfo
+[cuiSoftwareVersion] :: CUpdateInfo -> !SoftwareVersion
+[cuiBlockVesion] :: CUpdateInfo -> !BlockVersion
+[cuiScriptVersion] :: CUpdateInfo -> !ScriptVersion
+[cuiImplicit] :: CUpdateInfo -> !Bool
+[cuiVotesFor] :: CUpdateInfo -> !Int
+[cuiVotesAgainst] :: CUpdateInfo -> !Int
+[cuiPositiveStake] :: CUpdateInfo -> !Coin
+[cuiNegativeStake] :: CUpdateInfo -> !Coin
+
+-- | Query data for redeem
+data CWalletRedeem
+CWalletRedeem :: !CAddress -> !Text -> CWalletRedeem
+[crWalletId] :: CWalletRedeem -> !CAddress
+[crSeed] :: CWalletRedeem -> !Text
+data NotifyEvent
+ConnectionOpened :: NotifyEvent
+
+-- | NewWalletTransaction CAddress | NewTransaction
+NetworkDifficultyChanged :: ChainDifficulty -> NotifyEvent
+LocalDifficultyChanged :: ChainDifficulty -> NotifyEvent
+ConnectedPeersChanged :: Word -> NotifyEvent
+UpdateAvailable :: NotifyEvent
+ConnectionClosed :: NotifyEvent
+
+-- | transform Address into CAddress TODO: this is not complitely safe. If
+--   someone changes implementation of Buildable Address. It should be
+--   probably more safe to introduce `class PSSimplified` that would have
+--   the same implementation has it is with Buildable Address but then
+--   person will know it will probably change something for purescript.
+addressToCAddress :: Address -> CAddress
+cAddressToAddress :: CAddress -> Either Text Address
+mkCTx :: Address -> ChainDifficulty -> TxHistoryEntry -> CTxMeta -> CTx
+mkCTxId :: Text -> CTxId
+
+-- | transform TxId into CTxId
+txIdToCTxId :: TxId -> CTxId
+ctTypeMeta :: CTType -> CTxMeta
+txContainsTitle :: Text -> CTx -> Bool
+
+-- | Creates <tt>CTUpdateInfo</tt> from <a>ConfirmedProposalState</a>
+toCUpdateInfo :: ConfirmedProposalState -> CUpdateInfo
+walletDocsText :: Text
+data WalletError
+
+-- | Some internal error.
+Internal :: !Text -> WalletError
+walletServeWebFull :: forall ssc. SscConstraint ssc => SendActions (RawRealMode ssc) -> Bool -> FilePath -> Bool -> Word16 -> RawRealMode ssc ()
+walletServerOuts :: OutSpecs
+walletServeWebLite :: forall ssc. SscHelpersClass ssc => Proxy ssc -> SendActions WalletRealMode -> FilePath -> Bool -> Word16 -> WalletRealMode ()
+walletServerOuts :: OutSpecs
+type WalletWebHandler m = WalletWebSockets (WalletWebDB m)
+walletApplication :: WalletWebMode ssc m => m (Server WalletApi) -> m Application
+walletServer :: forall ssc m. (SscHelpersClass ssc, Monad m, WalletWebMode ssc (WalletWebHandler m)) => SendActions m -> WalletWebHandler m (WalletWebHandler m :~> Handler) -> WalletWebHandler m (Server WalletApi)
+walletServeImpl :: (MonadIO m, MonadMask m, WalletWebMode ssc (WalletWebHandler m)) => WalletWebHandler m Application -> FilePath -> Bool -> Word16 -> m ()
+walletServerOuts :: OutSpecs
+
+-- | Holder for web wallet data
+data WalletWebSockets m a
+type WebWalletSockets m = (MonadWalletWebSockets m, MonadIO m)
+
+-- | MonadWalletWebSockets stands for monad which is able to get web wallet
+--   sockets
+class Monad m => MonadWalletWebSockets m
+getWalletWebSockets :: MonadWalletWebSockets m => m ConnectionsVar
+type ConnectionsVar = TVar (Maybe Connection)
+initWSConnection :: MonadIO m => m ConnectionsVar
+closeWSConnection :: MonadIO m => ConnectionsVar -> m ()
+upgradeApplicationWS :: ConnectionsVar -> Application -> Application
+notify :: WebWalletSockets m => NotifyEvent -> m ()
+runWalletWS :: ConnectionsVar -> WalletWebSockets m a -> m a
+
+-- | Holder for web wallet data
+newtype WalletWebDB m a
+WalletWebDB :: ReaderT WalletState m a -> WalletWebDB m a
+[getWalletWebDB] :: WalletWebDB m a -> ReaderT WalletState m a
+
+-- | Execute <a>WalletWebDB</a> action with given <a>WalletState</a>
+runWalletWebDB :: WalletState -> WalletWebDB m a -> m a
+getWalletState :: Monad m => WalletWebDB m WalletState
+type WalletState = ExtendedState WalletStorage
+
+-- | MonadWalletWebDB stands for monad which is able to get web wallet
+--   state
+class Monad m => MonadWalletWebDB m
+getWalletWebState :: MonadWalletWebDB m => m WalletState
+
+-- | Constraint for working with web wallet DB
+type WebWalletModeDB m = (MonadWalletWebDB m, MonadIO m, MonadMockable m)
+openState :: MonadIO m => Bool -> FilePath -> m WalletState
+openMemState :: MonadIO m => m WalletState
+closeState :: MonadIO m => WalletState -> m ()
+getProfile :: WebWalletModeDB m => m (Maybe CProfile)
+getWalletMetas :: WebWalletModeDB m => m [CWalletMeta]
+getWalletMeta :: WebWalletModeDB m => CAddress -> m (Maybe CWalletMeta)
+getTxMeta :: WebWalletModeDB m => CAddress -> CTxId -> m (Maybe CTxMeta)
+getWalletHistory :: WebWalletModeDB m => CAddress -> m (Maybe [CTxMeta])
+getUpdates :: WebWalletModeDB m => m [CUpdateInfo]
+getNextUpdate :: WebWalletModeDB m => m (Maybe CUpdateInfo)
+getHistoryCache :: WebWalletModeDB m => CAddress -> m (Maybe (HeaderHash, Utxo, [CTx]))
+testReset :: WebWalletModeDB m => m ()
+createWallet :: WebWalletModeDB m => CAddress -> CWalletMeta -> m ()
+setProfile :: WebWalletModeDB m => CProfile -> m ()
+setWalletMeta :: WebWalletModeDB m => CAddress -> CWalletMeta -> m ()
+setWalletTransactionMeta :: WebWalletModeDB m => CAddress -> CTxId -> CTxMeta -> m ()
+setWalletHistory :: WebWalletModeDB m => CAddress -> [(CTxId, CTxMeta)] -> m ()
+addOnlyNewTxMeta :: WebWalletModeDB m => CAddress -> CTxId -> CTxMeta -> m ()
+removeWallet :: WebWalletModeDB m => CAddress -> m ()
+addUpdate :: WebWalletModeDB m => CUpdateInfo -> m ()
+removeNextUpdate :: WebWalletModeDB m => m ()
+updateHistoryCache :: WebWalletModeDB m => CAddress -> HeaderHash -> Utxo -> [CTx] -> m ()
+
+
 -- | Module for exposing JSON instances for Cardano types
 module Pos.Aeson
 
@@ -4459,231 +4681,3 @@ applyLastUpdate :: (MonadUpdates m, MonadTrans t, MonadUpdates m', t m' ~ m) => 
 type TxMode ssc m = (MinWorkMode m, MonadBalances m, MonadTxHistory m, MonadMockable m, MonadMask m, MonadDBLimits m)
 type WalletMode ssc m = (TxMode ssc m, MonadKeys m, MonadBlockchainInfo m, MonadUpdates m, WithWalletContext m, MonadDHT m, WithPeerState m)
 type WalletRealMode = PeerStateHolder (KademliaDHT (KeyStorage (WalletDB (ContextHolder (LoggerNameBox Production)))))
-
-
--- | Web part of wallet.
-module Pos.Wallet.Web
-
--- | Servant API which provides access to wallet. TODO: Should be composed
---   depending on the resource - wallets, txs, ...
---   <a>http://haskell-servant.github.io/tutorial/0.4/server.html#nested-apis</a>
-type WalletApi = ("api" :> ("test" :> ("reset" :> Post '[JSON] (Either WalletError ())))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> Get '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("wallets" :> Get '[JSON] (Either WalletError [CWallet]))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> (ReqBody '[JSON] CWalletMeta :> Put '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("wallets" :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> Delete '[JSON] (Either WalletError ())))) :<|> (("api" :> ("wallets" :> ("keys" :> (ReqBody '[JSON] Text :> Post '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("wallets" :> ("restore" :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("addresses" :> (Capture "address" Text :> ("currencies" :> (Capture "currency" CCurrency :> Get '[JSON] (Either WalletError Bool)))))) :<|> (("api" :> ("profile" :> Get '[JSON] (Either WalletError CProfile))) :<|> (("api" :> ("profile" :> (ReqBody '[JSON] CProfile :> Post '[JSON] (Either WalletError CProfile)))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> Post '[JSON] (Either WalletError CTx))))))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> (Capture "currency" CCurrency :> (Capture "title" Text :> (Capture "description" Text :> Post '[JSON] (Either WalletError CTx)))))))))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "address" CAddress :> (Capture "transaction" CTxId :> (ReqBody '[JSON] CTxMeta :> Post '[JSON] (Either WalletError ()))))))) :<|> (("api" :> ("txs" :> ("histories" :> (Capture "address" CAddress :> (QueryParam "skip" Word :> (QueryParam "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word)))))))) :<|> (("api" :> ("txs" :> ("histories" :> (Capture "address" CAddress :> (Capture "search" Text :> (QueryParam "skip" Word :> (QueryParam "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word))))))))) :<|> (("api" :> ("update" :> Get '[JSON] (Either WalletError CUpdateInfo))) :<|> (("api" :> ("update" :> Post '[JSON] (Either WalletError ()))) :<|> (("api" :> ("redemptions" :> ("ada" :> (ReqBody '[JSON] CWalletRedeem :> Post '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("reporting" :> ("initialized" :> (ReqBody '[JSON] CInitialized :> Post '[JSON] (Either WalletError ()))))) :<|> (("api" :> ("settings" :> ("slots" :> ("duration" :> Get '[JSON] (Either WalletError Word))))) :<|> (("api" :> ("settings" :> ("version" :> Get '[JSON] (Either WalletError SoftwareVersion)))) :<|> ("api" :> ("settings" :> ("sync" :> ("progress" :> Get '[JSON] (Either WalletError SyncProgress))))))))))))))))))))))))))
-
--- | Helper Proxy.
-walletApi :: Proxy WalletApi
-data SyncProgress
-SyncProgress :: ChainDifficulty -> Maybe ChainDifficulty -> Word -> SyncProgress
-[_spLocalCD] :: SyncProgress -> ChainDifficulty
-[_spNetworkCD] :: SyncProgress -> Maybe ChainDifficulty
-[_spPeers] :: SyncProgress -> Word
-
--- | Client address
-data CAddress
-
--- | Currencies handled by client. Note: Cardano does not deal with other
---   currency than ADA yet.
-data CCurrency
-ADA :: CCurrency
-BTC :: CCurrency
-ETH :: CCurrency
-
--- | Client hash
-data CHash
-
--- | type of transactions It can be an input <i> output </i> exchange
---   transaction CTInOut CTExMeta -- Ex == exchange
-data CTType
-CTIn :: CTxMeta -> CTType
-CTOut :: CTxMeta -> CTType
-
--- | Client profile (CP) all data of client are "meta data" - that is not
---   provided by Cardano (Flow type: accountType)
-data CProfile
-CProfile :: Text -> Text -> Text -> CPwHash -> POSIXTime -> Text -> Text -> CProfile
-[cpName] :: CProfile -> Text
-[cpEmail] :: CProfile -> Text
-[cpPhoneNumber] :: CProfile -> Text
-[cpPwHash] :: CProfile -> CPwHash
-[cpPwCreated] :: CProfile -> POSIXTime
-[cpLocale] :: CProfile -> Text
-[cpPicture] :: CProfile -> Text
-
--- | Password hash of client profile
-type CPwHash = Text
-
--- | Client transaction (CTx) Provides all Data about a transaction needed
---   by client. It includes meta data which are not part of Cardano, too
---   (Flow type: transactionType)
-data CTx
-CTx :: CTxId -> Coin -> Word -> CTType -> CTx
-[ctId] :: CTx -> CTxId
-[ctAmount] :: CTx -> Coin
-[ctConfirmations] :: CTx -> Word
-[ctType] :: CTx -> CTType
-
--- | Client transaction id
-data CTxId
-
--- | meta data of transactions
-data CTxMeta
-CTxMeta :: CCurrency -> Text -> Text -> POSIXTime -> CTxMeta
-[ctmCurrency] :: CTxMeta -> CCurrency
-[ctmTitle] :: CTxMeta -> Text
-[ctmDescription] :: CTxMeta -> Text
-[ctmDate] :: CTxMeta -> POSIXTime
-
--- | meta data of exchanges
-data CTExMeta
-CTExMeta :: CCurrency -> Text -> Text -> POSIXTime -> Text -> Text -> CAddress -> CTExMeta
-[cexCurrency] :: CTExMeta -> CCurrency
-[cexTitle] :: CTExMeta -> Text
-[cexDescription] :: CTExMeta -> Text
-[cexDate] :: CTExMeta -> POSIXTime
-[cexRate] :: CTExMeta -> Text
-[cexLabel] :: CTExMeta -> Text
-[cexAddress] :: CTExMeta -> CAddress
-
--- | Client Wallet (CW) (Flow type: walletType)
-data CWallet
-CWallet :: !CAddress -> !Coin -> !CWalletMeta -> CWallet
-[cwAddress] :: CWallet -> !CAddress
-[cwAmount] :: CWallet -> !Coin
-[cwMeta] :: CWallet -> !CWalletMeta
-
--- | A wallet can be used as personal or shared wallet
-data CWalletType
-CWTPersonal :: CWalletType
-CWTShared :: CWalletType
-
--- | Meta data of CWallet Includes data which are not provided by Cardano
-data CWalletMeta
-CWalletMeta :: !CWalletType -> !CCurrency -> !Text -> CWalletMeta
-[cwType] :: CWalletMeta -> !CWalletType
-[cwCurrency] :: CWalletMeta -> !CCurrency
-[cwName] :: CWalletMeta -> !Text
-
--- | Query data for wallet creation (wallet meta + backup phrase)
-data CWalletInit
-CWalletInit :: !BackupPhrase -> !CWalletMeta -> CWalletInit
-[cwBackupPhrase] :: CWalletInit -> !BackupPhrase
-[cwInitMeta] :: CWalletInit -> !CWalletMeta
-
--- | Update system data
-data CUpdateInfo
-CUpdateInfo :: !SoftwareVersion -> !BlockVersion -> !ScriptVersion -> !Bool -> !Int -> !Int -> !Coin -> !Coin -> CUpdateInfo
-[cuiSoftwareVersion] :: CUpdateInfo -> !SoftwareVersion
-[cuiBlockVesion] :: CUpdateInfo -> !BlockVersion
-[cuiScriptVersion] :: CUpdateInfo -> !ScriptVersion
-[cuiImplicit] :: CUpdateInfo -> !Bool
-[cuiVotesFor] :: CUpdateInfo -> !Int
-[cuiVotesAgainst] :: CUpdateInfo -> !Int
-[cuiPositiveStake] :: CUpdateInfo -> !Coin
-[cuiNegativeStake] :: CUpdateInfo -> !Coin
-
--- | Query data for redeem
-data CWalletRedeem
-CWalletRedeem :: !CAddress -> !Text -> CWalletRedeem
-[crWalletId] :: CWalletRedeem -> !CAddress
-[crSeed] :: CWalletRedeem -> !Text
-
--- | Represents a knowledge about how much time did it take for client
---   (wallet) to initialize. All numbers are milliseconds.
-data CInitialized
-CInitialized :: Integer -> Integer -> CInitialized
-
--- | Total time from very start to main post-sync screen.
-[cTotalTime] :: CInitialized -> Integer
-
--- | Time passed from beginning to network connection with peers
---   established.
-[cPreInit] :: CInitialized -> Integer
-data NotifyEvent
-ConnectionOpened :: NotifyEvent
-NetworkDifficultyChanged :: ChainDifficulty -> NotifyEvent
-LocalDifficultyChanged :: ChainDifficulty -> NotifyEvent
-ConnectedPeersChanged :: Word -> NotifyEvent
-UpdateAvailable :: NotifyEvent
-ConnectionClosed :: NotifyEvent
-
--- | Transform Address into CAddress
-addressToCAddress :: Address -> CAddress
-cAddressToAddress :: CAddress -> Either Text Address
-mkCTx :: Address -> ChainDifficulty -> TxHistoryEntry -> CTxMeta -> CTx
-mkCTxId :: Text -> CTxId
-
--- | transform TxId into CTxId
-txIdToCTxId :: TxId -> CTxId
-ctTypeMeta :: CTType -> CTxMeta
-txContainsTitle :: Text -> CTx -> Bool
-
--- | Creates <tt>CTUpdateInfo</tt> from <a>ConfirmedProposalState</a>
-toCUpdateInfo :: ConfirmedProposalState -> CUpdateInfo
-walletDocsText :: Text
-data WalletError
-
--- | Some internal error.
-Internal :: !Text -> WalletError
-walletServeWebFull :: forall ssc. SscConstraint ssc => SendActions (RawRealMode ssc) -> Bool -> FilePath -> Bool -> Word16 -> RawRealMode ssc ()
-walletServerOuts :: OutSpecs
-walletServeWebLite :: forall ssc. SscHelpersClass ssc => Proxy ssc -> SendActions WalletRealMode -> FilePath -> Bool -> Word16 -> WalletRealMode ()
-walletServerOuts :: OutSpecs
-type WalletWebHandler m = WalletWebSockets (WalletWebDB m)
-walletApplication :: WalletWebMode ssc m => m (Server WalletApi) -> m Application
-walletServer :: forall ssc m. (SscHelpersClass ssc, Monad m, MonadIO m, WalletWebMode ssc (WalletWebHandler m)) => SendActions m -> WalletWebHandler m (WalletWebHandler m :~> Handler) -> WalletWebHandler m (Server WalletApi)
-walletServeImpl :: (MonadIO m, MonadMask m, WalletWebMode ssc (WalletWebHandler m)) => WalletWebHandler m Application -> FilePath -> Bool -> Word16 -> m ()
-walletServerOuts :: OutSpecs
-
--- | Holder for web wallet data
-data WalletWebSockets m a
-type WebWalletSockets m = (MonadWalletWebSockets m, MonadIO m)
-
--- | MonadWalletWebSockets stands for monad which is able to get web wallet
---   sockets
-class Monad m => MonadWalletWebSockets m
-getWalletWebSockets :: MonadWalletWebSockets m => m ConnectionsVar
-type ConnectionsVar = TVar (Maybe Connection)
-initWSConnection :: MonadIO m => m ConnectionsVar
-closeWSConnection :: MonadIO m => ConnectionsVar -> m ()
-upgradeApplicationWS :: ConnectionsVar -> Application -> Application
-notify :: WebWalletSockets m => NotifyEvent -> m ()
-runWalletWS :: ConnectionsVar -> WalletWebSockets m a -> m a
-
--- | Holder for web wallet data
-newtype WalletWebDB m a
-WalletWebDB :: ReaderT WalletState m a -> WalletWebDB m a
-[getWalletWebDB] :: WalletWebDB m a -> ReaderT WalletState m a
-
--- | Execute <a>WalletWebDB</a> action with given <a>WalletState</a>
-runWalletWebDB :: WalletState -> WalletWebDB m a -> m a
-getWalletState :: Monad m => WalletWebDB m WalletState
-type WalletState = ExtendedState WalletStorage
-
--- | MonadWalletWebDB stands for monad which is able to get web wallet
---   state
-class Monad m => MonadWalletWebDB m
-getWalletWebState :: MonadWalletWebDB m => m WalletState
-
--- | Constraint for working with web wallet DB
-type WebWalletModeDB m = (MonadWalletWebDB m, MonadIO m, MonadMockable m)
-openState :: MonadIO m => Bool -> FilePath -> m WalletState
-openMemState :: MonadIO m => m WalletState
-closeState :: MonadIO m => WalletState -> m ()
-getProfile :: WebWalletModeDB m => m (Maybe CProfile)
-getWalletMetas :: WebWalletModeDB m => m [CWalletMeta]
-getWalletMeta :: WebWalletModeDB m => CAddress -> m (Maybe CWalletMeta)
-getTxMeta :: WebWalletModeDB m => CAddress -> CTxId -> m (Maybe CTxMeta)
-getWalletHistory :: WebWalletModeDB m => CAddress -> m (Maybe [CTxMeta])
-getUpdates :: WebWalletModeDB m => m [CUpdateInfo]
-getNextUpdate :: WebWalletModeDB m => m (Maybe CUpdateInfo)
-getHistoryCache :: WebWalletModeDB m => CAddress -> m (Maybe (HeaderHash, Utxo, [CTx]))
-testReset :: WebWalletModeDB m => m ()
-createWallet :: WebWalletModeDB m => CAddress -> CWalletMeta -> m ()
-setProfile :: WebWalletModeDB m => CProfile -> m ()
-setWalletMeta :: WebWalletModeDB m => CAddress -> CWalletMeta -> m ()
-setWalletTransactionMeta :: WebWalletModeDB m => CAddress -> CTxId -> CTxMeta -> m ()
-setWalletHistory :: WebWalletModeDB m => CAddress -> [(CTxId, CTxMeta)] -> m ()
-addOnlyNewTxMeta :: WebWalletModeDB m => CAddress -> CTxId -> CTxMeta -> m ()
-removeWallet :: WebWalletModeDB m => CAddress -> m ()
-addUpdate :: WebWalletModeDB m => CUpdateInfo -> m ()
-removeNextUpdate :: WebWalletModeDB m => m ()
-updateHistoryCache :: WebWalletModeDB m => CAddress -> HeaderHash -> Utxo -> [CTx] -> m ()
