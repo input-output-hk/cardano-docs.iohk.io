@@ -209,9 +209,6 @@ _neLast :: Lens' (NonEmpty a) a
 --   <a>MonadState</a>, it only works in a handful of state monads and
 --   their combinations defined by <tt>Zoom</tt>.
 zoom' :: MonadState s m => LensLike' (Zoomed (State s) a) s t -> StateT t Identity a -> m a
-
--- | ANSI colors: come in various intensities, which are controlled by
---   <a>ColorIntensity</a>
 data Color :: *
 Black :: Color
 Red :: Color
@@ -1580,9 +1577,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679161187 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679161187)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679161179 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679161179)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679161174 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679161174)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679128344 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679128344)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679128336 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679128336)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679128331 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679128331)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Core.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Core.SoftwareVersion
@@ -2253,11 +2250,11 @@ NodeDBs :: !(DB ssc) -> !(DB ssc) -> !(DB ssc) -> !(DB ssc) -> !RWLock -> NodeDB
 
 -- | Lock on misc db
 [_miscLock] :: NodeDBs ssc -> !RWLock
-blockDB :: forall ssc_a4XtJ. Lens' (NodeDBs ssc_a4XtJ) (DB ssc_a4XtJ)
-gStateDB :: forall ssc_a4XtJ. Lens' (NodeDBs ssc_a4XtJ) (DB ssc_a4XtJ)
-lrcDB :: forall ssc_a4XtJ. Lens' (NodeDBs ssc_a4XtJ) (DB ssc_a4XtJ)
-miscDB :: forall ssc_a4XtJ. Lens' (NodeDBs ssc_a4XtJ) (DB ssc_a4XtJ)
-miscLock :: forall ssc_a4XtJ. Lens' (NodeDBs ssc_a4XtJ) RWLock
+blockDB :: forall ssc_a4POp. Lens' (NodeDBs ssc_a4POp) (DB ssc_a4POp)
+gStateDB :: forall ssc_a4POp. Lens' (NodeDBs ssc_a4POp) (DB ssc_a4POp)
+lrcDB :: forall ssc_a4POp. Lens' (NodeDBs ssc_a4POp) (DB ssc_a4POp)
+miscDB :: forall ssc_a4POp. Lens' (NodeDBs ssc_a4POp) (DB ssc_a4POp)
+miscLock :: forall ssc_a4POp. Lens' (NodeDBs ssc_a4POp) RWLock
 newtype Snapshot
 Snapshot :: Snapshot -> Snapshot
 usingSnapshot :: (MonadIO m, MonadMask m) => DB ssc -> (Snapshot -> m a) -> m a
@@ -4835,7 +4832,7 @@ mkCTxId :: Text -> CTxId
 
 -- | transform TxId into CTxId
 txIdToCTxId :: TxId -> CTxId
-ctTypeMeta :: CTType -> CTxMeta
+ctTypeMeta :: Lens' CTType CTxMeta
 txContainsTitle :: Text -> CTx -> Bool
 
 -- | Creates <tt>CTUpdateInfo</tt> from <a>ConfirmedProposalState</a>
@@ -4897,7 +4894,7 @@ getTxMeta :: WebWalletModeDB m => CAddress -> CTxId -> m (Maybe CTxMeta)
 getWalletHistory :: WebWalletModeDB m => CAddress -> m (Maybe [CTxMeta])
 getUpdates :: WebWalletModeDB m => m [CUpdateInfo]
 getNextUpdate :: WebWalletModeDB m => m (Maybe CUpdateInfo)
-getHistoryCache :: WebWalletModeDB m => CAddress -> m (Maybe (HeaderHash, Utxo, [CTx]))
+getHistoryCache :: WebWalletModeDB m => CAddress -> m (Maybe (HeaderHash, Utxo, [TxHistoryEntry]))
 createWallet :: WebWalletModeDB m => CAddress -> CWalletMeta -> m ()
 setProfile :: WebWalletModeDB m => CProfile -> m ()
 setWalletMeta :: WebWalletModeDB m => CAddress -> CWalletMeta -> m ()
@@ -4907,7 +4904,7 @@ addOnlyNewTxMeta :: WebWalletModeDB m => CAddress -> CTxId -> CTxMeta -> m ()
 removeWallet :: WebWalletModeDB m => CAddress -> m ()
 addUpdate :: WebWalletModeDB m => CUpdateInfo -> m ()
 removeNextUpdate :: WebWalletModeDB m => m ()
-updateHistoryCache :: WebWalletModeDB m => CAddress -> HeaderHash -> Utxo -> [CTx] -> m ()
+updateHistoryCache :: WebWalletModeDB m => CAddress -> HeaderHash -> Utxo -> [TxHistoryEntry] -> m ()
 
 
 -- | High level workers.
