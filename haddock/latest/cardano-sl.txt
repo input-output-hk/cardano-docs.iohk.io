@@ -3217,13 +3217,13 @@ setStake :: MonadBalances m => StakeholderId -> Coin -> m ()
 setTotalStake :: MonadBalances m => Coin -> m ()
 setStake :: (MonadBalances m, MonadTrans t, MonadBalances m', t m' ~ m) => StakeholderId -> Coin -> m ()
 setTotalStake :: (MonadBalances m, MonadTrans t, MonadBalances m', t m' ~ m) => Coin -> m ()
-class Monad m => MonadTxPool m where hasTx = lift . hasTx poolSize = lift poolSize putTxWithUndo id tx = lift . putTxWithUndo id tx
+class Monad m => MonadTxPool m where hasTx = lift . hasTx putTxWithUndo id tx = lift . putTxWithUndo id tx poolSize = lift poolSize
 hasTx :: MonadTxPool m => TxId -> m Bool
-poolSize :: MonadTxPool m => m Int
 putTxWithUndo :: MonadTxPool m => TxId -> TxAux -> TxUndo -> m ()
+poolSize :: MonadTxPool m => m Int
 hasTx :: (MonadTxPool m, MonadTrans t, MonadTxPool m', t m' ~ m) => TxId -> m Bool
-poolSize :: (MonadTxPool m, MonadTrans t, MonadTxPool m', t m' ~ m) => m Int
 putTxWithUndo :: (MonadTxPool m, MonadTrans t, MonadTxPool m', t m' ~ m) => TxId -> TxAux -> TxUndo -> m ()
+poolSize :: (MonadTxPool m, MonadTrans t, MonadTxPool m', t m' ~ m) => m Int
 newtype DBTxp m a
 DBTxp :: m a -> DBTxp m a
 [runDBTxp] :: DBTxp m a -> m a
@@ -4135,7 +4135,7 @@ mkCTxId :: Text -> CTxId
 
 -- | transform TxId into CTxId
 txIdToCTxId :: TxId -> CTxId
-ctTypeMeta :: Lens' CTType CTxMeta
+ctTypeMeta :: CTType -> CTxMeta
 txContainsTitle :: Text -> CTx -> Bool
 
 -- | Creates <tt>CTUpdateInfo</tt> from <a>ConfirmedProposalState</a>
@@ -4197,7 +4197,7 @@ getTxMeta :: WebWalletModeDB m => CAddress -> CTxId -> m (Maybe CTxMeta)
 getWalletHistory :: WebWalletModeDB m => CAddress -> m (Maybe [CTxMeta])
 getUpdates :: WebWalletModeDB m => m [CUpdateInfo]
 getNextUpdate :: WebWalletModeDB m => m (Maybe CUpdateInfo)
-getHistoryCache :: WebWalletModeDB m => CAddress -> m (Maybe (HeaderHash, Utxo, [TxHistoryEntry]))
+getHistoryCache :: WebWalletModeDB m => CAddress -> m (Maybe (HeaderHash, Utxo, [CTx]))
 testReset :: WebWalletModeDB m => m ()
 createWallet :: WebWalletModeDB m => CAddress -> CWalletMeta -> m ()
 setProfile :: WebWalletModeDB m => CProfile -> m ()
@@ -4208,7 +4208,7 @@ addOnlyNewTxMeta :: WebWalletModeDB m => CAddress -> CTxId -> CTxMeta -> m ()
 removeWallet :: WebWalletModeDB m => CAddress -> m ()
 addUpdate :: WebWalletModeDB m => CUpdateInfo -> m ()
 removeNextUpdate :: WebWalletModeDB m => m ()
-updateHistoryCache :: WebWalletModeDB m => CAddress -> HeaderHash -> Utxo -> [TxHistoryEntry] -> m ()
+updateHistoryCache :: WebWalletModeDB m => CAddress -> HeaderHash -> Utxo -> [CTx] -> m ()
 
 
 -- | Module for exposing JSON instances for Cardano types
