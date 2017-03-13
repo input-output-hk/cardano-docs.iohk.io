@@ -12,25 +12,28 @@
 </span><a name="line-12"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Proxy</span><span>                 </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Proxy</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">Proxy</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
 </span><a name="line-13"></a><span>
 </span><a name="line-14"></a><span class="hs-keyword">import</span><span>           </span><a href="Pos.Types.html"><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>                  </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Coin</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">SoftwareVersion</span><span class="hs-special">)</span><span>
-</span><a name="line-15"></a><span class="hs-keyword">import</span><span>           </span><a href="Pos.Wallet.Web.ClientTypes.html"><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Wallet</span><span class="hs-operator">.</span><span class="hs-identifier">Web</span><span class="hs-operator">.</span><span class="hs-identifier">ClientTypes</span></a><span> </span><span class="hs-special">(</span><a href="Pos.Wallet.Web.ClientTypes.html#CAddress"><span class="hs-identifier hs-type">CAddress</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Wallet.Web.ClientTypes.html#CCurrency"><span class="hs-identifier hs-type">CCurrency</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Wallet.Web.ClientTypes.html#CProfile"><span class="hs-identifier hs-type">CProfile</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Wallet.Web.ClientTypes.html#CTx"><span class="hs-identifier hs-type">CTx</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Wallet.Web.ClientTypes.html#CTxId"><span class="hs-identifier hs-type">CTxId</span></a><span class="hs-special">,</span><span>
-</span><a name="line-16"></a><span>                                             </span><a href="Pos.Wallet.Web.ClientTypes.html#CTxMeta"><span class="hs-identifier hs-type">CTxMeta</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Wallet.Web.ClientTypes.html#CUpdateInfo"><span class="hs-identifier hs-type">CUpdateInfo</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Wallet.Web.ClientTypes.html#CWallet"><span class="hs-identifier hs-type">CWallet</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Wallet.Web.ClientTypes.html#CWalletInit"><span class="hs-identifier hs-type">CWalletInit</span></a><span class="hs-special">,</span><span>
-</span><a name="line-17"></a><span>                                             </span><a href="Pos.Wallet.Web.ClientTypes.html#CWalletMeta"><span class="hs-identifier hs-type">CWalletMeta</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Wallet.Web.ClientTypes.html#CWalletRedeem"><span class="hs-identifier hs-type">CWalletRedeem</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Wallet.Web.ClientTypes.html#SyncProgress"><span class="hs-identifier hs-type">SyncProgress</span></a><span class="hs-special">)</span><span>
-</span><a name="line-18"></a><span class="hs-keyword">import</span><span>           </span><a href="Pos.Wallet.Web.Error.html"><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Wallet</span><span class="hs-operator">.</span><span class="hs-identifier">Web</span><span class="hs-operator">.</span><span class="hs-identifier">Error</span></a><span>       </span><span class="hs-special">(</span><a href="Pos.Wallet.Web.Error.html#WalletError"><span class="hs-identifier hs-type">WalletError</span></a><span class="hs-special">)</span><span>
-</span><a name="line-19"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Servant</span><span class="hs-operator">.</span><span class="hs-identifier">API</span><span>                </span><span class="hs-special">(</span><span class="hs-special">(</span><span class="hs-operator hs-type">:&lt;|&gt;</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="hs-operator hs-type">:&gt;</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Capture</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Delete</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Get</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">JSON</span><span class="hs-special">,</span><span>
-</span><a name="line-20"></a><span>                                             </span><span class="hs-identifier hs-type">Post</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Put</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">QueryParam</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">ReqBody</span><span class="hs-special">)</span><span>
-</span><a name="line-21"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Universum</span><span>
-</span><a name="line-22"></a><span>
-</span><a name="line-23"></a><span class="hs-comment">-- | Servant API which provides access to wallet.</span><span>
-</span><a name="line-24"></a><span class="hs-comment">-- TODO: Should be composed depending on the resource - wallets, txs, ... http://haskell-servant.github.io/tutorial/0.4/server.html#nested-apis</span><span>
-</span><a name="line-25"></a><span class="hs-keyword">type</span><span> </span><a name="WalletApi"><a href="Pos.Wallet.Web.Api.html#WalletApi"><span class="hs-identifier">WalletApi</span></a></a><span> </span><span class="hs-glyph">=</span><span>
-</span><a name="line-26"></a><span class="hs-cpp">#ifdef DEV_MODE</span><span>
-</span><a name="line-27"></a><span>     </span><span class="hs-string">&quot;api&quot;</span><span>
-</span><a name="line-28"></a><span>     </span><span class="hs-operator">:&gt;</span><span> </span><span class="hs-string">&quot;test&quot;</span><span>
-</span><a name="line-29"></a><span>     </span><span class="hs-operator">:&gt;</span><span> </span><span class="hs-string">&quot;reset&quot;</span><span>
-</span><a name="line-30"></a><span>     </span><span class="hs-operator">:&gt;</span><span> </span><span class="hs-identifier hs-type">Post</span><span> </span><span class="hs-char">'[JSON] (Either WalletError ())
+</span><a name="line-15"></a><span class="hs-keyword">import</span><span>           </span><a href="Pos.Wallet.Web.ClientTypes.html"><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Wallet</span><span class="hs-operator">.</span><span class="hs-identifier">Web</span><span class="hs-operator">.</span><span class="hs-identifier">ClientTypes</span></a><span> </span><span class="hs-special">(</span><a href="Pos.Wallet.Web.ClientTypes.html#CAddress"><span class="hs-identifier hs-type">CAddress</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Wallet.Web.ClientTypes.html#CCurrency"><span class="hs-identifier hs-type">CCurrency</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Wallet.Web.ClientTypes.html#CInitialized"><span class="hs-identifier hs-type">CInitialized</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Wallet.Web.ClientTypes.html#CProfile"><span class="hs-identifier hs-type">CProfile</span></a><span class="hs-special">,</span><span>
+</span><a name="line-16"></a><span>                                             </span><a href="Pos.Wallet.Web.ClientTypes.html#CTx"><span class="hs-identifier hs-type">CTx</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Wallet.Web.ClientTypes.html#CTxId"><span class="hs-identifier hs-type">CTxId</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Wallet.Web.ClientTypes.html#CTxMeta"><span class="hs-identifier hs-type">CTxMeta</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Wallet.Web.ClientTypes.html#CUpdateInfo"><span class="hs-identifier hs-type">CUpdateInfo</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Wallet.Web.ClientTypes.html#CWallet"><span class="hs-identifier hs-type">CWallet</span></a><span class="hs-special">,</span><span>
+</span><a name="line-17"></a><span>                                             </span><a href="Pos.Wallet.Web.ClientTypes.html#CWalletInit"><span class="hs-identifier hs-type">CWalletInit</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Wallet.Web.ClientTypes.html#CWalletMeta"><span class="hs-identifier hs-type">CWalletMeta</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Wallet.Web.ClientTypes.html#CWalletRedeem"><span class="hs-identifier hs-type">CWalletRedeem</span></a><span class="hs-special">,</span><span>
+</span><a name="line-18"></a><span>                                             </span><a href="Pos.Wallet.Web.ClientTypes.html#SyncProgress"><span class="hs-identifier hs-type">SyncProgress</span></a><span class="hs-special">)</span><span>
+</span><a name="line-19"></a><span class="hs-keyword">import</span><span>           </span><a href="Pos.Wallet.Web.Error.html"><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Wallet</span><span class="hs-operator">.</span><span class="hs-identifier">Web</span><span class="hs-operator">.</span><span class="hs-identifier">Error</span></a><span>       </span><span class="hs-special">(</span><a href="Pos.Wallet.Web.Error.html#WalletError"><span class="hs-identifier hs-type">WalletError</span></a><span class="hs-special">)</span><span>
+</span><a name="line-20"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Servant</span><span class="hs-operator">.</span><span class="hs-identifier">API</span><span>                </span><span class="hs-special">(</span><span class="hs-special">(</span><span class="hs-operator hs-type">:&lt;|&gt;</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="hs-operator hs-type">:&gt;</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Capture</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Delete</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Get</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">JSON</span><span class="hs-special">,</span><span>
+</span><a name="line-21"></a><span>                                             </span><span class="hs-identifier hs-type">Post</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Put</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">QueryParam</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">ReqBody</span><span class="hs-special">)</span><span>
+</span><a name="line-22"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Universum</span><span>
+</span><a name="line-23"></a><span>
+</span><a name="line-24"></a><span class="hs-comment">-- | Servant API which provides access to wallet.</span><span>
+</span><a name="line-25"></a><span class="hs-comment">-- TODO: Should be composed depending on the resource - wallets, txs, ... http://haskell-servant.github.io/tutorial/0.4/server.html#nested-apis</span><span>
+</span><a name="line-26"></a><span class="hs-keyword">type</span><span> </span><a name="WalletApi"><a href="Pos.Wallet.Web.Api.html#WalletApi"><span class="hs-identifier">WalletApi</span></a></a><span> </span><span class="hs-glyph">=</span><span>
+</span><a name="line-27"></a><span class="hs-cpp">#ifdef DEV_MODE</span><span>
+</span><a name="line-28"></a><span>     </span><span class="hs-string">&quot;api&quot;</span><span>
+</span><a name="line-29"></a><span>     </span><span class="hs-operator">:&gt;</span><span> </span><span class="hs-string">&quot;test&quot;</span><span>
+</span><a name="line-30"></a><span>     </span><span class="hs-operator">:&gt;</span><span> </span><span class="hs-string">&quot;reset&quot;</span><span>
+</span><a name="line-31"></a><span>     </span><span class="hs-operator">:&gt;</span><span> </span><span class="hs-identifier hs-type">Post</span><span> </span><span class="hs-char">'[JSON] (Either WalletError ())
     :&lt;|&gt;
 #endif
-     ----------------------------WALLETS----------------------------
+     ----------------------------------------------------------------------------
+     -- Wallets
+     ----------------------------------------------------------------------------
      &quot;api&quot;
      :&gt; &quot;wallets&quot;
      :&gt; Capture &quot;walletId&quot; CAddress
@@ -68,7 +71,9 @@
      :&gt; ReqBody '[JSON] CWalletInit
      :&gt; Post '[JSON] (Either WalletError CWallet)
     :&lt;|&gt;
-     ----------------------------ADDRESSSES----------------------------
+     ----------------------------------------------------------------------------
+     -- Addresses
+     ----------------------------------------------------------------------------
      &quot;api&quot;
      :&gt; &quot;addresses&quot;
      :&gt; Capture &quot;address&quot; Text
@@ -76,7 +81,9 @@
      :&gt; Capture &quot;currency&quot; CCurrency
      :&gt; Get '[JSON] (Either WalletError Bool)
     :&lt;|&gt;
-     ----------------------------PROFILE(S)----------------------------
+     ----------------------------------------------------------------------------
+     -- Profile(s)
+     ----------------------------------------------------------------------------
      -- TODO: A single profile? Should be possible in the future to have multiple profiles?
      &quot;api&quot;
      :&gt; &quot;profile&quot;
@@ -87,7 +94,9 @@
      :&gt; ReqBody '[JSON] CProfile
      :&gt; Post '[JSON] (Either WalletError CProfile)
     :&lt;|&gt;
-    ----------------------------TRANSACTIONS----------------------------
+     ----------------------------------------------------------------------------
+     -- Transactons
+     ----------------------------------------------------------------------------
     -- TODO: for now we only support one2one sending. We should extend this to support many2many
      &quot;api&quot;
      :&gt; &quot;txs&quot;
@@ -135,7 +144,9 @@
      :&gt; QueryParam &quot;limit&quot; Word
      :&gt; Get '[JSON] (Either WalletError ([CTx], Word))
     :&lt;|&gt;
-    ----------------------------UPDATES----------------------------
+     ----------------------------------------------------------------------------
+     -- Updates
+     ----------------------------------------------------------------------------
      &quot;api&quot;
      :&gt; &quot;update&quot;
      :&gt; Get '[JSON] (Either WalletError CUpdateInfo)
@@ -144,14 +155,27 @@
      :&gt; &quot;update&quot;
      :&gt; Post '[JSON] (Either WalletError ())
     :&lt;|&gt;
-    ----------------------------REDEMPTIONS----------------------------
+     ----------------------------------------------------------------------------
+     -- Redemptions
+     ----------------------------------------------------------------------------
      &quot;api&quot;
      :&gt; &quot;redemptions&quot;
      :&gt; &quot;ada&quot;
      :&gt; ReqBody '[JSON] CWalletRedeem
-     :&gt; Post '[JSON] (Either WalletError CWallet)
+     :&gt; Post '[JSON] (Either WalletError CTx)
     :&lt;|&gt;
-    ----------------------------SETTINGS----------------------------
+     ----------------------------------------------------------------------------
+     -- Reporting
+     ----------------------------------------------------------------------------
+     &quot;api&quot;
+     :&gt; &quot;reporting&quot;
+     :&gt; &quot;initialized&quot;
+     :&gt; ReqBody '[JSON] CInitialized
+     :&gt; Post '[JSON] (Either WalletError ())
+    :&lt;|&gt;
+     ----------------------------------------------------------------------------
+     -- Settings
+     ----------------------------------------------------------------------------
      &quot;api&quot;
      :&gt; &quot;settings&quot;
      :&gt; &quot;slots&quot;
@@ -168,6 +192,8 @@
      :&gt; &quot;sync&quot;
      :&gt; &quot;progress&quot;
      :&gt; Get '[JSON] (Either WalletError SyncProgress)
+
+
 
 -- | Helper Proxy.
 walletApi :: Proxy WalletApi
