@@ -1114,9 +1114,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679120175 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679120175)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679120168 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679120168)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679120164 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679120164)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679120176 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679120176)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679120169 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679120169)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679120165 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679120165)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SoftwareVersion
@@ -2059,10 +2059,10 @@ instance Pos.DB.Class.MonadDB m => Pos.DB.Class.MonadDB (Pos.Slotting.MemState.H
 instance Pos.DB.Limits.MonadDBLimits m => Pos.DB.Limits.MonadDBLimits (Pos.Slotting.MemState.Holder.SlottingHolder m)
 instance Pos.Delegation.Class.MonadDelegation m => Pos.Delegation.Class.MonadDelegation (Pos.DHT.Real.Types.KademliaDHT m)
 instance Pos.Delegation.Class.MonadDelegation m => Pos.Delegation.Class.MonadDelegation (Pos.Communication.PeerState.PeerStateHolder m)
-instance Pos.Reporting.MemState.Class.MonadReportingMem m => Pos.Reporting.MemState.Class.MonadReportingMem (Pos.Communication.PeerState.PeerStateHolder m)
-instance Pos.Reporting.MemState.Class.MonadReportingMem m => Pos.Reporting.MemState.Class.MonadReportingMem (Pos.DHT.Real.Types.KademliaDHT m)
-instance Pos.Reporting.MemState.Class.MonadReportingMem m => Pos.Reporting.MemState.Class.MonadReportingMem (Pos.Slotting.Ntp.NtpSlotting m)
-instance Pos.Reporting.MemState.Class.MonadReportingMem m => Pos.Reporting.MemState.Class.MonadReportingMem (Pos.Slotting.MemState.Holder.SlottingHolder m)
+instance Pos.Reporting.MemState.MonadReportingMem m => Pos.Reporting.MemState.MonadReportingMem (Pos.Communication.PeerState.PeerStateHolder m)
+instance Pos.Reporting.MemState.MonadReportingMem m => Pos.Reporting.MemState.MonadReportingMem (Pos.DHT.Real.Types.KademliaDHT m)
+instance Pos.Reporting.MemState.MonadReportingMem m => Pos.Reporting.MemState.MonadReportingMem (Pos.Slotting.Ntp.NtpSlotting m)
+instance Pos.Reporting.MemState.MonadReportingMem m => Pos.Reporting.MemState.MonadReportingMem (Pos.Slotting.MemState.Holder.SlottingHolder m)
 instance Pos.DHT.MemState.Class.MonadDhtMem m => Pos.DHT.MemState.Class.MonadDhtMem (Pos.Communication.PeerState.PeerStateHolder m)
 instance Pos.DHT.MemState.Class.MonadDhtMem m => Pos.DHT.MemState.Class.MonadDhtMem (Pos.DHT.Real.Types.KademliaDHT m)
 instance Pos.DHT.MemState.Class.MonadDhtMem m => Pos.DHT.MemState.Class.MonadDhtMem (Pos.Slotting.Ntp.NtpSlotting m)
