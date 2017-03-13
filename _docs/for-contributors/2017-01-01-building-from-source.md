@@ -205,3 +205,111 @@ Now, to run the wallet connected to the Cardano SL in dev-mode, call:
 ```
 CARDANO_API=true npm run dev
 ```
+
+## Building Cardano SL node for Testing Purpose
+
+If you want to test functionality of Cardano SL node in our [testnet](/timeline/testnet/), you should go to the root directory of the repository and switch to release branch, for example, `cardano-sl-0.2`. After that build a node with this command:
+
+~~~ bash
+CSL_SYSTEM_TAG=linux64 stack build --flag cardano-sl:-dev-mode
+~~~
+
+It means that you build a node in **production** mode.
+
+Now run your node with this command:
+
+~~~ bash
+stack exec -- cardano-node \
+    --db-path node-db0 \
+    --rebuild-db \
+    --dht-key a_P8zb6fNP7I2H54FtGuhqxaMDAwMDAwMDAwMDAwMDA= \
+    --listen 127.0.0.1:3000 \
+    --json-log logs/2017-03-10_133948/node0.json \
+    --logs-prefix logs/2017-03-10_133948 \
+    --log-config logs.yaml \
+    --kademlia-dump-path logs/2017-03-10_133948/dump/kademlia0.dump \
+    --wallet \
+    --keyfile secret.key \
+    --peer 35.156.234.240:3000/S-GJ1HDZyHpIS_ZOFBlZsipkGNXy-tmCDtY_CvaiywE= \
+    --peer 35.157.148.244:3000/nzcEO6Cv7tKD3REWoWc9vcHMOZEQWFGLX4150bt_cYw= \
+    --peer 52.52.249.66:3000/dYGuDj0BrJxCsTC9ntJE7ePT7wUoVdQMH3sKLzQD8bo= \
+    --peer 52.8.23.163:3000/8hVd3J5Jc0GCkIV-QeiOkwDqH38QooYGo3iHJnZuIk4=
+~~~
+
+You can download `secret.key` from [Cardano Test-Net Faucet](https://tada.iohk.io). You can place `secret.key` file anywhere, and value of `--keyfile` option should contain a path to this file.
+
+After running with this command your node will listen two ports:
+
+1. `3000` for communication with other nodes in our testnet,
+2. `8090` for use wallet functionality, via wallet web API.
+
+Now you can test your node.
+
+## Use Case - Sending Transaction
+
+Although you can work with a node via Daedalus GUI, the simplest way to test a node is a CLI-based way. The main purpose of a node is a sending/receiving money, so let's create your first wallet and initiate your first transaction.
+
+You can create new wallet with foillowing command. 12-word phrase is your backup phrase for this wallet. Please note that each backup phrase corresponds to a single secret key (the value of `--keyfile` mentioned above).
+
+~~~ bash
+curl -X POST -H "Content-Type: application/json" -d '{"cwBackupPhrase": {"bpToList": ["squirrel", "material", "silly", "twice", "direct", "slush", "pistol","razor", "become", "junk", "kingdom", "flee"]},"cwInitMeta": {"cwType": "CWTPersonal","cwCurrency": "ADA","cwName": "Personal Wallet 1"}}' http://localhost:8090/api/new_wallet
+~~~
+
+You should see an answer, for example:
+
+~~~ json
+{
+	"Right": {
+		"cwAddress": "1gBqyUYWrzPe4ZbiS4L89kUPRcgp7o3J7xGZoiQ9DxXpTUq",
+		"cwAmount": {
+			"getCoin": 2000
+		},
+		"cwMeta": {
+			"cwType": "CWTPersonal",
+			"cwCurrency": "ADA",
+			"cwName": "Personal Wallet 1"
+		}
+	}
+}
+~~~
+
+It means your first wallet was created successfully. Value of `cwAddress` is an address of your node, and value of `getCoin` is your initial amount.
+
+Now you can send money to some user with this command:
+
+~~~ bash
+curl -X POST http://localhost:8090/api/send/1gBqyUYWrzPe4ZbiS4L89kUPRcgp7o3J7xGZoiQ9DxXpTUq/1g4oyDDJfMUc2xPzZjxdrxeygepjAor4JbvCebubfVmpwk2/100
+~~~
+
+where:
+
+* `1gBqyUYWrzPe4ZbiS4L89kUPRcgp7o3J7xGZoiQ9DxXpTUq` is your address.
+* `1g4oyDDJfMUc2xPzZjxdrxeygepjAor4JbvCebubfVmpwk2` is an address of some user in the testnet.
+* `100` is amount of money you want to send.
+
+Now you should see an answer, for example:
+
+~~~ json
+{
+	"Right": {
+		"ctId": "8c0e26b3e591c0a550ac0977f79c0cc9594483fb7dcc743edd899f9e1b4c5c72",
+		"ctAmount": {
+			"getCoin": 1900
+		},
+		"ctConfirmations": 0,
+		"ctType": {
+			"tag": "CTOut",
+			"contents": {
+				"ctmCurrency": "ADA",
+				"ctmTitle": "",
+				"ctmDescription": "",
+				"ctmDate": 1.489228842124409e9
+			}
+		}
+	}
+}
+~~~
+
+As you can see, the value of `getCoin` now is `1900`, because you've sent `100` ADA.
+
+You can test other functionalit of the node, please see description of [Wallet Backend API](/technical/wallet/#wallet-backend-api) for detailed info.
