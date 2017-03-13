@@ -443,6 +443,10 @@ readLoggerConfig :: MonadIO m => Maybe FilePath -> m LoggerConfig
 
 -- | Decides which secret-sharing algorithm to use.
 sscAlgoParser :: Parser SscAlgo
+data RateLimiting
+NoRateLimitingUnbounded :: RateLimiting
+NoRateLimitingFair :: RateLimiting
+RateLimitingBlocking :: !Int -> RateLimiting
 data CommonArgs
 CommonArgs :: !Bool -> ![DHTNode] -> !(Maybe FilePath) -> !(Maybe FilePath) -> !(Maybe FilePath) -> !SscAlgo -> !Bool -> ![Text] -> ![Text] -> !(Maybe (Int, Int)) -> !(Maybe (Int, Int)) -> !Bool -> CommonArgs
 [dhtExplicitInitial] :: CommonArgs -> !Bool
@@ -457,6 +461,12 @@ CommonArgs :: !Bool -> ![DHTNode] -> !(Maybe FilePath) -> !(Maybe FilePath) -> !
 [flatDistr] :: CommonArgs -> !(Maybe (Int, Int))
 [bitcoinDistr] :: CommonArgs -> !(Maybe (Int, Int))
 [expDistr] :: CommonArgs -> !Bool
+
+-- | Simulate an abusive node, that needlessly resends requests to its
+--   neighbours
+data Abusiveness
+Unabusive :: Abusiveness
+AbusiveGetBlocks :: Abusiveness
 commonArgsParser :: String -> Parser CommonArgs
 optionalJSONPath :: Parser (Maybe FilePath)
 optionalLogPrefix :: Parser (Maybe String)
@@ -470,6 +480,10 @@ ipPortOption :: NetworkAddress -> Parser NetworkAddress
 --   newlines).
 readPeersFile :: FilePath -> IO [DHTNode]
 instance GHC.Show.Show Pos.CLI.CommonArgs
+instance GHC.Show.Show Pos.CLI.Abusiveness
+instance GHC.Read.Read Pos.CLI.Abusiveness
+instance GHC.Show.Show Pos.CLI.RateLimiting
+instance GHC.Read.Read Pos.CLI.RateLimiting
 
 module Pos.Types.Block.Instances
 
@@ -949,9 +963,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679120175 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679120175)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679120168 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679120168)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679120164 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679120164)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679120193 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679120193)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679120186 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679120186)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679120182 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679120182)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SoftwareVersion
@@ -1448,7 +1462,7 @@ ncSystemStart :: NodeContext __ -> Timestamp
 
 -- | Contains algorithm specific &amp; storage parameters for Node.
 data NodeParams
-NodeParams :: !FilePath -> !Bool -> !Timestamp -> !SecretKey -> !UserSecret -> !BaseParams -> !Utxo -> !Bool -> !(Maybe FilePath) -> ![AttackType] -> ![AttackTarget] -> !Bool -> !FilePath -> !Bool -> ![Text] -> ![Text] -> NodeParams
+NodeParams :: !FilePath -> !Bool -> !Timestamp -> !SecretKey -> !UserSecret -> !BaseParams -> !Utxo -> !Bool -> !(Maybe FilePath) -> ![AttackType] -> ![AttackTarget] -> !Bool -> !FilePath -> !Bool -> ![Text] -> ![Text] -> !(Maybe Abusiveness) -> NodeParams
 
 -- | Path to node's database.
 [npDbPathM] :: NodeParams -> !FilePath
@@ -1496,9 +1510,12 @@ NodeParams :: !FilePath -> !Bool -> !Timestamp -> !SecretKey -> !UserSecret -> !
 -- | List of report server URLs
 [npReportServers] :: NodeParams -> ![Text]
 
+-- | Allows simulating an abusive node
+[npAbusiveness] :: NodeParams -> !(Maybe Abusiveness)
+
 -- | Contains basic &amp; networking parameters for running node.
 data BaseParams
-BaseParams :: !NetworkAddress -> ![DHTNode] -> !(Maybe DHTKey) -> !Bool -> !LoggingParams -> !FilePath -> BaseParams
+BaseParams :: !NetworkAddress -> ![DHTNode] -> !(Maybe DHTKey) -> !Bool -> !LoggingParams -> !FilePath -> !RateLimiting -> BaseParams
 
 -- | Port to run on
 [bpIpPort] :: BaseParams -> !NetworkAddress
@@ -1513,6 +1530,9 @@ BaseParams :: !NetworkAddress -> ![DHTNode] -> !(Maybe DHTKey) -> !Bool -> !Logg
 
 -- | Path to kademlia dump file
 [bpKademliaDump] :: BaseParams -> !FilePath
+
+-- | Rate-limiting strategy
+[bpRateLimiting] :: BaseParams -> !RateLimiting
 genesisUtxoM :: (Functor m, WithNodeContext ssc m) => m Utxo
 genesisLeadersM :: (Functor m, WithNodeContext ssc m) => m SlotLeaders
 putBlkSemaphore :: (MonadIO m, WithNodeContext ssc m) => HeaderHash -> m ()
@@ -4133,6 +4153,10 @@ mkHeadersRequest :: forall ssc m. WorkMode ssc m => Maybe HeaderHash -> m (Maybe
 requestTipOuts :: OutSpecs
 needRecovery :: forall ssc m. (SscWorkersClass ssc, WorkMode ssc m) => Proxy ssc -> m Bool
 
+-- | Ask our neighbours for their latest block, but return immediately
+--   without using the result
+requestAndDiscardTip :: WorkMode ssc m => SendActions m -> m ()
+
 -- | <tt>GetHeaders</tt> message. Behaviour of the response depends on
 --   particular combination of <a>mghFrom</a> and <a>mghTo</a>.
 --   
@@ -4262,7 +4286,7 @@ LoggingParams :: !LoggerName -> !(Maybe FilePath) -> !(Maybe FilePath) -> !(Mayb
 
 -- | Contains basic &amp; networking parameters for running node.
 data BaseParams
-BaseParams :: !NetworkAddress -> ![DHTNode] -> !(Maybe DHTKey) -> !Bool -> !LoggingParams -> !FilePath -> BaseParams
+BaseParams :: !NetworkAddress -> ![DHTNode] -> !(Maybe DHTKey) -> !Bool -> !LoggingParams -> !FilePath -> !RateLimiting -> BaseParams
 
 -- | Port to run on
 [bpIpPort] :: BaseParams -> !NetworkAddress
@@ -4278,9 +4302,12 @@ BaseParams :: !NetworkAddress -> ![DHTNode] -> !(Maybe DHTKey) -> !Bool -> !Logg
 -- | Path to kademlia dump file
 [bpKademliaDump] :: BaseParams -> !FilePath
 
+-- | Rate-limiting strategy
+[bpRateLimiting] :: BaseParams -> !RateLimiting
+
 -- | Contains algorithm specific &amp; storage parameters for Node.
 data NodeParams
-NodeParams :: !FilePath -> !Bool -> !Timestamp -> !SecretKey -> !UserSecret -> !BaseParams -> !Utxo -> !Bool -> !(Maybe FilePath) -> ![AttackType] -> ![AttackTarget] -> !Bool -> !FilePath -> !Bool -> ![Text] -> ![Text] -> NodeParams
+NodeParams :: !FilePath -> !Bool -> !Timestamp -> !SecretKey -> !UserSecret -> !BaseParams -> !Utxo -> !Bool -> !(Maybe FilePath) -> ![AttackType] -> ![AttackTarget] -> !Bool -> !FilePath -> !Bool -> ![Text] -> ![Text] -> !(Maybe Abusiveness) -> NodeParams
 
 -- | Path to node's database.
 [npDbPathM] :: NodeParams -> !FilePath
@@ -4328,6 +4355,9 @@ NodeParams :: !FilePath -> !Bool -> !Timestamp -> !SecretKey -> !UserSecret -> !
 -- | List of report server URLs
 [npReportServers] :: NodeParams -> ![Text]
 
+-- | Allows simulating an abusive node
+[npAbusiveness] :: NodeParams -> !(Maybe Abusiveness)
+
 -- | RawRealMode runner.
 runRawRealMode :: forall ssc a. SscConstraint ssc => RealModeResources -> NodeParams -> SscParams ssc -> RawRealMode ssc (ListenersWithOut (RawRealMode ssc)) -> OutSpecs -> ActionSpec (RawRealMode ssc) a -> Production a
 
@@ -4350,21 +4380,28 @@ runTimeLordReal :: LoggingParams -> Production Timestamp
 addDevListeners :: MinWorkMode m => Timestamp -> ListenersWithOut m -> ListenersWithOut m
 setupLoggers :: MonadIO m => LoggingParams -> m ()
 bracketDHTInstance :: BaseParams -> (KademliaDHTInstance -> Production a) -> Production a
-runServer :: (MonadIO m, MonadMockable m, MonadFix m, WithLogger m, MonadDHT m) => Transport -> m (ListenersWithOut m) -> OutSpecs -> (Node m -> m t) -> (t -> m ()) -> ActionSpec m b -> m b
-runServer_ :: (MonadIO m, MonadMockable m, MonadFix m, WithLogger m, MonadDHT m) => Transport -> ListenersWithOut m -> OutSpecs -> ActionSpec m b -> m b
+runServer :: (MonadIO m, MonadMockable m, MonadFix m, WithLogger m, MonadDHT m) => Transport -> RateLimiting m -> m (ListenersWithOut m) -> OutSpecs -> (Node m -> m t) -> (t -> m ()) -> ActionSpec m b -> m b
+runServer_ :: (MonadIO m, MonadMockable m, MonadFix m, WithLogger m, MonadDHT m) => Transport -> RateLimiting m -> ListenersWithOut m -> OutSpecs -> ActionSpec m b -> m b
 
 -- | RAII for node starter.
 loggerBracket :: LoggingParams -> IO a -> IO a
-createTransport :: (MonadIO m, WithLogger m, Mockable Throw m) => String -> Word16 -> m Transport
-bracketTransport :: BaseParams -> (Transport -> Production a) -> Production a
+createTransport :: (MonadIO m, WithLogger m, Mockable Throw m) => String -> Word16 -> RateLimiting m2 -> m Transport
+bracketTransport :: BaseParams -> RateLimiting Production -> (Transport -> Production a) -> Production a
 bracketResources :: BaseParams -> (RealModeResources -> Production a) -> IO a
 data RealModeResources
-RealModeResources :: Transport -> KademliaDHTInstance -> RealModeResources
+RealModeResources :: Transport -> KademliaDHTInstance -> RateLimiting Production -> RealModeResources
 [rmTransport] :: RealModeResources -> Transport
 [rmDHT] :: RealModeResources -> KademliaDHTInstance
+[rmRateLimiting] :: RealModeResources -> RateLimiting Production
 
 -- | Run full node in any WorkMode.
 runNode :: (SscConstraint ssc, WorkMode ssc m) => ([WorkerSpec m], OutSpecs) -> (WorkerSpec m, OutSpecs)
+
+-- | Run an "abusive" node.
+--   
+--   In addition to all normal functions, this node will bombard its
+--   neighbors with requests to send blocks at a high rate.
+runAbusiveNode :: (SscConstraint ssc, WorkMode ssc m) => ([WorkerSpec m], OutSpecs) -> (WorkerSpec m, OutSpecs)
 initSemaphore :: (WorkMode ssc m) => m ()
 initLrc :: WorkMode ssc m => m ()
 
