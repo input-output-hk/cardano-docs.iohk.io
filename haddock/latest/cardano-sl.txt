@@ -731,6 +731,9 @@ CompileConfig :: !Int -> !Int -> !Byte -> !Byte -> !Byte -> !Double -> !Double -
 
 -- | InvMsg propagation queue capacity
 [ccPropagationQueueSize] :: CompileConfig -> !Int
+
+-- | Used in code compile-time configuration from <i>constants-*.yaml</i>
+--   file.
 compileConfig :: CompileConfig
 
 
@@ -949,9 +952,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679120172 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679120172)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679120165 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679120165)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679120161 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679120161)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679120241 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679120241)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679120234 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679120234)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679120230 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679120230)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SoftwareVersion
@@ -3990,7 +3993,7 @@ module Pos.Wallet.Web
 -- | Servant API which provides access to wallet. TODO: Should be composed
 --   depending on the resource - wallets, txs, ...
 --   <a>http://haskell-servant.github.io/tutorial/0.4/server.html#nested-apis</a>
-type WalletApi = ("api" :> ("test" :> ("reset" :> Post '[JSON] (Either WalletError ())))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> Get '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("wallets" :> Get '[JSON] (Either WalletError [CWallet]))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> (ReqBody '[JSON] CWalletMeta :> Put '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("wallets" :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> Delete '[JSON] (Either WalletError ())))) :<|> (("api" :> ("wallets" :> ("keys" :> (ReqBody '[JSON] Text :> Post '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("wallets" :> ("restore" :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("addresses" :> (Capture "address" Text :> ("currencies" :> (Capture "currency" CCurrency :> Get '[JSON] (Either WalletError Bool)))))) :<|> (("api" :> ("profile" :> Get '[JSON] (Either WalletError CProfile))) :<|> (("api" :> ("profile" :> (ReqBody '[JSON] CProfile :> Post '[JSON] (Either WalletError CProfile)))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> Post '[JSON] (Either WalletError CTx))))))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> (Capture "currency" CCurrency :> (Capture "title" Text :> (Capture "description" Text :> Post '[JSON] (Either WalletError CTx)))))))))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "address" CAddress :> (Capture "transaction" CTxId :> (ReqBody '[JSON] CTxMeta :> Post '[JSON] (Either WalletError ()))))))) :<|> (("api" :> ("txs" :> ("histories" :> (Capture "address" CAddress :> (QueryParam "skip" Word :> (QueryParam "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word)))))))) :<|> (("api" :> ("txs" :> ("histories" :> (Capture "address" CAddress :> (Capture "search" Text :> (QueryParam "skip" Word :> (QueryParam "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word))))))))) :<|> (("api" :> ("update" :> Get '[JSON] (Either WalletError CUpdateInfo))) :<|> (("api" :> ("update" :> Post '[JSON] (Either WalletError ()))) :<|> (("api" :> ("redemptions" :> ("ada" :> (ReqBody '[JSON] CWalletRedeem :> Post '[JSON] (Either WalletError CTx))))) :<|> (("api" :> ("settings" :> ("slots" :> ("duration" :> Get '[JSON] (Either WalletError Word))))) :<|> (("api" :> ("settings" :> ("version" :> Get '[JSON] (Either WalletError SoftwareVersion)))) :<|> ("api" :> ("settings" :> ("sync" :> ("progress" :> Get '[JSON] (Either WalletError SyncProgress)))))))))))))))))))))))))
+type WalletApi = ("api" :> ("test" :> ("reset" :> Post '[JSON] (Either WalletError ())))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> Get '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("wallets" :> Get '[JSON] (Either WalletError [CWallet]))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> (ReqBody '[JSON] CWalletMeta :> Put '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("wallets" :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> Delete '[JSON] (Either WalletError ())))) :<|> (("api" :> ("wallets" :> ("keys" :> (ReqBody '[JSON] Text :> Post '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("wallets" :> ("restore" :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("addresses" :> (Capture "address" Text :> ("currencies" :> (Capture "currency" CCurrency :> Get '[JSON] (Either WalletError Bool)))))) :<|> (("api" :> ("profile" :> Get '[JSON] (Either WalletError CProfile))) :<|> (("api" :> ("profile" :> (ReqBody '[JSON] CProfile :> Post '[JSON] (Either WalletError CProfile)))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> Post '[JSON] (Either WalletError CTx))))))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> (Capture "currency" CCurrency :> (Capture "title" Text :> (Capture "description" Text :> Post '[JSON] (Either WalletError CTx)))))))))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "address" CAddress :> (Capture "transaction" CTxId :> (ReqBody '[JSON] CTxMeta :> Post '[JSON] (Either WalletError ()))))))) :<|> (("api" :> ("txs" :> ("histories" :> (Capture "address" CAddress :> (QueryParam "skip" Word :> (QueryParam "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word)))))))) :<|> (("api" :> ("txs" :> ("histories" :> (Capture "address" CAddress :> (Capture "search" Text :> (QueryParam "skip" Word :> (QueryParam "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word))))))))) :<|> (("api" :> ("update" :> Get '[JSON] (Either WalletError CUpdateInfo))) :<|> (("api" :> ("update" :> Post '[JSON] (Either WalletError ()))) :<|> (("api" :> ("redemptions" :> ("ada" :> (ReqBody '[JSON] CWalletRedeem :> Post '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("settings" :> ("slots" :> ("duration" :> Get '[JSON] (Either WalletError Word))))) :<|> (("api" :> ("settings" :> ("version" :> Get '[JSON] (Either WalletError SoftwareVersion)))) :<|> ("api" :> ("settings" :> ("sync" :> ("progress" :> Get '[JSON] (Either WalletError SyncProgress)))))))))))))))))))))))))
 
 -- | Helper Proxy.
 walletApi :: Proxy WalletApi
@@ -4001,8 +4004,7 @@ SyncProgress :: ChainDifficulty -> Maybe ChainDifficulty -> Word -> SyncProgress
 [_spPeers] :: SyncProgress -> Word
 
 -- | Client address
-newtype CAddress
-CAddress :: CHash -> CAddress
+data CAddress
 
 -- | currencies handled by client Note: Cardano does not deal with other
 --   currency than ADA yet
@@ -4012,8 +4014,7 @@ BTC :: CCurrency
 ETH :: CCurrency
 
 -- | Client hash
-newtype CHash
-CHash :: Text -> CHash
+data CHash
 
 -- | type of transactions It can be an input <i> output </i> exchange
 --   transaction CTInOut CTExMeta -- Ex == exchange
