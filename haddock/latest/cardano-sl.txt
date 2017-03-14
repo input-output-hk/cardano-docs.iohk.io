@@ -4232,9 +4232,14 @@ HAndP :: (VerifyHeaderParams ssc, BlockHeader ssc) -> HeaderAndParams ssc
 newtype BlockHeaderList ssc
 BHL :: ([BlockHeader ssc], [PublicKey]) -> BlockHeaderList ssc
 [getHeaderList] :: BlockHeaderList ssc -> ([BlockHeader ssc], [PublicKey])
+newtype SmallTxPayload
+SmallTxPayload :: TxPayload -> SmallTxPayload
 instance Pos.Ssc.Class.Types.Ssc ssc => GHC.Show.Show (Pos.Block.Arbitrary.HeaderAndParams ssc)
 instance Pos.Ssc.Class.Types.Ssc ssc => GHC.Classes.Eq (Pos.Block.Arbitrary.HeaderAndParams ssc)
 instance Pos.Ssc.Class.Types.Ssc ssc => GHC.Classes.Eq (Pos.Block.Arbitrary.BlockHeaderList ssc)
+instance Pos.Binary.Class.Bi Pos.Block.Arbitrary.SmallTxPayload
+instance GHC.Classes.Eq Pos.Block.Arbitrary.SmallTxPayload
+instance GHC.Show.Show Pos.Block.Arbitrary.SmallTxPayload
 instance (Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Class.Types.SscProof ssc), Pos.Binary.Class.Bi Pos.Binary.Class.Raw, Pos.Ssc.Class.Types.Ssc ssc) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Types.Block.Types.BlockSignature ssc)
 instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Types.Block.Types.GenesisBlockHeader ssc)
 instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Core.Block.BodyProof (Pos.Types.Block.Types.GenesisBlockchain ssc))
@@ -4248,6 +4253,8 @@ instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Block.Types.MainExtraHead
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Block.Types.MainExtraBodyData
 instance (Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Class.Types.SscProof ssc), Pos.Binary.Class.Bi Pos.Binary.Class.Raw) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Core.Block.BodyProof (Pos.Types.Block.Types.MainBlockchain ssc))
 instance (Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Class.Types.SscProof ssc), Pos.Binary.Class.Bi Pos.Binary.Class.Raw, Pos.Ssc.Class.Types.Ssc ssc) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Core.Block.ConsensusData (Pos.Types.Block.Types.MainBlockchain ssc))
+instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Txp.Core.Types.TxPayload
+instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Block.Arbitrary.SmallTxPayload
 instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Arbitrary.SscPayloadDependsOnSlot ssc) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Block.Arbitrary.BodyDependsOnConsensus (Pos.Types.Block.Types.MainBlockchain ssc))
 instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Class.Types.SscPayload ssc) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Core.Block.Body (Pos.Types.Block.Types.MainBlockchain ssc))
 instance (Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Class.Types.SscProof ssc), Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Arbitrary.SscPayloadDependsOnSlot ssc), Pos.Ssc.Class.Helpers.SscHelpersClass ssc) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Core.Block.GenericBlock (Pos.Types.Block.Types.MainBlockchain ssc))
