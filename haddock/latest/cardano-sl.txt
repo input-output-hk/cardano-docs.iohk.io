@@ -593,10 +593,11 @@ txF :: Format r (Tx -> r)
 -- | Specialized formatter for <a>Tx</a> with auxiliary data
 txaF :: Format r (TxAux -> r)
 data TxProof
-TxProof :: !Word32 -> !(MerkleRoot Tx) -> !(Hash [TxWitness]) -> TxProof
+TxProof :: !Word32 -> !(MerkleRoot Tx) -> !(Hash [TxWitness]) -> !(Hash [TxDistribution]) -> TxProof
 [txpNumber] :: TxProof -> !Word32
 [txpRoot] :: TxProof -> !(MerkleRoot Tx)
 [txpWitnessesHash] :: TxProof -> !(Hash [TxWitness])
+[txpDistributionsHash] :: TxProof -> !(Hash [TxDistribution])
 
 -- | Payload of Txp component which is part of main block. Constructor is
 --   unsafe, because it lets one create invalid payload, for example with
