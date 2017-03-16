@@ -243,6 +243,8 @@ After running with this command your node will listen two ports:
 1. `3000` for communication with other nodes in our testnet,
 2. `8090` for use wallet functionality, via wallet web API.
 
+Please make sure you ran your node with `--wallet` option, otherwise port `8090` won't be available. You can use another port for wallet web API, via `--wallet-port` option. 
+
 Now you can test your node.
 
 ## Use Case - Sending Transaction
