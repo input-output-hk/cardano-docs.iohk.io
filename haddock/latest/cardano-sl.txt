@@ -28,8 +28,8 @@ simpleUserSecret :: SecretKey -> FilePath -> UserSecret
 --   already exist.
 initializeUserSecret :: (MonadIO m) => FilePath -> m ()
 
--- | Reads user secret from file, assuming that file exists, and has mode
---   600, throws exception in other case
+-- | Reads user secret from file, assuming that file exists, throws
+--   exception in other case
 readUserSecret :: MonadIO m => FilePath -> m UserSecret
 
 -- | Reads user secret from the given file. If the file does not exist/is
@@ -1120,9 +1120,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679107622 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679107622)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679107615 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679107615)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679107611 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679107611)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679104756 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679104756)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679104749 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679104749)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679104745 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679104745)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SoftwareVersion
@@ -1899,7 +1899,7 @@ sscRunLocalQuery :: forall ssc m a. (MonadSscMem ssc m, MonadIO m) => ReaderT (S
 
 -- | Run STM transaction which modifies <a>SscLocalData</a> and also can
 --   log.
-sscRunLocalSTM :: forall ssc m a. (MonadSscMem ssc m, MonadIO m, WithLogger m) => (LoggerNameBox (PureLogger (StateT (SscLocalData ssc) STM)) a) -> m a
+sscRunLocalSTM :: forall ssc m a. (MonadSscMem ssc m, MonadIO m, WithLogger m) => StateT (SscLocalData ssc) (NamedPureLogger STM) a -> m a
 
 -- | Run something that reads <a>SscGlobalState</a> in <a>MonadSscMem</a>.
 --   <a>MonadIO</a> is also needed to use stm.
@@ -2882,11 +2882,10 @@ rollbackGT :: MonadToss m => EpochOrSlot -> NewestFirst [] GtPayload -> m ()
 -- | Apply as much data from given <a>TossModifier</a> as possible.
 normalizeToss :: forall m. MonadToss m => EpochIndex -> TossModifier -> m ()
 newtype PureToss a
-PureToss :: LoggerNameBox (PureLogger (RWS MultiRichmenStake () GtGlobalState)) a -> PureToss a
-[getPureToss] :: PureToss a -> LoggerNameBox (PureLogger (RWS MultiRichmenStake () GtGlobalState)) a
+PureToss :: NamedPureLogger (RWS MultiRichmenStake () GtGlobalState) a -> PureToss a
+[getPureToss] :: PureToss a -> NamedPureLogger (RWS MultiRichmenStake () GtGlobalState) a
 type MultiRichmenStake = HashMap EpochIndex RichmenStake
 type MultiRichmenSet = HashMap EpochIndex RichmenSet
-runPureToss :: LoggerName -> MultiRichmenStake -> GtGlobalState -> PureToss a -> (a, GtGlobalState, [LogEvent])
 runPureTossWithLogger :: WithLogger m => MultiRichmenStake -> GtGlobalState -> PureToss a -> m (a, GtGlobalState)
 evalPureTossWithLogger :: WithLogger m => MultiRichmenStake -> GtGlobalState -> PureToss a -> m a
 execPureTossWithLogger :: WithLogger m => MultiRichmenStake -> GtGlobalState -> PureToss a -> m GtGlobalState
