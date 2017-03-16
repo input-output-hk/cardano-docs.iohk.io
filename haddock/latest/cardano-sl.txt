@@ -989,6 +989,10 @@ readLoggerConfig :: MonadIO m => Maybe FilePath -> m LoggerConfig
 
 -- | Decides which secret-sharing algorithm to use.
 sscAlgoParser :: Parser SscAlgo
+data RateLimiting
+NoRateLimitingUnbounded :: RateLimiting
+NoRateLimitingFair :: RateLimiting
+RateLimitingBlocking :: !Int -> RateLimiting
 data CommonArgs
 CommonArgs :: !Bool -> ![DHTNode] -> !(Maybe FilePath) -> !(Maybe FilePath) -> !(Maybe FilePath) -> !SscAlgo -> !Bool -> ![Text] -> ![Text] -> !(Maybe (Int, Int)) -> !(Maybe (Int, Int)) -> !Bool -> CommonArgs
 [dhtExplicitInitial] :: CommonArgs -> !Bool
@@ -1016,6 +1020,8 @@ ipPortOption :: NetworkAddress -> Parser NetworkAddress
 --   newlines).
 readPeersFile :: FilePath -> IO [DHTNode]
 instance GHC.Show.Show Pos.CLI.CommonArgs
+instance GHC.Show.Show Pos.CLI.RateLimiting
+instance GHC.Read.Read Pos.CLI.RateLimiting
 
 
 -- | <a>Arbitrary</a> instances for core types for using in tests and
@@ -1120,9 +1126,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679104756 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679104756)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679104749 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679104749)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679104745 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679104745)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679120191 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679120191)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679120184 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679120184)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679120180 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679120180)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SoftwareVersion
@@ -1670,7 +1676,7 @@ NodeParams :: !FilePath -> !Bool -> !Timestamp -> !SecretKey -> !UserSecret -> !
 
 -- | Contains basic &amp; networking parameters for running node.
 data BaseParams
-BaseParams :: !NetworkAddress -> ![DHTNode] -> !(Maybe DHTKey) -> !Bool -> !LoggingParams -> !FilePath -> BaseParams
+BaseParams :: !NetworkAddress -> ![DHTNode] -> !(Maybe DHTKey) -> !Bool -> !LoggingParams -> !FilePath -> !RateLimiting -> BaseParams
 
 -- | Port to run on
 [bpIpPort] :: BaseParams -> !NetworkAddress
@@ -1685,6 +1691,9 @@ BaseParams :: !NetworkAddress -> ![DHTNode] -> !(Maybe DHTKey) -> !Bool -> !Logg
 
 -- | Path to kademlia dump file
 [bpKademliaDump] :: BaseParams -> !FilePath
+
+-- | Rate-limiting strategy
+[bpRateLimiting] :: BaseParams -> !RateLimiting
 genesisUtxoM :: (Functor m, WithNodeContext ssc m) => m Utxo
 genesisLeadersM :: (Functor m, WithNodeContext ssc m) => m SlotLeaders
 putBlkSemaphore :: (MonadIO m, WithNodeContext ssc m) => HeaderHash -> m ()
@@ -1899,7 +1908,7 @@ sscRunLocalQuery :: forall ssc m a. (MonadSscMem ssc m, MonadIO m) => ReaderT (S
 
 -- | Run STM transaction which modifies <a>SscLocalData</a> and also can
 --   log.
-sscRunLocalSTM :: forall ssc m a. (MonadSscMem ssc m, MonadIO m, WithLogger m) => StateT (SscLocalData ssc) (NamedPureLogger STM) a -> m a
+sscRunLocalSTM :: forall ssc m a. (MonadSscMem ssc m, MonadIO m, WithLogger m) => (LoggerNameBox (PureLogger (StateT (SscLocalData ssc) STM)) a) -> m a
 
 -- | Run something that reads <a>SscGlobalState</a> in <a>MonadSscMem</a>.
 --   <a>MonadIO</a> is also needed to use stm.
@@ -2882,10 +2891,11 @@ rollbackGT :: MonadToss m => EpochOrSlot -> NewestFirst [] GtPayload -> m ()
 -- | Apply as much data from given <a>TossModifier</a> as possible.
 normalizeToss :: forall m. MonadToss m => EpochIndex -> TossModifier -> m ()
 newtype PureToss a
-PureToss :: NamedPureLogger (RWS MultiRichmenStake () GtGlobalState) a -> PureToss a
-[getPureToss] :: PureToss a -> NamedPureLogger (RWS MultiRichmenStake () GtGlobalState) a
+PureToss :: LoggerNameBox (PureLogger (RWS MultiRichmenStake () GtGlobalState)) a -> PureToss a
+[getPureToss] :: PureToss a -> LoggerNameBox (PureLogger (RWS MultiRichmenStake () GtGlobalState)) a
 type MultiRichmenStake = HashMap EpochIndex RichmenStake
 type MultiRichmenSet = HashMap EpochIndex RichmenSet
+runPureToss :: LoggerName -> MultiRichmenStake -> GtGlobalState -> PureToss a -> (a, GtGlobalState, [LogEvent])
 runPureTossWithLogger :: WithLogger m => MultiRichmenStake -> GtGlobalState -> PureToss a -> m (a, GtGlobalState)
 evalPureTossWithLogger :: WithLogger m => MultiRichmenStake -> GtGlobalState -> PureToss a -> m a
 execPureTossWithLogger :: WithLogger m => MultiRichmenStake -> GtGlobalState -> PureToss a -> m GtGlobalState
@@ -4307,7 +4317,7 @@ LoggingParams :: !LoggerName -> !(Maybe FilePath) -> !(Maybe FilePath) -> !(Mayb
 
 -- | Contains basic &amp; networking parameters for running node.
 data BaseParams
-BaseParams :: !NetworkAddress -> ![DHTNode] -> !(Maybe DHTKey) -> !Bool -> !LoggingParams -> !FilePath -> BaseParams
+BaseParams :: !NetworkAddress -> ![DHTNode] -> !(Maybe DHTKey) -> !Bool -> !LoggingParams -> !FilePath -> !RateLimiting -> BaseParams
 
 -- | Port to run on
 [bpIpPort] :: BaseParams -> !NetworkAddress
@@ -4322,6 +4332,9 @@ BaseParams :: !NetworkAddress -> ![DHTNode] -> !(Maybe DHTKey) -> !Bool -> !Logg
 
 -- | Path to kademlia dump file
 [bpKademliaDump] :: BaseParams -> !FilePath
+
+-- | Rate-limiting strategy
+[bpRateLimiting] :: BaseParams -> !RateLimiting
 
 -- | Contains algorithm specific &amp; storage parameters for Node.
 data NodeParams
@@ -4395,18 +4408,19 @@ runTimeLordReal :: LoggingParams -> Production Timestamp
 addDevListeners :: MinWorkMode m => Timestamp -> ListenersWithOut m -> ListenersWithOut m
 setupLoggers :: MonadIO m => LoggingParams -> m ()
 bracketDHTInstance :: BaseParams -> (KademliaDHTInstance -> Production a) -> Production a
-runServer :: (MonadIO m, MonadMockable m, MonadFix m, WithLogger m, MonadDHT m) => Transport -> m (ListenersWithOut m) -> OutSpecs -> (Node m -> m t) -> (t -> m ()) -> ActionSpec m b -> m b
-runServer_ :: (MonadIO m, MonadMockable m, MonadFix m, WithLogger m, MonadDHT m) => Transport -> ListenersWithOut m -> OutSpecs -> ActionSpec m b -> m b
+runServer :: (MonadIO m, MonadMockable m, MonadFix m, WithLogger m, MonadDHT m) => Transport -> RateLimiting m -> m (ListenersWithOut m) -> OutSpecs -> (Node m -> m t) -> (t -> m ()) -> ActionSpec m b -> m b
+runServer_ :: (MonadIO m, MonadMockable m, MonadFix m, WithLogger m, MonadDHT m) => Transport -> RateLimiting m -> ListenersWithOut m -> OutSpecs -> ActionSpec m b -> m b
 
 -- | RAII for node starter.
 loggerBracket :: LoggingParams -> IO a -> IO a
-createTransport :: (MonadIO m, WithLogger m, Mockable Throw m) => String -> Word16 -> m Transport
-bracketTransport :: BaseParams -> (Transport -> Production a) -> Production a
+createTransport :: (MonadIO m, WithLogger m, Mockable Throw m) => String -> Word16 -> RateLimiting m2 -> m Transport
+bracketTransport :: BaseParams -> RateLimiting Production -> (Transport -> Production a) -> Production a
 bracketResources :: BaseParams -> (RealModeResources -> Production a) -> IO a
 data RealModeResources
-RealModeResources :: Transport -> KademliaDHTInstance -> RealModeResources
+RealModeResources :: Transport -> KademliaDHTInstance -> RateLimiting Production -> RealModeResources
 [rmTransport] :: RealModeResources -> Transport
 [rmDHT] :: RealModeResources -> KademliaDHTInstance
+[rmRateLimiting] :: RealModeResources -> RateLimiting Production
 
 -- | Run full node in any WorkMode.
 runNode :: (SscConstraint ssc, WorkMode ssc m) => ([WorkerSpec m], OutSpecs) -> (WorkerSpec m, OutSpecs)
