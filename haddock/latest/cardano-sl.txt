@@ -121,16 +121,12 @@ inAssertMode :: Applicative m => m a -> m ()
 -- | Remove elements which are in <tt>b</tt> from <tt>a</tt>
 diffDoubleMap :: forall k1 k2 v. (Eq k1, Eq k2, Hashable k1, Hashable k2) => HashMap k1 (HashMap k2 v) -> HashMap k1 (HashMap k2 v) -> HashMap k1 (HashMap k2 v)
 maybeThrow' :: (Mockable Throw m, Exception e) => e -> Maybe a -> m a
-type NE = NonEmpty
 neZipWith3 :: (x -> y -> z -> q) -> NonEmpty x -> NonEmpty y -> NonEmpty z -> NonEmpty q
-newtype NewestFirst f a
-NewestFirst :: f a -> NewestFirst f a
-[getNewestFirst] :: NewestFirst f a -> f a
-newtype OldestFirst f a
-OldestFirst :: f a -> OldestFirst f a
-[getOldestFirst] :: OldestFirst f a -> f a
-toNewestFirst :: Chrono f => OldestFirst f a -> NewestFirst f a
-toOldestFirst :: Chrono f => NewestFirst f a -> OldestFirst f a
+
+-- | Makes a span on the list, considering tail only. Predicate has list
+--   head as first argument. Used to take non-null prefix that depends on
+--   the first element.
+spanSafe :: (a -> a -> Bool) -> NonEmpty a -> (NonEmpty a, [a])
 
 -- | Make lenses for a data family instance.
 makeLensesData :: Name -> Name -> DecsQ
@@ -151,11 +147,6 @@ _neLast :: Lens' (NonEmpty a) a
 
 -- | Remove all items from LRU, retaining maxSize property.
 clearLRU :: Ord k => LRU k v -> LRU k v
-
--- | Makes a span on the list, considering tail only. Predicate has list
---   head as first argument. Used to take non-null prefix that depends on
---   the first element.
-spanSafe :: (a -> a -> Bool) -> NonEmpty a -> (NonEmpty a, [a])
 eitherToVerRes :: Either Text a -> VerificationRes
 clearMVar :: MonadIO m => MVar a -> m ()
 forcePutMVar :: MonadIO m => MVar a -> a -> m ()
@@ -176,45 +167,11 @@ readUntilEqualTVar :: (Eq a, MonadIO m) => (x -> a) -> TVar x -> a -> m x
 withReadLifted :: (MonadIO m, MonadMask m) => RWLock -> m a -> m a
 withWriteLifted :: (MonadIO m, MonadMask m) => RWLock -> m a -> m a
 instance Control.Monad.Fail.MonadFail m => Control.Monad.Fail.MonadFail (System.Wlog.LoggerNameBox.LoggerNameBox m)
-instance Pos.Util.OldestFirst f0 a0 ~ t0 => Control.Lens.Wrapped.Rewrapped (Pos.Util.OldestFirst f1 a1) t0
-instance Control.Lens.Wrapped.Wrapped (Pos.Util.OldestFirst f0 a0)
-instance Control.Lens.Each.Each (f a) (f b) a b => Control.Lens.Each.Each (Pos.Util.NewestFirst f a) (Pos.Util.NewestFirst f b) a b
-instance Control.Lens.Each.Each (f a) (f b) a b => Control.Lens.Each.Each (Pos.Util.OldestFirst f a) (Pos.Util.OldestFirst f b) a b
-instance Containers.One (f a) => Containers.One (Pos.Util.NewestFirst f a)
-instance Containers.One (f a) => Containers.One (Pos.Util.OldestFirst f a)
-instance GHC.Exts.IsList (f a) => GHC.Exts.IsList (Pos.Util.NewestFirst f a)
-instance GHC.Exts.IsList (f a) => GHC.Exts.IsList (Pos.Util.OldestFirst f a)
-instance Pos.Util.Chrono []
-instance Pos.Util.Chrono Data.List.NonEmpty.NonEmpty
+instance Data.SafeCopy.SafeCopy.SafeCopy Serokell.Util.Verify.VerificationRes
 instance (GHC.Classes.Ord k, Data.SafeCopy.SafeCopy.SafeCopy k, Data.SafeCopy.SafeCopy.SafeCopy v) => Data.SafeCopy.SafeCopy.SafeCopy (Data.Cache.LRU.Internal.LRU k v)
 instance Data.String.IsString s => Control.Monad.Fail.MonadFail (Data.Either.Either s)
 instance Control.Monad.Fail.MonadFail (Text.Parsec.Prim.ParsecT s u m)
 instance Control.Monad.Fail.MonadFail m => Control.Monad.Fail.MonadFail (Control.Monad.Trans.Resource.Internal.ResourceT m)
-instance Pos.Util.NewestFirst f0 a0 ~ t0 => Control.Lens.Wrapped.Rewrapped (Pos.Util.NewestFirst f1 a1) t0
-instance Control.Lens.Wrapped.Wrapped (Pos.Util.NewestFirst f0 a0)
-instance Test.QuickCheck.Arbitrary.Arbitrary (f a) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Util.OldestFirst f a)
-instance Pos.Binary.Class.Bi (f a) => Pos.Binary.Class.Bi (Pos.Util.OldestFirst f a)
-instance Data.Binary.Class.Binary (f a) => Data.Binary.Class.Binary (Pos.Util.OldestFirst f a)
-instance Containers.NontrivialContainer (f a) => Containers.NontrivialContainer (Pos.Util.OldestFirst f a)
-instance Containers.Container (f a) => Containers.Container (Pos.Util.OldestFirst f a)
-instance Data.Traversable.Traversable f => Data.Traversable.Traversable (Pos.Util.OldestFirst f)
-instance Data.Foldable.Foldable f => Data.Foldable.Foldable (Pos.Util.OldestFirst f)
-instance GHC.Base.Functor f => GHC.Base.Functor (Pos.Util.OldestFirst f)
-instance GHC.Show.Show (f a) => GHC.Show.Show (Pos.Util.OldestFirst f a)
-instance GHC.Classes.Ord (f a) => GHC.Classes.Ord (Pos.Util.OldestFirst f a)
-instance GHC.Classes.Eq (f a) => GHC.Classes.Eq (Pos.Util.OldestFirst f a)
-instance Test.QuickCheck.Arbitrary.Arbitrary (f a) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Util.NewestFirst f a)
-instance Pos.Binary.Class.Bi (f a) => Pos.Binary.Class.Bi (Pos.Util.NewestFirst f a)
-instance Data.Binary.Class.Binary (f a) => Data.Binary.Class.Binary (Pos.Util.NewestFirst f a)
-instance Containers.NontrivialContainer (f a) => Containers.NontrivialContainer (Pos.Util.NewestFirst f a)
-instance Containers.Container (f a) => Containers.Container (Pos.Util.NewestFirst f a)
-instance Data.Traversable.Traversable f => Data.Traversable.Traversable (Pos.Util.NewestFirst f)
-instance Data.Foldable.Foldable f => Data.Foldable.Foldable (Pos.Util.NewestFirst f)
-instance GHC.Base.Functor f => GHC.Base.Functor (Pos.Util.NewestFirst f)
-instance GHC.Show.Show (f a) => GHC.Show.Show (Pos.Util.NewestFirst f a)
-instance GHC.Classes.Ord (f a) => GHC.Classes.Ord (Pos.Util.NewestFirst f a)
-instance GHC.Classes.Eq (f a) => GHC.Classes.Eq (Pos.Util.NewestFirst f a)
-instance Data.SafeCopy.SafeCopy.SafeCopy Serokell.Util.Verify.VerificationRes
 
 
 -- | Contains all Shared Seed Calculation algorithms implemented in our
@@ -989,10 +946,6 @@ readLoggerConfig :: MonadIO m => Maybe FilePath -> m LoggerConfig
 
 -- | Decides which secret-sharing algorithm to use.
 sscAlgoParser :: Parser SscAlgo
-data RateLimiting
-NoRateLimitingUnbounded :: RateLimiting
-NoRateLimitingFair :: RateLimiting
-RateLimitingBlocking :: !Int -> RateLimiting
 data CommonArgs
 CommonArgs :: !Bool -> ![DHTNode] -> !(Maybe FilePath) -> !(Maybe FilePath) -> !(Maybe FilePath) -> !SscAlgo -> !Bool -> ![Text] -> ![Text] -> !(Maybe (Int, Int)) -> !(Maybe (Int, Int)) -> !Bool -> CommonArgs
 [dhtExplicitInitial] :: CommonArgs -> !Bool
@@ -1020,8 +973,6 @@ ipPortOption :: NetworkAddress -> Parser NetworkAddress
 --   newlines).
 readPeersFile :: FilePath -> IO [DHTNode]
 instance GHC.Show.Show Pos.CLI.CommonArgs
-instance GHC.Show.Show Pos.CLI.RateLimiting
-instance GHC.Read.Read Pos.CLI.RateLimiting
 
 
 -- | <a>Arbitrary</a> instances for core types for using in tests and
@@ -1126,9 +1077,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679120191 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679120191)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679120184 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679120184)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679120180 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679120180)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679104855 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679104855)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679104848 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679104848)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679104844 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679104844)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SoftwareVersion
@@ -1676,7 +1627,7 @@ NodeParams :: !FilePath -> !Bool -> !Timestamp -> !SecretKey -> !UserSecret -> !
 
 -- | Contains basic &amp; networking parameters for running node.
 data BaseParams
-BaseParams :: !NetworkAddress -> ![DHTNode] -> !(Maybe DHTKey) -> !Bool -> !LoggingParams -> !FilePath -> !RateLimiting -> BaseParams
+BaseParams :: !NetworkAddress -> ![DHTNode] -> !(Maybe DHTKey) -> !Bool -> !LoggingParams -> !FilePath -> BaseParams
 
 -- | Port to run on
 [bpIpPort] :: BaseParams -> !NetworkAddress
@@ -1691,9 +1642,6 @@ BaseParams :: !NetworkAddress -> ![DHTNode] -> !(Maybe DHTKey) -> !Bool -> !Logg
 
 -- | Path to kademlia dump file
 [bpKademliaDump] :: BaseParams -> !FilePath
-
--- | Rate-limiting strategy
-[bpRateLimiting] :: BaseParams -> !RateLimiting
 genesisUtxoM :: (Functor m, WithNodeContext ssc m) => m Utxo
 genesisLeadersM :: (Functor m, WithNodeContext ssc m) => m SlotLeaders
 putBlkSemaphore :: (MonadIO m, WithNodeContext ssc m) => HeaderHash -> m ()
@@ -1908,7 +1856,7 @@ sscRunLocalQuery :: forall ssc m a. (MonadSscMem ssc m, MonadIO m) => ReaderT (S
 
 -- | Run STM transaction which modifies <a>SscLocalData</a> and also can
 --   log.
-sscRunLocalSTM :: forall ssc m a. (MonadSscMem ssc m, MonadIO m, WithLogger m) => (LoggerNameBox (PureLogger (StateT (SscLocalData ssc) STM)) a) -> m a
+sscRunLocalSTM :: forall ssc m a. (MonadSscMem ssc m, MonadIO m, WithLogger m) => StateT (SscLocalData ssc) (NamedPureLogger STM) a -> m a
 
 -- | Run something that reads <a>SscGlobalState</a> in <a>MonadSscMem</a>.
 --   <a>MonadIO</a> is also needed to use stm.
@@ -2891,11 +2839,10 @@ rollbackGT :: MonadToss m => EpochOrSlot -> NewestFirst [] GtPayload -> m ()
 -- | Apply as much data from given <a>TossModifier</a> as possible.
 normalizeToss :: forall m. MonadToss m => EpochIndex -> TossModifier -> m ()
 newtype PureToss a
-PureToss :: LoggerNameBox (PureLogger (RWS MultiRichmenStake () GtGlobalState)) a -> PureToss a
-[getPureToss] :: PureToss a -> LoggerNameBox (PureLogger (RWS MultiRichmenStake () GtGlobalState)) a
+PureToss :: NamedPureLogger (RWS MultiRichmenStake () GtGlobalState) a -> PureToss a
+[getPureToss] :: PureToss a -> NamedPureLogger (RWS MultiRichmenStake () GtGlobalState) a
 type MultiRichmenStake = HashMap EpochIndex RichmenStake
 type MultiRichmenSet = HashMap EpochIndex RichmenSet
-runPureToss :: LoggerName -> MultiRichmenStake -> GtGlobalState -> PureToss a -> (a, GtGlobalState, [LogEvent])
 runPureTossWithLogger :: WithLogger m => MultiRichmenStake -> GtGlobalState -> PureToss a -> m (a, GtGlobalState)
 evalPureTossWithLogger :: WithLogger m => MultiRichmenStake -> GtGlobalState -> PureToss a -> m a
 execPureTossWithLogger :: WithLogger m => MultiRichmenStake -> GtGlobalState -> PureToss a -> m GtGlobalState
@@ -4317,7 +4264,7 @@ LoggingParams :: !LoggerName -> !(Maybe FilePath) -> !(Maybe FilePath) -> !(Mayb
 
 -- | Contains basic &amp; networking parameters for running node.
 data BaseParams
-BaseParams :: !NetworkAddress -> ![DHTNode] -> !(Maybe DHTKey) -> !Bool -> !LoggingParams -> !FilePath -> !RateLimiting -> BaseParams
+BaseParams :: !NetworkAddress -> ![DHTNode] -> !(Maybe DHTKey) -> !Bool -> !LoggingParams -> !FilePath -> BaseParams
 
 -- | Port to run on
 [bpIpPort] :: BaseParams -> !NetworkAddress
@@ -4332,9 +4279,6 @@ BaseParams :: !NetworkAddress -> ![DHTNode] -> !(Maybe DHTKey) -> !Bool -> !Logg
 
 -- | Path to kademlia dump file
 [bpKademliaDump] :: BaseParams -> !FilePath
-
--- | Rate-limiting strategy
-[bpRateLimiting] :: BaseParams -> !RateLimiting
 
 -- | Contains algorithm specific &amp; storage parameters for Node.
 data NodeParams
@@ -4408,19 +4352,18 @@ runTimeLordReal :: LoggingParams -> Production Timestamp
 addDevListeners :: MinWorkMode m => Timestamp -> ListenersWithOut m -> ListenersWithOut m
 setupLoggers :: MonadIO m => LoggingParams -> m ()
 bracketDHTInstance :: BaseParams -> (KademliaDHTInstance -> Production a) -> Production a
-runServer :: (MonadIO m, MonadMockable m, MonadFix m, WithLogger m, MonadDHT m) => Transport -> RateLimiting m -> m (ListenersWithOut m) -> OutSpecs -> (Node m -> m t) -> (t -> m ()) -> ActionSpec m b -> m b
-runServer_ :: (MonadIO m, MonadMockable m, MonadFix m, WithLogger m, MonadDHT m) => Transport -> RateLimiting m -> ListenersWithOut m -> OutSpecs -> ActionSpec m b -> m b
+runServer :: (MonadIO m, MonadMockable m, MonadFix m, WithLogger m, MonadDHT m) => Transport -> m (ListenersWithOut m) -> OutSpecs -> (Node m -> m t) -> (t -> m ()) -> ActionSpec m b -> m b
+runServer_ :: (MonadIO m, MonadMockable m, MonadFix m, WithLogger m, MonadDHT m) => Transport -> ListenersWithOut m -> OutSpecs -> ActionSpec m b -> m b
 
 -- | RAII for node starter.
 loggerBracket :: LoggingParams -> IO a -> IO a
-createTransport :: (MonadIO m, WithLogger m, Mockable Throw m) => String -> Word16 -> RateLimiting m2 -> m Transport
-bracketTransport :: BaseParams -> RateLimiting Production -> (Transport -> Production a) -> Production a
+createTransport :: (MonadIO m, WithLogger m, Mockable Throw m) => String -> Word16 -> m Transport
+bracketTransport :: BaseParams -> (Transport -> Production a) -> Production a
 bracketResources :: BaseParams -> (RealModeResources -> Production a) -> IO a
 data RealModeResources
-RealModeResources :: Transport -> KademliaDHTInstance -> RateLimiting Production -> RealModeResources
+RealModeResources :: Transport -> KademliaDHTInstance -> RealModeResources
 [rmTransport] :: RealModeResources -> Transport
 [rmDHT] :: RealModeResources -> KademliaDHTInstance
-[rmRateLimiting] :: RealModeResources -> RateLimiting Production
 
 -- | Run full node in any WorkMode.
 runNode :: (SscConstraint ssc, WorkMode ssc m) => ([WorkerSpec m], OutSpecs) -> (WorkerSpec m, OutSpecs)
