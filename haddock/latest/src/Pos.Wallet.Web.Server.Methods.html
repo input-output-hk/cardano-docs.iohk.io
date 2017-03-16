@@ -544,8 +544,8 @@ testResetAll | isDevelopment = deleteAllKeys &gt;&gt; testReset
              | otherwise     = throwM err403
   where
     deleteAllKeys = do
-        keyNum &lt;- length &lt;$&gt; getSecretKeys
-        sequence_ $ replicate keyNum $ deleteSecretKey 0
+        keyNum &lt;- fromIntegral . pred . length &lt;$&gt; getSecretKeys
+        sequence_ $ replicate keyNum $ deleteSecretKey 1
 
 ---------------------------------------------------------------------------
 -- Helpers
