@@ -1353,7 +1353,7 @@ TestnetStakes :: !Coin -> !Word -> !Word -> StakeDistribution
 [sdRichmen] :: StakeDistribution -> !Word
 [sdPoor] :: StakeDistribution -> !Word
 ExponentialStakes :: StakeDistribution
-ExplicitStakes :: !(HashMap Address Coin) -> StakeDistribution
+ExplicitStakes :: !(HashMap Address (Coin, [(StakeholderId, Coin)])) -> StakeDistribution
 
 -- | Hardcoded genesis data
 data GenesisData
