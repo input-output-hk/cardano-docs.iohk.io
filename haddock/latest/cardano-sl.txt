@@ -384,7 +384,7 @@ txInToPair :: TxIn -> (TxId, Word32)
 
 -- | Use this function if you need to know how a <a>TxOut</a> distributes
 --   stake (e.g. for the purpose of running follow-the-satoshi).
-txOutStake :: TxOutAux -> [(StakeholderId, Coin)]
+txOutStake :: TxOutAux -> TxOutDistribution
 
 -- | Does topological sort on things that contain transactions – e.g. can
 --   be used both for sorting <tt>[Tx]</tt> and <tt>[(Tx, TxWitness)]</tt>.
@@ -414,12 +414,17 @@ UnknownWitnessType :: !Word8 -> !ByteString -> TxInWitness
 --   separate proof is provided for each input.
 type TxWitness = Vector TxInWitness
 
+-- | Distribution of "fake" stake that follow-the-satoshi would use for a
+--   particular transaction output. Sum of coins in the list should be the
+--   same as <a>txOutValue</a> of corresponding output.
+type TxOutDistribution = [(StakeholderId, Coin)]
+
 -- | Distribution of “fake” stake that follow-the-satoshi would use for a
 --   particular transaction. Length of stored list must be same as length
 --   of <a>_txOutputs</a> of corresponding transaction.
 newtype TxDistribution
-TxDistribution :: NonEmpty [(StakeholderId, Coin)] -> TxDistribution
-[getTxDistribution] :: TxDistribution -> NonEmpty [(StakeholderId, Coin)]
+TxDistribution :: NonEmpty TxOutDistribution -> TxDistribution
+[getTxDistribution] :: TxDistribution -> NonEmpty TxOutDistribution
 
 -- | Data that is being signed when creating a TxSig.
 type TxSigData = (TxId, Word32, Hash (NonEmpty TxOut), Hash TxDistribution)
@@ -446,13 +451,13 @@ TxOut :: !Address -> !Coin -> TxOut
 -- | Transaction output and auxilary data corresponding to it. [CSL-366]
 --   Add more data.
 data TxOutAux
-TxOutAux :: !TxOut -> ![(StakeholderId, Coin)] -> TxOutAux
+TxOutAux :: !TxOut -> !TxOutDistribution -> TxOutAux
 
 -- | Tx output
 [toaOut] :: TxOutAux -> !TxOut
 
 -- | Stake distribution associated with output
-[toaDistr] :: TxOutAux -> ![(StakeholderId, Coin)]
+[toaDistr] :: TxOutAux -> !TxOutDistribution
 
 -- | Represents transaction attributes: map from 1-byte integer to
 --   arbitrary-type value. To be used for extending transaction with new
@@ -1353,7 +1358,7 @@ TestnetStakes :: !Coin -> !Word -> !Word -> StakeDistribution
 [sdRichmen] :: StakeDistribution -> !Word
 [sdPoor] :: StakeDistribution -> !Word
 ExponentialStakes :: StakeDistribution
-ExplicitStakes :: !(HashMap Address Coin) -> StakeDistribution
+ExplicitStakes :: !(HashMap Address (Coin, TxOutDistribution)) -> StakeDistribution
 
 -- | Hardcoded genesis data
 data GenesisData
