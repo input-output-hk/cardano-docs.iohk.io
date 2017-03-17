@@ -121,12 +121,16 @@ inAssertMode :: Applicative m => m a -> m ()
 -- | Remove elements which are in <tt>b</tt> from <tt>a</tt>
 diffDoubleMap :: forall k1 k2 v. (Eq k1, Eq k2, Hashable k1, Hashable k2) => HashMap k1 (HashMap k2 v) -> HashMap k1 (HashMap k2 v) -> HashMap k1 (HashMap k2 v)
 maybeThrow' :: (Mockable Throw m, Exception e) => e -> Maybe a -> m a
+type NE = NonEmpty
 neZipWith3 :: (x -> y -> z -> q) -> NonEmpty x -> NonEmpty y -> NonEmpty z -> NonEmpty q
-
--- | Makes a span on the list, considering tail only. Predicate has list
---   head as first argument. Used to take non-null prefix that depends on
---   the first element.
-spanSafe :: (a -> a -> Bool) -> NonEmpty a -> (NonEmpty a, [a])
+newtype NewestFirst f a
+NewestFirst :: f a -> NewestFirst f a
+[getNewestFirst] :: NewestFirst f a -> f a
+newtype OldestFirst f a
+OldestFirst :: f a -> OldestFirst f a
+[getOldestFirst] :: OldestFirst f a -> f a
+toNewestFirst :: Chrono f => OldestFirst f a -> NewestFirst f a
+toOldestFirst :: Chrono f => NewestFirst f a -> OldestFirst f a
 
 -- | Make lenses for a data family instance.
 makeLensesData :: Name -> Name -> DecsQ
@@ -147,6 +151,11 @@ _neLast :: Lens' (NonEmpty a) a
 
 -- | Remove all items from LRU, retaining maxSize property.
 clearLRU :: Ord k => LRU k v -> LRU k v
+
+-- | Makes a span on the list, considering tail only. Predicate has list
+--   head as first argument. Used to take non-null prefix that depends on
+--   the first element.
+spanSafe :: (a -> a -> Bool) -> NonEmpty a -> (NonEmpty a, [a])
 eitherToVerRes :: Either Text a -> VerificationRes
 clearMVar :: MonadIO m => MVar a -> m ()
 forcePutMVar :: MonadIO m => MVar a -> a -> m ()
@@ -167,11 +176,45 @@ readUntilEqualTVar :: (Eq a, MonadIO m) => (x -> a) -> TVar x -> a -> m x
 withReadLifted :: (MonadIO m, MonadMask m) => RWLock -> m a -> m a
 withWriteLifted :: (MonadIO m, MonadMask m) => RWLock -> m a -> m a
 instance Control.Monad.Fail.MonadFail m => Control.Monad.Fail.MonadFail (System.Wlog.LoggerNameBox.LoggerNameBox m)
-instance Data.SafeCopy.SafeCopy.SafeCopy Serokell.Util.Verify.VerificationRes
+instance Pos.Util.OldestFirst f0 a0 ~ t0 => Control.Lens.Wrapped.Rewrapped (Pos.Util.OldestFirst f1 a1) t0
+instance Control.Lens.Wrapped.Wrapped (Pos.Util.OldestFirst f0 a0)
+instance Control.Lens.Each.Each (f a) (f b) a b => Control.Lens.Each.Each (Pos.Util.NewestFirst f a) (Pos.Util.NewestFirst f b) a b
+instance Control.Lens.Each.Each (f a) (f b) a b => Control.Lens.Each.Each (Pos.Util.OldestFirst f a) (Pos.Util.OldestFirst f b) a b
+instance Containers.One (f a) => Containers.One (Pos.Util.NewestFirst f a)
+instance Containers.One (f a) => Containers.One (Pos.Util.OldestFirst f a)
+instance GHC.Exts.IsList (f a) => GHC.Exts.IsList (Pos.Util.NewestFirst f a)
+instance GHC.Exts.IsList (f a) => GHC.Exts.IsList (Pos.Util.OldestFirst f a)
+instance Pos.Util.Chrono []
+instance Pos.Util.Chrono Data.List.NonEmpty.NonEmpty
 instance (GHC.Classes.Ord k, Data.SafeCopy.SafeCopy.SafeCopy k, Data.SafeCopy.SafeCopy.SafeCopy v) => Data.SafeCopy.SafeCopy.SafeCopy (Data.Cache.LRU.Internal.LRU k v)
 instance Data.String.IsString s => Control.Monad.Fail.MonadFail (Data.Either.Either s)
 instance Control.Monad.Fail.MonadFail (Text.Parsec.Prim.ParsecT s u m)
 instance Control.Monad.Fail.MonadFail m => Control.Monad.Fail.MonadFail (Control.Monad.Trans.Resource.Internal.ResourceT m)
+instance Pos.Util.NewestFirst f0 a0 ~ t0 => Control.Lens.Wrapped.Rewrapped (Pos.Util.NewestFirst f1 a1) t0
+instance Control.Lens.Wrapped.Wrapped (Pos.Util.NewestFirst f0 a0)
+instance Test.QuickCheck.Arbitrary.Arbitrary (f a) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Util.OldestFirst f a)
+instance Pos.Binary.Class.Bi (f a) => Pos.Binary.Class.Bi (Pos.Util.OldestFirst f a)
+instance Data.Binary.Class.Binary (f a) => Data.Binary.Class.Binary (Pos.Util.OldestFirst f a)
+instance Containers.NontrivialContainer (f a) => Containers.NontrivialContainer (Pos.Util.OldestFirst f a)
+instance Containers.Container (f a) => Containers.Container (Pos.Util.OldestFirst f a)
+instance Data.Traversable.Traversable f => Data.Traversable.Traversable (Pos.Util.OldestFirst f)
+instance Data.Foldable.Foldable f => Data.Foldable.Foldable (Pos.Util.OldestFirst f)
+instance GHC.Base.Functor f => GHC.Base.Functor (Pos.Util.OldestFirst f)
+instance GHC.Show.Show (f a) => GHC.Show.Show (Pos.Util.OldestFirst f a)
+instance GHC.Classes.Ord (f a) => GHC.Classes.Ord (Pos.Util.OldestFirst f a)
+instance GHC.Classes.Eq (f a) => GHC.Classes.Eq (Pos.Util.OldestFirst f a)
+instance Test.QuickCheck.Arbitrary.Arbitrary (f a) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Util.NewestFirst f a)
+instance Pos.Binary.Class.Bi (f a) => Pos.Binary.Class.Bi (Pos.Util.NewestFirst f a)
+instance Data.Binary.Class.Binary (f a) => Data.Binary.Class.Binary (Pos.Util.NewestFirst f a)
+instance Containers.NontrivialContainer (f a) => Containers.NontrivialContainer (Pos.Util.NewestFirst f a)
+instance Containers.Container (f a) => Containers.Container (Pos.Util.NewestFirst f a)
+instance Data.Traversable.Traversable f => Data.Traversable.Traversable (Pos.Util.NewestFirst f)
+instance Data.Foldable.Foldable f => Data.Foldable.Foldable (Pos.Util.NewestFirst f)
+instance GHC.Base.Functor f => GHC.Base.Functor (Pos.Util.NewestFirst f)
+instance GHC.Show.Show (f a) => GHC.Show.Show (Pos.Util.NewestFirst f a)
+instance GHC.Classes.Ord (f a) => GHC.Classes.Ord (Pos.Util.NewestFirst f a)
+instance GHC.Classes.Eq (f a) => GHC.Classes.Eq (Pos.Util.NewestFirst f a)
+instance Data.SafeCopy.SafeCopy.SafeCopy Serokell.Util.Verify.VerificationRes
 
 
 -- | Contains all Shared Seed Calculation algorithms implemented in our
@@ -539,6 +582,27 @@ txpDistributions :: Lens' TxPayload [TxDistribution]
 type TxUndo = NonEmpty TxOutAux
 type TxpUndo = [TxUndo]
 
+
+-- | Txp settings which let customize Txp behavior.
+module Pos.Txp.Settings
+type TxpGlobalVerifyMode m = (WithLogger m, MonadDB m, MonadError ToilVerFailure m)
+type TxpGlobalApplyMode m = (WithLogger m, MonadDB m, MonadSlots m)
+type TxpGlobalRollbackMode m = (WithLogger m, MonadDB m)
+type TxpBlock = Either (Some IsGenesisHeader) (Some IsMainHeader, TxPayload)
+type TxpBlund = (TxpBlock, TxpUndo)
+data TxpGlobalSettings
+TxpGlobalSettings :: (forall m. TxpGlobalVerifyMode m => OldestFirst NE TxpBlock -> m (OldestFirst NE TxpUndo)) -> (forall m. TxpGlobalApplyMode m => OldestFirst NE TxpBlund -> m SomeBatchOp) -> (forall m. TxpGlobalRollbackMode m => NewestFirst NE TxpBlund -> m SomeBatchOp) -> TxpGlobalSettings
+
+-- | Verify a chain of payloads from blocks and return txp undos for each
+--   payload.
+[tgsVerifyBlocks] :: TxpGlobalSettings -> forall m. TxpGlobalVerifyMode m => OldestFirst NE TxpBlock -> m (OldestFirst NE TxpUndo)
+
+-- | Apply chain of <i>definitely</i> valid blocks to Txp's GState.
+[tgsApplyBlocks] :: TxpGlobalSettings -> forall m. TxpGlobalApplyMode m => OldestFirst NE TxpBlund -> m SomeBatchOp
+
+-- | Rollback chain of blocks.
+[tgsRollbackBlocks] :: TxpGlobalSettings -> forall m. TxpGlobalRollbackMode m => NewestFirst NE TxpBlund -> m SomeBatchOp
+
 module Pos.Types.Block.Instances
 
 -- | Proof of data stored in the body. Ensures immutability.
@@ -595,6 +659,9 @@ headerSlot :: Lens' (MainBlockHeader ssc) SlotId
 
 -- | Lens for <a>SscPayload</a> in main block body.
 mbMpc :: Lens' (Body (MainBlockchain ssc)) (SscPayload ssc)
+
+-- | Lens for transaction payload in main block body.
+mbTxPayload :: Lens' (Body (MainBlockchain ssc)) TxPayload
 
 -- | Lens for transaction tree in main block body.
 mbTxs :: Lens' (Body (MainBlockchain ssc)) (MerkleTree Tx)
@@ -1077,9 +1144,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679104855 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679104855)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679104848 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679104848)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679104844 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679104844)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679104756 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679104756)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679104749 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679104749)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679104745 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679104745)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SoftwareVersion
@@ -1502,7 +1569,7 @@ type LrcSyncData = (Bool, EpochIndex)
 
 -- | NodeContext contains runtime context of node.
 data NodeContext ssc
-NodeContext :: !(Maybe (MVar FilePath)) -> !(SscNodeContext ssc) -> !(MVar HeaderHash) -> !(TVar LrcSyncData) -> !(TVar UserSecret) -> !(TBQueue (NodeId, NewestFirst NE (BlockHeader ssc))) -> !(TMVar (NodeId, BlockHeader ssc)) -> !(TMVar (BlockHeader ssc)) -> !(MVar ConfirmedProposalState) -> !RelayInvQueue -> !LoggerConfig -> !NodeParams -> !(TVar Bool) -> !(TBQueue ()) -> !(Maybe (MVar ())) -> !UTCTime -> !(TVar (Maybe (BlockHeader ssc))) -> NodeContext ssc
+NodeContext :: !(Maybe (MVar FilePath)) -> !(SscNodeContext ssc) -> !(MVar HeaderHash) -> !(TVar LrcSyncData) -> !(TVar UserSecret) -> !(TBQueue (NodeId, NewestFirst NE (BlockHeader ssc))) -> !(TMVar (NodeId, BlockHeader ssc)) -> !(TMVar (BlockHeader ssc)) -> !(MVar ConfirmedProposalState) -> !RelayInvQueue -> !LoggerConfig -> !NodeParams -> !(TVar Bool) -> !(TBQueue ()) -> !(Maybe (MVar ())) -> !UTCTime -> !(TVar (Maybe (BlockHeader ssc))) -> !TxpGlobalSettings -> NodeContext ssc
 [ncJLFile] :: NodeContext ssc -> !(Maybe (MVar FilePath))
 [ncSscContext] :: NodeContext ssc -> !(SscNodeContext ssc)
 
@@ -1564,6 +1631,9 @@ NodeContext :: !(Maybe (MVar FilePath)) -> !(SscNodeContext ssc) -> !(MVar Heade
 --   which reached us). Should be use only for informational purposes
 --   (status in Daedalus). It's easy to falsify this value.
 [ncLastKnownHeader] :: NodeContext ssc -> !(TVar (Maybe (BlockHeader ssc)))
+
+-- | Settings for global Txp.
+[ncTxpGlobalSetttings] :: NodeContext ssc -> !TxpGlobalSettings
 
 -- | Generate <a>PublicKey</a> from <tt>SecretKey</tt> of
 --   <a>NodeContext</a>.
@@ -3093,15 +3163,9 @@ data TxpError
 -- | Something bad happened inside Txp
 TxpInternalError :: !Text -> TxpError
 
--- | Verify chain of blocks and return transaction undos of blocks.
-txVerifyBlocks :: forall ssc m. TxpGlobalVerifyMode m => OldestFirst NE (Block ssc) -> m (OldestFirst NE TxpUndo)
-
--- | Apply chain of <i>definitely</i> valid blocks to state on transactions
---   processing.
-txApplyBlocks :: (MonadThrow m, TxpGlobalApplyMode m) => OldestFirst NE (Blund ssc) -> m SomeBatchOp
-
--- | Rollback chain of blocks.
-txRollbackBlocks :: (WithLogger m, MonadDB m) => NewestFirst NE (Blund ssc) -> m SomeBatchOp
+-- | Settings used for global transactions data processing used by a simple
+--   full node.
+txpGlobalSettings :: TxpGlobalSettings
 txProcessTransaction :: TxpLocalWorkMode m => (TxId, TxAux) -> m ()
 
 -- | <ol>
@@ -3223,6 +3287,7 @@ ToilInvalidInputs :: ![Text] -> ToilVerFailure
 ToilTooLargeTx :: !Byte -> !Byte -> ToilVerFailure
 [ttltSize] :: ToilVerFailure -> !Byte
 [ttltLimit] :: ToilVerFailure -> !Byte
+type GlobalTxpMode m = (MonadUtxo m, MonadBalances m, MonadToilEnv m, WithLogger m)
 
 -- | Verify transactions correctness with respect to Utxo applying them
 --   one-by-one. Note: transactions must be topsorted to pass check.
@@ -3236,6 +3301,7 @@ applyToil :: GlobalTxpMode m => [(TxAux, TxUndo)] -> m ()
 
 -- | Rollback transactions from one block.
 rollbackToil :: GlobalTxpMode m => [(TxAux, TxUndo)] -> m ()
+type LocalTxpMode m = (MonadUtxo m, MonadToilEnv m, MonadTxPool m)
 
 -- | Get rid of invalid transactions. All valid transactions will be added
 --   to mem pool and applied to utxo.
@@ -3244,6 +3310,7 @@ normalizeToil :: (LocalTxpMode m) => [(TxId, TxAux)] -> m ()
 -- | Verify one transaction and also add it to mem pool and apply to utxo
 --   if transaction is valid.
 processTx :: (LocalTxpMode m, MonadError ToilVerFailure m) => (TxId, TxAux) -> m ()
+verifyAndApplyTx :: (MonadUtxo m, MonadToilEnv m, MonadError ToilVerFailure m) => Bool -> (TxId, TxAux) -> m TxUndo
 
 -- | Monad transformer which stores ToilModifier and implements writable
 --   Toil type classes.
@@ -3252,24 +3319,24 @@ processTx :: (LocalTxpMode m, MonadError ToilVerFailure m) => (TxId, TxAux) -> m
 --   <li><i>WARNING</i> This transformer uses StateT and is intended for
 --   single-threaded usage only. Used for block application now.</li>
 --   </ul>
-newtype ToilT m a
-ToilT :: StateT ToilModifier m a -> ToilT m a
-[getToilT] :: ToilT m a -> StateT ToilModifier m a
+newtype ToilT ext m a
+ToilT :: StateT (GenericToilModifier ext) m a -> ToilT ext m a
+[getToilT] :: ToilT ext m a -> StateT (GenericToilModifier ext) m a
 
 -- | Run ToilT using specified modifier.
-runToilT :: ToilModifier -> ToilT m a -> m (a, ToilModifier)
+runToilT :: GenericToilModifier ext -> ToilT ext m a -> m (a, GenericToilModifier ext)
 
 -- | Run ToilT using empty modifier. Should be used for global transaction
 --   processing.
-runToilTGlobal :: Functor m => ToilT m a -> m (a, ToilModifier)
+runToilTGlobal :: (Default ext, Functor m) => ToilT ext m a -> m (a, GenericToilModifier ext)
 
 -- | Run ToilT using empty balances modifier. Should be used for local
 --   transaction processing.
-runToilTLocal :: Functor m => UtxoModifier -> MemPool -> UndoMap -> ToilT m a -> m (a, ToilModifier)
+runToilTLocal :: (Default ext, Functor m) => UtxoModifier -> MemPool -> UndoMap -> ToilT ext m a -> m (a, GenericToilModifier ext)
 
 -- | Execute ToilT using empty balances modifier. Should be used for local
 --   transaction processing.
-execToilTLocal :: Functor m => UtxoModifier -> MemPool -> UndoMap -> ToilT m a -> m ToilModifier
+execToilTLocal :: (Default ext, Functor m) => UtxoModifier -> MemPool -> UndoMap -> ToilT ext m a -> m (GenericToilModifier ext)
 
 -- | Unspent transaction outputs.
 --   
@@ -3300,16 +3367,19 @@ bvStakes :: Lens' BalancesView (HashMap StakeholderId Coin)
 bvTotal :: Lens' BalancesView (Maybe Coin)
 type UndoMap = HashMap TxId TxUndo
 type UtxoModifier = MapModifier TxIn TxOutAux
-data ToilModifier
-ToilModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> ToilModifier
-[_tmUtxo] :: ToilModifier -> !UtxoModifier
-[_tmBalances] :: ToilModifier -> !BalancesView
-[_tmMemPool] :: ToilModifier -> !MemPool
-[_tmUndos] :: ToilModifier -> !UndoMap
-tmUtxo :: Lens' ToilModifier UtxoModifier
-tmBalances :: Lens' ToilModifier BalancesView
-tmMemPool :: Lens' ToilModifier MemPool
-tmUndos :: Lens' ToilModifier UndoMap
+data GenericToilModifier extension
+ToilModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> !extension -> GenericToilModifier extension
+[_tmUtxo] :: GenericToilModifier extension -> !UtxoModifier
+[_tmBalances] :: GenericToilModifier extension -> !BalancesView
+[_tmMemPool] :: GenericToilModifier extension -> !MemPool
+[_tmUndos] :: GenericToilModifier extension -> !UndoMap
+[_tmExtra] :: GenericToilModifier extension -> !extension
+type ToilModifier = GenericToilModifier ()
+tmUtxo :: forall extension_a2gIM. Lens' (GenericToilModifier extension_a2gIM) UtxoModifier
+tmBalances :: forall extension_a2gIM. Lens' (GenericToilModifier extension_a2gIM) BalancesView
+tmMemPool :: forall extension_a2gIM. Lens' (GenericToilModifier extension_a2gIM) MemPool
+tmUndos :: forall extension_a2gIM. Lens' (GenericToilModifier extension_a2gIM) UndoMap
+tmExtra :: forall extension_a2gIM extension_a2gKK. Lens (GenericToilModifier extension_a2gIM) (GenericToilModifier extension_a2gKK) extension_a2gIM extension_a2gKK
 
 -- | Environment used by Toil.
 data ToilEnv
