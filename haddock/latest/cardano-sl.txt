@@ -427,7 +427,10 @@ txInToPair :: TxIn -> (TxId, Word32)
 
 -- | Use this function if you need to know how a <a>TxOut</a> distributes
 --   stake (e.g. for the purpose of running follow-the-satoshi).
-txOutStake :: TxOutAux -> TxOutDistribution
+txOutStake :: TxOutAux -> [(StakeholderId, Coin)]
+
+-- | Convert <a>TxPayload</a> into a flat list of <a>TxAux</a>s.
+flattenTxPayload :: TxPayload -> [TxAux]
 
 -- | Does topological sort on things that contain transactions – e.g. can
 --   be used both for sorting <tt>[Tx]</tt> and <tt>[(Tx, TxWitness)]</tt>.
@@ -457,17 +460,12 @@ UnknownWitnessType :: !Word8 -> !ByteString -> TxInWitness
 --   separate proof is provided for each input.
 type TxWitness = Vector TxInWitness
 
--- | Distribution of "fake" stake that follow-the-satoshi would use for a
---   particular transaction output. Sum of coins in the list should be the
---   same as <a>txOutValue</a> of corresponding output.
-type TxOutDistribution = [(StakeholderId, Coin)]
-
 -- | Distribution of “fake” stake that follow-the-satoshi would use for a
 --   particular transaction. Length of stored list must be same as length
 --   of <a>_txOutputs</a> of corresponding transaction.
 newtype TxDistribution
-TxDistribution :: NonEmpty TxOutDistribution -> TxDistribution
-[getTxDistribution] :: TxDistribution -> NonEmpty TxOutDistribution
+TxDistribution :: NonEmpty [(StakeholderId, Coin)] -> TxDistribution
+[getTxDistribution] :: TxDistribution -> NonEmpty [(StakeholderId, Coin)]
 
 -- | Data that is being signed when creating a TxSig.
 type TxSigData = (TxId, Word32, Hash (NonEmpty TxOut), Hash TxDistribution)
@@ -494,13 +492,13 @@ TxOut :: !Address -> !Coin -> TxOut
 -- | Transaction output and auxilary data corresponding to it. [CSL-366]
 --   Add more data.
 data TxOutAux
-TxOutAux :: !TxOut -> !TxOutDistribution -> TxOutAux
+TxOutAux :: !TxOut -> ![(StakeholderId, Coin)] -> TxOutAux
 
 -- | Tx output
 [toaOut] :: TxOutAux -> !TxOut
 
 -- | Stake distribution associated with output
-[toaDistr] :: TxOutAux -> !TxOutDistribution
+[toaDistr] :: TxOutAux -> ![(StakeholderId, Coin)]
 
 -- | Represents transaction attributes: map from 1-byte integer to
 --   arbitrary-type value. To be used for extending transaction with new
@@ -587,6 +585,27 @@ txpDistributions :: Lens' TxPayload [TxDistribution]
 type TxUndo = NonEmpty TxOutAux
 type TxpUndo = [TxUndo]
 
+
+-- | Txp settings which let customize Txp behavior.
+module Pos.Txp.Settings
+type TxpGlobalVerifyMode m = (WithLogger m, MonadDB m, MonadError ToilVerFailure m)
+type TxpGlobalApplyMode m = (WithLogger m, MonadDB m, MonadSlots m)
+type TxpGlobalRollbackMode m = (WithLogger m, MonadDB m)
+type TxpBlock = Either (Some IsGenesisHeader) (Some IsMainHeader, TxPayload)
+type TxpBlund = (TxpBlock, TxpUndo)
+data TxpGlobalSettings
+TxpGlobalSettings :: (forall m. TxpGlobalVerifyMode m => OldestFirst NE TxpBlock -> m (OldestFirst NE TxpUndo)) -> (forall m. TxpGlobalApplyMode m => OldestFirst NE TxpBlund -> m SomeBatchOp) -> (forall m. TxpGlobalRollbackMode m => NewestFirst NE TxpBlund -> m SomeBatchOp) -> TxpGlobalSettings
+
+-- | Verify a chain of payloads from blocks and return txp undos for each
+--   payload.
+[tgsVerifyBlocks] :: TxpGlobalSettings -> forall m. TxpGlobalVerifyMode m => OldestFirst NE TxpBlock -> m (OldestFirst NE TxpUndo)
+
+-- | Apply chain of <i>definitely</i> valid blocks to Txp's GState.
+[tgsApplyBlocks] :: TxpGlobalSettings -> forall m. TxpGlobalApplyMode m => OldestFirst NE TxpBlund -> m SomeBatchOp
+
+-- | Rollback chain of blocks.
+[tgsRollbackBlocks] :: TxpGlobalSettings -> forall m. TxpGlobalRollbackMode m => NewestFirst NE TxpBlund -> m SomeBatchOp
+
 module Pos.Types.Block.Instances
 
 -- | Proof of data stored in the body. Ensures immutability.
@@ -643,6 +662,9 @@ headerSlot :: Lens' (MainBlockHeader ssc) SlotId
 
 -- | Lens for <a>SscPayload</a> in main block body.
 mbMpc :: Lens' (Body (MainBlockchain ssc)) (SscPayload ssc)
+
+-- | Lens for transaction payload in main block body.
+mbTxPayload :: Lens' (Body (MainBlockchain ssc)) TxPayload
 
 -- | Lens for transaction tree in main block body.
 mbTxs :: Lens' (Body (MainBlockchain ssc)) (MerkleTree Tx)
@@ -1401,7 +1423,7 @@ TestnetStakes :: !Coin -> !Word -> !Word -> StakeDistribution
 [sdRichmen] :: StakeDistribution -> !Word
 [sdPoor] :: StakeDistribution -> !Word
 ExponentialStakes :: StakeDistribution
-ExplicitStakes :: !(HashMap Address (Coin, TxOutDistribution)) -> StakeDistribution
+ExplicitStakes :: !(HashMap Address Coin) -> StakeDistribution
 
 -- | Hardcoded genesis data
 data GenesisData
@@ -1550,7 +1572,7 @@ type LrcSyncData = (Bool, EpochIndex)
 
 -- | NodeContext contains runtime context of node.
 data NodeContext ssc
-NodeContext :: !(Maybe (MVar FilePath)) -> !(SscNodeContext ssc) -> !(MVar HeaderHash) -> !(TVar LrcSyncData) -> !(TVar UserSecret) -> !(TBQueue (NodeId, NewestFirst NE (BlockHeader ssc))) -> !(TMVar (NodeId, BlockHeader ssc)) -> !(TMVar (BlockHeader ssc)) -> !(MVar ConfirmedProposalState) -> !RelayInvQueue -> !LoggerConfig -> !NodeParams -> !(TVar Bool) -> !(TBQueue ()) -> !(Maybe (MVar ())) -> !UTCTime -> !(TVar (Maybe (BlockHeader ssc))) -> NodeContext ssc
+NodeContext :: !(Maybe (MVar FilePath)) -> !(SscNodeContext ssc) -> !(MVar HeaderHash) -> !(TVar LrcSyncData) -> !(TVar UserSecret) -> !(TBQueue (NodeId, NewestFirst NE (BlockHeader ssc))) -> !(TMVar (NodeId, BlockHeader ssc)) -> !(TMVar (BlockHeader ssc)) -> !(MVar ConfirmedProposalState) -> !RelayInvQueue -> !LoggerConfig -> !NodeParams -> !(TVar Bool) -> !(TBQueue ()) -> !(Maybe (MVar ())) -> !UTCTime -> !(TVar (Maybe (BlockHeader ssc))) -> !TxpGlobalSettings -> NodeContext ssc
 [ncJLFile] :: NodeContext ssc -> !(Maybe (MVar FilePath))
 [ncSscContext] :: NodeContext ssc -> !(SscNodeContext ssc)
 
@@ -1612,6 +1634,9 @@ NodeContext :: !(Maybe (MVar FilePath)) -> !(SscNodeContext ssc) -> !(MVar Heade
 --   which reached us). Should be use only for informational purposes
 --   (status in Daedalus). It's easy to falsify this value.
 [ncLastKnownHeader] :: NodeContext ssc -> !(TVar (Maybe (BlockHeader ssc)))
+
+-- | Settings for global Txp.
+[ncTxpGlobalSetttings] :: NodeContext ssc -> !TxpGlobalSettings
 
 -- | Generate <a>PublicKey</a> from <tt>SecretKey</tt> of
 --   <a>NodeContext</a>.
@@ -2035,7 +2060,7 @@ module Pos.WorkMode
 
 -- | Bunch of constraints to perform work for real world distributed
 --   system.
-type WorkMode ssc m = (MinWorkMode m, MonadMask m, MonadSlots m, MonadDB m, MonadDBLimits m, MonadTxpMem m, MonadDhtMem m, MonadRelayMem m, MonadDelegation m, MonadSscMem ssc m, MonadReportingMem m, SscGStateClass ssc, SscLocalDataClass ssc, SscHelpersClass ssc, WithNodeContext ssc m, MonadStats m, MonadJL m, WithKademliaDHTInstance m, WithPeerState m, MonadUSMem m, MonadShutdownMem m)
+type WorkMode ssc m = (MinWorkMode m, MonadMask m, MonadSlots m, MonadDB m, MonadDBLimits m, MonadTxpMem () m, MonadDhtMem m, MonadRelayMem m, MonadDelegation m, MonadSscMem ssc m, MonadReportingMem m, SscGStateClass ssc, SscLocalDataClass ssc, SscHelpersClass ssc, WithNodeContext ssc m, MonadStats m, MonadJL m, WithKademliaDHTInstance m, WithPeerState m, MonadUSMem m, MonadShutdownMem m)
 
 -- | More relaxed version of <a>WorkMode</a>.
 type MinWorkMode m = (WithLogger m, MonadMockable m, MonadDHT m, MonadIO m, WithPeerState m)
@@ -2045,7 +2070,7 @@ type MinWorkMode m = (WithLogger m, MonadMockable m, MonadDHT m, MonadIO m, With
 type ProductionMode ssc = NoStatsT (RawRealMode ssc)
 
 -- | RawRealMode is a basis for <a>WorkMode</a>s used to really run system.
-type RawRealMode ssc = PeerStateHolder (KademliaDHT (USHolder (DelegationT (TxpHolder (SscHolder ssc (NtpSlotting (SlottingHolder (ContextHolder ssc (DBHolder (LoggerNameBox Production))))))))))
+type RawRealMode ssc = PeerStateHolder (KademliaDHT (USHolder (DelegationT (TxpHolder () (SscHolder ssc (NtpSlotting (SlottingHolder (ContextHolder ssc (DBHolder (LoggerNameBox Production))))))))))
 
 -- | ServiceMode is the mode in which support nodes work.
 type ServiceMode = PeerStateHolder (KademliaDHT (LoggerNameBox Production))
@@ -2085,7 +2110,7 @@ instance Pos.Communication.Relay.Class.MonadRelayMem m => Pos.Communication.Rela
 instance Pos.Update.MemState.Class.MonadUSMem m => Pos.Update.MemState.Class.MonadUSMem (Pos.DHT.Real.Types.KademliaDHT m)
 instance Pos.Update.MemState.Class.MonadUSMem m => Pos.Update.MemState.Class.MonadUSMem (Pos.Communication.PeerState.PeerStateHolder m)
 instance Pos.Ssc.Extra.Class.MonadSscMem ssc m => Pos.Ssc.Extra.Class.MonadSscMem ssc (Pos.Communication.PeerState.PeerStateHolder m)
-instance Pos.Txp.MemState.Class.MonadTxpMem m => Pos.Txp.MemState.Class.MonadTxpMem (Pos.Communication.PeerState.PeerStateHolder m)
+instance Pos.Txp.MemState.Class.MonadTxpMem x m => Pos.Txp.MemState.Class.MonadTxpMem x (Pos.Communication.PeerState.PeerStateHolder m)
 instance Pos.Shutdown.Class.MonadShutdownMem m => Pos.Shutdown.Class.MonadShutdownMem (Pos.Communication.PeerState.PeerStateHolder m)
 instance Pos.Shutdown.Class.MonadShutdownMem m => Pos.Shutdown.Class.MonadShutdownMem (Pos.DHT.Real.Types.KademliaDHT m)
 instance Pos.Shutdown.Class.MonadShutdownMem m => Pos.Shutdown.Class.MonadShutdownMem (Pos.Slotting.Ntp.NtpSlotting m)
@@ -3125,7 +3150,7 @@ module Pos.Web
 baseDocsText :: Text
 gtDocsText :: Text
 type MyWorkMode ssc m = (WorkMode ssc m, SscConstraint ssc)
-type WebHandler ssc = TxpHolder (ContextHolder ssc (DBHolder Production))
+type WebHandler ssc = TxpHolder () (ContextHolder ssc (DBHolder Production))
 serveImpl :: MonadIO m => m Application -> String -> Word16 -> m ()
 nat :: forall ssc m. (MyWorkMode ssc m) => m (WebHandler ssc :~> Handler)
 serveWebBase :: MyWorkMode ssc m => Word16 -> m ()
@@ -3141,46 +3166,39 @@ data TxpError
 -- | Something bad happened inside Txp
 TxpInternalError :: !Text -> TxpError
 
--- | Verify chain of blocks and return transaction undos of blocks.
-txVerifyBlocks :: forall ssc m. TxpGlobalVerifyMode m => OldestFirst NE (Block ssc) -> m (OldestFirst NE TxpUndo)
+-- | Settings used for global transactions data processing used by a simple
+--   full node.
+txpGlobalSettings :: TxpGlobalSettings
 
--- | Apply chain of <i>definitely</i> valid blocks to state on transactions
---   processing.
-txApplyBlocks :: (MonadThrow m, TxpGlobalApplyMode m) => OldestFirst NE (Blund ssc) -> m SomeBatchOp
-
--- | Rollback chain of blocks.
-txRollbackBlocks :: (WithLogger m, MonadDB m) => NewestFirst NE (Blund ssc) -> m SomeBatchOp
+-- | Convert <a>GenericToilModifier</a> to batch of database operations.
+genericToilModifierToBatch :: (e -> SomeBatchOp) -> GenericToilModifier e -> SomeBatchOp
 txProcessTransaction :: TxpLocalWorkMode m => (TxId, TxAux) -> m ()
 
 -- | <ol>
 --   <li>Recompute UtxoView by current MemPool | 2. Remove invalid
 --   transactions from MemPool | 3. Set new tip to txp local data</li>
 --   </ol>
-txNormalize :: (MonadDB m, MonadTxpMem m) => m ()
+txNormalize :: (MonadDB m, MonadTxpMem () m) => m ()
 
--- | Reduced equivalent of <tt>MonadReader TxpLocalData m</tt>.
-class Monad m => MonadTxpMem m where askTxpMem = lift askTxpMem
+-- | Reduced equivalent of <tt>MonadReader (GenericTxpLocalData mw) m</tt>.
+class Monad m => MonadTxpMem extra m | m -> extra where askTxpMem = lift askTxpMem
 
--- | Retrieve <a>TxpLocalData</a>.
-askTxpMem :: MonadTxpMem m => m TxpLocalData
+-- | Retrieve <a>GenericTxpLocalData</a>.
+askTxpMem :: MonadTxpMem extra m => m (GenericTxpLocalData extra)
 
--- | Retrieve <a>TxpLocalData</a>.
-askTxpMem :: (MonadTxpMem m, MonadTrans t, MonadTxpMem m', t m' ~ m) => m TxpLocalData
-getUtxoModifier :: (MonadTxpMem m, MonadIO m) => m UtxoModifier
-getLocalTxsNUndo :: (MonadIO m, MonadTxpMem m) => m ([(TxId, TxAux)], HashMap TxId (NonEmpty TxOutAux))
-getMemPool :: (MonadIO m, MonadTxpMem m) => m MemPool
-getLocalTxs :: (MonadIO m, MonadTxpMem m) => m [(TxId, TxAux)]
-modifyTxpLocalData :: (MonadIO m, MonadTxpMem m) => (TxpLocalDataPure -> (a, TxpLocalDataPure)) -> m a
-setTxpLocalData :: (MonadIO m, MonadTxpMem m) => TxpLocalDataPure -> m ()
-newtype TxpHolder m a
-TxpHolder :: ReaderT TxpLocalData m a -> TxpHolder m a
-[getTxpHolder] :: TxpHolder m a -> ReaderT TxpLocalData m a
-runTxpHolder :: MonadIO m => UtxoModifier -> HeaderHash -> TxpHolder m a -> m a
-
--- | Local run needed for validation txs. For validation need only
---   UtxoModifier.
-runLocalTxpHolder :: MonadIO m => TxpHolder m a -> UtxoModifier -> m a
-runTxpHolderReader :: TxpLocalData -> TxpHolder m a -> m a
+-- | Retrieve <a>GenericTxpLocalData</a>.
+askTxpMem :: (MonadTxpMem extra m, MonadTrans t, MonadTxpMem extra m', t m' ~ m) => m (GenericTxpLocalData extra)
+getUtxoModifier :: forall e m. (MonadTxpMem e m, MonadIO m) => m UtxoModifier
+getLocalTxsNUndo :: forall e m. (MonadIO m, MonadTxpMem e m) => m ([(TxId, TxAux)], HashMap TxId (NonEmpty TxOutAux))
+getMemPool :: forall e m. (MonadIO m, MonadTxpMem e m) => m MemPool
+getLocalTxs :: forall e m. (MonadIO m, MonadTxpMem e m) => m [(TxId, TxAux)]
+modifyTxpLocalData :: (MonadIO m, MonadTxpMem ext m) => (GenericTxpLocalDataPure ext -> (a, GenericTxpLocalDataPure ext)) -> m a
+setTxpLocalData :: (MonadIO m, MonadTxpMem ext m) => GenericTxpLocalDataPure ext -> m ()
+newtype TxpHolder ext m a
+TxpHolder :: ReaderT (GenericTxpLocalData ext) m a -> TxpHolder ext m a
+[getTxpHolder] :: TxpHolder ext m a -> ReaderT (GenericTxpLocalData ext) m a
+mkTxpLocalData :: MonadIO m => UtxoModifier -> HeaderHash -> m TxpLocalData
+runTxpHolder :: TxpLocalData -> TxpHolder () m a -> m a
 
 -- | LocalData of transactions processing. There are two invariants which
 --   must hold for local data (where um is UtxoModifier, memPool is MemPool
@@ -3192,13 +3210,21 @@ runTxpHolderReader :: TxpLocalData -> TxpHolder m a -> m a
 --   transactions from <tt>memPool</tt> to <tt>utxo1</tt>, resulting Utxo
 --   will be equivalent to <tt>um</tt> with respect to MonadUtxo.
 --   
---   Real data inside TxpHolder.
-data TxpLocalData
-TxpLocalData :: !(TVar UtxoModifier) -> !(TVar MemPool) -> !(TVar UndoMap) -> !(TVar HeaderHash) -> TxpLocalData
-[txpUtxoModifier] :: TxpLocalData -> !(TVar UtxoModifier)
-[txpMemPool] :: TxpLocalData -> !(TVar MemPool)
-[txpUndos] :: TxpLocalData -> !(TVar UndoMap)
-[txpTip] :: TxpLocalData -> !(TVar HeaderHash)
+--   Memory state of Txp. Generic version.
+data GenericTxpLocalData extra
+TxpLocalData :: !(TVar UtxoModifier) -> !(TVar MemPool) -> !(TVar UndoMap) -> !(TVar HeaderHash) -> !(TVar extra) -> GenericTxpLocalData extra
+[txpUtxoModifier] :: GenericTxpLocalData extra -> !(TVar UtxoModifier)
+[txpMemPool] :: GenericTxpLocalData extra -> !(TVar MemPool)
+[txpUndos] :: GenericTxpLocalData extra -> !(TVar UndoMap)
+[txpTip] :: GenericTxpLocalData extra -> !(TVar HeaderHash)
+[txpExtra] :: GenericTxpLocalData extra -> !(TVar extra)
+
+-- | Pure version of GenericTxpLocalData.
+type GenericTxpLocalDataPure extra = (UtxoModifier, MemPool, UndoMap, HeaderHash, extra)
+
+-- | Memory state of Txp. This version is used by actual Txp
+--   implementation.
+type TxpLocalData = GenericTxpLocalData ()
 
 -- | Pure version of TxpLocalData.
 type TxpLocalDataPure = (UtxoModifier, MemPool, UndoMap, HeaderHash)
@@ -3271,6 +3297,7 @@ ToilInvalidInputs :: ![Text] -> ToilVerFailure
 ToilTooLargeTx :: !Byte -> !Byte -> ToilVerFailure
 [ttltSize] :: ToilVerFailure -> !Byte
 [ttltLimit] :: ToilVerFailure -> !Byte
+type GlobalTxpMode m = (MonadUtxo m, MonadBalances m, MonadToilEnv m, WithLogger m)
 
 -- | Verify transactions correctness with respect to Utxo applying them
 --   one-by-one. Note: transactions must be topsorted to pass check.
@@ -3284,6 +3311,7 @@ applyToil :: GlobalTxpMode m => [(TxAux, TxUndo)] -> m ()
 
 -- | Rollback transactions from one block.
 rollbackToil :: GlobalTxpMode m => [(TxAux, TxUndo)] -> m ()
+type LocalTxpMode m = (MonadUtxo m, MonadToilEnv m, MonadTxPool m)
 
 -- | Get rid of invalid transactions. All valid transactions will be added
 --   to mem pool and applied to utxo.
@@ -3292,6 +3320,7 @@ normalizeToil :: (LocalTxpMode m) => [(TxId, TxAux)] -> m ()
 -- | Verify one transaction and also add it to mem pool and apply to utxo
 --   if transaction is valid.
 processTx :: (LocalTxpMode m, MonadError ToilVerFailure m) => (TxId, TxAux) -> m ()
+verifyAndApplyTx :: (MonadUtxo m, MonadToilEnv m, MonadError ToilVerFailure m) => Bool -> (TxId, TxAux) -> m TxUndo
 
 -- | Monad transformer which stores ToilModifier and implements writable
 --   Toil type classes.
@@ -3300,24 +3329,24 @@ processTx :: (LocalTxpMode m, MonadError ToilVerFailure m) => (TxId, TxAux) -> m
 --   <li><i>WARNING</i> This transformer uses StateT and is intended for
 --   single-threaded usage only. Used for block application now.</li>
 --   </ul>
-newtype ToilT m a
-ToilT :: StateT ToilModifier m a -> ToilT m a
-[getToilT] :: ToilT m a -> StateT ToilModifier m a
+newtype ToilT ext m a
+ToilT :: StateT (GenericToilModifier ext) m a -> ToilT ext m a
+[getToilT] :: ToilT ext m a -> StateT (GenericToilModifier ext) m a
 
 -- | Run ToilT using specified modifier.
-runToilT :: ToilModifier -> ToilT m a -> m (a, ToilModifier)
+runToilT :: GenericToilModifier ext -> ToilT ext m a -> m (a, GenericToilModifier ext)
 
 -- | Run ToilT using empty modifier. Should be used for global transaction
 --   processing.
-runToilTGlobal :: Functor m => ToilT m a -> m (a, ToilModifier)
+runToilTGlobal :: (Default ext, Functor m) => ToilT ext m a -> m (a, GenericToilModifier ext)
 
 -- | Run ToilT using empty balances modifier. Should be used for local
 --   transaction processing.
-runToilTLocal :: Functor m => UtxoModifier -> MemPool -> UndoMap -> ToilT m a -> m (a, ToilModifier)
+runToilTLocal :: (Default ext, Functor m) => UtxoModifier -> MemPool -> UndoMap -> ToilT ext m a -> m (a, GenericToilModifier ext)
 
 -- | Execute ToilT using empty balances modifier. Should be used for local
 --   transaction processing.
-execToilTLocal :: Functor m => UtxoModifier -> MemPool -> UndoMap -> ToilT m a -> m ToilModifier
+execToilTLocal :: (Default ext, Functor m) => UtxoModifier -> MemPool -> UndoMap -> ToilT ext m a -> m (GenericToilModifier ext)
 
 -- | Unspent transaction outputs.
 --   
@@ -3348,16 +3377,19 @@ bvStakes :: Lens' BalancesView (HashMap StakeholderId Coin)
 bvTotal :: Lens' BalancesView (Maybe Coin)
 type UndoMap = HashMap TxId TxUndo
 type UtxoModifier = MapModifier TxIn TxOutAux
-data ToilModifier
-ToilModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> ToilModifier
-[_tmUtxo] :: ToilModifier -> !UtxoModifier
-[_tmBalances] :: ToilModifier -> !BalancesView
-[_tmMemPool] :: ToilModifier -> !MemPool
-[_tmUndos] :: ToilModifier -> !UndoMap
-tmUtxo :: Lens' ToilModifier UtxoModifier
-tmBalances :: Lens' ToilModifier BalancesView
-tmMemPool :: Lens' ToilModifier MemPool
-tmUndos :: Lens' ToilModifier UndoMap
+data GenericToilModifier extension
+ToilModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> !extension -> GenericToilModifier extension
+[_tmUtxo] :: GenericToilModifier extension -> !UtxoModifier
+[_tmBalances] :: GenericToilModifier extension -> !BalancesView
+[_tmMemPool] :: GenericToilModifier extension -> !MemPool
+[_tmUndos] :: GenericToilModifier extension -> !UndoMap
+[_tmExtra] :: GenericToilModifier extension -> !extension
+type ToilModifier = GenericToilModifier ()
+tmUtxo :: forall extension_a2gLh. Lens' (GenericToilModifier extension_a2gLh) UtxoModifier
+tmBalances :: forall extension_a2gLh. Lens' (GenericToilModifier extension_a2gLh) BalancesView
+tmMemPool :: forall extension_a2gLh. Lens' (GenericToilModifier extension_a2gLh) MemPool
+tmUndos :: forall extension_a2gLh. Lens' (GenericToilModifier extension_a2gLh) UndoMap
+tmExtra :: forall extension_a2gLh extension_a2gNf. Lens (GenericToilModifier extension_a2gLh) (GenericToilModifier extension_a2gNf) extension_a2gLh extension_a2gNf
 
 -- | Environment used by Toil.
 data ToilEnv
@@ -4162,7 +4194,7 @@ createGenesisBlock :: forall ssc m. WorkMode ssc m => EpochIndex -> m (Maybe (Ge
 --   created if: • we know genesis block for epoch from given SlotId • last
 --   known block is not more than <a>slotSecurityParam</a> blocks away from
 --   given SlotId
-createMainBlock :: forall ssc m. WorkMode ssc m => SlotId -> Maybe ProxySKEither -> m (Either Text (MainBlock ssc))
+createMainBlock :: forall ssc m. (WorkMode ssc m) => SlotId -> Maybe ProxySKEither -> m (Either Text (MainBlock ssc))
 instance Pos.Ssc.Class.Types.Ssc ssc => GHC.Show.Show (Pos.Block.Logic.ClassifyHeadersRes ssc)
 instance GHC.Show.Show Pos.Block.Logic.ClassifyHeaderRes
 
