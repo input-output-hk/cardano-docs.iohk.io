@@ -3195,7 +3195,7 @@ txProcessTransaction :: TxpLocalWorkMode m => (TxId, TxAux) -> m ()
 --   <li>Recompute UtxoView by current MemPool | 2. Remove invalid
 --   transactions from MemPool | 3. Set new tip to txp local data</li>
 --   </ol>
-txNormalize :: (Default ext, MonadDB m, MonadTxpMem ext m) => m ()
+txNormalize :: (MonadDB m, MonadTxpMem () m) => m ()
 
 -- | Reduced equivalent of <tt>MonadReader (GenericTxpLocalData mw) m</tt>.
 class Monad m => MonadTxpMem extra m | m -> extra where askTxpMem = lift askTxpMem
@@ -3361,11 +3361,14 @@ runToilTGlobal :: (Default ext, Functor m) => ToilT ext m a -> m (a, GenericToil
 
 -- | Run ToilT using empty balances modifier. Should be used for local
 --   transaction processing.
-runToilTLocal :: (Default ext, Functor m) => UtxoModifier -> MemPool -> UndoMap -> ToilT ext m a -> m (a, GenericToilModifier ext)
+runToilTLocal :: (Functor m) => UtxoModifier -> MemPool -> UndoMap -> ToilT () m a -> m (a, ToilModifier)
 
 -- | Execute ToilT using empty balances modifier. Should be used for local
 --   transaction processing.
-execToilTLocal :: (Default ext, Functor m) => UtxoModifier -> MemPool -> UndoMap -> ToilT ext m a -> m (GenericToilModifier ext)
+execToilTLocal :: (Functor m) => UtxoModifier -> MemPool -> UndoMap -> ToilT () m a -> m (ToilModifier)
+
+-- | Like <a>runToilTLocal</a>, but takes extra data as argument.
+runToilTLocalExtra :: (Functor m) => UtxoModifier -> MemPool -> UndoMap -> extra -> ToilT extra m a -> m (a, GenericToilModifier extra)
 
 -- | Unspent transaction outputs.
 --   
