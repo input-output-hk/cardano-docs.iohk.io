@@ -203,7 +203,7 @@ npm install
 Now, to run the wallet connected to the Cardano SL in dev-mode, call:
 
 ```
-CARDANO_API=true npm run dev
+npm run dev
 ```
 
 ## Building Cardano SL node for Testing Purpose
