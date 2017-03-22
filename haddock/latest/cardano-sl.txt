@@ -173,6 +173,14 @@ instance Data.String.IsString s => Control.Monad.Fail.MonadFail (Data.Either.Eit
 instance Control.Monad.Fail.MonadFail (Text.Parsec.Prim.ParsecT s u m)
 instance Control.Monad.Fail.MonadFail m => Control.Monad.Fail.MonadFail (Control.Monad.Trans.Resource.Internal.ResourceT m)
 
+module Pos.Update.Context
+data UpdateContext
+UpdateContext :: !(MVar ConfirmedProposalState) -> UpdateContext
+
+-- | A semaphore which is unlocked when update data is downloaded and ready
+--   to apply.
+[ucUpdateSemaphore] :: UpdateContext -> !(MVar ConfirmedProposalState)
+
 
 -- | Contains all Shared Seed Calculation algorithms implemented in our
 --   prototype. For now only NIST Beacon and more smart algorithm known as
@@ -356,6 +364,18 @@ shaStressRedeemer :: Int -> Script
 
 -- | Checks a signature N times. Should be used with <a>idValidator</a>.
 sigStressRedeemer :: Int -> Script
+
+module Pos.Lrc.Context
+
+-- | Data used for LRC syncronization. First value is <b>False</b> iff LRC
+--   is running now. Second value is last epoch for which we have already
+--   computed LRC.
+type LrcSyncData = (Bool, EpochIndex)
+data LrcContext
+LrcContext :: !(TVar LrcSyncData) -> LrcContext
+
+-- | Primitive for synchronization with LRC.
+[lcLrcSync] :: LrcContext -> !(TVar LrcSyncData)
 
 
 -- | <tt>Arbitrary</tt> unsafe instances for some types from <a>Types</a>.
@@ -1119,9 +1139,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679104857 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679104857)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679104850 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679104850)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679104846 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679104846)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679104893 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679104893)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679104886 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679104886)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679104882 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679104882)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SoftwareVersion
@@ -1537,23 +1557,21 @@ class Monad m => WithNodeContext ssc m | m -> ssc where getNodeContext = lift ge
 getNodeContext :: WithNodeContext ssc m => m (NodeContext ssc)
 getNodeContext :: (WithNodeContext ssc m, MonadTrans t, WithNodeContext ssc m', t m' ~ m) => m (NodeContext ssc)
 
--- | Data used for LRC syncronization. First value is <b>False</b> iff LRC
---   is running now. Second value is last epoch for which we have already
---   computed LRC.
-type LrcSyncData = (Bool, EpochIndex)
-
 -- | NodeContext contains runtime context of node.
 data NodeContext ssc
-NodeContext :: !(Maybe (MVar FilePath)) -> !(SscNodeContext ssc) -> !(MVar HeaderHash) -> !(TVar LrcSyncData) -> !(TVar UserSecret) -> !(TBQueue (NodeId, NewestFirst NE (BlockHeader ssc))) -> !(TMVar (NodeId, BlockHeader ssc)) -> !(TMVar (BlockHeader ssc)) -> !(MVar ConfirmedProposalState) -> !RelayInvQueue -> !LoggerConfig -> !NodeParams -> !(TVar Bool) -> !(TBQueue ()) -> !(Maybe (MVar ())) -> !UTCTime -> !(TVar (Maybe (BlockHeader ssc))) -> !TxpGlobalSettings -> NodeContext ssc
+NodeContext :: !(Maybe (MVar FilePath)) -> !(SscNodeContext ssc) -> !UpdateContext -> !LrcContext -> !(MVar HeaderHash) -> !(TVar UserSecret) -> !(TBQueue (NodeId, NewestFirst NE (BlockHeader ssc))) -> !(TMVar (NodeId, BlockHeader ssc)) -> !(TMVar (BlockHeader ssc)) -> !RelayInvQueue -> !LoggerConfig -> !NodeParams -> !(TVar Bool) -> !(TBQueue ()) -> !(Maybe (MVar ())) -> !UTCTime -> !(TVar (Maybe (BlockHeader ssc))) -> !TxpGlobalSettings -> NodeContext ssc
 [ncJLFile] :: NodeContext ssc -> !(Maybe (MVar FilePath))
 [ncSscContext] :: NodeContext ssc -> !(SscNodeContext ssc)
+
+-- | Context needed for the update system
+[ncUpdateContext] :: NodeContext ssc -> !UpdateContext
+
+-- | Context needed for LRC
+[ncLrcContext] :: NodeContext ssc -> !LrcContext
 
 -- | Semaphore which manages access to block application. Stored hash is a
 --   hash of last applied block.
 [ncBlkSemaphore] :: NodeContext ssc -> !(MVar HeaderHash)
-
--- | Primitive for synchronization with LRC.
-[ncLrcSync] :: NodeContext ssc -> !(TVar LrcSyncData)
 
 -- | Secret keys (and path to file) which are used to send transactions
 [ncUserSecret] :: NodeContext ssc -> !(TVar UserSecret)
@@ -1573,10 +1591,6 @@ NodeContext :: !(Maybe (MVar FilePath)) -> !(SscNodeContext ssc) -> !(MVar Heade
 -- | Header of the last block that was downloaded in retrieving queue. Is
 --   needed to show smooth prorgess on the frontend.
 [ncProgressHeader] :: NodeContext ssc -> !(TMVar (BlockHeader ssc))
-
--- | A semaphore which is unlocked when update data is downloaded and ready
---   to apply.
-[ncUpdateSemaphore] :: NodeContext ssc -> !(MVar ConfirmedProposalState)
 
 -- | Queue is used in Relay framework, it stores inv messages for earlier
 --   received data.
@@ -1694,9 +1708,9 @@ readBlkSemaphore :: (MonadIO m, WithNodeContext ssc m) => m HeaderHash
 takeBlkSemaphore :: (MonadIO m, WithNodeContext ssc m) => m HeaderHash
 
 -- | Block until LRC data is available for given epoch.
-waitLrc :: (MonadIO m, WithNodeContext ssc m) => EpochIndex -> m ()
-lrcActionOnEpoch :: (MonadIO m, WithNodeContext ssc m, MonadThrow m) => EpochIndex -> (EpochIndex -> m (Maybe a)) -> m a
-lrcActionOnEpochReason :: (MonadIO m, WithNodeContext ssc m, MonadThrow m) => EpochIndex -> Text -> (EpochIndex -> m (Maybe a)) -> m a
+waitLrc :: (MonadIO m, HasContext LrcContext m) => EpochIndex -> m ()
+lrcActionOnEpoch :: (MonadIO m, HasContext LrcContext m, MonadThrow m) => EpochIndex -> (EpochIndex -> m (Maybe a)) -> m a
+lrcActionOnEpochReason :: (MonadIO m, HasContext LrcContext m, MonadThrow m) => EpochIndex -> Text -> (EpochIndex -> m (Maybe a)) -> m a
 
 -- | Returns node uptime based on current time and <a>ncStartTime</a>.
 getUptime :: (MonadIO m, WithNodeContext ssc m) => m Microsecond
@@ -1917,7 +1931,7 @@ sscGetLocalPayload :: forall ssc m. (MonadIO m, MonadSscMem ssc m, SscLocalDataC
 -- | Update local data to be valid for current global state. This function
 --   is assumed to be called after applying block and before releasing lock
 --   on block application.
-sscNormalize :: forall ssc m. (MonadDB m, MonadSscMem ssc m, SscLocalDataClass ssc, WithNodeContext ssc m, SscHelpersClass ssc, WithLogger m) => m ()
+sscNormalize :: forall ssc m. (MonadDB m, MonadSscMem ssc m, SscLocalDataClass ssc, HasContext LrcContext m, SscHelpersClass ssc, WithLogger m) => m ()
 
 -- | Reset local data to empty state. This function can be used when we
 --   detect that something is really bad. In this case it makes sense to
@@ -1942,8 +1956,8 @@ sscVerifyBlocks :: forall ssc m. SscGlobalVerifyMode ssc m => OldestFirst NE (Bl
 newtype SscHolder ssc m a
 SscHolder :: ReaderT (SscState ssc) m a -> SscHolder ssc m a
 [getSscHolder] :: SscHolder ssc m a -> ReaderT (SscState ssc) m a
-mkSscHolderState :: forall ssc m. (WithLogger m, WithNodeContext ssc m, SscGStateClass ssc, SscLocalDataClass ssc, MonadDB m, MonadSlots m) => m (SscState ssc)
-mkStateAndRunSscHolder :: forall ssc m a. (WithLogger m, WithNodeContext ssc m, SscGStateClass ssc, SscLocalDataClass ssc, MonadDB m, MonadSlots m) => SscHolder ssc m a -> m a
+mkSscHolderState :: forall ssc m. (WithLogger m, HasContext LrcContext m, SscGStateClass ssc, SscLocalDataClass ssc, MonadDB m, MonadSlots m) => m (SscState ssc)
+mkStateAndRunSscHolder :: forall ssc m a. (WithLogger m, HasContext LrcContext m, SscGStateClass ssc, SscLocalDataClass ssc, MonadDB m, MonadSlots m) => SscHolder ssc m a -> m a
 
 -- | Run <a>SscHolder</a> reading GState from DB (restoring from blocks)
 --   and using default (uninitialized) local state.
@@ -2032,7 +2046,7 @@ module Pos.WorkMode
 
 -- | Bunch of constraints to perform work for real world distributed
 --   system.
-type WorkMode ssc m = (MinWorkMode m, MonadMask m, MonadSlots m, MonadDB m, MonadDBLimits m, MonadTxpMem TxpExtra_TMP m, MonadDhtMem m, MonadRelayMem m, MonadDelegation m, MonadSscMem ssc m, MonadReportingMem m, SscGStateClass ssc, SscLocalDataClass ssc, SscHelpersClass ssc, WithNodeContext ssc m, MonadStats m, MonadJL m, WithKademliaDHTInstance m, WithPeerState m, MonadUSMem m, MonadShutdownMem m)
+type WorkMode ssc m = (MinWorkMode m, MonadMask m, MonadSlots m, MonadDB m, MonadDBLimits m, MonadTxpMem TxpExtra_TMP m, MonadDhtMem m, MonadRelayMem m, MonadDelegation m, MonadSscMem ssc m, MonadReportingMem m, SscGStateClass ssc, SscLocalDataClass ssc, SscHelpersClass ssc, WithNodeContext ssc m, HasContext LrcContext m, HasContext UpdateContext m, HasContext NodeParams m, MonadStats m, MonadJL m, WithKademliaDHTInstance m, WithPeerState m, MonadUSMem m, MonadShutdownMem m)
 
 -- | More relaxed version of <a>WorkMode</a>.
 type MinWorkMode m = (WithLogger m, MonadMockable m, MonadDHT m, MonadIO m, WithPeerState m)
@@ -2206,7 +2220,7 @@ PHAdded :: PskHeavyVerdict
 -- | Processes heavyweight psk. Puts it into the mempool depending on
 --   issuer's stake, overrides if exists, checks validity and cachemsg
 --   state.
-processProxySKHeavy :: forall ssc m. (SscHelpersClass ssc, MonadDB m, MonadDelegation m, WithNodeContext ssc m) => ProxySKHeavy -> m PskHeavyVerdict
+processProxySKHeavy :: forall ssc m. (SscHelpersClass ssc, MonadDB m, MonadDelegation m, HasContext LrcContext m) => ProxySKHeavy -> m PskHeavyVerdict
 
 -- | Applies a sequence of definitely valid blocks to memory state and
 --   returns batchops. It works correctly only in case blocks don't cross
@@ -2225,12 +2239,12 @@ delegationApplyBlocks :: forall ssc m. (DelegationWorkMode m) => OldestFirst NE 
 --   
 --   It's assumed blocks are correct from 'Pos.Types.Block#verifyBlocks'
 --   point of view.
-delegationVerifyBlocks :: forall ssc m. (SscHelpersClass ssc, MonadDB m, WithNodeContext ssc m) => OldestFirst NE (Block ssc) -> m (Either Text (OldestFirst NE [ProxySKHeavy]))
+delegationVerifyBlocks :: forall ssc m. (SscHelpersClass ssc, MonadDB m, HasContext LrcContext m) => OldestFirst NE (Block ssc) -> m (Either Text (OldestFirst NE [ProxySKHeavy]))
 
 -- | Rollbacks block list. Erases mempool of certificates. Better to
 --   restore them after the rollback (see Txp#normalizeTxpLD). You can
 --   rollback arbitrary number of blocks.
-delegationRollbackBlocks :: forall ssc m. (SscHelpersClass ssc, MonadDelegation m, MonadDB m, WithNodeContext ssc m) => NewestFirst NE (Blund ssc) -> m (NonEmpty SomeBatchOp)
+delegationRollbackBlocks :: forall ssc m. (SscHelpersClass ssc, MonadDelegation m, MonadDB m, HasContext LrcContext m) => NewestFirst NE (Blund ssc) -> m (NonEmpty SomeBatchOp)
 
 -- | PSK check verdict. It can be unrelated (other key or spoiled, no way
 --   to differ), exist in storage already or be cached.
@@ -2335,7 +2349,7 @@ sscNewLocalData :: (SscLocalDataClass ssc, MonadSlots m, MonadDB m) => m (SscLoc
 class Ssc ssc => SscGStateClass ssc
 
 -- | Load global state from DB by recreating it from recent blocks.
-sscLoadGlobalState :: (SscGStateClass ssc, WithNodeContext ssc m, MonadDB m, WithLogger m) => m (SscGlobalState ssc)
+sscLoadGlobalState :: (SscGStateClass ssc, HasContext LrcContext m, MonadDB m, WithLogger m) => m (SscGlobalState ssc)
 
 -- | Rollback application of blocks.
 sscRollbackU :: SscGStateClass ssc => NewestFirst NE (Block ssc) -> SscGlobalUpdate ssc ()
@@ -2410,6 +2424,9 @@ module Pos.Update.Arbitrary
 module Pos.Genesis.Arbitrary
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Genesis.Types.GenesisData
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Genesis.Types.StakeDistribution
+
+module Pos.Update.Mode
+type UpdateMode m = (MinWorkMode m, MonadMask m, MonadDB m, MonadDBLimits m, MonadRelayMem m, MonadUSMem m, HasContext UpdateContext m, HasContext LrcContext m, HasContext NodeParams m)
 
 
 -- | Re-exports of GodTossing modules.
@@ -3372,11 +3389,11 @@ ToilModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> !exten
 [_tmUndos] :: GenericToilModifier extension -> !UndoMap
 [_tmExtra] :: GenericToilModifier extension -> !extension
 type ToilModifier = GenericToilModifier ()
-tmUtxo :: forall extension_a2ciZ. Lens' (GenericToilModifier extension_a2ciZ) UtxoModifier
-tmBalances :: forall extension_a2ciZ. Lens' (GenericToilModifier extension_a2ciZ) BalancesView
-tmMemPool :: forall extension_a2ciZ. Lens' (GenericToilModifier extension_a2ciZ) MemPool
-tmUndos :: forall extension_a2ciZ. Lens' (GenericToilModifier extension_a2ciZ) UndoMap
-tmExtra :: forall extension_a2ciZ extension_a2ckX. Lens (GenericToilModifier extension_a2ciZ) (GenericToilModifier extension_a2ckX) extension_a2ciZ extension_a2ckX
+tmUtxo :: forall extension_a2cuk. Lens' (GenericToilModifier extension_a2cuk) UtxoModifier
+tmBalances :: forall extension_a2cuk. Lens' (GenericToilModifier extension_a2cuk) BalancesView
+tmMemPool :: forall extension_a2cuk. Lens' (GenericToilModifier extension_a2cuk) MemPool
+tmUndos :: forall extension_a2cuk. Lens' (GenericToilModifier extension_a2cuk) UndoMap
+tmExtra :: forall extension_a2cuk extension_a2cwi. Lens (GenericToilModifier extension_a2cuk) (GenericToilModifier extension_a2cwi) extension_a2cuk extension_a2cwi
 
 -- | Environment used by Toil.
 data ToilEnv
@@ -3526,7 +3543,7 @@ module Pos.Update
 
 -- | Download and save archive update by given
 --   <a>ConfirmedProposalState</a>
-downloadUpdate :: WorkMode ssc m => ConfirmedProposalState -> m ()
+downloadUpdate :: UpdateMode m => ConfirmedProposalState -> m ()
 
 -- | Download a file by its hash.
 --   
@@ -3538,21 +3555,21 @@ downloadHash :: [Text] -> Hash LByteString -> IO (Either Text LByteString)
 --   applies block in parallel. It also assumes that parent of oldest block
 --   is current tip. If verification is done prior to application, one can
 --   pass <a>PollModifier</a> obtained from verification to this function.
-usApplyBlocks :: (MonadThrow m, USGlobalApplyMode ssc m) => OldestFirst NE (Block ssc) -> Maybe PollModifier -> m [SomeBatchOp]
+usApplyBlocks :: (MonadThrow m, USGlobalApplyMode m) => OldestFirst NE UpdateBlock -> Maybe PollModifier -> m [SomeBatchOp]
 
 -- | Checks whether our software can create block according to current
 --   global state.
-usCanCreateBlock :: (WithLogger m, WithNodeContext ssc m, MonadDB m) => m Bool
+usCanCreateBlock :: (WithLogger m, MonadDB m, HasContext LrcContext m) => m Bool
 
 -- | Revert application of given blocks to US part of GState DB and US
 --   local data. The caller must ensure that the tip stored in DB is
---   <a>headerHash</a> of head.
-usRollbackBlocks :: forall ssc m. USGlobalApplyMode ssc m => NewestFirst NE (Block ssc, USUndo) -> m [SomeBatchOp]
+--   <tt>headerHash</tt> of head.
+usRollbackBlocks :: forall m. USGlobalApplyMode m => NewestFirst NE (UpdateBlock, USUndo) -> m [SomeBatchOp]
 
 -- | Verify whether sequence of blocks can be applied to US part of current
 --   GState DB. This function doesn't make pure checks, they are assumed to
 --   be done earlier, most likely during objects construction.
-usVerifyBlocks :: (USGlobalVerifyMode ssc m) => OldestFirst NE (Block ssc) -> m (PollModifier, OldestFirst NE USUndo)
+usVerifyBlocks :: (USGlobalVerifyMode m) => OldestFirst NE UpdateBlock -> m (PollModifier, OldestFirst NE USUndo)
 
 -- | This function returns true if update proposal with given identifier
 --   should be requested.
@@ -3566,12 +3583,12 @@ getLocalProposalNVotes :: (MonadIO m, MonadUSMem m) => UpId -> m (Maybe (UpdateP
 --   respect to it. If proposal is added to store, 'Right ()' is returned.
 --   Otherwise 'Left err' is returned and <tt>err</tt> lets caller decide
 --   whether sender could be sure that error would happen.
-processProposal :: (USLocalLogicMode ssc m) => UpdateProposal -> m (Either PollVerFailure ())
+processProposal :: (USLocalLogicMode m) => UpdateProposal -> m (Either PollVerFailure ())
 
 -- | This function returns true if update vote proposal with given
 --   identifier issued by stakeholder with given PublicKey and with given
 --   decision should be requested.
-isVoteNeeded :: USLocalLogicMode ssc m => UpId -> PublicKey -> Bool -> m Bool
+isVoteNeeded :: USLocalLogicMode m => UpId -> PublicKey -> Bool -> m Bool
 
 -- | Get update vote for proposal with given id from given issuer and with
 --   given decision if it is known.
@@ -3582,23 +3599,23 @@ getLocalVote :: (MonadIO m, MonadUSMem m) => UpId -> PublicKey -> Bool -> m (May
 --   to it. If vote is added to store, 'Right ()' is returned. Otherwise
 --   'Left err' is returned and <tt>err</tt> lets caller decide whether
 --   sender could be sure that error would happen.
-processVote :: (USLocalLogicMode ssc m) => UpdateVote -> m (Either PollVerFailure ())
+processVote :: (USLocalLogicMode m) => UpdateVote -> m (Either PollVerFailure ())
 
 -- | Remove local data from memory state to make it consistent with current
 --   GState. This function assumes that GState is locked. It tries to leave
 --   as much data as possible. It assumes that <tt>blkSemaphore</tt> is
 --   taken.
-usNormalize :: (USLocalLogicMode ssc m) => m ()
+usNormalize :: (USLocalLogicMode m) => m ()
 
 -- | Update memory state to make it correct for given slot.
-processNewSlot :: (USLocalLogicMode ssc m) => SlotId -> m ()
+processNewSlot :: (USLocalLogicMode m) => SlotId -> m ()
 
 -- | Prepare UpdatePayload for inclusion into new block with given SlotId.
 --   This function assumes that <tt>blkSemaphore</tt> is taken and nobody
 --   can apply/rollback blocks in parallel. Sometimes payload can't be
 --   created. It can happen if we are trying to create block for slot which
 --   has already passed, for example.
-usPreparePayload :: (USLocalLogicMode ssc m) => SlotId -> m (Maybe UpdatePayload)
+usPreparePayload :: (USLocalLogicMode m) => SlotId -> m (Maybe UpdatePayload)
 
 -- | Consumer will be called on every Richmen computation.
 usLrcConsumer :: MonadDB m => LrcConsumer m
@@ -3667,7 +3684,7 @@ mkMemState :: MemState
 newMemVar :: MonadIO m => m MemVar
 
 -- | Listeners for requests related to update system
-usListeners :: (WorkMode ssc m) => m ([ListenerSpec m], OutSpecs)
+usListeners :: (UpdateMode m) => m ([ListenerSpec m], OutSpecs)
 usStubListeners :: (WithLogger m) => ([ListenerSpec m], OutSpecs)
 
 -- | Tag for proposal messages
