@@ -26,19 +26,19 @@ simpleUserSecret :: SecretKey -> FilePath -> UserSecret
 
 -- | Create user secret file at the given path, but only when one doesn't
 --   already exist.
-initializeUserSecret :: (MonadIO m, MonadThrow m) => FilePath -> m ()
+initializeUserSecret :: (MonadIO m) => FilePath -> m ()
 
--- | Reads user secret from file, assuming that file exists, and has mode
---   600, throws exception in other case
-readUserSecret :: (MonadIO m, MonadThrow m) => FilePath -> m UserSecret
+-- | Reads user secret from file, assuming that file exists, throws
+--   exception in other case
+readUserSecret :: MonadIO m => FilePath -> m UserSecret
 
 -- | Reads user secret from the given file. If the file does not exist/is
 --   empty, returns empty user secret
-peekUserSecret :: (MonadIO m, MonadThrow m) => FilePath -> m UserSecret
+peekUserSecret :: (MonadIO m) => FilePath -> m UserSecret
 
 -- | Read user secret putting an exclusive lock on it. To unlock, use
 --   <a>writeUserSecretRelease</a>.
-takeUserSecret :: (MonadIO m, MonadThrow m) => FilePath -> m UserSecret
+takeUserSecret :: (MonadIO m) => FilePath -> m UserSecret
 
 -- | Writes user secret .
 writeUserSecret :: (MonadIO m) => UserSecret -> m ()
@@ -1119,9 +1119,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679107732 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679107732)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679107725 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679107725)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679107721 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679107721)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679104857 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679104857)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679104850 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679104850)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679104846 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679104846)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SoftwareVersion
@@ -3372,11 +3372,11 @@ ToilModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> !exten
 [_tmUndos] :: GenericToilModifier extension -> !UndoMap
 [_tmExtra] :: GenericToilModifier extension -> !extension
 type ToilModifier = GenericToilModifier ()
-tmUtxo :: forall extension_a2ett. Lens' (GenericToilModifier extension_a2ett) UtxoModifier
-tmBalances :: forall extension_a2ett. Lens' (GenericToilModifier extension_a2ett) BalancesView
-tmMemPool :: forall extension_a2ett. Lens' (GenericToilModifier extension_a2ett) MemPool
-tmUndos :: forall extension_a2ett. Lens' (GenericToilModifier extension_a2ett) UndoMap
-tmExtra :: forall extension_a2ett extension_a2evr. Lens (GenericToilModifier extension_a2ett) (GenericToilModifier extension_a2evr) extension_a2ett extension_a2evr
+tmUtxo :: forall extension_a2ckU. Lens' (GenericToilModifier extension_a2ckU) UtxoModifier
+tmBalances :: forall extension_a2ckU. Lens' (GenericToilModifier extension_a2ckU) BalancesView
+tmMemPool :: forall extension_a2ckU. Lens' (GenericToilModifier extension_a2ckU) MemPool
+tmUndos :: forall extension_a2ckU. Lens' (GenericToilModifier extension_a2ckU) UndoMap
+tmExtra :: forall extension_a2ckU extension_a2cmS. Lens (GenericToilModifier extension_a2ckU) (GenericToilModifier extension_a2cmS) extension_a2ckU extension_a2cmS
 
 -- | Environment used by Toil.
 data ToilEnv
@@ -4751,12 +4751,21 @@ data CWalletType
 CWTPersonal :: CWalletType
 CWTShared :: CWalletType
 
+-- | A level of assurance for the wallet "meta type"
+data CWalletAssurance
+CWAStrict :: CWalletAssurance
+CWANormal :: CWalletAssurance
+
 -- | Meta data of CWallet Includes data which are not provided by Cardano
 data CWalletMeta
-CWalletMeta :: !CWalletType -> !CCurrency -> !Text -> CWalletMeta
+CWalletMeta :: !CWalletType -> !CCurrency -> !Text -> !CWalletAssurance -> !Int -> CWalletMeta
 [cwType] :: CWalletMeta -> !CWalletType
 [cwCurrency] :: CWalletMeta -> !CCurrency
 [cwName] :: CWalletMeta -> !Text
+[cwAssurance] :: CWalletMeta -> !CWalletAssurance
+
+-- | <a>https://issues.serokell.io/issue/CSM-163#comment=96-2480</a>
+[cwUnit] :: CWalletMeta -> !Int
 
 -- | Query data for wallet creation (wallet meta + backup phrase)
 data CWalletInit
@@ -4803,6 +4812,7 @@ txContainsTitle :: Text -> CTx -> Bool
 -- | Creates <tt>CTUpdateInfo</tt> from <a>ConfirmedProposalState</a>
 toCUpdateInfo :: ConfirmedProposalState -> CUpdateInfo
 walletDocsText :: Text
+walletTableDocsText :: Text
 data WalletError
 
 -- | Some internal error.
