@@ -50,7 +50,7 @@ following command:
 
 ```
 [nix-shell:~/github/cardano-sl]
-$ stack build --flag cardano-sl:with-wallet --flag cardano-sl:with-web
+$ stack build --flag cardano-sl-core:with-wallet --flag cardano-sl-core:with-web
 ```
 
 Here is the [asciinema
@@ -62,7 +62,7 @@ If the compilation breaks with `No space left on device` error, it means that yo
 
 ```
 $ mkdir ~/stacktmp
-$ TMPDIR=~/stacktmp stack build --flag cardano-sl:with-wallet --flag cardano-sl:with-web
+$ TMPDIR=~/stacktmp stack build --flag cardano-sl-core:with-wallet --flag cardano-sl-core:with-web
 $ rm -rf ~/stacktmp
 ```
 
@@ -211,7 +211,7 @@ npm run dev
 If you want to test functionality of Cardano SL node in our [testnet](/timeline/testnet/), you should go to the root directory of the repository and switch to release branch, for example, `cardano-sl-0.2`. After that build a node with this command:
 
 ~~~ bash
-CSL_SYSTEM_TAG=linux64 stack build --flag cardano-sl:-dev-mode
+CSL_SYSTEM_TAG=linux64 stack build --flag cardano-sl-core:-dev-mode
 ~~~
 
 It means that you build a node in **production** mode.
