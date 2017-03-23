@@ -4544,14 +4544,8 @@ CTOut :: CTxMeta -> CTType
 -- | Client profile (CP) all data of client are "meta data" - that is not
 --   provided by Cardano (Flow type: accountType)
 data CProfile
-CProfile :: Text -> Text -> Text -> CPwHash -> POSIXTime -> Text -> Text -> CProfile
-[cpName] :: CProfile -> Text
-[cpEmail] :: CProfile -> Text
-[cpPhoneNumber] :: CProfile -> Text
-[cpPwHash] :: CProfile -> CPwHash
-[cpPwCreated] :: CProfile -> POSIXTime
+CProfile :: Text -> CProfile
 [cpLocale] :: CProfile -> Text
-[cpPicture] :: CProfile -> Text
 
 -- | Password hash of client profile
 type CPwHash = Text
