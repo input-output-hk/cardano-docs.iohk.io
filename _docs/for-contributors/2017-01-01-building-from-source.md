@@ -230,13 +230,25 @@ stack exec -- cardano-node \
     --kademlia-dump-path logs/2017-03-10_133948/dump/kademlia0.dump \
     --wallet \
     --keyfile secret.key \
+    --peer 35.156.222.51:3000/zzQk9aJKJ9CGD3ATxO_RGUX_s7TTVS-_hw8mRkX6u9g= \
     --peer 35.156.234.240:3000/S-GJ1HDZyHpIS_ZOFBlZsipkGNXy-tmCDtY_CvaiywE= \
     --peer 35.157.148.244:3000/nzcEO6Cv7tKD3REWoWc9vcHMOZEQWFGLX4150bt_cYw= \
+    --peer 35.157.136.232:3000/gz48M5Huafsdmh52sB7NHQrzznpxQ97kHermRGNwOzU= \
+    --peer 35.157.114.57:3000/xQQJIViR9hBi7szyFpoVSTEZDWVShg8ysUtGzuCoThg= \
+    --peer 35.156.228.180:3000/QBO0SV4gxvrGcBDyJaBf_tfs_zrW0uoYSkhiRgbVs4M= \
+    --peer 35.157.175.151:3000/lrhwsPYgEvWRmBZm36ApfSV3K4kHIuRncKQRUhFpeLg= \
     --peer 52.52.249.66:3000/dYGuDj0BrJxCsTC9ntJE7ePT7wUoVdQMH3sKLzQD8bo= \
-    --peer 52.8.23.163:3000/8hVd3J5Jc0GCkIV-QeiOkwDqH38QooYGo3iHJnZuIk4=
+    --peer 52.8.23.163:3000/8hVd3J5Jc0GCkIV-QeiOkwDqH38QooYGo3iHJnZuIk4= \
+    --peer 52.52.249.222:3000/U6C4RC-M2UiCknavdy9_rqHqLkg7HhHpvQlaxbfuZYg= \
+    --peer 52.52.248.212:3000/KeIrVo_HyErHIk5k2FldVbkDwyssSdhCdsdnKh9jMg8= \
+    --peer 52.52.250.46:3000/A09BWN1SFPI24nhDU9LkFZ7gRvmDvGoLNr9rYwA0XCQ= \
+    --peer 52.52.234.5:3000/FPg8wnE9PxY4VwIrUtw_5PXa3LJlkhxFEs9wA_N11nE= \
+    --peer 52.52.136.190:3000/mWOgwLu5j9xKf6c8B_7cv8eMOtoAMgDOX2aBLnC4MOY=
 ~~~
 
 You can download `secret.key` from [Cardano Test-Net Faucet](https://tada.iohk.io). You can place `secret.key` file anywhere, and value of `--keyfile` option should contain a path to this file.
+
+Please make sure you're using correct list of peers! You must take this list from `installers/data/ip-dht-mappings` file in the same release branch of `daedalus` repository. For example, if you're using `cardano-sl-0.3` release branch, corresponding `ip-dht-mappings` file is [here](https://github.com/input-output-hk/daedalus/blob/cardano-sl-0.3/installers/data/ip-dht-mappings).
 
 After running with this command your node will listen two ports:
 
