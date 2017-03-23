@@ -370,7 +370,10 @@ module Pos.Lrc.Context
 -- | Data used for LRC syncronization. First value is <b>False</b> iff LRC
 --   is running now. Second value is last epoch for which we have already
 --   computed LRC.
-type LrcSyncData = (Bool, EpochIndex)
+data LrcSyncData
+LrcSyncData :: !Bool -> !EpochIndex -> LrcSyncData
+[lrcNotRunning] :: LrcSyncData -> !Bool
+[lastEpochWithLrc] :: LrcSyncData -> !EpochIndex
 data LrcContext
 LrcContext :: !(TVar LrcSyncData) -> LrcContext
 
@@ -3389,11 +3392,11 @@ ToilModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> !exten
 [_tmUndos] :: GenericToilModifier extension -> !UndoMap
 [_tmExtra] :: GenericToilModifier extension -> !extension
 type ToilModifier = GenericToilModifier ()
-tmUtxo :: forall extension_a2cuj. Lens' (GenericToilModifier extension_a2cuj) UtxoModifier
-tmBalances :: forall extension_a2cuj. Lens' (GenericToilModifier extension_a2cuj) BalancesView
-tmMemPool :: forall extension_a2cuj. Lens' (GenericToilModifier extension_a2cuj) MemPool
-tmUndos :: forall extension_a2cuj. Lens' (GenericToilModifier extension_a2cuj) UndoMap
-tmExtra :: forall extension_a2cuj extension_a2cwh. Lens (GenericToilModifier extension_a2cuj) (GenericToilModifier extension_a2cwh) extension_a2cuj extension_a2cwh
+tmUtxo :: forall extension_a2czx. Lens' (GenericToilModifier extension_a2czx) UtxoModifier
+tmBalances :: forall extension_a2czx. Lens' (GenericToilModifier extension_a2czx) BalancesView
+tmMemPool :: forall extension_a2czx. Lens' (GenericToilModifier extension_a2czx) MemPool
+tmUndos :: forall extension_a2czx. Lens' (GenericToilModifier extension_a2czx) UndoMap
+tmExtra :: forall extension_a2czx extension_a2cBv. Lens (GenericToilModifier extension_a2czx) (GenericToilModifier extension_a2cBv) extension_a2czx extension_a2cBv
 
 -- | Environment used by Toil.
 data ToilEnv
