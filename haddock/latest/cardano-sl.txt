@@ -3139,11 +3139,11 @@ ToilModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> !exten
 [_tmUndos] :: GenericToilModifier extension -> !UndoMap
 [_tmExtra] :: GenericToilModifier extension -> !extension
 type ToilModifier = GenericToilModifier ()
-tmUtxo :: forall extension_a2dAh. Lens' (GenericToilModifier extension_a2dAh) UtxoModifier
-tmBalances :: forall extension_a2dAh. Lens' (GenericToilModifier extension_a2dAh) BalancesView
-tmMemPool :: forall extension_a2dAh. Lens' (GenericToilModifier extension_a2dAh) MemPool
-tmUndos :: forall extension_a2dAh. Lens' (GenericToilModifier extension_a2dAh) UndoMap
-tmExtra :: forall extension_a2dAh extension_a2dCf. Lens (GenericToilModifier extension_a2dAh) (GenericToilModifier extension_a2dCf) extension_a2dAh extension_a2dCf
+tmUtxo :: forall extension_a2dAg. Lens' (GenericToilModifier extension_a2dAg) UtxoModifier
+tmBalances :: forall extension_a2dAg. Lens' (GenericToilModifier extension_a2dAg) BalancesView
+tmMemPool :: forall extension_a2dAg. Lens' (GenericToilModifier extension_a2dAg) MemPool
+tmUndos :: forall extension_a2dAg. Lens' (GenericToilModifier extension_a2dAg) UndoMap
+tmExtra :: forall extension_a2dAg extension_a2dCe. Lens (GenericToilModifier extension_a2dAg) (GenericToilModifier extension_a2dCe) extension_a2dAg extension_a2dCe
 
 -- | Environment used by Toil.
 data ToilEnv
@@ -4341,7 +4341,7 @@ handleUnsolicitedHeaders :: forall ssc s m. (SscWorkersClass ssc, WorkMode ssc m
 --   chooses appropriate <tt>from</tt> hashes and puts them into
 --   <tt>GetHeaders</tt> message.
 mkHeadersRequest :: forall ssc m. WorkMode ssc m => Maybe HeaderHash -> m (Maybe MsgGetHeaders)
-requestHeaders :: forall ssc s m. (SscWorkersClass ssc, WorkMode ssc m) => MsgGetHeaders -> NodeId -> BlockHeader ssc -> Proxy s -> ConversationActions MsgGetHeaders (LimitedLength s (MsgHeaders ssc)) m -> m ()
+requestHeaders :: forall ssc s m. (SscWorkersClass ssc, WorkMode ssc m) => MsgGetHeaders -> NodeId -> Maybe (BlockHeader ssc) -> Proxy s -> ConversationActions MsgGetHeaders (LimitedLength s (MsgHeaders ssc)) m -> m ()
 
 -- | Make message which requests chain of blocks which is based on our tip.
 --   LcaChild is the first block after LCA we don't know. WantedBlock is
