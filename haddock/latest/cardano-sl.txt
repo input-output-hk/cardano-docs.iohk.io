@@ -173,6 +173,14 @@ instance Data.String.IsString s => Control.Monad.Fail.MonadFail (Data.Either.Eit
 instance Control.Monad.Fail.MonadFail (Text.Parsec.Prim.ParsecT s u m)
 instance Control.Monad.Fail.MonadFail m => Control.Monad.Fail.MonadFail (Control.Monad.Trans.Resource.Internal.ResourceT m)
 
+module Pos.Update.Context
+data UpdateContext
+UpdateContext :: !(MVar ConfirmedProposalState) -> UpdateContext
+
+-- | A semaphore which is unlocked when update data is downloaded and ready
+--   to apply.
+[ucUpdateSemaphore] :: UpdateContext -> !(MVar ConfirmedProposalState)
+
 
 -- | Contains all Shared Seed Calculation algorithms implemented in our
 --   prototype. For now only NIST Beacon and more smart algorithm known as
@@ -356,6 +364,21 @@ shaStressRedeemer :: Int -> Script
 
 -- | Checks a signature N times. Should be used with <a>idValidator</a>.
 sigStressRedeemer :: Int -> Script
+
+module Pos.Lrc.Context
+
+-- | Data used for LRC syncronization. First value is <b>False</b> iff LRC
+--   is running now. Second value is last epoch for which we have already
+--   computed LRC.
+data LrcSyncData
+LrcSyncData :: !Bool -> !EpochIndex -> LrcSyncData
+[lrcNotRunning] :: LrcSyncData -> !Bool
+[lastEpochWithLrc] :: LrcSyncData -> !EpochIndex
+data LrcContext
+LrcContext :: !(TVar LrcSyncData) -> LrcContext
+
+-- | Primitive for synchronization with LRC.
+[lcLrcSync] :: LrcContext -> !(TVar LrcSyncData)
 
 
 -- | <tt>Arbitrary</tt> unsafe instances for some types from <a>Types</a>.
@@ -1115,9 +1138,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679108395 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679108395)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679108388 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679108388)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679108384 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679108384)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679108497 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679108497)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679108490 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679108490)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679108486 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679108486)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SoftwareVersion
@@ -1531,23 +1554,21 @@ class Monad m => WithNodeContext ssc m | m -> ssc where getNodeContext = lift ge
 getNodeContext :: WithNodeContext ssc m => m (NodeContext ssc)
 getNodeContext :: (WithNodeContext ssc m, MonadTrans t, WithNodeContext ssc m', t m' ~ m) => m (NodeContext ssc)
 
--- | Data used for LRC syncronization. First value is <b>False</b> iff LRC
---   is running now. Second value is last epoch for which we have already
---   computed LRC.
-type LrcSyncData = (Bool, EpochIndex)
-
 -- | NodeContext contains runtime context of node.
 data NodeContext ssc
-NodeContext :: !(Maybe (MVar FilePath)) -> !(SscNodeContext ssc) -> !(MVar HeaderHash) -> !(TVar LrcSyncData) -> !(TVar UserSecret) -> !(TBQueue (NodeId, NewestFirst NE (BlockHeader ssc))) -> !(TMVar (NodeId, BlockHeader ssc)) -> !(TMVar (BlockHeader ssc)) -> !(MVar ConfirmedProposalState) -> !RelayInvQueue -> !LoggerConfig -> !NodeParams -> !(TVar Bool) -> !(TBQueue ()) -> !(Maybe (MVar ())) -> !UTCTime -> !(TVar (Maybe (BlockHeader ssc))) -> !TxpGlobalSettings -> NodeContext ssc
+NodeContext :: !(Maybe (MVar FilePath)) -> !(SscNodeContext ssc) -> !UpdateContext -> !LrcContext -> !(MVar HeaderHash) -> !(TVar UserSecret) -> !(TBQueue (NodeId, NewestFirst NE (BlockHeader ssc))) -> !(TMVar (NodeId, BlockHeader ssc)) -> !(TMVar (BlockHeader ssc)) -> !RelayInvQueue -> !LoggerConfig -> !NodeParams -> !(TVar Bool) -> !(TBQueue ()) -> !(Maybe (MVar ())) -> !UTCTime -> !(TVar (Maybe (BlockHeader ssc))) -> !TxpGlobalSettings -> NodeContext ssc
 [ncJLFile] :: NodeContext ssc -> !(Maybe (MVar FilePath))
 [ncSscContext] :: NodeContext ssc -> !(SscNodeContext ssc)
+
+-- | Context needed for the update system
+[ncUpdateContext] :: NodeContext ssc -> !UpdateContext
+
+-- | Context needed for LRC
+[ncLrcContext] :: NodeContext ssc -> !LrcContext
 
 -- | Semaphore which manages access to block application. Stored hash is a
 --   hash of last applied block.
 [ncBlkSemaphore] :: NodeContext ssc -> !(MVar HeaderHash)
-
--- | Primitive for synchronization with LRC.
-[ncLrcSync] :: NodeContext ssc -> !(TVar LrcSyncData)
 
 -- | Secret keys (and path to file) which are used to send transactions
 [ncUserSecret] :: NodeContext ssc -> !(TVar UserSecret)
@@ -1567,10 +1588,6 @@ NodeContext :: !(Maybe (MVar FilePath)) -> !(SscNodeContext ssc) -> !(MVar Heade
 -- | Header of the last block that was downloaded in retrieving queue. Is
 --   needed to show smooth prorgess on the frontend.
 [ncProgressHeader] :: NodeContext ssc -> !(TMVar (BlockHeader ssc))
-
--- | A semaphore which is unlocked when update data is downloaded and ready
---   to apply.
-[ncUpdateSemaphore] :: NodeContext ssc -> !(MVar ConfirmedProposalState)
 
 -- | Queue is used in Relay framework, it stores inv messages for earlier
 --   received data.
@@ -1688,9 +1705,9 @@ readBlkSemaphore :: (MonadIO m, WithNodeContext ssc m) => m HeaderHash
 takeBlkSemaphore :: (MonadIO m, WithNodeContext ssc m) => m HeaderHash
 
 -- | Block until LRC data is available for given epoch.
-waitLrc :: (MonadIO m, WithNodeContext ssc m) => EpochIndex -> m ()
-lrcActionOnEpoch :: (MonadIO m, WithNodeContext ssc m, MonadThrow m) => EpochIndex -> (EpochIndex -> m (Maybe a)) -> m a
-lrcActionOnEpochReason :: (MonadIO m, WithNodeContext ssc m, MonadThrow m) => EpochIndex -> Text -> (EpochIndex -> m (Maybe a)) -> m a
+waitLrc :: (MonadIO m, HasContext LrcContext m) => EpochIndex -> m ()
+lrcActionOnEpoch :: (MonadIO m, HasContext LrcContext m, MonadThrow m) => EpochIndex -> (EpochIndex -> m (Maybe a)) -> m a
+lrcActionOnEpochReason :: (MonadIO m, HasContext LrcContext m, MonadThrow m) => EpochIndex -> Text -> (EpochIndex -> m (Maybe a)) -> m a
 
 -- | Returns node uptime based on current time and <a>ncStartTime</a>.
 getUptime :: (MonadIO m, WithNodeContext ssc m) => m Microsecond
@@ -1887,8 +1904,8 @@ askSscMem :: (MonadSscMem ssc m, MonadTrans t, MonadSscMem ssc m', t m' ~ m) => 
 newtype SscHolder ssc m a
 SscHolder :: ReaderT (SscState ssc) m a -> SscHolder ssc m a
 [getSscHolder] :: SscHolder ssc m a -> ReaderT (SscState ssc) m a
-mkSscHolderState :: forall ssc m. (WithLogger m, WithNodeContext ssc m, SscGStateClass ssc, SscLocalDataClass ssc, MonadDB m, MonadSlots m) => m (SscState ssc)
-mkStateAndRunSscHolder :: forall ssc m a. (WithLogger m, WithNodeContext ssc m, SscGStateClass ssc, SscLocalDataClass ssc, MonadDB m, MonadSlots m) => SscHolder ssc m a -> m a
+mkSscHolderState :: forall ssc m. (WithLogger m, HasContext LrcContext m, SscGStateClass ssc, SscLocalDataClass ssc, MonadDB m, MonadSlots m) => m (SscState ssc)
+mkStateAndRunSscHolder :: forall ssc m a. (WithLogger m, HasContext LrcContext m, SscGStateClass ssc, SscLocalDataClass ssc, MonadDB m, MonadSlots m) => SscHolder ssc m a -> m a
 
 -- | Run <a>SscHolder</a> reading GState from DB (restoring from blocks)
 --   and using default (uninitialized) local state.
@@ -1917,7 +1934,7 @@ sscGetLocalPayload :: forall ssc m. (MonadIO m, MonadSscMem ssc m, SscLocalDataC
 -- | Update local data to be valid for current global state. This function
 --   is assumed to be called after applying block and before releasing lock
 --   on block application.
-sscNormalize :: forall ssc m. (MonadDB m, MonadSscMem ssc m, SscLocalDataClass ssc, WithNodeContext ssc m, SscHelpersClass ssc, WithLogger m) => m ()
+sscNormalize :: forall ssc m. (MonadDB m, MonadSscMem ssc m, SscLocalDataClass ssc, HasContext LrcContext m, SscHelpersClass ssc, WithLogger m) => m ()
 
 -- | Reset local data to empty state. This function can be used when we
 --   detect that something is really bad. In this case it makes sense to
@@ -2020,7 +2037,7 @@ module Pos.WorkMode
 
 -- | Bunch of constraints to perform work for real world distributed
 --   system.
-type WorkMode ssc m = (MinWorkMode m, MonadMask m, MonadSlots m, MonadDB m, MonadDBLimits m, MonadTxpMem TxpExtra_TMP m, MonadDhtMem m, MonadRelayMem m, MonadDelegation m, MonadSscMem ssc m, MonadReportingMem m, SscGStateClass ssc, SscLocalDataClass ssc, SscHelpersClass ssc, WithNodeContext ssc m, MonadStats m, MonadJL m, WithKademliaDHTInstance m, WithPeerState m, MonadUSMem m, MonadShutdownMem m)
+type WorkMode ssc m = (MinWorkMode m, MonadMask m, MonadSlots m, MonadDB m, MonadDBLimits m, MonadTxpMem TxpExtra_TMP m, MonadDhtMem m, MonadRelayMem m, MonadDelegation m, MonadSscMem ssc m, MonadReportingMem m, SscGStateClass ssc, SscLocalDataClass ssc, SscHelpersClass ssc, WithNodeContext ssc m, HasContext LrcContext m, HasContext UpdateContext m, HasContext NodeParams m, MonadStats m, MonadJL m, WithKademliaDHTInstance m, WithPeerState m, MonadUSMem m, MonadShutdownMem m)
 
 -- | More relaxed version of <a>WorkMode</a>.
 type MinWorkMode m = (WithLogger m, MonadMockable m, MonadDHT m, MonadIO m, WithPeerState m)
@@ -2122,7 +2139,7 @@ sscNewLocalData :: (SscLocalDataClass ssc, MonadSlots m, MonadDB m) => m (SscLoc
 class Ssc ssc => SscGStateClass ssc
 
 -- | Load global state from DB by recreating it from recent blocks.
-sscLoadGlobalState :: (SscGStateClass ssc, WithNodeContext ssc m, MonadDB m, WithLogger m) => m (SscGlobalState ssc)
+sscLoadGlobalState :: (SscGStateClass ssc, HasContext LrcContext m, MonadDB m, WithLogger m) => m (SscGlobalState ssc)
 
 -- | Rollback application of blocks.
 sscRollbackU :: SscGStateClass ssc => NewestFirst NE (Block ssc) -> SscGlobalUpdate ssc ()
@@ -2195,6 +2212,9 @@ module Pos.Update.Arbitrary
 module Pos.Genesis.Arbitrary
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Genesis.Types.GenesisData
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Genesis.Types.StakeDistribution
+
+module Pos.Update.Mode
+type UpdateMode m = (MinWorkMode m, MonadMask m, MonadDB m, MonadDBLimits m, MonadRelayMem m, MonadUSMem m, HasContext UpdateContext m, HasContext LrcContext m, HasContext NodeParams m)
 
 
 -- | Re-exports of GodTossing modules.
@@ -3119,11 +3139,11 @@ ToilModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> !exten
 [_tmUndos] :: GenericToilModifier extension -> !UndoMap
 [_tmExtra] :: GenericToilModifier extension -> !extension
 type ToilModifier = GenericToilModifier ()
-tmUtxo :: forall extension_a2diC. Lens' (GenericToilModifier extension_a2diC) UtxoModifier
-tmBalances :: forall extension_a2diC. Lens' (GenericToilModifier extension_a2diC) BalancesView
-tmMemPool :: forall extension_a2diC. Lens' (GenericToilModifier extension_a2diC) MemPool
-tmUndos :: forall extension_a2diC. Lens' (GenericToilModifier extension_a2diC) UndoMap
-tmExtra :: forall extension_a2diC extension_a2dkA. Lens (GenericToilModifier extension_a2diC) (GenericToilModifier extension_a2dkA) extension_a2diC extension_a2dkA
+tmUtxo :: forall extension_a2dEQ. Lens' (GenericToilModifier extension_a2dEQ) UtxoModifier
+tmBalances :: forall extension_a2dEQ. Lens' (GenericToilModifier extension_a2dEQ) BalancesView
+tmMemPool :: forall extension_a2dEQ. Lens' (GenericToilModifier extension_a2dEQ) MemPool
+tmUndos :: forall extension_a2dEQ. Lens' (GenericToilModifier extension_a2dEQ) UndoMap
+tmExtra :: forall extension_a2dEQ extension_a2dGO. Lens (GenericToilModifier extension_a2dEQ) (GenericToilModifier extension_a2dGO) extension_a2dEQ extension_a2dGO
 
 -- | Environment used by Toil.
 data ToilEnv
@@ -3273,7 +3293,7 @@ module Pos.Update
 
 -- | Download and save archive update by given
 --   <a>ConfirmedProposalState</a>
-downloadUpdate :: WorkMode ssc m => ConfirmedProposalState -> m ()
+downloadUpdate :: UpdateMode m => ConfirmedProposalState -> m ()
 
 -- | Download a file by its hash.
 --   
@@ -3285,21 +3305,21 @@ downloadHash :: [Text] -> Hash LByteString -> IO (Either Text LByteString)
 --   applies block in parallel. It also assumes that parent of oldest block
 --   is current tip. If verification is done prior to application, one can
 --   pass <a>PollModifier</a> obtained from verification to this function.
-usApplyBlocks :: (MonadThrow m, USGlobalApplyMode ssc m) => OldestFirst NE (Block ssc) -> Maybe PollModifier -> m [SomeBatchOp]
+usApplyBlocks :: (MonadThrow m, USGlobalApplyMode m) => OldestFirst NE UpdateBlock -> Maybe PollModifier -> m [SomeBatchOp]
 
 -- | Checks whether our software can create block according to current
 --   global state.
-usCanCreateBlock :: (WithLogger m, WithNodeContext ssc m, MonadDB m) => m Bool
+usCanCreateBlock :: (WithLogger m, MonadDB m, HasContext LrcContext m) => m Bool
 
 -- | Revert application of given blocks to US part of GState DB and US
 --   local data. The caller must ensure that the tip stored in DB is
---   <a>headerHash</a> of head.
-usRollbackBlocks :: forall ssc m. USGlobalApplyMode ssc m => NewestFirst NE (Block ssc, USUndo) -> m [SomeBatchOp]
+--   <tt>headerHash</tt> of head.
+usRollbackBlocks :: forall m. USGlobalApplyMode m => NewestFirst NE (UpdateBlock, USUndo) -> m [SomeBatchOp]
 
 -- | Verify whether sequence of blocks can be applied to US part of current
 --   GState DB. This function doesn't make pure checks, they are assumed to
 --   be done earlier, most likely during objects construction.
-usVerifyBlocks :: (USGlobalVerifyMode ssc m) => OldestFirst NE (Block ssc) -> m (PollModifier, OldestFirst NE USUndo)
+usVerifyBlocks :: (USGlobalVerifyMode m) => OldestFirst NE UpdateBlock -> m (PollModifier, OldestFirst NE USUndo)
 
 -- | This function returns true if update proposal with given identifier
 --   should be requested.
@@ -3313,12 +3333,12 @@ getLocalProposalNVotes :: (MonadIO m, MonadUSMem m) => UpId -> m (Maybe (UpdateP
 --   respect to it. If proposal is added to store, 'Right ()' is returned.
 --   Otherwise 'Left err' is returned and <tt>err</tt> lets caller decide
 --   whether sender could be sure that error would happen.
-processProposal :: (USLocalLogicMode ssc m) => UpdateProposal -> m (Either PollVerFailure ())
+processProposal :: (USLocalLogicMode m) => UpdateProposal -> m (Either PollVerFailure ())
 
 -- | This function returns true if update vote proposal with given
 --   identifier issued by stakeholder with given PublicKey and with given
 --   decision should be requested.
-isVoteNeeded :: USLocalLogicMode ssc m => UpId -> PublicKey -> Bool -> m Bool
+isVoteNeeded :: USLocalLogicMode m => UpId -> PublicKey -> Bool -> m Bool
 
 -- | Get update vote for proposal with given id from given issuer and with
 --   given decision if it is known.
@@ -3329,23 +3349,23 @@ getLocalVote :: (MonadIO m, MonadUSMem m) => UpId -> PublicKey -> Bool -> m (May
 --   to it. If vote is added to store, 'Right ()' is returned. Otherwise
 --   'Left err' is returned and <tt>err</tt> lets caller decide whether
 --   sender could be sure that error would happen.
-processVote :: (USLocalLogicMode ssc m) => UpdateVote -> m (Either PollVerFailure ())
+processVote :: (USLocalLogicMode m) => UpdateVote -> m (Either PollVerFailure ())
 
 -- | Remove local data from memory state to make it consistent with current
 --   GState. This function assumes that GState is locked. It tries to leave
 --   as much data as possible. It assumes that <tt>blkSemaphore</tt> is
 --   taken.
-usNormalize :: (USLocalLogicMode ssc m) => m ()
+usNormalize :: (USLocalLogicMode m) => m ()
 
 -- | Update memory state to make it correct for given slot.
-processNewSlot :: (USLocalLogicMode ssc m) => SlotId -> m ()
+processNewSlot :: (USLocalLogicMode m) => SlotId -> m ()
 
 -- | Prepare UpdatePayload for inclusion into new block with given SlotId.
 --   This function assumes that <tt>blkSemaphore</tt> is taken and nobody
 --   can apply/rollback blocks in parallel. Sometimes payload can't be
 --   created. It can happen if we are trying to create block for slot which
 --   has already passed, for example.
-usPreparePayload :: (USLocalLogicMode ssc m) => SlotId -> m (Maybe UpdatePayload)
+usPreparePayload :: (USLocalLogicMode m) => SlotId -> m (Maybe UpdatePayload)
 
 -- | Consumer will be called on every Richmen computation.
 usLrcConsumer :: MonadDB m => LrcConsumer m
@@ -3414,7 +3434,7 @@ mkMemState :: MemState
 newMemVar :: MonadIO m => m MemVar
 
 -- | Listeners for requests related to update system
-usListeners :: (WorkMode ssc m) => m ([ListenerSpec m], OutSpecs)
+usListeners :: (UpdateMode m) => m ([ListenerSpec m], OutSpecs)
 usStubListeners :: (WithLogger m) => ([ListenerSpec m], OutSpecs)
 
 -- | Tag for proposal messages
@@ -4010,7 +4030,7 @@ PHAdded :: PskHeavyVerdict
 -- | Processes heavyweight psk. Puts it into the mempool depending on
 --   issuer's stake, overrides if exists, checks validity and cachemsg
 --   state.
-processProxySKHeavy :: forall ssc m. (SscHelpersClass ssc, MonadDB m, MonadDelegation m, WithNodeContext ssc m) => ProxySKHeavy -> m PskHeavyVerdict
+processProxySKHeavy :: forall ssc m. (SscHelpersClass ssc, MonadDB m, MonadDelegation m, HasContext LrcContext m) => ProxySKHeavy -> m PskHeavyVerdict
 
 -- | Applies a sequence of definitely valid blocks to memory state and
 --   returns batchops. It works correctly only in case blocks don't cross
@@ -4029,12 +4049,12 @@ delegationApplyBlocks :: forall ssc m. (DelegationWorkMode m) => OldestFirst NE 
 --   
 --   It's assumed blocks are correct from 'Pos.Types.Block#verifyBlocks'
 --   point of view.
-delegationVerifyBlocks :: forall ssc m. (SscHelpersClass ssc, MonadDB m, WithNodeContext ssc m) => OldestFirst NE (Block ssc) -> m (Either Text (OldestFirst NE [ProxySKHeavy]))
+delegationVerifyBlocks :: forall ssc m. (SscHelpersClass ssc, MonadDB m, HasContext LrcContext m) => OldestFirst NE (Block ssc) -> m (Either Text (OldestFirst NE [ProxySKHeavy]))
 
 -- | Rollbacks block list. Erases mempool of certificates. Better to
 --   restore them after the rollback (see Txp#normalizeTxpLD). You can
 --   rollback arbitrary number of blocks.
-delegationRollbackBlocks :: forall ssc m. (SscHelpersClass ssc, MonadDelegation m, MonadDB m, WithNodeContext ssc m) => NewestFirst NE (Blund ssc) -> m (NonEmpty SomeBatchOp)
+delegationRollbackBlocks :: forall ssc m. (SscHelpersClass ssc, MonadDelegation m, MonadDB m, HasContext LrcContext m) => NewestFirst NE (Blund ssc) -> m (NonEmpty SomeBatchOp)
 
 -- | PSK check verdict. It can be unrelated (other key or spoiled, no way
 --   to differ), exist in storage already or be cached.
@@ -4321,7 +4341,7 @@ handleUnsolicitedHeaders :: forall ssc s m. (SscWorkersClass ssc, WorkMode ssc m
 --   chooses appropriate <tt>from</tt> hashes and puts them into
 --   <tt>GetHeaders</tt> message.
 mkHeadersRequest :: forall ssc m. WorkMode ssc m => Maybe HeaderHash -> m (Maybe MsgGetHeaders)
-requestHeaders :: forall ssc s m. (SscWorkersClass ssc, WorkMode ssc m) => MsgGetHeaders -> NodeId -> BlockHeader ssc -> Proxy s -> ConversationActions MsgGetHeaders (LimitedLength s (MsgHeaders ssc)) m -> m ()
+requestHeaders :: forall ssc s m. (SscWorkersClass ssc, WorkMode ssc m) => MsgGetHeaders -> NodeId -> Maybe (BlockHeader ssc) -> Proxy s -> ConversationActions MsgGetHeaders (LimitedLength s (MsgHeaders ssc)) m -> m ()
 
 -- | Make message which requests chain of blocks which is based on our tip.
 --   LcaChild is the first block after LCA we don't know. WantedBlock is
@@ -4692,7 +4712,7 @@ module Pos.Wallet.Web
 -- | Servant API which provides access to wallet. TODO: Should be composed
 --   depending on the resource - wallets, txs, ...
 --   <a>http://haskell-servant.github.io/tutorial/0.4/server.html#nested-apis</a>
-type WalletApi = ("api" :> ("test" :> ("reset" :> Post '[JSON] (Either WalletError ())))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> Get '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("wallets" :> Get '[JSON] (Either WalletError [CWallet]))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> (ReqBody '[JSON] CWalletMeta :> Put '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("wallets" :> (Capture "passphrase" CPassPhrase :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> Delete '[JSON] (Either WalletError ())))) :<|> (("api" :> ("wallets" :> ("keys" :> (ReqBody '[JSON] Text :> Post '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("wallets" :> ("restore" :> (Capture "passphrase" CPassPhrase :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet)))))) :<|> (("api" :> ("addresses" :> (Capture "address" Text :> ("currencies" :> (Capture "currency" CCurrency :> Get '[JSON] (Either WalletError Bool)))))) :<|> (("api" :> ("profile" :> Get '[JSON] (Either WalletError CProfile))) :<|> (("api" :> ("profile" :> (ReqBody '[JSON] CProfile :> Post '[JSON] (Either WalletError CProfile)))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "passphrase" CPassPhrase :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> Post '[JSON] (Either WalletError CTx)))))))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "passphrase" CPassPhrase :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> (Capture "currency" CCurrency :> (Capture "title" Text :> (Capture "description" Text :> Post '[JSON] (Either WalletError CTx))))))))))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "address" CAddress :> (Capture "transaction" CTxId :> (ReqBody '[JSON] CTxMeta :> Post '[JSON] (Either WalletError ()))))))) :<|> (("api" :> ("txs" :> ("histories" :> (Capture "address" CAddress :> (QueryParam "skip" Word :> (QueryParam "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word)))))))) :<|> (("api" :> ("txs" :> ("histories" :> (Capture "address" CAddress :> (Capture "search" Text :> (QueryParam "skip" Word :> (QueryParam "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word))))))))) :<|> (("api" :> ("update" :> Get '[JSON] (Either WalletError CUpdateInfo))) :<|> (("api" :> ("update" :> Post '[JSON] (Either WalletError ()))) :<|> (("api" :> ("redemptions" :> ("ada" :> (ReqBody '[JSON] CWalletRedeem :> Post '[JSON] (Either WalletError CTx))))) :<|> (("api" :> ("reporting" :> ("initialized" :> (ReqBody '[JSON] CInitialized :> Post '[JSON] (Either WalletError ()))))) :<|> (("api" :> ("settings" :> ("slots" :> ("duration" :> Get '[JSON] (Either WalletError Word))))) :<|> (("api" :> ("settings" :> ("version" :> Get '[JSON] (Either WalletError SoftwareVersion)))) :<|> ("api" :> ("settings" :> ("sync" :> ("progress" :> Get '[JSON] (Either WalletError SyncProgress))))))))))))))))))))))))))
+type WalletApi = ("api" :> ("test" :> ("reset" :> Post '[JSON] (Either WalletError ())))) :<|> (("api" :> ("walletSets" :> (Capture "walletSetId" CAddress :> Get '[JSON] (Either WalletError CWalletSet)))) :<|> (("api" :> ("walletSets" :> Get '[JSON] (Either WalletError [CWalletSet]))) :<|> (("api" :> ("walletSets" :> (Capture "passphrase" CPassPhrase :> (ReqBody '[JSON] CWalletSetInit :> Post '[JSON] (Either WalletError CWalletSet))))) :<|> (("api" :> ("walletSets" :> ("restore" :> (Capture "passphrase" CPassPhrase :> (ReqBody '[JSON] CWalletSetInit :> Post '[JSON] (Either WalletError CWalletSet)))))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> Get '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("wallets" :> (Capture "mWalletSetId" (Maybe CAddress) :> Get '[JSON] (Either WalletError [CWallet])))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> (ReqBody '[JSON] CWalletMeta :> Put '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("wallets" :> (Capture "passphrase" CPassPhrase :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> Delete '[JSON] (Either WalletError ())))) :<|> (("api" :> ("wallets" :> ("keys" :> (ReqBody '[JSON] Text :> Post '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("addresses" :> (Capture "address" Text :> ("currencies" :> (Capture "currency" CCurrency :> Get '[JSON] (Either WalletError Bool)))))) :<|> (("api" :> ("profile" :> Get '[JSON] (Either WalletError CProfile))) :<|> (("api" :> ("profile" :> (ReqBody '[JSON] CProfile :> Post '[JSON] (Either WalletError CProfile)))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "passphrase" CPassPhrase :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> Post '[JSON] (Either WalletError CTx)))))))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "passphrase" CPassPhrase :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> (Capture "currency" CCurrency :> (Capture "title" Text :> (Capture "description" Text :> Post '[JSON] (Either WalletError CTx))))))))))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "address" CAddress :> (Capture "transaction" CTxId :> (ReqBody '[JSON] CTxMeta :> Post '[JSON] (Either WalletError ()))))))) :<|> (("api" :> ("txs" :> ("histories" :> (Capture "address" CAddress :> (QueryParam "skip" Word :> (QueryParam "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word)))))))) :<|> (("api" :> ("txs" :> ("histories" :> (Capture "address" CAddress :> (Capture "search" Text :> (QueryParam "skip" Word :> (QueryParam "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word))))))))) :<|> (("api" :> ("update" :> Get '[JSON] (Either WalletError CUpdateInfo))) :<|> (("api" :> ("update" :> Post '[JSON] (Either WalletError ()))) :<|> (("api" :> ("redemptions" :> ("ada" :> (ReqBody '[JSON] CWalletRedeem :> Post '[JSON] (Either WalletError CTx))))) :<|> (("api" :> ("reporting" :> ("initialized" :> (ReqBody '[JSON] CInitialized :> Post '[JSON] (Either WalletError ()))))) :<|> (("api" :> ("settings" :> ("slots" :> ("duration" :> Get '[JSON] (Either WalletError Word))))) :<|> (("api" :> ("settings" :> ("version" :> Get '[JSON] (Either WalletError SoftwareVersion)))) :<|> ("api" :> ("settings" :> ("sync" :> ("progress" :> Get '[JSON] (Either WalletError SyncProgress)))))))))))))))))))))))))))))
 
 -- | Helper Proxy.
 walletApi :: Proxy WalletApi
@@ -4702,7 +4722,7 @@ SyncProgress :: ChainDifficulty -> Maybe ChainDifficulty -> Word -> SyncProgress
 [_spNetworkCD] :: SyncProgress -> Maybe ChainDifficulty
 [_spPeers] :: SyncProgress -> Word
 
--- | Client address
+-- | Client address TODO: [CSL-931] introduce phantom type for type safety?
 newtype CAddress
 CAddress :: CHash -> CAddress
 
@@ -4784,30 +4804,58 @@ CInitialized :: Word -> Word -> CInitialized
 --   established.
 [cPreInit] :: CInitialized -> Word
 
+-- | Single account in a wallet
+data CAccount
+CAccount :: !CAddress -> !Coin -> CAccount
+[caAddress] :: CAccount -> !CAddress
+[caAmount] :: CAccount -> !Coin
+
 -- | Client Wallet (CW) (Flow type: walletType)
 data CWallet
-CWallet :: !CAddress -> !Coin -> !CWalletMeta -> CWallet
+CWallet :: !CAddress -> !CWalletMeta -> ![CAccount] -> CWallet
 [cwAddress] :: CWallet -> !CAddress
-[cwAmount] :: CWallet -> !Coin
 [cwMeta] :: CWallet -> !CWalletMeta
+[cwAccounts] :: CWallet -> ![CAccount]
 
 -- | A wallet can be used as personal or shared wallet
 data CWalletType
 CWTPersonal :: CWalletType
 CWTShared :: CWalletType
 
--- | Meta data of CWallet Includes data which are not provided by Cardano
+-- | Meta data of <a>CWallet</a> Includes data which are not provided by
+--   Cardano
 data CWalletMeta
-CWalletMeta :: !CWalletType -> !CCurrency -> !Text -> CWalletMeta
+CWalletMeta :: !CWalletType -> !CCurrency -> !Text -> !CWalletSetAddress -> CWalletMeta
 [cwType] :: CWalletMeta -> !CWalletType
 [cwCurrency] :: CWalletMeta -> !CCurrency
 [cwName] :: CWalletMeta -> !Text
+[cwSetId] :: CWalletMeta -> !CWalletSetAddress
 
--- | Query data for wallet creation (wallet meta + backup phrase)
+-- | Query data for wallet creation
 data CWalletInit
-CWalletInit :: !BackupPhrase -> !CWalletMeta -> CWalletInit
-[cwBackupPhrase] :: CWalletInit -> !BackupPhrase
+CWalletInit :: !CWalletMeta -> CWalletInit
 [cwInitMeta] :: CWalletInit -> !CWalletMeta
+
+-- | Client Wallet (CW)
+data CWalletSet
+CWalletSet :: !CWalletSetAddress -> !CWalletSetMeta -> !Int -> CWalletSet
+[cwsAddress] :: CWalletSet -> !CWalletSetAddress
+[cwsWSetMeta] :: CWalletSet -> !CWalletSetMeta
+[cwsWalletsNumber] :: CWalletSet -> !Int
+
+-- | Meta data of <a>CWalletSet</a>
+data CWalletSetMeta
+CWalletSetMeta :: !Text -> CWalletSetMeta
+[cwsName] :: CWalletSetMeta -> !Text
+
+-- | Query data for wallet set creation
+data CWalletSetInit
+CWalletSetInit :: !BackupPhrase -> !CWalletSetMeta -> CWalletSetInit
+[cwsBackupPhrase] :: CWalletSetInit -> !BackupPhrase
+[cwsInitMeta] :: CWalletSetInit -> !CWalletSetMeta
+
+-- | Wallet set identifier
+type CWalletSetAddress = CAddress
 
 -- | Update system data
 data CUpdateInfo
@@ -4849,6 +4897,9 @@ txContainsTitle :: Text -> CTx -> Bool
 
 -- | Creates <tt>CTUpdateInfo</tt> from <a>ConfirmedProposalState</a>
 toCUpdateInfo :: ConfirmedProposalState -> CUpdateInfo
+
+-- | Creates wallet meta with some default properties
+mkDefCWalletMeta :: CWalletSetAddress -> CWalletMeta
 walletDocsText :: Text
 data WalletError
 
@@ -4900,8 +4951,14 @@ openState :: MonadIO m => Bool -> FilePath -> m WalletState
 openMemState :: MonadIO m => m WalletState
 closeState :: MonadIO m => WalletState -> m ()
 getProfile :: WebWalletModeDB m => m (Maybe CProfile)
+getWalletAddresses :: WebWalletModeDB m => m [CAddress]
 getWalletMetas :: WebWalletModeDB m => m [CWalletMeta]
 getWalletMeta :: WebWalletModeDB m => CAddress -> m (Maybe CWalletMeta)
+getWalletAccounts :: WebWalletModeDB m => CAddress -> m (Maybe [CAddress])
+getAddressPath :: WebWalletModeDB m => CAddress -> m (Maybe [Word32])
+getWSetMetas :: WebWalletModeDB m => m ([CWalletSetMeta])
+getWSetMeta :: WebWalletModeDB m => CAddress -> m (Maybe CWalletSetMeta)
+getWSetAddresses :: WebWalletModeDB m => m [CAddress]
 getTxMeta :: WebWalletModeDB m => CAddress -> CTxId -> m (Maybe CTxMeta)
 getWalletHistory :: WebWalletModeDB m => CAddress -> m (Maybe [CTxMeta])
 getUpdates :: WebWalletModeDB m => m [CUpdateInfo]
@@ -4909,12 +4966,17 @@ getNextUpdate :: WebWalletModeDB m => m (Maybe CUpdateInfo)
 getHistoryCache :: WebWalletModeDB m => CAddress -> m (Maybe (HeaderHash, Utxo, [TxHistoryEntry]))
 testReset :: WebWalletModeDB m => m ()
 createWallet :: WebWalletModeDB m => CAddress -> CWalletMeta -> m ()
+createWSet :: WebWalletModeDB m => CAddress -> CWalletSetMeta -> m ()
+addWalletAccount :: WebWalletModeDB m => CAddress -> CAddress -> m ()
+addAddressPath :: WebWalletModeDB m => CAddress -> [Word32] -> m ()
 setProfile :: WebWalletModeDB m => CProfile -> m ()
 setWalletMeta :: WebWalletModeDB m => CAddress -> CWalletMeta -> m ()
+setWSetMeta :: WebWalletModeDB m => CAddress -> CWalletSetMeta -> m ()
 setWalletTransactionMeta :: WebWalletModeDB m => CAddress -> CTxId -> CTxMeta -> m ()
 setWalletHistory :: WebWalletModeDB m => CAddress -> [(CTxId, CTxMeta)] -> m ()
 addOnlyNewTxMeta :: WebWalletModeDB m => CAddress -> CTxId -> CTxMeta -> m ()
 removeWallet :: WebWalletModeDB m => CAddress -> m ()
+removeWalletAccount :: WebWalletModeDB m => CAddress -> CAddress -> m ()
 addUpdate :: WebWalletModeDB m => CUpdateInfo -> m ()
 removeNextUpdate :: WebWalletModeDB m => m ()
 updateHistoryCache :: WebWalletModeDB m => CAddress -> HeaderHash -> Utxo -> [TxHistoryEntry] -> m ()
