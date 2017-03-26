@@ -173,14 +173,6 @@ instance Data.String.IsString s => Control.Monad.Fail.MonadFail (Data.Either.Eit
 instance Control.Monad.Fail.MonadFail (Text.Parsec.Prim.ParsecT s u m)
 instance Control.Monad.Fail.MonadFail m => Control.Monad.Fail.MonadFail (Control.Monad.Trans.Resource.Internal.ResourceT m)
 
-module Pos.Update.Context
-data UpdateContext
-UpdateContext :: !(MVar ConfirmedProposalState) -> UpdateContext
-
--- | A semaphore which is unlocked when update data is downloaded and ready
---   to apply.
-[ucUpdateSemaphore] :: UpdateContext -> !(MVar ConfirmedProposalState)
-
 
 -- | Contains all Shared Seed Calculation algorithms implemented in our
 --   prototype. For now only NIST Beacon and more smart algorithm known as
@@ -245,7 +237,7 @@ BlockPSignatureEpoch :: (ProxySigLight (MainToSign ssc)) -> BlockSignature ssc
 BlockPSignatureSimple :: (ProxySigHeavy (MainToSign ssc)) -> BlockSignature ssc
 
 -- | Data to be signed in main block.
-type MainToSign ssc = (HeaderHash, BodyProof (MainBlockchain ssc), SlotId, ChainDifficulty, MainExtraHeaderData)
+type MainToSign ssc = (HeaderHash, BodyProof (MainBlockchain ssc), SlotId, ChainDifficulty)
 
 -- | MainBlock is a block with transactions and MPC messages. It's the main
 --   part of our consensus algorithm.
@@ -264,16 +256,6 @@ type GenesisBlockHeader ssc = GenericBlockHeader (GenesisBlockchain ssc)
 -- | Genesis block parametrized by <a>GenesisBlockchain</a>.
 type GenesisBlock ssc = GenericBlock (GenesisBlockchain ssc)
 
--- | Represents genesis block header extra data
-data GenesisExtraHeaderData
-GenesisExtraHeaderData :: !GenesisHeaderAttributes -> GenesisExtraHeaderData
-
--- | Header attributes
-[_gehAttributes] :: GenesisExtraHeaderData -> !GenesisHeaderAttributes
-
--- | Represents genesis block header attributes.
-type GenesisHeaderAttributes = Attributes ()
-
 -- | Either header of ordinary main block or genesis block.
 type BlockHeader ssc = Either (GenesisBlockHeader ssc) (MainBlockHeader ssc)
 
@@ -284,26 +266,21 @@ mehBlockVersion :: Lens' MainExtraHeaderData BlockVersion
 mehSoftwareVersion :: Lens' MainExtraHeaderData SoftwareVersion
 mehAttributes :: Lens' MainExtraHeaderData BlockHeaderAttributes
 mebAttributes :: Iso' MainExtraBodyData BlockBodyAttributes
-instance GHC.Generics.Generic Pos.Types.Block.Types.GenesisExtraHeaderData
-instance GHC.Show.Show Pos.Types.Block.Types.GenesisExtraHeaderData
-instance GHC.Classes.Eq Pos.Types.Block.Types.GenesisExtraHeaderData
 instance Control.DeepSeq.NFData Pos.Types.Block.Types.MainExtraBodyData
 instance GHC.Generics.Generic Pos.Types.Block.Types.MainExtraBodyData
 instance GHC.Show.Show Pos.Types.Block.Types.MainExtraBodyData
 instance GHC.Classes.Eq Pos.Types.Block.Types.MainExtraBodyData
-instance GHC.Generics.Generic (Pos.Types.Block.Types.BlockSignature ssc)
-instance GHC.Classes.Eq (Pos.Types.Block.Types.BlockSignature ssc)
-instance GHC.Show.Show (Pos.Types.Block.Types.BlockSignature ssc)
 instance GHC.Generics.Generic Pos.Types.Block.Types.MainExtraHeaderData
 instance GHC.Show.Show Pos.Types.Block.Types.MainExtraHeaderData
 instance GHC.Classes.Eq Pos.Types.Block.Types.MainExtraHeaderData
+instance GHC.Generics.Generic (Pos.Types.Block.Types.BlockSignature ssc)
+instance GHC.Classes.Eq (Pos.Types.Block.Types.BlockSignature ssc)
+instance GHC.Show.Show (Pos.Types.Block.Types.BlockSignature ssc)
 instance Control.DeepSeq.NFData (Pos.Core.Block.BodyProof (Pos.Types.Block.Types.MainBlockchain ssc)) => Control.DeepSeq.NFData (Pos.Types.Block.Types.BlockSignature ssc)
 instance Data.Text.Buildable.Buildable (Pos.Types.Block.Types.BlockSignature ssc)
 instance Control.DeepSeq.NFData Pos.Types.Block.Types.MainExtraHeaderData
 instance Data.Text.Buildable.Buildable Pos.Types.Block.Types.MainExtraHeaderData
 instance Data.Text.Buildable.Buildable Pos.Types.Block.Types.MainExtraBodyData
-instance Control.DeepSeq.NFData Pos.Types.Block.Types.GenesisExtraHeaderData
-instance Data.Text.Buildable.Buildable Pos.Types.Block.Types.GenesisExtraHeaderData
 
 module Pos.Security.CLI
 data AttackType
@@ -379,21 +356,6 @@ shaStressRedeemer :: Int -> Script
 
 -- | Checks a signature N times. Should be used with <a>idValidator</a>.
 sigStressRedeemer :: Int -> Script
-
-module Pos.Lrc.Context
-
--- | Data used for LRC syncronization. First value is <b>False</b> iff LRC
---   is running now. Second value is last epoch for which we have already
---   computed LRC.
-data LrcSyncData
-LrcSyncData :: !Bool -> !EpochIndex -> LrcSyncData
-[lrcNotRunning] :: LrcSyncData -> !Bool
-[lastEpochWithLrc] :: LrcSyncData -> !EpochIndex
-data LrcContext
-LrcContext :: !(TVar LrcSyncData) -> LrcContext
-
--- | Primitive for synchronization with LRC.
-[lcLrcSync] :: LrcContext -> !(TVar LrcSyncData)
 
 
 -- | <tt>Arbitrary</tt> unsafe instances for some types from <a>Types</a>.
@@ -1153,9 +1115,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679108490 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679108490)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679108483 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679108483)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679108479 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679108479)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679108395 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679108395)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679108388 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679108388)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679108384 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679108384)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SoftwareVersion
@@ -1253,14 +1215,11 @@ mkMainHeader :: (BiSsc ssc, SscHelpersClass ssc) => Maybe (BlockHeader ssc) -> S
 
 -- | Smart constructor for <a>GenesisBlockHeader</a>. Uses
 --   <a>mkGenericHeader</a>.
-mkGenesisHeader :: BiSsc ssc => Maybe (BlockHeader ssc) -> EpochIndex -> Body (GenesisBlockchain ssc) -> ExtraHeaderData (GenesisBlockchain ssc) -> GenesisBlockHeader ssc
+mkGenesisHeader :: BiSsc ssc => Maybe (BlockHeader ssc) -> EpochIndex -> Body (GenesisBlockchain ssc) -> GenesisBlockHeader ssc
 
 -- | Smart constructor for <a>GenesisBlock</a>. Uses
 --   <a>mkGenesisHeader</a>.
-mkGenesisBlock :: BiSsc ssc => Maybe (BlockHeader ssc) -> EpochIndex -> SlotLeaders -> ExtraHeaderData (GenesisBlockchain ssc) -> GenesisBlock ssc
-
--- | Dummy implementation of make genesis extra header data.
-mkGenesisEHD :: () -> GenesisExtraHeaderData
+mkGenesisBlock :: BiSsc ssc => Maybe (BlockHeader ssc) -> EpochIndex -> SlotLeaders -> GenesisBlock ssc
 
 -- | Predefined <a>Hash</a> of <a>GenesisBlock</a>.
 genesisHash :: Hash a
@@ -1572,21 +1531,23 @@ class Monad m => WithNodeContext ssc m | m -> ssc where getNodeContext = lift ge
 getNodeContext :: WithNodeContext ssc m => m (NodeContext ssc)
 getNodeContext :: (WithNodeContext ssc m, MonadTrans t, WithNodeContext ssc m', t m' ~ m) => m (NodeContext ssc)
 
+-- | Data used for LRC syncronization. First value is <b>False</b> iff LRC
+--   is running now. Second value is last epoch for which we have already
+--   computed LRC.
+type LrcSyncData = (Bool, EpochIndex)
+
 -- | NodeContext contains runtime context of node.
 data NodeContext ssc
-NodeContext :: !(Maybe (MVar FilePath)) -> !(SscNodeContext ssc) -> !UpdateContext -> !LrcContext -> !(MVar HeaderHash) -> !(TVar UserSecret) -> !(TBQueue (NodeId, NewestFirst NE (BlockHeader ssc))) -> !(TMVar (NodeId, BlockHeader ssc)) -> !(TMVar (BlockHeader ssc)) -> !RelayInvQueue -> !LoggerConfig -> !NodeParams -> !(TVar Bool) -> !(TBQueue ()) -> !(Maybe (MVar ())) -> !UTCTime -> !(TVar (Maybe (BlockHeader ssc))) -> !TxpGlobalSettings -> NodeContext ssc
+NodeContext :: !(Maybe (MVar FilePath)) -> !(SscNodeContext ssc) -> !(MVar HeaderHash) -> !(TVar LrcSyncData) -> !(TVar UserSecret) -> !(TBQueue (NodeId, NewestFirst NE (BlockHeader ssc))) -> !(TMVar (NodeId, BlockHeader ssc)) -> !(TMVar (BlockHeader ssc)) -> !(MVar ConfirmedProposalState) -> !RelayInvQueue -> !LoggerConfig -> !NodeParams -> !(TVar Bool) -> !(TBQueue ()) -> !(Maybe (MVar ())) -> !UTCTime -> !(TVar (Maybe (BlockHeader ssc))) -> !TxpGlobalSettings -> NodeContext ssc
 [ncJLFile] :: NodeContext ssc -> !(Maybe (MVar FilePath))
 [ncSscContext] :: NodeContext ssc -> !(SscNodeContext ssc)
-
--- | Context needed for the update system
-[ncUpdateContext] :: NodeContext ssc -> !UpdateContext
-
--- | Context needed for LRC
-[ncLrcContext] :: NodeContext ssc -> !LrcContext
 
 -- | Semaphore which manages access to block application. Stored hash is a
 --   hash of last applied block.
 [ncBlkSemaphore] :: NodeContext ssc -> !(MVar HeaderHash)
+
+-- | Primitive for synchronization with LRC.
+[ncLrcSync] :: NodeContext ssc -> !(TVar LrcSyncData)
 
 -- | Secret keys (and path to file) which are used to send transactions
 [ncUserSecret] :: NodeContext ssc -> !(TVar UserSecret)
@@ -1606,6 +1567,10 @@ NodeContext :: !(Maybe (MVar FilePath)) -> !(SscNodeContext ssc) -> !UpdateConte
 -- | Header of the last block that was downloaded in retrieving queue. Is
 --   needed to show smooth prorgess on the frontend.
 [ncProgressHeader] :: NodeContext ssc -> !(TMVar (BlockHeader ssc))
+
+-- | A semaphore which is unlocked when update data is downloaded and ready
+--   to apply.
+[ncUpdateSemaphore] :: NodeContext ssc -> !(MVar ConfirmedProposalState)
 
 -- | Queue is used in Relay framework, it stores inv messages for earlier
 --   received data.
@@ -1723,9 +1688,9 @@ readBlkSemaphore :: (MonadIO m, WithNodeContext ssc m) => m HeaderHash
 takeBlkSemaphore :: (MonadIO m, WithNodeContext ssc m) => m HeaderHash
 
 -- | Block until LRC data is available for given epoch.
-waitLrc :: (MonadIO m, HasContext LrcContext m) => EpochIndex -> m ()
-lrcActionOnEpoch :: (MonadIO m, HasContext LrcContext m, MonadThrow m) => EpochIndex -> (EpochIndex -> m (Maybe a)) -> m a
-lrcActionOnEpochReason :: (MonadIO m, HasContext LrcContext m, MonadThrow m) => EpochIndex -> Text -> (EpochIndex -> m (Maybe a)) -> m a
+waitLrc :: (MonadIO m, WithNodeContext ssc m) => EpochIndex -> m ()
+lrcActionOnEpoch :: (MonadIO m, WithNodeContext ssc m, MonadThrow m) => EpochIndex -> (EpochIndex -> m (Maybe a)) -> m a
+lrcActionOnEpochReason :: (MonadIO m, WithNodeContext ssc m, MonadThrow m) => EpochIndex -> Text -> (EpochIndex -> m (Maybe a)) -> m a
 
 -- | Returns node uptime based on current time and <a>ncStartTime</a>.
 getUptime :: (MonadIO m, WithNodeContext ssc m) => m Microsecond
@@ -1922,8 +1887,8 @@ askSscMem :: (MonadSscMem ssc m, MonadTrans t, MonadSscMem ssc m', t m' ~ m) => 
 newtype SscHolder ssc m a
 SscHolder :: ReaderT (SscState ssc) m a -> SscHolder ssc m a
 [getSscHolder] :: SscHolder ssc m a -> ReaderT (SscState ssc) m a
-mkSscHolderState :: forall ssc m. (WithLogger m, HasContext LrcContext m, SscGStateClass ssc, SscLocalDataClass ssc, MonadDB m, MonadSlots m) => m (SscState ssc)
-mkStateAndRunSscHolder :: forall ssc m a. (WithLogger m, HasContext LrcContext m, SscGStateClass ssc, SscLocalDataClass ssc, MonadDB m, MonadSlots m) => SscHolder ssc m a -> m a
+mkSscHolderState :: forall ssc m. (WithLogger m, WithNodeContext ssc m, SscGStateClass ssc, SscLocalDataClass ssc, MonadDB m, MonadSlots m) => m (SscState ssc)
+mkStateAndRunSscHolder :: forall ssc m a. (WithLogger m, WithNodeContext ssc m, SscGStateClass ssc, SscLocalDataClass ssc, MonadDB m, MonadSlots m) => SscHolder ssc m a -> m a
 
 -- | Run <a>SscHolder</a> reading GState from DB (restoring from blocks)
 --   and using default (uninitialized) local state.
@@ -1952,7 +1917,7 @@ sscGetLocalPayload :: forall ssc m. (MonadIO m, MonadSscMem ssc m, SscLocalDataC
 -- | Update local data to be valid for current global state. This function
 --   is assumed to be called after applying block and before releasing lock
 --   on block application.
-sscNormalize :: forall ssc m. (MonadDB m, MonadSscMem ssc m, SscLocalDataClass ssc, HasContext LrcContext m, SscHelpersClass ssc, WithLogger m) => m ()
+sscNormalize :: forall ssc m. (MonadDB m, MonadSscMem ssc m, SscLocalDataClass ssc, WithNodeContext ssc m, SscHelpersClass ssc, WithLogger m) => m ()
 
 -- | Reset local data to empty state. This function can be used when we
 --   detect that something is really bad. In this case it makes sense to
@@ -2055,7 +2020,7 @@ module Pos.WorkMode
 
 -- | Bunch of constraints to perform work for real world distributed
 --   system.
-type WorkMode ssc m = (MinWorkMode m, MonadMask m, MonadSlots m, MonadDB m, MonadDBLimits m, MonadTxpMem TxpExtra_TMP m, MonadDhtMem m, MonadRelayMem m, MonadDelegation m, MonadSscMem ssc m, MonadReportingMem m, SscGStateClass ssc, SscLocalDataClass ssc, SscHelpersClass ssc, WithNodeContext ssc m, HasContext LrcContext m, HasContext UpdateContext m, HasContext NodeParams m, MonadStats m, MonadJL m, WithKademliaDHTInstance m, WithPeerState m, MonadUSMem m, MonadShutdownMem m)
+type WorkMode ssc m = (MinWorkMode m, MonadMask m, MonadSlots m, MonadDB m, MonadDBLimits m, MonadTxpMem TxpExtra_TMP m, MonadDhtMem m, MonadRelayMem m, MonadDelegation m, MonadSscMem ssc m, MonadReportingMem m, SscGStateClass ssc, SscLocalDataClass ssc, SscHelpersClass ssc, WithNodeContext ssc m, MonadStats m, MonadJL m, WithKademliaDHTInstance m, WithPeerState m, MonadUSMem m, MonadShutdownMem m)
 
 -- | More relaxed version of <a>WorkMode</a>.
 type MinWorkMode m = (WithLogger m, MonadMockable m, MonadDHT m, MonadIO m, WithPeerState m)
@@ -2157,7 +2122,7 @@ sscNewLocalData :: (SscLocalDataClass ssc, MonadSlots m, MonadDB m) => m (SscLoc
 class Ssc ssc => SscGStateClass ssc
 
 -- | Load global state from DB by recreating it from recent blocks.
-sscLoadGlobalState :: (SscGStateClass ssc, HasContext LrcContext m, MonadDB m, WithLogger m) => m (SscGlobalState ssc)
+sscLoadGlobalState :: (SscGStateClass ssc, WithNodeContext ssc m, MonadDB m, WithLogger m) => m (SscGlobalState ssc)
 
 -- | Rollback application of blocks.
 sscRollbackU :: SscGStateClass ssc => NewestFirst NE (Block ssc) -> SscGlobalUpdate ssc ()
@@ -2230,9 +2195,6 @@ module Pos.Update.Arbitrary
 module Pos.Genesis.Arbitrary
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Genesis.Types.GenesisData
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Genesis.Types.StakeDistribution
-
-module Pos.Update.Mode
-type UpdateMode m = (MinWorkMode m, MonadMask m, MonadDB m, MonadDBLimits m, MonadRelayMem m, MonadUSMem m, HasContext UpdateContext m, HasContext LrcContext m, HasContext NodeParams m)
 
 
 -- | Re-exports of GodTossing modules.
@@ -3157,11 +3119,11 @@ ToilModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> !exten
 [_tmUndos] :: GenericToilModifier extension -> !UndoMap
 [_tmExtra] :: GenericToilModifier extension -> !extension
 type ToilModifier = GenericToilModifier ()
-tmUtxo :: forall extension_a2e5U. Lens' (GenericToilModifier extension_a2e5U) UtxoModifier
-tmBalances :: forall extension_a2e5U. Lens' (GenericToilModifier extension_a2e5U) BalancesView
-tmMemPool :: forall extension_a2e5U. Lens' (GenericToilModifier extension_a2e5U) MemPool
-tmUndos :: forall extension_a2e5U. Lens' (GenericToilModifier extension_a2e5U) UndoMap
-tmExtra :: forall extension_a2e5U extension_a2e7S. Lens (GenericToilModifier extension_a2e5U) (GenericToilModifier extension_a2e7S) extension_a2e5U extension_a2e7S
+tmUtxo :: forall extension_a2diC. Lens' (GenericToilModifier extension_a2diC) UtxoModifier
+tmBalances :: forall extension_a2diC. Lens' (GenericToilModifier extension_a2diC) BalancesView
+tmMemPool :: forall extension_a2diC. Lens' (GenericToilModifier extension_a2diC) MemPool
+tmUndos :: forall extension_a2diC. Lens' (GenericToilModifier extension_a2diC) UndoMap
+tmExtra :: forall extension_a2diC extension_a2dkA. Lens (GenericToilModifier extension_a2diC) (GenericToilModifier extension_a2dkA) extension_a2diC extension_a2dkA
 
 -- | Environment used by Toil.
 data ToilEnv
@@ -3311,7 +3273,7 @@ module Pos.Update
 
 -- | Download and save archive update by given
 --   <a>ConfirmedProposalState</a>
-downloadUpdate :: UpdateMode m => ConfirmedProposalState -> m ()
+downloadUpdate :: WorkMode ssc m => ConfirmedProposalState -> m ()
 
 -- | Download a file by its hash.
 --   
@@ -3323,21 +3285,21 @@ downloadHash :: [Text] -> Hash LByteString -> IO (Either Text LByteString)
 --   applies block in parallel. It also assumes that parent of oldest block
 --   is current tip. If verification is done prior to application, one can
 --   pass <a>PollModifier</a> obtained from verification to this function.
-usApplyBlocks :: (MonadThrow m, USGlobalApplyMode m) => OldestFirst NE UpdateBlock -> Maybe PollModifier -> m [SomeBatchOp]
+usApplyBlocks :: (MonadThrow m, USGlobalApplyMode ssc m) => OldestFirst NE (Block ssc) -> Maybe PollModifier -> m [SomeBatchOp]
 
 -- | Checks whether our software can create block according to current
 --   global state.
-usCanCreateBlock :: (WithLogger m, MonadDB m, HasContext LrcContext m) => m Bool
+usCanCreateBlock :: (WithLogger m, WithNodeContext ssc m, MonadDB m) => m Bool
 
 -- | Revert application of given blocks to US part of GState DB and US
 --   local data. The caller must ensure that the tip stored in DB is
---   <tt>headerHash</tt> of head.
-usRollbackBlocks :: forall m. USGlobalApplyMode m => NewestFirst NE (UpdateBlock, USUndo) -> m [SomeBatchOp]
+--   <a>headerHash</a> of head.
+usRollbackBlocks :: forall ssc m. USGlobalApplyMode ssc m => NewestFirst NE (Block ssc, USUndo) -> m [SomeBatchOp]
 
 -- | Verify whether sequence of blocks can be applied to US part of current
 --   GState DB. This function doesn't make pure checks, they are assumed to
 --   be done earlier, most likely during objects construction.
-usVerifyBlocks :: (USGlobalVerifyMode m) => OldestFirst NE UpdateBlock -> m (PollModifier, OldestFirst NE USUndo)
+usVerifyBlocks :: (USGlobalVerifyMode ssc m) => OldestFirst NE (Block ssc) -> m (PollModifier, OldestFirst NE USUndo)
 
 -- | This function returns true if update proposal with given identifier
 --   should be requested.
@@ -3351,12 +3313,12 @@ getLocalProposalNVotes :: (MonadIO m, MonadUSMem m) => UpId -> m (Maybe (UpdateP
 --   respect to it. If proposal is added to store, 'Right ()' is returned.
 --   Otherwise 'Left err' is returned and <tt>err</tt> lets caller decide
 --   whether sender could be sure that error would happen.
-processProposal :: (USLocalLogicMode m) => UpdateProposal -> m (Either PollVerFailure ())
+processProposal :: (USLocalLogicMode ssc m) => UpdateProposal -> m (Either PollVerFailure ())
 
 -- | This function returns true if update vote proposal with given
 --   identifier issued by stakeholder with given PublicKey and with given
 --   decision should be requested.
-isVoteNeeded :: USLocalLogicMode m => UpId -> PublicKey -> Bool -> m Bool
+isVoteNeeded :: USLocalLogicMode ssc m => UpId -> PublicKey -> Bool -> m Bool
 
 -- | Get update vote for proposal with given id from given issuer and with
 --   given decision if it is known.
@@ -3367,23 +3329,23 @@ getLocalVote :: (MonadIO m, MonadUSMem m) => UpId -> PublicKey -> Bool -> m (May
 --   to it. If vote is added to store, 'Right ()' is returned. Otherwise
 --   'Left err' is returned and <tt>err</tt> lets caller decide whether
 --   sender could be sure that error would happen.
-processVote :: (USLocalLogicMode m) => UpdateVote -> m (Either PollVerFailure ())
+processVote :: (USLocalLogicMode ssc m) => UpdateVote -> m (Either PollVerFailure ())
 
 -- | Remove local data from memory state to make it consistent with current
 --   GState. This function assumes that GState is locked. It tries to leave
 --   as much data as possible. It assumes that <tt>blkSemaphore</tt> is
 --   taken.
-usNormalize :: (USLocalLogicMode m) => m ()
+usNormalize :: (USLocalLogicMode ssc m) => m ()
 
 -- | Update memory state to make it correct for given slot.
-processNewSlot :: (USLocalLogicMode m) => SlotId -> m ()
+processNewSlot :: (USLocalLogicMode ssc m) => SlotId -> m ()
 
 -- | Prepare UpdatePayload for inclusion into new block with given SlotId.
 --   This function assumes that <tt>blkSemaphore</tt> is taken and nobody
 --   can apply/rollback blocks in parallel. Sometimes payload can't be
 --   created. It can happen if we are trying to create block for slot which
 --   has already passed, for example.
-usPreparePayload :: (USLocalLogicMode m) => SlotId -> m (Maybe UpdatePayload)
+usPreparePayload :: (USLocalLogicMode ssc m) => SlotId -> m (Maybe UpdatePayload)
 
 -- | Consumer will be called on every Richmen computation.
 usLrcConsumer :: MonadDB m => LrcConsumer m
@@ -3452,7 +3414,7 @@ mkMemState :: MemState
 newMemVar :: MonadIO m => m MemVar
 
 -- | Listeners for requests related to update system
-usListeners :: (UpdateMode m) => m ([ListenerSpec m], OutSpecs)
+usListeners :: (WorkMode ssc m) => m ([ListenerSpec m], OutSpecs)
 usStubListeners :: (WithLogger m) => ([ListenerSpec m], OutSpecs)
 
 -- | Tag for proposal messages
@@ -4048,7 +4010,7 @@ PHAdded :: PskHeavyVerdict
 -- | Processes heavyweight psk. Puts it into the mempool depending on
 --   issuer's stake, overrides if exists, checks validity and cachemsg
 --   state.
-processProxySKHeavy :: forall ssc m. (SscHelpersClass ssc, MonadDB m, MonadDelegation m, HasContext LrcContext m) => ProxySKHeavy -> m PskHeavyVerdict
+processProxySKHeavy :: forall ssc m. (SscHelpersClass ssc, MonadDB m, MonadDelegation m, WithNodeContext ssc m) => ProxySKHeavy -> m PskHeavyVerdict
 
 -- | Applies a sequence of definitely valid blocks to memory state and
 --   returns batchops. It works correctly only in case blocks don't cross
@@ -4067,12 +4029,12 @@ delegationApplyBlocks :: forall ssc m. (DelegationWorkMode m) => OldestFirst NE 
 --   
 --   It's assumed blocks are correct from 'Pos.Types.Block#verifyBlocks'
 --   point of view.
-delegationVerifyBlocks :: forall ssc m. (SscHelpersClass ssc, MonadDB m, HasContext LrcContext m) => OldestFirst NE (Block ssc) -> m (Either Text (OldestFirst NE [ProxySKHeavy]))
+delegationVerifyBlocks :: forall ssc m. (SscHelpersClass ssc, MonadDB m, WithNodeContext ssc m) => OldestFirst NE (Block ssc) -> m (Either Text (OldestFirst NE [ProxySKHeavy]))
 
 -- | Rollbacks block list. Erases mempool of certificates. Better to
 --   restore them after the rollback (see Txp#normalizeTxpLD). You can
 --   rollback arbitrary number of blocks.
-delegationRollbackBlocks :: forall ssc m. (SscHelpersClass ssc, MonadDelegation m, MonadDB m, HasContext LrcContext m) => NewestFirst NE (Blund ssc) -> m (NonEmpty SomeBatchOp)
+delegationRollbackBlocks :: forall ssc m. (SscHelpersClass ssc, MonadDelegation m, MonadDB m, WithNodeContext ssc m) => NewestFirst NE (Blund ssc) -> m (NonEmpty SomeBatchOp)
 
 -- | PSK check verdict. It can be unrelated (other key or spoiled, no way
 --   to differ), exist in storage already or be cached.
@@ -4359,7 +4321,7 @@ handleUnsolicitedHeaders :: forall ssc s m. (SscWorkersClass ssc, WorkMode ssc m
 --   chooses appropriate <tt>from</tt> hashes and puts them into
 --   <tt>GetHeaders</tt> message.
 mkHeadersRequest :: forall ssc m. WorkMode ssc m => Maybe HeaderHash -> m (Maybe MsgGetHeaders)
-requestHeaders :: forall ssc s m. (SscWorkersClass ssc, WorkMode ssc m) => MsgGetHeaders -> NodeId -> Maybe (BlockHeader ssc) -> Proxy s -> ConversationActions MsgGetHeaders (LimitedLength s (MsgHeaders ssc)) m -> m ()
+requestHeaders :: forall ssc s m. (SscWorkersClass ssc, WorkMode ssc m) => MsgGetHeaders -> NodeId -> BlockHeader ssc -> Proxy s -> ConversationActions MsgGetHeaders (LimitedLength s (MsgHeaders ssc)) m -> m ()
 
 -- | Make message which requests chain of blocks which is based on our tip.
 --   LcaChild is the first block after LCA we don't know. WantedBlock is
@@ -4432,7 +4394,6 @@ instance Pos.Binary.Class.Bi Pos.Block.Arbitrary.SmallTxPayload
 instance GHC.Classes.Eq Pos.Block.Arbitrary.SmallTxPayload
 instance GHC.Show.Show Pos.Block.Arbitrary.SmallTxPayload
 instance (Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Class.Types.SscProof ssc), Pos.Binary.Class.Bi Pos.Binary.Class.Raw, Pos.Ssc.Class.Types.Ssc ssc) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Types.Block.Types.BlockSignature ssc)
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Block.Types.GenesisExtraHeaderData
 instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Types.Block.Types.GenesisBlockHeader ssc)
 instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Core.Block.BodyProof (Pos.Types.Block.Types.GenesisBlockchain ssc))
 instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Core.Block.ConsensusData (Pos.Types.Block.Types.GenesisBlockchain ssc))
@@ -4731,7 +4692,7 @@ module Pos.Wallet.Web
 -- | Servant API which provides access to wallet. TODO: Should be composed
 --   depending on the resource - wallets, txs, ...
 --   <a>http://haskell-servant.github.io/tutorial/0.4/server.html#nested-apis</a>
-type WalletApi = ("api" :> ("test" :> ("reset" :> Post '[JSON] (Either WalletError ())))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> Get '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("wallets" :> Get '[JSON] (Either WalletError [CWallet]))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> (ReqBody '[JSON] CWalletMeta :> Put '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("wallets" :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> Delete '[JSON] (Either WalletError ())))) :<|> (("api" :> ("wallets" :> ("keys" :> (ReqBody '[JSON] Text :> Post '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("wallets" :> ("restore" :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("addresses" :> (Capture "address" Text :> ("currencies" :> (Capture "currency" CCurrency :> Get '[JSON] (Either WalletError Bool)))))) :<|> (("api" :> ("profile" :> Get '[JSON] (Either WalletError CProfile))) :<|> (("api" :> ("profile" :> (ReqBody '[JSON] CProfile :> Post '[JSON] (Either WalletError CProfile)))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> Post '[JSON] (Either WalletError CTx))))))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> (Capture "currency" CCurrency :> (Capture "title" Text :> (Capture "description" Text :> Post '[JSON] (Either WalletError CTx)))))))))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "address" CAddress :> (Capture "transaction" CTxId :> (ReqBody '[JSON] CTxMeta :> Post '[JSON] (Either WalletError ()))))))) :<|> (("api" :> ("txs" :> ("histories" :> (Capture "address" CAddress :> (QueryParam "skip" Word :> (QueryParam "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word)))))))) :<|> (("api" :> ("txs" :> ("histories" :> (Capture "address" CAddress :> (Capture "search" Text :> (QueryParam "skip" Word :> (QueryParam "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word))))))))) :<|> (("api" :> ("update" :> Get '[JSON] (Either WalletError CUpdateInfo))) :<|> (("api" :> ("update" :> Post '[JSON] (Either WalletError ()))) :<|> (("api" :> ("redemptions" :> ("ada" :> (ReqBody '[JSON] CWalletRedeem :> Post '[JSON] (Either WalletError CTx))))) :<|> (("api" :> ("reporting" :> ("initialized" :> (ReqBody '[JSON] CInitialized :> Post '[JSON] (Either WalletError ()))))) :<|> (("api" :> ("settings" :> ("slots" :> ("duration" :> Get '[JSON] (Either WalletError Word))))) :<|> (("api" :> ("settings" :> ("version" :> Get '[JSON] (Either WalletError SoftwareVersion)))) :<|> ("api" :> ("settings" :> ("sync" :> ("progress" :> Get '[JSON] (Either WalletError SyncProgress))))))))))))))))))))))))))
+type WalletApi = ("api" :> ("test" :> ("reset" :> Post '[JSON] (Either WalletError ())))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> Get '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("wallets" :> Get '[JSON] (Either WalletError [CWallet]))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> (ReqBody '[JSON] CWalletMeta :> Put '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("wallets" :> (Capture "passphrase" CPassPhrase :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> Delete '[JSON] (Either WalletError ())))) :<|> (("api" :> ("wallets" :> ("keys" :> (ReqBody '[JSON] Text :> Post '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("wallets" :> ("restore" :> (Capture "passphrase" CPassPhrase :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet)))))) :<|> (("api" :> ("addresses" :> (Capture "address" Text :> ("currencies" :> (Capture "currency" CCurrency :> Get '[JSON] (Either WalletError Bool)))))) :<|> (("api" :> ("profile" :> Get '[JSON] (Either WalletError CProfile))) :<|> (("api" :> ("profile" :> (ReqBody '[JSON] CProfile :> Post '[JSON] (Either WalletError CProfile)))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "passphrase" CPassPhrase :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> Post '[JSON] (Either WalletError CTx)))))))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "passphrase" CPassPhrase :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> (Capture "currency" CCurrency :> (Capture "title" Text :> (Capture "description" Text :> Post '[JSON] (Either WalletError CTx))))))))))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "address" CAddress :> (Capture "transaction" CTxId :> (ReqBody '[JSON] CTxMeta :> Post '[JSON] (Either WalletError ()))))))) :<|> (("api" :> ("txs" :> ("histories" :> (Capture "address" CAddress :> (QueryParam "skip" Word :> (QueryParam "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word)))))))) :<|> (("api" :> ("txs" :> ("histories" :> (Capture "address" CAddress :> (Capture "search" Text :> (QueryParam "skip" Word :> (QueryParam "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word))))))))) :<|> (("api" :> ("update" :> Get '[JSON] (Either WalletError CUpdateInfo))) :<|> (("api" :> ("update" :> Post '[JSON] (Either WalletError ()))) :<|> (("api" :> ("redemptions" :> ("ada" :> (ReqBody '[JSON] CWalletRedeem :> Post '[JSON] (Either WalletError CTx))))) :<|> (("api" :> ("reporting" :> ("initialized" :> (ReqBody '[JSON] CInitialized :> Post '[JSON] (Either WalletError ()))))) :<|> (("api" :> ("settings" :> ("slots" :> ("duration" :> Get '[JSON] (Either WalletError Word))))) :<|> (("api" :> ("settings" :> ("version" :> Get '[JSON] (Either WalletError SoftwareVersion)))) :<|> ("api" :> ("settings" :> ("sync" :> ("progress" :> Get '[JSON] (Either WalletError SyncProgress))))))))))))))))))))))))))
 
 -- | Helper Proxy.
 walletApi :: Proxy WalletApi
@@ -4761,6 +4722,8 @@ CHash :: Text -> CHash
 data CTType
 CTIn :: CTxMeta -> CTType
 CTOut :: CTxMeta -> CTType
+newtype CPassPhrase
+CPassPhrase :: Text -> CPassPhrase
 
 -- | Client profile (CP) all data of client are "meta data" - that is not
 --   provided by Cardano (Flow type: accountType)
@@ -4874,6 +4837,8 @@ ConnectionClosed :: NotifyEvent
 -- | Transform Address into CAddress
 addressToCAddress :: Address -> CAddress
 cAddressToAddress :: CAddress -> Either Text Address
+passPhraseToCPassPhrase :: PassPhrase -> CPassPhrase
+cPassPhraseToPassPhrase :: CPassPhrase -> Either Text PassPhrase
 mkCTx :: Address -> ChainDifficulty -> TxHistoryEntry -> CTxMeta -> CTx
 mkCTxId :: Text -> CTxId
 
