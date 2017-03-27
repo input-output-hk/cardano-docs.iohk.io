@@ -1880,6 +1880,10 @@ getTipBlock :: (SscHelpersClass ssc, MonadDB m) => m (Block ssc)
 getTipBlockHeader :: (SscHelpersClass ssc, MonadDB m) => m (BlockHeader ssc)
 
 -- | Load blunds from BlockDB starting from tip and matching the
+--   <tt>condition</tt>.
+loadBlundsFromTipMatching :: (SscHelpersClass ssc, MonadDB m) => (Block ssc -> Bool) -> m (NewestFirst [] (Blund ssc))
+
+-- | Load blunds from BlockDB starting from tip and matching the
 --   <tt>condition</tt> is true.
 loadBlundsFromTipWhile :: (SscHelpersClass ssc, MonadDB m) => (Block ssc -> Bool) -> m (NewestFirst [] (Blund ssc))
 
