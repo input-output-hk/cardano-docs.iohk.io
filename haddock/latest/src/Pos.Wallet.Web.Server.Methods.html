@@ -168,8 +168,9 @@ walletServer sendActions nat = do
     (`enter` servantHandlers @ssc sendActions') &lt;$&gt; nat
   where
     insertAddressMeta cAddr = do
-        () &lt;$ undefined  -- TODO [CSL-931] different levels - different stuff
         getWSetMeta cAddr &gt;&gt;= createWSet cAddr . fromMaybe def
+        -- TODO [CSL-931] Restore wallets and accounts?
+        () &lt;$ undefined
     createUserProfile = do
         time &lt;- liftIO getPOSIXTime
         pure $ CProfile mempty mempty mempty mempty time mempty mempty
@@ -605,7 +606,6 @@ reportingInitialized cinit = do
         sformat (&quot;Didn't manage to report initialization time &quot;%shown%
                  &quot; because of exception &quot;%shown) cinit e
 
--- TODO [CSL-931]:
 importKey
     :: WalletWebMode ssc m
     =&gt; SendActions m
@@ -703,7 +703,6 @@ generateUnique generator isDuplicate = loop
             then loop
             else return value
 
--- TODO [CSL-931] Move to Pos.Crypto?
 nonHardenedOnly :: Word32 -&gt; Word32
 nonHardenedOnly index = setBit index 31
 
