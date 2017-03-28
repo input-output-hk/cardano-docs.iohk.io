@@ -236,7 +236,13 @@ BlockPSignatureEpoch :: (ProxySigLight (MainToSign ssc)) -> BlockSignature ssc
 BlockPSignatureSimple :: (ProxySigHeavy (MainToSign ssc)) -> BlockSignature ssc
 
 -- | Data to be signed in main block.
-type MainToSign ssc = (HeaderHash, BodyProof (MainBlockchain ssc), SlotId, ChainDifficulty)
+data MainToSign ssc
+MainToSign :: !HeaderHash -> !(BodyProof (MainBlockchain ssc)) -> !SlotId -> !ChainDifficulty -> !MainExtraHeaderData -> MainToSign ssc
+[_msHeaderHash] :: MainToSign ssc -> !HeaderHash
+[_msBodyProof] :: MainToSign ssc -> !(BodyProof (MainBlockchain ssc))
+[_msSlot] :: MainToSign ssc -> !SlotId
+[_msChainDiff] :: MainToSign ssc -> !ChainDifficulty
+[_msExtraHeader] :: MainToSign ssc -> !MainExtraHeaderData
 
 -- | MainBlock is a block with transactions and MPC messages. It's the main
 --   part of our consensus algorithm.
@@ -255,6 +261,26 @@ type GenesisBlockHeader ssc = GenericBlockHeader (GenesisBlockchain ssc)
 -- | Genesis block parametrized by <a>GenesisBlockchain</a>.
 type GenesisBlock ssc = GenericBlock (GenesisBlockchain ssc)
 
+-- | Represents genesis block header extra data
+data GenesisExtraBodyData
+GenesisExtraBodyData :: !GenesisBodyAttributes -> GenesisExtraBodyData
+
+-- | Header attributes
+[_gebAttributes] :: GenesisExtraBodyData -> !GenesisBodyAttributes
+
+-- | Represents genesis block header attributes.
+type GenesisBodyAttributes = Attributes ()
+
+-- | Represents genesis block header extra data
+data GenesisExtraHeaderData
+GenesisExtraHeaderData :: !GenesisHeaderAttributes -> GenesisExtraHeaderData
+
+-- | Header attributes
+[_gehAttributes] :: GenesisExtraHeaderData -> !GenesisHeaderAttributes
+
+-- | Represents genesis block header attributes.
+type GenesisHeaderAttributes = Attributes ()
+
 -- | Either header of ordinary main block or genesis block.
 type BlockHeader ssc = Either (GenesisBlockHeader ssc) (MainBlockHeader ssc)
 
@@ -265,21 +291,31 @@ mehBlockVersion :: Lens' MainExtraHeaderData BlockVersion
 mehSoftwareVersion :: Lens' MainExtraHeaderData SoftwareVersion
 mehAttributes :: Lens' MainExtraHeaderData BlockHeaderAttributes
 mebAttributes :: Iso' MainExtraBodyData BlockBodyAttributes
+instance GHC.Generics.Generic Pos.Types.Block.Types.GenesisExtraBodyData
+instance GHC.Show.Show Pos.Types.Block.Types.GenesisExtraBodyData
+instance GHC.Classes.Eq Pos.Types.Block.Types.GenesisExtraBodyData
+instance GHC.Generics.Generic Pos.Types.Block.Types.GenesisExtraHeaderData
+instance GHC.Show.Show Pos.Types.Block.Types.GenesisExtraHeaderData
+instance GHC.Classes.Eq Pos.Types.Block.Types.GenesisExtraHeaderData
 instance Control.DeepSeq.NFData Pos.Types.Block.Types.MainExtraBodyData
 instance GHC.Generics.Generic Pos.Types.Block.Types.MainExtraBodyData
 instance GHC.Show.Show Pos.Types.Block.Types.MainExtraBodyData
 instance GHC.Classes.Eq Pos.Types.Block.Types.MainExtraBodyData
-instance GHC.Generics.Generic Pos.Types.Block.Types.MainExtraHeaderData
-instance GHC.Show.Show Pos.Types.Block.Types.MainExtraHeaderData
-instance GHC.Classes.Eq Pos.Types.Block.Types.MainExtraHeaderData
 instance GHC.Generics.Generic (Pos.Types.Block.Types.BlockSignature ssc)
 instance GHC.Classes.Eq (Pos.Types.Block.Types.BlockSignature ssc)
 instance GHC.Show.Show (Pos.Types.Block.Types.BlockSignature ssc)
+instance GHC.Generics.Generic Pos.Types.Block.Types.MainExtraHeaderData
+instance GHC.Show.Show Pos.Types.Block.Types.MainExtraHeaderData
+instance GHC.Classes.Eq Pos.Types.Block.Types.MainExtraHeaderData
 instance Control.DeepSeq.NFData (Pos.Core.Block.BodyProof (Pos.Types.Block.Types.MainBlockchain ssc)) => Control.DeepSeq.NFData (Pos.Types.Block.Types.BlockSignature ssc)
 instance Data.Text.Buildable.Buildable (Pos.Types.Block.Types.BlockSignature ssc)
 instance Control.DeepSeq.NFData Pos.Types.Block.Types.MainExtraHeaderData
 instance Data.Text.Buildable.Buildable Pos.Types.Block.Types.MainExtraHeaderData
 instance Data.Text.Buildable.Buildable Pos.Types.Block.Types.MainExtraBodyData
+instance Control.DeepSeq.NFData Pos.Types.Block.Types.GenesisExtraHeaderData
+instance Data.Text.Buildable.Buildable Pos.Types.Block.Types.GenesisExtraHeaderData
+instance Control.DeepSeq.NFData Pos.Types.Block.Types.GenesisExtraBodyData
+instance Data.Text.Buildable.Buildable Pos.Types.Block.Types.GenesisExtraBodyData
 
 module Pos.Security.CLI
 data AttackType
@@ -2924,11 +2960,11 @@ ToilModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> !exten
 [_tmUndos] :: GenericToilModifier extension -> !UndoMap
 [_tmExtra] :: GenericToilModifier extension -> !extension
 type ToilModifier = GenericToilModifier ()
-tmUtxo :: forall extension_a1MXz. Lens' (GenericToilModifier extension_a1MXz) UtxoModifier
-tmBalances :: forall extension_a1MXz. Lens' (GenericToilModifier extension_a1MXz) BalancesView
-tmMemPool :: forall extension_a1MXz. Lens' (GenericToilModifier extension_a1MXz) MemPool
-tmUndos :: forall extension_a1MXz. Lens' (GenericToilModifier extension_a1MXz) UndoMap
-tmExtra :: forall extension_a1MXz extension_a1MZC. Lens (GenericToilModifier extension_a1MXz) (GenericToilModifier extension_a1MZC) extension_a1MXz extension_a1MZC
+tmUtxo :: forall extension_a1O9m. Lens' (GenericToilModifier extension_a1O9m) UtxoModifier
+tmBalances :: forall extension_a1O9m. Lens' (GenericToilModifier extension_a1O9m) BalancesView
+tmMemPool :: forall extension_a1O9m. Lens' (GenericToilModifier extension_a1O9m) MemPool
+tmUndos :: forall extension_a1O9m. Lens' (GenericToilModifier extension_a1O9m) UndoMap
+tmExtra :: forall extension_a1O9m extension_a1Obp. Lens (GenericToilModifier extension_a1O9m) (GenericToilModifier extension_a1Obp) extension_a1O9m extension_a1Obp
 
 -- | Environment used by Toil.
 data ToilEnv
@@ -3692,6 +3728,8 @@ instance Pos.Binary.Class.Bi Pos.Block.Arbitrary.SmallTxPayload
 instance GHC.Classes.Eq Pos.Block.Arbitrary.SmallTxPayload
 instance GHC.Show.Show Pos.Block.Arbitrary.SmallTxPayload
 instance (Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Class.Types.SscProof ssc), Pos.Binary.Class.Bi Pos.Binary.Class.Raw, Pos.Ssc.Class.Types.Ssc ssc) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Types.Block.Types.BlockSignature ssc)
+instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Block.Types.GenesisExtraHeaderData
+instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Block.Types.GenesisExtraBodyData
 instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Types.Block.Types.GenesisBlockHeader ssc)
 instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Core.Block.BodyProof (Pos.Types.Block.Types.GenesisBlockchain ssc))
 instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Core.Block.ConsensusData (Pos.Types.Block.Types.GenesisBlockchain ssc))
@@ -3704,6 +3742,7 @@ instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Block.Types.MainExtraHead
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Block.Types.MainExtraBodyData
 instance (Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Class.Types.SscProof ssc), Pos.Binary.Class.Bi Pos.Binary.Class.Raw) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Core.Block.BodyProof (Pos.Types.Block.Types.MainBlockchain ssc))
 instance (Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Class.Types.SscProof ssc), Pos.Binary.Class.Bi Pos.Binary.Class.Raw, Pos.Ssc.Class.Types.Ssc ssc) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Core.Block.ConsensusData (Pos.Types.Block.Types.MainBlockchain ssc))
+instance (Pos.Ssc.Class.Types.Ssc ssc, Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Class.Types.SscProof ssc)) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Types.Block.Types.MainToSign ssc)
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Txp.Core.Types.TxPayload
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Block.Arbitrary.SmallTxPayload
 instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Ssc.Arbitrary.SscPayloadDependsOnSlot ssc) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Block.Arbitrary.BodyDependsOnConsensus (Pos.Types.Block.Types.MainBlockchain ssc))
