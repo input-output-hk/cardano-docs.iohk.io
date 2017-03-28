@@ -26,19 +26,19 @@ simpleUserSecret :: SecretKey -> FilePath -> UserSecret
 
 -- | Create user secret file at the given path, but only when one doesn't
 --   already exist.
-initializeUserSecret :: (MonadIO m, MonadThrow m) => FilePath -> m ()
+initializeUserSecret :: (MonadIO m) => FilePath -> m ()
 
--- | Reads user secret from file, assuming that file exists, and has mode
---   600, throws exception in other case
-readUserSecret :: (MonadIO m, MonadThrow m) => FilePath -> m UserSecret
+-- | Reads user secret from file, assuming that file exists, throws
+--   exception in other case
+readUserSecret :: MonadIO m => FilePath -> m UserSecret
 
 -- | Reads user secret from the given file. If the file does not exist/is
 --   empty, returns empty user secret
-peekUserSecret :: (MonadIO m, MonadThrow m) => FilePath -> m UserSecret
+peekUserSecret :: (MonadIO m) => FilePath -> m UserSecret
 
 -- | Read user secret putting an exclusive lock on it. To unlock, use
 --   <a>writeUserSecretRelease</a>.
-takeUserSecret :: (MonadIO m, MonadThrow m) => FilePath -> m UserSecret
+takeUserSecret :: (MonadIO m) => FilePath -> m UserSecret
 
 -- | Writes user secret .
 writeUserSecret :: (MonadIO m) => UserSecret -> m ()
@@ -1138,9 +1138,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679111362 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679111362)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679111355 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679111355)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679111351 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679111351)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679108487 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679108487)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679108480 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679108480)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679108476 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679108476)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SoftwareVersion
@@ -1415,6 +1415,7 @@ TestnetStakes :: !Coin -> !Word -> !Word -> StakeDistribution
 [sdPoor] :: StakeDistribution -> !Word
 ExponentialStakes :: StakeDistribution
 ExplicitStakes :: !(HashMap Address (Coin, TxOutDistribution)) -> StakeDistribution
+CombinedStakes :: StakeDistribution -> StakeDistribution -> StakeDistribution
 
 -- | Hardcoded genesis data
 data GenesisData
@@ -1422,6 +1423,7 @@ GenesisData :: [Address] -> StakeDistribution -> VssCertificatesMap -> GenesisDa
 [gdAddresses] :: GenesisData -> [Address]
 [gdDistribution] :: GenesisData -> StakeDistribution
 [gdVssCertificates] :: GenesisData -> VssCertificatesMap
+getTotalStake :: StakeDistribution -> Coin
 
 -- | Fetch pre-generated genesis data from <i>genesis.bin</i> in compile
 --   time Doesn't use TH with lift because it's difficult to provide
@@ -3139,11 +3141,11 @@ ToilModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> !exten
 [_tmUndos] :: GenericToilModifier extension -> !UndoMap
 [_tmExtra] :: GenericToilModifier extension -> !extension
 type ToilModifier = GenericToilModifier ()
-tmUtxo :: forall extension_a2fBB. Lens' (GenericToilModifier extension_a2fBB) UtxoModifier
-tmBalances :: forall extension_a2fBB. Lens' (GenericToilModifier extension_a2fBB) BalancesView
-tmMemPool :: forall extension_a2fBB. Lens' (GenericToilModifier extension_a2fBB) MemPool
-tmUndos :: forall extension_a2fBB. Lens' (GenericToilModifier extension_a2fBB) UndoMap
-tmExtra :: forall extension_a2fBB extension_a2fDz. Lens (GenericToilModifier extension_a2fBB) (GenericToilModifier extension_a2fDz) extension_a2fBB extension_a2fDz
+tmUtxo :: forall extension_a2eOa. Lens' (GenericToilModifier extension_a2eOa) UtxoModifier
+tmBalances :: forall extension_a2eOa. Lens' (GenericToilModifier extension_a2eOa) BalancesView
+tmMemPool :: forall extension_a2eOa. Lens' (GenericToilModifier extension_a2eOa) MemPool
+tmUndos :: forall extension_a2eOa. Lens' (GenericToilModifier extension_a2eOa) UndoMap
+tmExtra :: forall extension_a2eOa extension_a2eQ8. Lens (GenericToilModifier extension_a2eOa) (GenericToilModifier extension_a2eQ8) extension_a2eOa extension_a2eQ8
 
 -- | Environment used by Toil.
 data ToilEnv
