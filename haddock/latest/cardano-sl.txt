@@ -1341,12 +1341,14 @@ module Pos.Genesis
 data StakeDistribution
 FlatStakes :: !Word -> !Coin -> StakeDistribution
 BitcoinStakes :: !Word -> !Coin -> StakeDistribution
-TestnetStakes :: !Coin -> !Word -> !Word -> StakeDistribution
-[sdTotalStake] :: StakeDistribution -> !Coin
+TestnetStakes :: !Word -> !Coin -> !Word -> !Coin -> StakeDistribution
 [sdRichmen] :: StakeDistribution -> !Word
+[sdRichStake] :: StakeDistribution -> !Coin
 [sdPoor] :: StakeDistribution -> !Word
+[sdPoorStake] :: StakeDistribution -> !Coin
 ExponentialStakes :: StakeDistribution
 ExplicitStakes :: !(HashMap Address (Coin, TxOutDistribution)) -> StakeDistribution
+CombinedStakes :: StakeDistribution -> StakeDistribution -> StakeDistribution
 
 -- | Hardcoded genesis data
 data GenesisData
@@ -1354,6 +1356,7 @@ GenesisData :: [Address] -> StakeDistribution -> VssCertificatesMap -> GenesisDa
 [gdAddresses] :: GenesisData -> [Address]
 [gdDistribution] :: GenesisData -> StakeDistribution
 [gdVssCertificates] :: GenesisData -> VssCertificatesMap
+getTotalStake :: StakeDistribution -> Coin
 
 -- | Fetch pre-generated genesis data from <i>genesis.bin</i> in compile
 --   time Doesn't use TH with lift because it's difficult to provide
@@ -2960,11 +2963,11 @@ ToilModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> !exten
 [_tmUndos] :: GenericToilModifier extension -> !UndoMap
 [_tmExtra] :: GenericToilModifier extension -> !extension
 type ToilModifier = GenericToilModifier ()
-tmUtxo :: forall extension_a1O9m. Lens' (GenericToilModifier extension_a1O9m) UtxoModifier
-tmBalances :: forall extension_a1O9m. Lens' (GenericToilModifier extension_a1O9m) BalancesView
-tmMemPool :: forall extension_a1O9m. Lens' (GenericToilModifier extension_a1O9m) MemPool
-tmUndos :: forall extension_a1O9m. Lens' (GenericToilModifier extension_a1O9m) UndoMap
-tmExtra :: forall extension_a1O9m extension_a1Obp. Lens (GenericToilModifier extension_a1O9m) (GenericToilModifier extension_a1Obp) extension_a1O9m extension_a1Obp
+tmUtxo :: forall extension_a1PJ9. Lens' (GenericToilModifier extension_a1PJ9) UtxoModifier
+tmBalances :: forall extension_a1PJ9. Lens' (GenericToilModifier extension_a1PJ9) BalancesView
+tmMemPool :: forall extension_a1PJ9. Lens' (GenericToilModifier extension_a1PJ9) MemPool
+tmUndos :: forall extension_a1PJ9. Lens' (GenericToilModifier extension_a1PJ9) UndoMap
+tmExtra :: forall extension_a1PJ9 extension_a1PLc. Lens (GenericToilModifier extension_a1PJ9) (GenericToilModifier extension_a1PLc) extension_a1PJ9 extension_a1PLc
 
 -- | Environment used by Toil.
 data ToilEnv
