@@ -318,10 +318,10 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                     </tr>
                     <tr>
                             <td class="swagger--summary-path" rowspan="1">
-                                <a href="#path--api-txs-payments--from---to---amount-">/api/txs/payments/{from}/{to}/{amount}</a>
+                                <a href="#path--api-txs-payments--passphrase---from---to---amount-">/api/txs/payments/{passphrase}/{from}/{to}/{amount}</a>
                             </td>
                         <td>
-                            <a href="#operation--api-txs-payments--from---to---amount--post">POST</a>
+                            <a href="#operation--api-txs-payments--passphrase---from---to---amount--post">POST</a>
                         </td>
                         <td>
                             
@@ -329,10 +329,10 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                     </tr>
                     <tr>
                             <td class="swagger--summary-path" rowspan="1">
-                                <a href="#path--api-txs-payments--from---to---amount---currency---title---description-">/api/txs/payments/{from}/{to}/{amount}/{currency}/{title}/{description}</a>
+                                <a href="#path--api-txs-payments--passphrase---from---to---amount---currency---title---description-">/api/txs/payments/{passphrase}/{from}/{to}/{amount}/{currency}/{title}/{description}</a>
                             </td>
                         <td>
-                            <a href="#operation--api-txs-payments--from---to---amount---currency---title---description--post">POST</a>
+                            <a href="#operation--api-txs-payments--passphrase---from---to---amount---currency---title---description--post">POST</a>
                         </td>
                         <td>
                             
@@ -358,19 +358,11 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                         </td>
                     </tr>
                     <tr>
-                            <td class="swagger--summary-path" rowspan="2">
+                            <td class="swagger--summary-path" rowspan="1">
                                 <a href="#path--api-wallets">/api/wallets</a>
                             </td>
                         <td>
                             <a href="#operation--api-wallets-get">GET</a>
-                        </td>
-                        <td>
-                            
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <a href="#operation--api-wallets-post">POST</a>
                         </td>
                         <td>
                             
@@ -389,10 +381,21 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                     </tr>
                     <tr>
                             <td class="swagger--summary-path" rowspan="1">
-                                <a href="#path--api-wallets-restore">/api/wallets/restore</a>
+                                <a href="#path--api-wallets-restore--passphrase-">/api/wallets/restore/{passphrase}</a>
                             </td>
                         <td>
-                            <a href="#operation--api-wallets-restore-post">POST</a>
+                            <a href="#operation--api-wallets-restore--passphrase--post">POST</a>
+                        </td>
+                        <td>
+                            
+                        </td>
+                    </tr>
+                    <tr>
+                            <td class="swagger--summary-path" rowspan="1">
+                                <a href="#path--api-wallets--passphrase-">/api/wallets/{passphrase}</a>
+                            </td>
+                        <td>
+                            <a href="#operation--api-wallets--passphrase--post">POST</a>
                         </td>
                         <td>
                             
@@ -1375,11 +1378,11 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                         </section>
                 </div>
             </div>    
-        <span id="path--api-txs-payments--from---to---amount-"></span>
-            <div id="operation--api-txs-payments--from---to---amount--post" class="swagger--panel-operation-post panel">
+        <span id="path--api-txs-payments--passphrase---from---to---amount-"></span>
+            <div id="operation--api-txs-payments--passphrase---from---to---amount--post" class="swagger--panel-operation-post panel">
                 <div class="panel-heading">
                     <div class="operation-summary"></div>
-                    <h3 class="panel-title"><span class="operation-name">POST</span> <strong>/api/txs/payments/{from}/{to}/{amount}</strong></h3>
+                    <h3 class="panel-title"><span class="operation-name">POST</span> <strong>/api/txs/payments/{passphrase}/{from}/{to}/{amount}</strong></h3>
                 </div>
                 <div class="panel-body">
                     <section class="sw-operation-description">
@@ -1398,6 +1401,20 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                                 </tr>
                                 </thead>
                                 <tbody>
+                                        <tr>
+                                            <td>
+                                                passphrase
+                                            <td></td>
+                                            <td>path</td>
+                                            <td>
+                                        <span class="json-property-type">string</span>
+                                        <span class="json-property-range" title="Value limits"></span>
+                                        
+                                            </td>
+                                            <td>
+                                                    <span class="json-property-required"></span>
+                                            </td>
+                                        </tr>
                                         <tr>
                                             <td>
                                                 from
@@ -1476,7 +1493,7 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                                     <dd class="sw-response-404">
                                             <div class="row">
                                                 <div class="col-md-12">
-                                                    <p><code>from</code> or <code>to</code> or <code>amount</code> not found</p>
+                                                    <p><code>passphrase</code> or <code>from</code> or <code>to</code> or <code>amount</code> not found</p>
                                             
                                                 </div>
                                             </div>
@@ -1490,11 +1507,11 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                         </section>
                 </div>
             </div>    
-        <span id="path--api-txs-payments--from---to---amount---currency---title---description-"></span>
-            <div id="operation--api-txs-payments--from---to---amount---currency---title---description--post" class="swagger--panel-operation-post panel">
+        <span id="path--api-txs-payments--passphrase---from---to---amount---currency---title---description-"></span>
+            <div id="operation--api-txs-payments--passphrase---from---to---amount---currency---title---description--post" class="swagger--panel-operation-post panel">
                 <div class="panel-heading">
                     <div class="operation-summary"></div>
-                    <h3 class="panel-title"><span class="operation-name">POST</span> <strong>/api/txs/payments/{from}/{to}/{amount}/{currency}/{title}/{description}</strong></h3>
+                    <h3 class="panel-title"><span class="operation-name">POST</span> <strong>/api/txs/payments/{passphrase}/{from}/{to}/{amount}/{currency}/{title}/{description}</strong></h3>
                 </div>
                 <div class="panel-body">
                     <section class="sw-operation-description">
@@ -1513,6 +1530,20 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                                 </tr>
                                 </thead>
                                 <tbody>
+                                        <tr>
+                                            <td>
+                                                passphrase
+                                            <td></td>
+                                            <td>path</td>
+                                            <td>
+                                        <span class="json-property-type">string</span>
+                                        <span class="json-property-range" title="Value limits"></span>
+                                        
+                                            </td>
+                                            <td>
+                                                    <span class="json-property-required"></span>
+                                            </td>
+                                        </tr>
                                         <tr>
                                             <td>
                                                 from
@@ -1641,7 +1672,7 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                                     <dd class="sw-response-404">
                                             <div class="row">
                                                 <div class="col-md-12">
-                                                    <p><code>from</code> or <code>to</code> or <code>amount</code> or <code>currency</code> or <code>title</code> or <code>description</code> not found</p>
+                                                    <p><code>passphrase</code> or <code>from</code> or <code>to</code> or <code>amount</code> or <code>currency</code> or <code>title</code> or <code>description</code> not found</p>
                                             
                                                 </div>
                                             </div>
@@ -1775,78 +1806,6 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                             </dl>
                         </section>
                 </div>
-            </div>    <div id="operation--api-wallets-post" class="swagger--panel-operation-post panel">
-                <div class="panel-heading">
-                    <div class="operation-summary"></div>
-                    <h3 class="panel-title"><span class="operation-name">POST</span> <strong>/api/wallets</strong></h3>
-                </div>
-                <div class="panel-body">
-                    <section class="sw-operation-description">
-                        
-                    </section>
-                        
-                            <section class="sw-request-body">
-                                
-                                    <p><span class="label label-default">application/json</span> 
-                        </p>
-                                        <div class="row">
-                                            <div class="col-md-6">
-                                                <p></p>
-                                            </div>
-                                            <div class="col-md-6 sw-request-model">
-                            <div  class="panel panel-definition">
-                                <div class="panel-body">
-                                            <a class="json-schema-ref" href="#/definitions/CWalletInit">CWalletInit</a>
-                                </div>
-                            </div></div>
-                                        </div>
-                            </section>        
-                    
-                        <section class="sw-responses">
-                                <p><span class="label label-default">application/json</span> 
-                    </p>
-                    
-                            <dl>
-                                    <dt class="sw-response-200">
-                                        200 OK
-                                    
-                                    </dt>
-                                    <dd class="sw-response-200">
-                                            <div class="row">
-                                                <div class="col-md-12">
-                                                    
-                                                </div>
-                                            </div>
-                                            <div class="row">
-                                                
-                                                <div class="col-md-6 sw-response-model">
-                                                <div  class="panel panel-definition">
-                                                    <div class="panel-body">
-                                                                <a class="json-schema-ref" href="#/definitions/Either WalletError CWallet">Either WalletError CWallet</a>
-                                                    </div>
-                                                </div></div>
-                                            
-                                            </div>                </dd>
-                                    <dt class="sw-response-400">
-                                        400 Bad Request
-                                    
-                                    </dt>
-                                    <dd class="sw-response-400">
-                                            <div class="row">
-                                                <div class="col-md-12">
-                                                    <p>Invalid <code>body</code></p>
-                                            
-                                                </div>
-                                            </div>
-                                            <div class="row">
-                                                
-                                                <div class="col-md-6 sw-response-model">
-                                            </div>
-                                            
-                                            </div>                </dd>
-                            </dl>
-                        </section>
-                </div>
             </div>    
         <span id="path--api-wallets-keys"></span>
             <div id="operation--api-wallets-keys-post" class="swagger--panel-operation-post panel">
@@ -1922,11 +1881,11 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                         </section>
                 </div>
             </div>    
-        <span id="path--api-wallets-restore"></span>
-            <div id="operation--api-wallets-restore-post" class="swagger--panel-operation-post panel">
+        <span id="path--api-wallets-restore--passphrase-"></span>
+            <div id="operation--api-wallets-restore--passphrase--post" class="swagger--panel-operation-post panel">
                 <div class="panel-heading">
                     <div class="operation-summary"></div>
-                    <h3 class="panel-title"><span class="operation-name">POST</span> <strong>/api/wallets/restore</strong></h3>
+                    <h3 class="panel-title"><span class="operation-name">POST</span> <strong>/api/wallets/restore/{passphrase}</strong></h3>
                 </div>
                 <div class="panel-body">
                     <section class="sw-operation-description">
@@ -1949,6 +1908,35 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                             </div></div>
                                         </div>
                             </section>        
+                        <section class="sw-request-params">
+                            <table class="table">
+                                <thead>
+                                <tr>
+                                    <th class="sw-param-name"></th>
+                                    <th class="sw-param-description"></th>
+                                    <th class="sw-param-type"></th>
+                                    <th class="sw-param-data-type"></th>
+                                    <th class="sw-param-annotation"></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                        <tr>
+                                            <td>
+                                                passphrase
+                                            <td></td>
+                                            <td>path</td>
+                                            <td>
+                                        <span class="json-property-type">string</span>
+                                        <span class="json-property-range" title="Value limits"></span>
+                                        
+                                            </td>
+                                            <td>
+                                                    <span class="json-property-required"></span>
+                                            </td>
+                                        </tr>
+                                </tbody>
+                            </table>
+                        </section>
                     
                         <section class="sw-responses">
                                 <p><span class="label label-default">application/json</span> 
@@ -1983,6 +1971,143 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                                             <div class="row">
                                                 <div class="col-md-12">
                                                     <p>Invalid <code>body</code></p>
+                                            
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                
+                                                <div class="col-md-6 sw-response-model">
+                                            </div>
+                                            
+                                            </div>                </dd>
+                                    <dt class="sw-response-404">
+                                        404 Not Found
+                                    
+                                    </dt>
+                                    <dd class="sw-response-404">
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <p><code>passphrase</code> not found</p>
+                                            
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                
+                                                <div class="col-md-6 sw-response-model">
+                                            </div>
+                                            
+                                            </div>                </dd>
+                            </dl>
+                        </section>
+                </div>
+            </div>    
+        <span id="path--api-wallets--passphrase-"></span>
+            <div id="operation--api-wallets--passphrase--post" class="swagger--panel-operation-post panel">
+                <div class="panel-heading">
+                    <div class="operation-summary"></div>
+                    <h3 class="panel-title"><span class="operation-name">POST</span> <strong>/api/wallets/{passphrase}</strong></h3>
+                </div>
+                <div class="panel-body">
+                    <section class="sw-operation-description">
+                        
+                    </section>
+                        
+                            <section class="sw-request-body">
+                                
+                                    <p><span class="label label-default">application/json</span> 
+                        </p>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <p></p>
+                                            </div>
+                                            <div class="col-md-6 sw-request-model">
+                            <div  class="panel panel-definition">
+                                <div class="panel-body">
+                                            <a class="json-schema-ref" href="#/definitions/CWalletInit">CWalletInit</a>
+                                </div>
+                            </div></div>
+                                        </div>
+                            </section>        
+                        <section class="sw-request-params">
+                            <table class="table">
+                                <thead>
+                                <tr>
+                                    <th class="sw-param-name"></th>
+                                    <th class="sw-param-description"></th>
+                                    <th class="sw-param-type"></th>
+                                    <th class="sw-param-data-type"></th>
+                                    <th class="sw-param-annotation"></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                        <tr>
+                                            <td>
+                                                passphrase
+                                            <td></td>
+                                            <td>path</td>
+                                            <td>
+                                        <span class="json-property-type">string</span>
+                                        <span class="json-property-range" title="Value limits"></span>
+                                        
+                                            </td>
+                                            <td>
+                                                    <span class="json-property-required"></span>
+                                            </td>
+                                        </tr>
+                                </tbody>
+                            </table>
+                        </section>
+                    
+                        <section class="sw-responses">
+                                <p><span class="label label-default">application/json</span> 
+                    </p>
+                    
+                            <dl>
+                                    <dt class="sw-response-200">
+                                        200 OK
+                                    
+                                    </dt>
+                                    <dd class="sw-response-200">
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                
+                                                <div class="col-md-6 sw-response-model">
+                                                <div  class="panel panel-definition">
+                                                    <div class="panel-body">
+                                                                <a class="json-schema-ref" href="#/definitions/Either WalletError CWallet">Either WalletError CWallet</a>
+                                                    </div>
+                                                </div></div>
+                                            
+                                            </div>                </dd>
+                                    <dt class="sw-response-400">
+                                        400 Bad Request
+                                    
+                                    </dt>
+                                    <dd class="sw-response-400">
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <p>Invalid <code>body</code></p>
+                                            
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                
+                                                <div class="col-md-6 sw-response-model">
+                                            </div>
+                                            
+                                            </div>                </dd>
+                                    <dt class="sw-response-404">
+                                        404 Not Found
+                                    
+                                    </dt>
+                                    <dd class="sw-response-404">
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <p><code>passphrase</code> not found</p>
                                             
                                                 </div>
                                             </div>
@@ -2584,8 +2709,92 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                             
                                     <section class="json-schema-properties">
                                         <dl>
+                                                <dt data-property-name="cpName">
+                                                    <span class="json-property-name">cpName:</span>
+                                                    
+                                                    <span class="json-property-type">string</span>
+                                                    <span class="json-property-range" title="Value limits"></span>
+                                                    
+                                                        <span class="json-property-required"></span>
+                                                </dt>
+                                                <dd>
+                                                    
+                                                    <div class="json-inner-schema">
+                                                        
+                                                    </div>
+                                                </dd>
+                                                <dt data-property-name="cpEmail">
+                                                    <span class="json-property-name">cpEmail:</span>
+                                                    
+                                                    <span class="json-property-type">string</span>
+                                                    <span class="json-property-range" title="Value limits"></span>
+                                                    
+                                                        <span class="json-property-required"></span>
+                                                </dt>
+                                                <dd>
+                                                    
+                                                    <div class="json-inner-schema">
+                                                        
+                                                    </div>
+                                                </dd>
+                                                <dt data-property-name="cpPhoneNumber">
+                                                    <span class="json-property-name">cpPhoneNumber:</span>
+                                                    
+                                                    <span class="json-property-type">string</span>
+                                                    <span class="json-property-range" title="Value limits"></span>
+                                                    
+                                                        <span class="json-property-required"></span>
+                                                </dt>
+                                                <dd>
+                                                    
+                                                    <div class="json-inner-schema">
+                                                        
+                                                    </div>
+                                                </dd>
+                                                <dt data-property-name="cpPwHash">
+                                                    <span class="json-property-name">cpPwHash:</span>
+                                                    
+                                                    <span class="json-property-type">string</span>
+                                                    <span class="json-property-range" title="Value limits"></span>
+                                                    
+                                                        <span class="json-property-required"></span>
+                                                </dt>
+                                                <dd>
+                                                    
+                                                    <div class="json-inner-schema">
+                                                        
+                                                    </div>
+                                                </dd>
+                                                <dt data-property-name="cpPwCreated">
+                                                    <span class="json-property-name">cpPwCreated:</span>
+                                                    
+                                                    <span class="json-property-type">integer</span>
+                                                    <span class="json-property-range" title="Value limits"></span>
+                                                    
+                                                        <span class="json-property-required"></span>
+                                                </dt>
+                                                <dd>
+                                                    
+                                                    <div class="json-inner-schema">
+                                                        
+                                                    </div>
+                                                </dd>
                                                 <dt data-property-name="cpLocale">
                                                     <span class="json-property-name">cpLocale:</span>
+                                                    
+                                                    <span class="json-property-type">string</span>
+                                                    <span class="json-property-range" title="Value limits"></span>
+                                                    
+                                                        <span class="json-property-required"></span>
+                                                </dt>
+                                                <dd>
+                                                    
+                                                    <div class="json-inner-schema">
+                                                        
+                                                    </div>
+                                                </dd>
+                                                <dt data-property-name="cpPicture">
+                                                    <span class="json-property-name">cpPicture:</span>
                                                     
                                                     <span class="json-property-type">string</span>
                                                     <span class="json-property-range" title="Value limits"></span>
@@ -3011,26 +3220,6 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                                     </section>
                     </div>
                 </div>        
-                <div id="definition-CWalletAssurance" class="panel panel-definition">
-                        <div class="panel-heading">
-                                <h3 class="panel-title"><a name="/definitions/CWalletAssurance"></a>CWalletAssurance:
-                                    <span class="json-property-type">
-                <span class="json-property-type">string</span>    <span class="json-property-enum" title="Possible values">, x &isin; {
-                                <span class="json-property-enum-item">CWANormal</span>
-                            ,
-                                <span class="json-property-enum-item">CWAStrict</span>
-                            
-                        }
-                        </span>
-                <span class="json-property-range" title="Value limits"></span>
-                
-                </span>
-                                </h3>
-                        </div>
-                    <div class="panel-body">
-                            
-                    </div>
-                </div>        
                 <div id="definition-CWalletInit" class="panel panel-definition">
                         <div class="panel-heading">
                                 <h3 class="panel-title"><a name="/definitions/CWalletInit"></a>CWalletInit:
@@ -3128,35 +3317,6 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                                                     
                                                     <span class="json-property-type">string</span>
                                                     <span class="json-property-range" title="Value limits"></span>
-                                                    
-                                                        <span class="json-property-required"></span>
-                                                </dt>
-                                                <dd>
-                                                    
-                                                    <div class="json-inner-schema">
-                                                        
-                                                    </div>
-                                                </dd>
-                                                <dt data-property-name="cwAssurance">
-                                                    <span class="json-property-name">cwAssurance:</span>
-                                                    
-                                                    <span class="json-property-type">    <a class="json-schema-ref" href="#/definitions/CWalletAssurance">CWalletAssurance</a>
-                                                    </span>
-                                                    <span class="json-property-range" title="Value limits"></span>
-                                                    
-                                                        <span class="json-property-required"></span>
-                                                </dt>
-                                                <dd>
-                                                    
-                                                    <div class="json-inner-schema">
-                                                        
-                                                    </div>
-                                                </dd>
-                                                <dt data-property-name="cwUnit">
-                                                    <span class="json-property-name">cwUnit:</span>
-                                                    
-                                                    <span class="json-property-type">integer</span>
-                                                    <span class="json-property-range" title="Value limits">, { x ∈ ℤ | -9223372036854776000 ≤ x ≤ 9223372036854776000 }</span>
                                                     
                                                         <span class="json-property-required"></span>
                                                 </dt>
