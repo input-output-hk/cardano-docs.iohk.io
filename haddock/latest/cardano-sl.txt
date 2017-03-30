@@ -2963,11 +2963,11 @@ ToilModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> !exten
 [_tmUndos] :: GenericToilModifier extension -> !UndoMap
 [_tmExtra] :: GenericToilModifier extension -> !extension
 type ToilModifier = GenericToilModifier ()
-tmUtxo :: forall extension_a1S0I. Lens' (GenericToilModifier extension_a1S0I) UtxoModifier
-tmBalances :: forall extension_a1S0I. Lens' (GenericToilModifier extension_a1S0I) BalancesView
-tmMemPool :: forall extension_a1S0I. Lens' (GenericToilModifier extension_a1S0I) MemPool
-tmUndos :: forall extension_a1S0I. Lens' (GenericToilModifier extension_a1S0I) UndoMap
-tmExtra :: forall extension_a1S0I extension_a1S2L. Lens (GenericToilModifier extension_a1S0I) (GenericToilModifier extension_a1S2L) extension_a1S0I extension_a1S2L
+tmUtxo :: forall extension_a1RWA. Lens' (GenericToilModifier extension_a1RWA) UtxoModifier
+tmBalances :: forall extension_a1RWA. Lens' (GenericToilModifier extension_a1RWA) BalancesView
+tmMemPool :: forall extension_a1RWA. Lens' (GenericToilModifier extension_a1RWA) MemPool
+tmUndos :: forall extension_a1RWA. Lens' (GenericToilModifier extension_a1RWA) UndoMap
+tmExtra :: forall extension_a1RWA extension_a1RYD. Lens (GenericToilModifier extension_a1RWA) (GenericToilModifier extension_a1RYD) extension_a1RWA extension_a1RYD
 
 -- | Environment used by Toil.
 data ToilEnv
@@ -4026,7 +4026,7 @@ module Pos.Wallet.Web
 -- | Servant API which provides access to wallet. TODO: Should be composed
 --   depending on the resource - wallets, txs, ...
 --   <a>http://haskell-servant.github.io/tutorial/0.4/server.html#nested-apis</a>
-type WalletApi = ("api" :> ("test" :> ("reset" :> Post '[JSON] (Either WalletError ())))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> Get '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("wallets" :> Get '[JSON] (Either WalletError [CWallet]))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> (ReqBody '[JSON] CWalletMeta :> Put '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> Delete '[JSON] (Either WalletError ())))) :<|> (("api" :> ("wallets" :> ("keys" :> (ReqBody '[JSON] Text :> Post '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("wallets" :> ("restore" :> (Capture "passphrase" CPassPhrase :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet)))))) :<|> (("api" :> ("wallets" :> (Capture "passphrase" CPassPhrase :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("addresses" :> (Capture "address" Text :> ("currencies" :> (Capture "currency" CCurrency :> Get '[JSON] (Either WalletError Bool)))))) :<|> (("api" :> ("profile" :> Get '[JSON] (Either WalletError CProfile))) :<|> (("api" :> ("profile" :> (ReqBody '[JSON] CProfile :> Post '[JSON] (Either WalletError CProfile)))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "passphrase" CPassPhrase :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> Post '[JSON] (Either WalletError CTx)))))))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "passphrase" CPassPhrase :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> (Capture "currency" CCurrency :> (Capture "title" Text :> (Capture "description" Text :> Post '[JSON] (Either WalletError CTx))))))))))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "address" CAddress :> (Capture "transaction" CTxId :> (ReqBody '[JSON] CTxMeta :> Post '[JSON] (Either WalletError ()))))))) :<|> (("api" :> ("txs" :> ("histories" :> (Capture "address" CAddress :> (QueryParam "skip" Word :> (QueryParam "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word)))))))) :<|> (("api" :> ("txs" :> ("histories" :> (Capture "address" CAddress :> (Capture "search" Text :> (QueryParam "skip" Word :> (QueryParam "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word))))))))) :<|> (("api" :> ("update" :> Get '[JSON] (Either WalletError CUpdateInfo))) :<|> (("api" :> ("update" :> Post '[JSON] (Either WalletError ()))) :<|> (("api" :> ("redemptions" :> ("ada" :> (ReqBody '[JSON] CWalletRedeem :> Post '[JSON] (Either WalletError CTx))))) :<|> (("api" :> ("reporting" :> ("initialized" :> (ReqBody '[JSON] CInitialized :> Post '[JSON] (Either WalletError ()))))) :<|> (("api" :> ("settings" :> ("slots" :> ("duration" :> Get '[JSON] (Either WalletError Word))))) :<|> (("api" :> ("settings" :> ("version" :> Get '[JSON] (Either WalletError SoftwareVersion)))) :<|> ("api" :> ("settings" :> ("sync" :> ("progress" :> Get '[JSON] (Either WalletError SyncProgress))))))))))))))))))))))))))
+type WalletApi = ("api" :> ("test" :> ("reset" :> Post '[JSON] (Either WalletError ())))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> Get '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("wallets" :> Get '[JSON] (Either WalletError [CWallet]))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> (ReqBody '[JSON] CWalletMeta :> Put '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("wallets" :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> Delete '[JSON] (Either WalletError ())))) :<|> (("api" :> ("wallets" :> ("keys" :> (ReqBody '[JSON] Text :> Post '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("wallets" :> ("restore" :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("addresses" :> (Capture "address" Text :> ("currencies" :> (Capture "currency" CCurrency :> Get '[JSON] (Either WalletError Bool)))))) :<|> (("api" :> ("profile" :> Get '[JSON] (Either WalletError CProfile))) :<|> (("api" :> ("profile" :> (ReqBody '[JSON] CProfile :> Post '[JSON] (Either WalletError CProfile)))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> Post '[JSON] (Either WalletError CTx))))))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> (Capture "currency" CCurrency :> (Capture "title" Text :> (Capture "description" Text :> Post '[JSON] (Either WalletError CTx)))))))))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "address" CAddress :> (Capture "transaction" CTxId :> (ReqBody '[JSON] CTxMeta :> Post '[JSON] (Either WalletError ()))))))) :<|> (("api" :> ("txs" :> ("histories" :> (Capture "address" CAddress :> (QueryParam "skip" Word :> (QueryParam "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word)))))))) :<|> (("api" :> ("txs" :> ("histories" :> (Capture "address" CAddress :> (Capture "search" Text :> (QueryParam "skip" Word :> (QueryParam "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word))))))))) :<|> (("api" :> ("update" :> Get '[JSON] (Either WalletError CUpdateInfo))) :<|> (("api" :> ("update" :> Post '[JSON] (Either WalletError ()))) :<|> (("api" :> ("redemptions" :> ("ada" :> (ReqBody '[JSON] CWalletRedeem :> Post '[JSON] (Either WalletError CTx))))) :<|> (("api" :> ("reporting" :> ("initialized" :> (ReqBody '[JSON] CInitialized :> Post '[JSON] (Either WalletError ()))))) :<|> (("api" :> ("settings" :> ("slots" :> ("duration" :> Get '[JSON] (Either WalletError Word))))) :<|> (("api" :> ("settings" :> ("version" :> Get '[JSON] (Either WalletError SoftwareVersion)))) :<|> ("api" :> ("settings" :> ("sync" :> ("progress" :> Get '[JSON] (Either WalletError SyncProgress))))))))))))))))))))))))))
 
 -- | Helper Proxy.
 walletApi :: Proxy WalletApi
@@ -4056,8 +4056,6 @@ CHash :: Text -> CHash
 data CTType
 CTIn :: CTxMeta -> CTType
 CTOut :: CTxMeta -> CTType
-newtype CPassPhrase
-CPassPhrase :: Text -> CPassPhrase
 
 -- | Client profile (CP) all data of client are "meta data" - that is not
 --   provided by Cardano (Flow type: accountType)
@@ -4174,8 +4172,6 @@ ConnectionClosed :: NotifyEvent
 -- | Transform Address into CAddress
 addressToCAddress :: Address -> CAddress
 cAddressToAddress :: CAddress -> Either Text Address
-passPhraseToCPassPhrase :: PassPhrase -> CPassPhrase
-cPassPhraseToPassPhrase :: CPassPhrase -> Either Text PassPhrase
 mkCTx :: Address -> ChainDifficulty -> TxHistoryEntry -> CTxMeta -> CTx
 mkCTxId :: Text -> CTxId
 
