@@ -26,19 +26,19 @@ simpleUserSecret :: SecretKey -> FilePath -> UserSecret
 
 -- | Create user secret file at the given path, but only when one doesn't
 --   already exist.
-initializeUserSecret :: (MonadIO m, MonadThrow m) => FilePath -> m ()
+initializeUserSecret :: (MonadIO m) => FilePath -> m ()
 
--- | Reads user secret from file, assuming that file exists, and has mode
---   600, throws exception in other case
-readUserSecret :: (MonadIO m, MonadThrow m) => FilePath -> m UserSecret
+-- | Reads user secret from file, assuming that file exists, throws
+--   exception in other case
+readUserSecret :: MonadIO m => FilePath -> m UserSecret
 
 -- | Reads user secret from the given file. If the file does not exist/is
 --   empty, returns empty user secret
-peekUserSecret :: (MonadIO m, MonadThrow m) => FilePath -> m UserSecret
+peekUserSecret :: (MonadIO m) => FilePath -> m UserSecret
 
 -- | Read user secret putting an exclusive lock on it. To unlock, use
 --   <a>writeUserSecretRelease</a>.
-takeUserSecret :: (MonadIO m, MonadThrow m) => FilePath -> m UserSecret
+takeUserSecret :: (MonadIO m) => FilePath -> m UserSecret
 
 -- | Writes user secret .
 writeUserSecret :: (MonadIO m) => UserSecret -> m ()
@@ -402,53 +402,6 @@ instance Pos.Util.Arbitrary.ArbitraryUnsafe Pos.Core.Types.Coin
 instance Pos.Util.Arbitrary.ArbitraryUnsafe Pos.Core.Types.Address
 instance Pos.Util.Arbitrary.ArbitraryUnsafe Pos.Core.Types.SlotId
 instance Pos.Util.Arbitrary.ArbitraryUnsafe Pos.Txp.Core.Types.TxOut
-
-
--- | <a>Arbitrary</a> instances for using in tests and benchmarks
-module Pos.Crypto.Arbitrary
-data SharedSecrets
-SharedSecrets :: SecretSharingExtra -> Secret -> SecretProof -> [(EncShare, Share)] -> Threshold -> [VssPublicKey] -> Int -> SharedSecrets
-[getSecretSharing] :: SharedSecrets -> SecretSharingExtra
-[getSecret] :: SharedSecrets -> Secret
-[getSecretProof] :: SharedSecrets -> SecretProof
-[getShares] :: SharedSecrets -> [(EncShare, Share)]
-[getThreshold] :: SharedSecrets -> Threshold
-[getVSSPKs] :: SharedSecrets -> [VssPublicKey]
-[getPosition] :: SharedSecrets -> Int
-instance GHC.Classes.Eq Pos.Crypto.Arbitrary.SharedSecrets
-instance GHC.Show.Show Pos.Crypto.Arbitrary.SharedSecrets
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.Signing.PublicKey
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.Signing.SecretKey
-instance Pos.Util.Arbitrary.Nonrepeating Pos.Crypto.Signing.PublicKey
-instance Pos.Util.Arbitrary.Nonrepeating Pos.Crypto.Signing.SecretKey
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.RedeemSigning.RedeemPublicKey
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.RedeemSigning.RedeemSecretKey
-instance Pos.Util.Arbitrary.Nonrepeating Pos.Crypto.RedeemSigning.RedeemPublicKey
-instance Pos.Util.Arbitrary.Nonrepeating Pos.Crypto.RedeemSigning.RedeemSecretKey
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.SecretSharing.VssKeyPair
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.SecretSharing.VssPublicKey
-instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.AsBinary Pos.Crypto.SecretSharing.VssPublicKey)
-instance Pos.Util.Arbitrary.Nonrepeating Pos.Crypto.SecretSharing.VssKeyPair
-instance Pos.Util.Arbitrary.Nonrepeating Pos.Crypto.SecretSharing.VssPublicKey
-instance (Pos.Binary.Class.Bi a, Test.QuickCheck.Arbitrary.Arbitrary a) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Crypto.Signing.Signature a)
-instance (Pos.Binary.Class.Bi a, Test.QuickCheck.Arbitrary.Arbitrary a) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Crypto.RedeemSigning.RedeemSignature a)
-instance (Pos.Binary.Class.Bi a, Test.QuickCheck.Arbitrary.Arbitrary a) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Crypto.Signing.Signed a)
-instance (Pos.Binary.Class.Bi w, Test.QuickCheck.Arbitrary.Arbitrary w) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Crypto.Signing.ProxyCert w)
-instance (Pos.Binary.Class.Bi w, Test.QuickCheck.Arbitrary.Arbitrary w) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Crypto.Signing.ProxySecretKey w)
-instance (Pos.Binary.Class.Bi w, Test.QuickCheck.Arbitrary.Arbitrary w, Pos.Binary.Class.Bi a, Test.QuickCheck.Arbitrary.Arbitrary a) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Crypto.Signing.ProxySignature w a)
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.SecretSharing.SecretSharingExtra
-instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.AsBinary Pos.Crypto.SecretSharing.SecretSharingExtra)
-instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.AsBinary Pos.Crypto.SecretSharing.SecretProof)
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.SecretSharing.Secret
-instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.AsBinary Pos.Crypto.SecretSharing.Secret)
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.SecretSharing.SecretProof
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.SecretSharing.EncShare
-instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.AsBinary Pos.Crypto.SecretSharing.EncShare)
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.SecretSharing.Share
-instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.AsBinary Pos.Crypto.SecretSharing.Share)
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.Arbitrary.SharedSecrets
-instance (Crypto.Hash.Types.HashAlgorithm algo, Pos.Binary.Class.Bi a) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Crypto.Hashing.AbstractHash algo a)
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.HD.HDPassphrase
 
 module Pos.Txp.Core
 
@@ -1117,9 +1070,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679111661 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679111661)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679111654 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679111654)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679111650 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679111650)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679108771 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679108771)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679108764 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679108764)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679108760 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679108760)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SoftwareVersion
@@ -3010,11 +2963,11 @@ ToilModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> !exten
 [_tmUndos] :: GenericToilModifier extension -> !UndoMap
 [_tmExtra] :: GenericToilModifier extension -> !extension
 type ToilModifier = GenericToilModifier ()
-tmUtxo :: forall extension_a1Tky. Lens' (GenericToilModifier extension_a1Tky) UtxoModifier
-tmBalances :: forall extension_a1Tky. Lens' (GenericToilModifier extension_a1Tky) BalancesView
-tmMemPool :: forall extension_a1Tky. Lens' (GenericToilModifier extension_a1Tky) MemPool
-tmUndos :: forall extension_a1Tky. Lens' (GenericToilModifier extension_a1Tky) UndoMap
-tmExtra :: forall extension_a1Tky extension_a1TmB. Lens (GenericToilModifier extension_a1Tky) (GenericToilModifier extension_a1TmB) extension_a1Tky extension_a1TmB
+tmUtxo :: forall extension_a1PHk. Lens' (GenericToilModifier extension_a1PHk) UtxoModifier
+tmBalances :: forall extension_a1PHk. Lens' (GenericToilModifier extension_a1PHk) BalancesView
+tmMemPool :: forall extension_a1PHk. Lens' (GenericToilModifier extension_a1PHk) MemPool
+tmUndos :: forall extension_a1PHk. Lens' (GenericToilModifier extension_a1PHk) UndoMap
+tmExtra :: forall extension_a1PHk extension_a1PJn. Lens (GenericToilModifier extension_a1PHk) (GenericToilModifier extension_a1PJn) extension_a1PHk extension_a1PJn
 
 -- | Environment used by Toil.
 data ToilEnv
@@ -4107,8 +4060,14 @@ CTOut :: CTxMeta -> CTType
 -- | Client profile (CP) all data of client are "meta data" - that is not
 --   provided by Cardano (Flow type: accountType)
 data CProfile
-CProfile :: Text -> CProfile
+CProfile :: Text -> Text -> Text -> CPwHash -> POSIXTime -> Text -> Text -> CProfile
+[cpName] :: CProfile -> Text
+[cpEmail] :: CProfile -> Text
+[cpPhoneNumber] :: CProfile -> Text
+[cpPwHash] :: CProfile -> CPwHash
+[cpPwCreated] :: CProfile -> POSIXTime
 [cpLocale] :: CProfile -> Text
+[cpPicture] :: CProfile -> Text
 
 -- | Password hash of client profile
 type CPwHash = Text
@@ -4169,21 +4128,12 @@ data CWalletType
 CWTPersonal :: CWalletType
 CWTShared :: CWalletType
 
--- | A level of assurance for the wallet "meta type"
-data CWalletAssurance
-CWAStrict :: CWalletAssurance
-CWANormal :: CWalletAssurance
-
 -- | Meta data of CWallet Includes data which are not provided by Cardano
 data CWalletMeta
-CWalletMeta :: !CWalletType -> !CCurrency -> !Text -> !CWalletAssurance -> !Int -> CWalletMeta
+CWalletMeta :: !CWalletType -> !CCurrency -> !Text -> CWalletMeta
 [cwType] :: CWalletMeta -> !CWalletType
 [cwCurrency] :: CWalletMeta -> !CCurrency
 [cwName] :: CWalletMeta -> !Text
-[cwAssurance] :: CWalletMeta -> !CWalletAssurance
-
--- | <a>https://issues.serokell.io/issue/CSM-163#comment=96-2480</a>
-[cwUnit] :: CWalletMeta -> !Int
 
 -- | Query data for wallet creation (wallet meta + backup phrase)
 data CWalletInit
@@ -4230,7 +4180,6 @@ txContainsTitle :: Text -> CTx -> Bool
 -- | Creates <tt>CTUpdateInfo</tt> from <a>ConfirmedProposalState</a>
 toCUpdateInfo :: ConfirmedProposalState -> CUpdateInfo
 walletDocsText :: Text
-walletTableDocsText :: Text
 data WalletError
 
 -- | Some internal error.
