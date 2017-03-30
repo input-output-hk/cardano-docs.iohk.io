@@ -1070,9 +1070,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679111658 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679111658)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679111651 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679111651)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679111647 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679111647)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679111644 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679111644)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679111637 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679111637)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679111633 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679111633)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SoftwareVersion
@@ -2963,11 +2963,11 @@ ToilModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> !exten
 [_tmUndos] :: GenericToilModifier extension -> !UndoMap
 [_tmExtra] :: GenericToilModifier extension -> !extension
 type ToilModifier = GenericToilModifier ()
-tmUtxo :: forall extension_a1RW6. Lens' (GenericToilModifier extension_a1RW6) UtxoModifier
-tmBalances :: forall extension_a1RW6. Lens' (GenericToilModifier extension_a1RW6) BalancesView
-tmMemPool :: forall extension_a1RW6. Lens' (GenericToilModifier extension_a1RW6) MemPool
-tmUndos :: forall extension_a1RW6. Lens' (GenericToilModifier extension_a1RW6) UndoMap
-tmExtra :: forall extension_a1RW6 extension_a1RY9. Lens (GenericToilModifier extension_a1RW6) (GenericToilModifier extension_a1RY9) extension_a1RW6 extension_a1RY9
+tmUtxo :: forall extension_a1RIW. Lens' (GenericToilModifier extension_a1RIW) UtxoModifier
+tmBalances :: forall extension_a1RIW. Lens' (GenericToilModifier extension_a1RIW) BalancesView
+tmMemPool :: forall extension_a1RIW. Lens' (GenericToilModifier extension_a1RIW) MemPool
+tmUndos :: forall extension_a1RIW. Lens' (GenericToilModifier extension_a1RIW) UndoMap
+tmExtra :: forall extension_a1RIW extension_a1RKZ. Lens (GenericToilModifier extension_a1RIW) (GenericToilModifier extension_a1RKZ) extension_a1RIW extension_a1RKZ
 
 -- | Environment used by Toil.
 data ToilEnv
@@ -4060,8 +4060,14 @@ CTOut :: CTxMeta -> CTType
 -- | Client profile (CP) all data of client are "meta data" - that is not
 --   provided by Cardano (Flow type: accountType)
 data CProfile
-CProfile :: Text -> CProfile
+CProfile :: Text -> Text -> Text -> CPwHash -> POSIXTime -> Text -> Text -> CProfile
+[cpName] :: CProfile -> Text
+[cpEmail] :: CProfile -> Text
+[cpPhoneNumber] :: CProfile -> Text
+[cpPwHash] :: CProfile -> CPwHash
+[cpPwCreated] :: CProfile -> POSIXTime
 [cpLocale] :: CProfile -> Text
+[cpPicture] :: CProfile -> Text
 
 -- | Password hash of client profile
 type CPwHash = Text
@@ -4122,21 +4128,12 @@ data CWalletType
 CWTPersonal :: CWalletType
 CWTShared :: CWalletType
 
--- | A level of assurance for the wallet "meta type"
-data CWalletAssurance
-CWAStrict :: CWalletAssurance
-CWANormal :: CWalletAssurance
-
 -- | Meta data of CWallet Includes data which are not provided by Cardano
 data CWalletMeta
-CWalletMeta :: !CWalletType -> !CCurrency -> !Text -> !CWalletAssurance -> !Int -> CWalletMeta
+CWalletMeta :: !CWalletType -> !CCurrency -> !Text -> CWalletMeta
 [cwType] :: CWalletMeta -> !CWalletType
 [cwCurrency] :: CWalletMeta -> !CCurrency
 [cwName] :: CWalletMeta -> !Text
-[cwAssurance] :: CWalletMeta -> !CWalletAssurance
-
--- | <a>https://issues.serokell.io/issue/CSM-163#comment=96-2480</a>
-[cwUnit] :: CWalletMeta -> !Int
 
 -- | Query data for wallet creation (wallet meta + backup phrase)
 data CWalletInit
@@ -4183,7 +4180,6 @@ txContainsTitle :: Text -> CTx -> Bool
 -- | Creates <tt>CTUpdateInfo</tt> from <a>ConfirmedProposalState</a>
 toCUpdateInfo :: ConfirmedProposalState -> CUpdateInfo
 walletDocsText :: Text
-walletTableDocsText :: Text
 data WalletError
 
 -- | Some internal error.
