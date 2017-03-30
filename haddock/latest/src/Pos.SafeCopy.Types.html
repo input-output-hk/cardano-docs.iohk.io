@@ -12,19 +12,22 @@
 </span><a name="line-12"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Serialize</span><span>        </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">Cereal</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">getWord8</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">putWord8</span><span class="hs-special">)</span><span>
 </span><a name="line-13"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Universum</span><span>
 </span><a name="line-14"></a><span>
-</span><a name="line-15"></a><span class="hs-keyword">import</span><span>           </span><a href="Pos.Ssc.Class.Types.html"><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Ssc</span><span class="hs-operator">.</span><span class="hs-identifier">Class</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>   </span><span class="hs-special">(</span><a href="Pos.Ssc.Class.Types.html#Ssc"><span class="hs-identifier hs-type">Ssc</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
-</span><a name="line-16"></a><span class="hs-comment">-- FIXME</span><span>
-</span><a name="line-17"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Core</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span><span>
-</span><a name="line-18"></a><span class="hs-keyword">import</span><span>           </span><a href="Pos.Txp.Core.Types.html"><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Txp</span><span class="hs-operator">.</span><span class="hs-identifier">Core</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
-</span><a name="line-19"></a><span class="hs-keyword">import</span><span>           </span><a href="Pos.Types.Block.html"><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span><span class="hs-operator">.</span><span class="hs-identifier">Block</span></a><span>
-</span><a name="line-20"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Update</span><span class="hs-operator">.</span><span class="hs-identifier">Core</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span><span>
-</span><a name="line-21"></a><span>
-</span><a name="line-22"></a><span class="hs-identifier hs-var">deriveSafeCopySimple</span><span> </span><span class="hs-number">0</span><span> </span><span class="hs-char">'base ''CoinPortion
+</span><a name="line-15"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Crypto</span><span class="hs-operator">.</span><span class="hs-identifier">HD</span><span>         </span><span class="hs-special">(</span><span class="hs-identifier hs-type">HDAddressPayload</span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><a name="line-16"></a><span class="hs-keyword">import</span><span>           </span><a href="Pos.Ssc.Class.Types.html"><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Ssc</span><span class="hs-operator">.</span><span class="hs-identifier">Class</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>   </span><span class="hs-special">(</span><a href="Pos.Ssc.Class.Types.html#Ssc"><span class="hs-identifier hs-type">Ssc</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><a name="line-17"></a><span>
+</span><a name="line-18"></a><span class="hs-comment">-- FIXME</span><span>
+</span><a name="line-19"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Core</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span><span>
+</span><a name="line-20"></a><span class="hs-keyword">import</span><span>           </span><a href="Pos.Txp.Core.Types.html"><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Txp</span><span class="hs-operator">.</span><span class="hs-identifier">Core</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-21"></a><span class="hs-keyword">import</span><span>           </span><a href="Pos.Types.Block.html"><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span><span class="hs-operator">.</span><span class="hs-identifier">Block</span></a><span>
+</span><a name="line-22"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Update</span><span class="hs-operator">.</span><span class="hs-identifier">Core</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span><span>
+</span><a name="line-23"></a><span>
+</span><a name="line-24"></a><span class="hs-identifier hs-var">deriveSafeCopySimple</span><span> </span><span class="hs-number">0</span><span> </span><span class="hs-char">'base ''CoinPortion
 deriveSafeCopySimple 0 'base ''EpochIndex
 deriveSafeCopySimple 0 'base ''LocalSlotIndex
 deriveSafeCopySimple 0 'base ''SlotId
 deriveSafeCopySimple 0 'base ''EpochOrSlot
 deriveSafeCopySimple 0 'base ''Coin
+deriveSafeCopySimple 0 'base ''HDAddressPayload
 deriveSafeCopySimple 0 'base ''AddrPkAttrs
 deriveSafeCopySimple 0 'base ''Address
 deriveSafeCopySimple 0 'base ''TxInWitness
@@ -41,6 +44,8 @@ deriveSafeCopySimple 0 'base ''SharedSeed
 
 deriveSafeCopySimple 0 'base ''MainExtraBodyData
 deriveSafeCopySimple 0 'base ''MainExtraHeaderData
+deriveSafeCopySimple 0 'base ''GenesisExtraHeaderData
+deriveSafeCopySimple 0 'base ''GenesisExtraBodyData
 
 deriveSafeCopySimple 0 'base ''SystemTag
 deriveSafeCopySimple 0 'base ''UpdateData
