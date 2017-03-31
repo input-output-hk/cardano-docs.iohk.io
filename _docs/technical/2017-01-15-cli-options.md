@@ -734,3 +734,9 @@ stack exec -- cardano-smart-generator \
     --ssc-algo NistBeacon \
     --flat-distr "(80,60000000)"
 ~~~
+
+## `cardano-wallet-web-api-swagger`
+
+We use program `cardano-wallet-web-api-swagger` to produce Wallet Web API docs using Swagger. This program runs during Cardano building on CI, via [this script](https://github.com/input-output-hk/cardano-sl/blob/89554f562340dc5f703ae906f6a1c78198f90115/update_wallet_web_api_docs.sh).
+
+`cardano-wallet-web-api-swagger` hasn’t any options or parameters, it just produces `wallet-web-api-swagger.json` file in the current directory. This file contains Swagger-specification for API. After that we use [third-party tools](https://www.npmjs.com/package/bootprint-openapi) to convert this specification into a single HTML file. This file will be automatically published [online](https://cardano-docs.iohk.io/technical/wallet/api/).
