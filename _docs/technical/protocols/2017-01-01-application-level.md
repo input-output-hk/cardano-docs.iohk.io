@@ -142,7 +142,8 @@ To distinguish from integers addition, concatenation is denoted here as `(++)`.
 | MsgBlock | `7` |
 | InvMsg | `8` ++ `pMessageName tag` |
 | ReqMsg | `9` ++ `pMessageName tag` |
-| DataMsg | `10` ++ `pMessageName contents` |
+| MempoolMsg | `10` ++ `pMessageName tag` |
+| DataMsg | `11` ++ `pMessageName contents` |
 | SysStartRequest | `1001` |
 | SysStartResponse | `1002` |
 
