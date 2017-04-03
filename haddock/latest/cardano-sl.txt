@@ -403,54 +403,6 @@ instance Pos.Util.Arbitrary.ArbitraryUnsafe Pos.Core.Types.Address
 instance Pos.Util.Arbitrary.ArbitraryUnsafe Pos.Core.Types.SlotId
 instance Pos.Util.Arbitrary.ArbitraryUnsafe Pos.Txp.Core.Types.TxOut
 
-
--- | <a>Arbitrary</a> instances for using in tests and benchmarks
-module Pos.Crypto.Arbitrary
-data SharedSecrets
-SharedSecrets :: SecretSharingExtra -> Secret -> SecretProof -> [(EncShare, Share)] -> Threshold -> [VssPublicKey] -> Int -> SharedSecrets
-[ssSecShare] :: SharedSecrets -> SecretSharingExtra
-[ssSecret] :: SharedSecrets -> Secret
-[ssSecProof] :: SharedSecrets -> SecretProof
-[ssShares] :: SharedSecrets -> [(EncShare, Share)]
-[ssThreshold] :: SharedSecrets -> Threshold
-[ssVSSPKs] :: SharedSecrets -> [VssPublicKey]
-[ssPos] :: SharedSecrets -> Int
-instance GHC.Classes.Eq Pos.Crypto.Arbitrary.SharedSecrets
-instance GHC.Show.Show Pos.Crypto.Arbitrary.SharedSecrets
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.Signing.PublicKey
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.Signing.SecretKey
-instance Pos.Util.Arbitrary.Nonrepeating Pos.Crypto.Signing.PublicKey
-instance Pos.Util.Arbitrary.Nonrepeating Pos.Crypto.Signing.SecretKey
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.RedeemSigning.RedeemPublicKey
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.RedeemSigning.RedeemSecretKey
-instance Pos.Util.Arbitrary.Nonrepeating Pos.Crypto.RedeemSigning.RedeemPublicKey
-instance Pos.Util.Arbitrary.Nonrepeating Pos.Crypto.RedeemSigning.RedeemSecretKey
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.SecretSharing.VssKeyPair
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.SecretSharing.VssPublicKey
-instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.AsBinary Pos.Crypto.SecretSharing.VssPublicKey)
-instance Pos.Util.Arbitrary.Nonrepeating Pos.Crypto.SecretSharing.VssKeyPair
-instance Pos.Util.Arbitrary.Nonrepeating Pos.Crypto.SecretSharing.VssPublicKey
-instance (Pos.Binary.Class.Bi a, Test.QuickCheck.Arbitrary.Arbitrary a) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Crypto.Signing.Signature a)
-instance (Pos.Binary.Class.Bi a, Test.QuickCheck.Arbitrary.Arbitrary a) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Crypto.RedeemSigning.RedeemSignature a)
-instance (Pos.Binary.Class.Bi a, Test.QuickCheck.Arbitrary.Arbitrary a) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Crypto.Signing.Signed a)
-instance (Pos.Binary.Class.Bi w, Test.QuickCheck.Arbitrary.Arbitrary w) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Crypto.Signing.ProxyCert w)
-instance (Pos.Binary.Class.Bi w, Test.QuickCheck.Arbitrary.Arbitrary w) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Crypto.Signing.ProxySecretKey w)
-instance (Pos.Binary.Class.Bi w, Test.QuickCheck.Arbitrary.Arbitrary w, Pos.Binary.Class.Bi a, Test.QuickCheck.Arbitrary.Arbitrary a) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Crypto.Signing.ProxySignature w a)
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.SecretSharing.SecretSharingExtra
-instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.AsBinary Pos.Crypto.SecretSharing.SecretSharingExtra)
-instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.AsBinary Pos.Crypto.SecretSharing.SecretProof)
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.SecretSharing.Secret
-instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.AsBinary Pos.Crypto.SecretSharing.Secret)
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.SecretSharing.SecretProof
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.SecretSharing.EncShare
-instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.AsBinary Pos.Crypto.SecretSharing.EncShare)
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.SecretSharing.Share
-instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.AsBinary Pos.Crypto.SecretSharing.Share)
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.Arbitrary.SharedSecrets
-instance (Crypto.Hash.Types.HashAlgorithm algo, Pos.Binary.Class.Bi a) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Crypto.Hashing.AbstractHash algo a)
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.SafeSigning.PassPhrase
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.HD.HDPassphrase
-
 module Pos.Txp.Core
 
 -- | A predicate for <a>TxOutAux</a> which checks whether given address
@@ -1118,9 +1070,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679111693 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679111693)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679111686 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679111686)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679111682 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679111682)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679111690 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679111690)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679111683 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679111683)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679111679 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679111679)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SoftwareVersion
@@ -3011,11 +2963,11 @@ ToilModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> !exten
 [_tmUndos] :: GenericToilModifier extension -> !UndoMap
 [_tmExtra] :: GenericToilModifier extension -> !extension
 type ToilModifier = GenericToilModifier ()
-tmUtxo :: forall extension_a1Tpx. Lens' (GenericToilModifier extension_a1Tpx) UtxoModifier
-tmBalances :: forall extension_a1Tpx. Lens' (GenericToilModifier extension_a1Tpx) BalancesView
-tmMemPool :: forall extension_a1Tpx. Lens' (GenericToilModifier extension_a1Tpx) MemPool
-tmUndos :: forall extension_a1Tpx. Lens' (GenericToilModifier extension_a1Tpx) UndoMap
-tmExtra :: forall extension_a1Tpx extension_a1TrA. Lens (GenericToilModifier extension_a1Tpx) (GenericToilModifier extension_a1TrA) extension_a1Tpx extension_a1TrA
+tmUtxo :: forall extension_a1S1d. Lens' (GenericToilModifier extension_a1S1d) UtxoModifier
+tmBalances :: forall extension_a1S1d. Lens' (GenericToilModifier extension_a1S1d) BalancesView
+tmMemPool :: forall extension_a1S1d. Lens' (GenericToilModifier extension_a1S1d) MemPool
+tmUndos :: forall extension_a1S1d. Lens' (GenericToilModifier extension_a1S1d) UndoMap
+tmExtra :: forall extension_a1S1d extension_a1S3g. Lens (GenericToilModifier extension_a1S1d) (GenericToilModifier extension_a1S3g) extension_a1S1d extension_a1S3g
 
 -- | Environment used by Toil.
 data ToilEnv
