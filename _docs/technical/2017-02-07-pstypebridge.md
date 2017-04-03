@@ -7,7 +7,7 @@ group: technical
 
 # PureScript type bridge
 
-In the [Wallets](/cardano/wallets/) section, it was discussed how the wallet
+In the [Wallets](/technical/wallet/) section, it was discussed how the wallet
 types are organized and how the API is structured. This section will be a
 review of the way these types are used in the frontend, which was written in
 PureScript.
