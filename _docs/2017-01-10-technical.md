@@ -32,22 +32,36 @@ files. We have two main configuration files: for development and for production,
 [`constants-dev.yaml`](https://github.com/input-output-hk/cardano-sl/blob/c30a68214f05367bb26388b58f76984034a564cd/constants-dev.yaml) and [`constants-prod.yaml`](https://github.com/input-output-hk/cardano-sl/blob/c30a68214f05367bb26388b58f76984034a564cd/constants-prod.yaml) correspondingly. Please note that particular values are not equal in these two configuration files.
 In this guide we'll refer to productions constants.
 
-The values for Cardano SL are:
+Suppose the values for Cardano SL are:
 
 - Slot duration: 120 seconds
 - Security parameter *k*: 60
 
 Please refer to the [last section](#constants) of this article to see all the
-constants and their values.
+constants and their actual values.
 
 In other words, **a slot lasts 120 seconds**, and an epoch has `10×k=600` slots
 in it, so it lasts **1200 minutes** or **20 hours**.
 
-On each slot, one *and only one* of the nodes generates a block to be added
-to the blockchain. During the epoch, nodes send each other MPC
-messages to come to the consensus as to who would be allowed to generate
-blocks in the next epoch. Payloads from `Data` messages (along with transactions) are
-included into blocks.
+There's one node called slot-leader on each slot, and only this node has right to generate
+a new block during this slot, and this block will be added to the blockchain. However
+there's no guarantee that new block will be actually generated (e.g. slot-leader can be
+offline during corresponding slot).
+
+Furthermore, slot-leader may delegate its right to another node `N`, in this case node
+`N` will have a right to generate a new block instead of slot-leader. Please note that
+node `N` with delegated right isn't called a slot-leader though.
+
+It's theoretically possible to delegate slot-leader's right to multiple nodes, but it's
+**not** recommended by reasons explained later. Moreover, we can run multiple nodes with the same
+key (i.e. on one computer), let's say nodes `A`, `B` and `C`, and if node `A` will be elected as a
+slot-leader, not only `A` will be able to generate a new block, but nodes `B` and `C` as well.
+But in this case all these nodes will issue (most probably different) block and network will fork
+- each other node will accept **only one** of these concurrent blocks. Later, fork will be eliminated.
+
+During the epoch, nodes send each other MPC messages to come to the consensus as to who
+would be allowed to generate blocks in the next epoch. Payloads from `Data` messages 
+(along with transactions) are included into blocks.
 
 The more currency (or "stake") an address holds, the more likely it is to
 be chosen to generate a block. Please refer to [the pertinent
