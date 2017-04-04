@@ -1070,9 +1070,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679110825 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679110825)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679110818 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679110818)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679110814 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679110814)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679111690 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679111690)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679111683 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679111683)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679111679 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679111679)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SoftwareVersion
@@ -2963,11 +2963,11 @@ ToilModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> !exten
 [_tmUndos] :: GenericToilModifier extension -> !UndoMap
 [_tmExtra] :: GenericToilModifier extension -> !extension
 type ToilModifier = GenericToilModifier ()
-tmUtxo :: forall extension_a1S1o. Lens' (GenericToilModifier extension_a1S1o) UtxoModifier
-tmBalances :: forall extension_a1S1o. Lens' (GenericToilModifier extension_a1S1o) BalancesView
-tmMemPool :: forall extension_a1S1o. Lens' (GenericToilModifier extension_a1S1o) MemPool
-tmUndos :: forall extension_a1S1o. Lens' (GenericToilModifier extension_a1S1o) UndoMap
-tmExtra :: forall extension_a1S1o extension_a1S3r. Lens (GenericToilModifier extension_a1S1o) (GenericToilModifier extension_a1S3r) extension_a1S1o extension_a1S3r
+tmUtxo :: forall extension_a1S0J. Lens' (GenericToilModifier extension_a1S0J) UtxoModifier
+tmBalances :: forall extension_a1S0J. Lens' (GenericToilModifier extension_a1S0J) BalancesView
+tmMemPool :: forall extension_a1S0J. Lens' (GenericToilModifier extension_a1S0J) MemPool
+tmUndos :: forall extension_a1S0J. Lens' (GenericToilModifier extension_a1S0J) UndoMap
+tmExtra :: forall extension_a1S0J extension_a1S2M. Lens (GenericToilModifier extension_a1S0J) (GenericToilModifier extension_a1S2M) extension_a1S0J extension_a1S2M
 
 -- | Environment used by Toil.
 data ToilEnv
