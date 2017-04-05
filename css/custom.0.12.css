@@ -164,8 +164,6 @@ box-shadow:0 0 0 transparent;
 .cardano.logo a{text-decoration: none;}
 .cardano.logo a img{margin:-2px  0;}
 .cardano.logo a span{font-family: 'Montserrat', sans-serif;text-transform: uppercase;color:#333;font-size:160%;letter-spacing: .1em;display: inline-block;padding:0 0 0 10px}
-.cardano.logo .supported_project {margin:-10px 0 0 53px;}
-.cardano.logo .supported_project a{	color:#777;text-transform: uppercase;font-size: 80%}
 
 .top .cardano.logo a span{color:#fff;}
 
@@ -194,7 +192,7 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#0b131f', end
 .foot .links ul{padding:0;list-style-type: none}
 .foot .links ul li{margin:5px 0}
 .foot .links a{color:#fcfcfc;opacity:.5}
-.foot .links a:hover{text-decoration: none}
+.foot .links a:hover{opacity:.7}
 
 
 
@@ -212,9 +210,12 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#0b131f', end
 
 @media (max-width:490px){
 .foot .logo .split,
-#foot .logo .iohk{display: none}
-#foot .logo {text-align: center}
-#foot .footer .links{margin:40px 0 0 0;text-align: center}
+.foot .logo .iohk{display: none}
+.foot .footer .links{margin:40px 0 0 0;text-align: center}
+}
+
+@media (max-width:300px){
+.foot .logo .support{display: none}
 }
 
 
