@@ -50,12 +50,12 @@ Please notice that there's `N` and `M`, because the actual number of inputs and 
 
 So, each input contains:
 
-1. An ID of transaction `TxN`, whose output is used for this input. Transaction ID is a BLAKE2s-256 hash of the transaction, something like `f9bcbe752aee4512457f1fd350200cf870906b7e6e836688c9a3779645c86c01`.
+1. An ID of transaction `TxN`, whose output is used for this input. Transaction ID is a BLAKE2b-256 hash of the transaction, something like `f9bcbe752aee4512457f1fd350200cf870906b7e6e836688c9a3779645c86c01`.
 2. An index of the using output in `TxN`'s outputs.
 
 Each output contains:
 
-1. An address of the node `N` we want to send a value to. An address is a BLAKE2s-224 hash of the hash of the public key of the `N` node, something like `88ca7f79d4edcf911b60eeb96c8e9284d0c07c6e61c59a9e1c17a5e9`. Please read about [Addresses in Cardano SL](/cardano/addresses/) for more info.
+1. An address of the node `N` we want to send a value to. An address is a BLAKE2b-224 hash of the hash of the public key of the `N` node, something like `1fsAhhf4E1LQDB8agSds8teuD4E7U8JsRESngEX52kinBhi`. Please read about [Addresses in Cardano SL](/cardano/addresses/) for more info.
 2. Amount of money we want to send. This value is 64-bit unsigned integer with [hardcoded](https://github.com/input-output-hk/cardano-sl/blob/63adb31e813e21ec9da21cfa69984840308bbfa2/src/Pos/Types/Core.hs#L88) maximum value.
 
 For example:
