@@ -1070,9 +1070,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679110929 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679110929)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679110922 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679110922)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679110918 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679110918)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679110865 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679110865)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679110858 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679110858)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679110854 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679110854)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SoftwareVersion
@@ -1695,10 +1695,10 @@ NodeParams :: !FilePath -> !Bool -> !Timestamp -> !SecretKey -> !UserSecret -> !
 
 -- | Contains basic &amp; networking parameters for running node.
 data BaseParams
-BaseParams :: !(Maybe NetworkAddress) -> ![DHTNode] -> !(Maybe DHTKey) -> !Bool -> !LoggingParams -> !FilePath -> BaseParams
+BaseParams :: !NetworkAddress -> ![DHTNode] -> !(Maybe DHTKey) -> !Bool -> !LoggingParams -> !FilePath -> BaseParams
 
 -- | Port to run on
-[bpIpPort] :: BaseParams -> !(Maybe NetworkAddress)
+[bpIpPort] :: BaseParams -> !NetworkAddress
 
 -- | Peers passed from CLI
 [bpDHTPeers] :: BaseParams -> ![DHTNode]
@@ -2963,11 +2963,11 @@ ToilModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> !exten
 [_tmUndos] :: GenericToilModifier extension -> !UndoMap
 [_tmExtra] :: GenericToilModifier extension -> !extension
 type ToilModifier = GenericToilModifier ()
-tmUtxo :: forall extension_a1S5H. Lens' (GenericToilModifier extension_a1S5H) UtxoModifier
-tmBalances :: forall extension_a1S5H. Lens' (GenericToilModifier extension_a1S5H) BalancesView
-tmMemPool :: forall extension_a1S5H. Lens' (GenericToilModifier extension_a1S5H) MemPool
-tmUndos :: forall extension_a1S5H. Lens' (GenericToilModifier extension_a1S5H) UndoMap
-tmExtra :: forall extension_a1S5H extension_a1S7K. Lens (GenericToilModifier extension_a1S5H) (GenericToilModifier extension_a1S7K) extension_a1S5H extension_a1S7K
+tmUtxo :: forall extension_a1R6c. Lens' (GenericToilModifier extension_a1R6c) UtxoModifier
+tmBalances :: forall extension_a1R6c. Lens' (GenericToilModifier extension_a1R6c) BalancesView
+tmMemPool :: forall extension_a1R6c. Lens' (GenericToilModifier extension_a1R6c) MemPool
+tmUndos :: forall extension_a1R6c. Lens' (GenericToilModifier extension_a1R6c) UndoMap
+tmExtra :: forall extension_a1R6c extension_a1R8f. Lens (GenericToilModifier extension_a1R6c) (GenericToilModifier extension_a1R8f) extension_a1R6c extension_a1R8f
 
 -- | Environment used by Toil.
 data ToilEnv
@@ -3860,10 +3860,10 @@ LoggingParams :: !LoggerName -> !(Maybe FilePath) -> !(Maybe FilePath) -> !(Mayb
 
 -- | Contains basic &amp; networking parameters for running node.
 data BaseParams
-BaseParams :: !(Maybe NetworkAddress) -> ![DHTNode] -> !(Maybe DHTKey) -> !Bool -> !LoggingParams -> !FilePath -> BaseParams
+BaseParams :: !NetworkAddress -> ![DHTNode] -> !(Maybe DHTKey) -> !Bool -> !LoggingParams -> !FilePath -> BaseParams
 
 -- | Port to run on
-[bpIpPort] :: BaseParams -> !(Maybe NetworkAddress)
+[bpIpPort] :: BaseParams -> !NetworkAddress
 
 -- | Peers passed from CLI
 [bpDHTPeers] :: BaseParams -> ![DHTNode]
@@ -3947,7 +3947,7 @@ runServer_ :: (MonadIO m, MonadMockable m, MonadFix m, WithLogger m, MonadDHT m)
 
 -- | RAII for node starter.
 loggerBracket :: LoggingParams -> IO a -> IO a
-createTransport :: (MonadIO m, WithLogger m, Mockable Throw m) => TCPAddr -> m Transport
+createTransport :: (MonadIO m, WithLogger m, Mockable Throw m) => String -> Word16 -> m Transport
 bracketTransport :: BaseParams -> (Transport -> Production a) -> Production a
 bracketResources :: BaseParams -> (RealModeResources -> Production a) -> IO a
 data RealModeResources
