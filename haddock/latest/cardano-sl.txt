@@ -1071,9 +1071,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679110840 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679110840)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679110833 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679110833)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679110829 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679110829)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679110833 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679110833)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679110826 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679110826)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679110822 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679110822)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SoftwareVersion
@@ -1518,7 +1518,6 @@ loadBlundsFromTipWhile :: (SscHelpersClass ssc, MonadDB m) => (Block ssc -> Bool
 --   given.
 loadBlundsFromTipByDepth :: (SscHelpersClass ssc, MonadDB m) => Word -> m (NewestFirst [] (Blund ssc))
 sanityCheckDB :: (MonadMask m, MonadDB m, WithLogger m) => m ()
-instance (Control.Monad.IO.Class.MonadIO m, Control.Monad.Catch.MonadThrow m) => Pos.DB.Class.MonadDBCore (Pos.DB.Holder.DBHolder m)
 
 
 -- | Monadic represantion of something that has <tt>json</tt> journaled log
@@ -1915,16 +1914,12 @@ instance Pos.Slotting.Class.MonadSlots m => Pos.Slotting.Class.MonadSlots (Pos.D
 instance Pos.Slotting.MemState.Class.MonadSlotsData m => Pos.Slotting.MemState.Class.MonadSlotsData (Pos.Communication.PeerState.PeerStateHolder m)
 instance Pos.Slotting.MemState.Class.MonadSlotsData m => Pos.Slotting.MemState.Class.MonadSlotsData (Pos.DHT.Real.Types.KademliaDHT m)
 instance Pos.DB.Class.MonadDB m => Pos.DB.Class.MonadDB (Pos.DHT.Real.Types.KademliaDHT m)
-instance Pos.DB.Class.MonadDBCore m => Pos.DB.Class.MonadDBCore (Pos.DHT.Real.Types.KademliaDHT m)
 instance Pos.DB.Limits.MonadDBLimits m => Pos.DB.Limits.MonadDBLimits (Pos.DHT.Real.Types.KademliaDHT m)
 instance Pos.DB.Class.MonadDB m => Pos.DB.Class.MonadDB (Pos.Communication.PeerState.PeerStateHolder m)
-instance Pos.DB.Class.MonadDBCore m => Pos.DB.Class.MonadDBCore (Pos.Communication.PeerState.PeerStateHolder m)
 instance Pos.DB.Limits.MonadDBLimits m => Pos.DB.Limits.MonadDBLimits (Pos.Communication.PeerState.PeerStateHolder m)
 instance Pos.DB.Class.MonadDB m => Pos.DB.Class.MonadDB (Pos.Slotting.Ntp.NtpSlotting m)
-instance Pos.DB.Class.MonadDBCore m => Pos.DB.Class.MonadDBCore (Pos.Slotting.Ntp.NtpSlotting m)
 instance Pos.DB.Limits.MonadDBLimits m => Pos.DB.Limits.MonadDBLimits (Pos.Slotting.Ntp.NtpSlotting m)
 instance Pos.DB.Class.MonadDB m => Pos.DB.Class.MonadDB (Pos.Slotting.MemState.Holder.SlottingHolder m)
-instance Pos.DB.Class.MonadDBCore m => Pos.DB.Class.MonadDBCore (Pos.Slotting.MemState.Holder.SlottingHolder m)
 instance Pos.DB.Limits.MonadDBLimits m => Pos.DB.Limits.MonadDBLimits (Pos.Slotting.MemState.Holder.SlottingHolder m)
 instance Pos.Delegation.Class.MonadDelegation m => Pos.Delegation.Class.MonadDelegation (Pos.DHT.Real.Types.KademliaDHT m)
 instance Pos.Delegation.Class.MonadDelegation m => Pos.Delegation.Class.MonadDelegation (Pos.Communication.PeerState.PeerStateHolder m)
@@ -2032,7 +2027,7 @@ class Ssc ssc => SscWorkersClass ssc
 
 -- | All workers specific to SSC.
 sscWorkers :: (SscWorkersClass ssc, WorkMode ssc m) => Tagged ssc ([WorkerSpec m], OutSpecs)
-sscLrcConsumers :: (SscWorkersClass ssc, WorkMode ssc m, MonadDBCore m) => Tagged ssc [LrcConsumer m]
+sscLrcConsumers :: (SscWorkersClass ssc, WorkMode ssc m) => Tagged ssc [LrcConsumer m]
 type SscConstraint ssc = (Ssc ssc, SscListenersClass ssc, SscLocalDataClass ssc, SscHelpersClass ssc, SscGStateClass ssc, SscWorkersClass ssc, SecurityWorkersClass ssc)
 type WorkModeSsc ssc = (SscLocalDataClass ssc, SscHelpersClass ssc)
 
@@ -2975,11 +2970,11 @@ ToilModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> !exten
 [_tmUndos] :: GenericToilModifier extension -> !UndoMap
 [_tmExtra] :: GenericToilModifier extension -> !extension
 type ToilModifier = GenericToilModifier ()
-tmUtxo :: forall extension_a1S2A. Lens' (GenericToilModifier extension_a1S2A) UtxoModifier
-tmBalances :: forall extension_a1S2A. Lens' (GenericToilModifier extension_a1S2A) BalancesView
-tmMemPool :: forall extension_a1S2A. Lens' (GenericToilModifier extension_a1S2A) MemPool
-tmUndos :: forall extension_a1S2A. Lens' (GenericToilModifier extension_a1S2A) UndoMap
-tmExtra :: forall extension_a1S2A extension_a1S4D. Lens (GenericToilModifier extension_a1S2A) (GenericToilModifier extension_a1S4D) extension_a1S2A extension_a1S4D
+tmUtxo :: forall extension_a1S20. Lens' (GenericToilModifier extension_a1S20) UtxoModifier
+tmBalances :: forall extension_a1S20. Lens' (GenericToilModifier extension_a1S20) BalancesView
+tmMemPool :: forall extension_a1S20. Lens' (GenericToilModifier extension_a1S20) MemPool
+tmUndos :: forall extension_a1S20. Lens' (GenericToilModifier extension_a1S20) UndoMap
+tmExtra :: forall extension_a1S20 extension_a1S43. Lens (GenericToilModifier extension_a1S20) (GenericToilModifier extension_a1S43) extension_a1S20 extension_a1S43
 
 -- | Environment used by Toil.
 data ToilEnv
@@ -3218,7 +3213,7 @@ processNewSlot :: (USLocalLogicMode m) => SlotId -> m ()
 usPreparePayload :: (USLocalLogicMode m) => SlotId -> m (Maybe UpdatePayload)
 
 -- | Consumer will be called on every Richmen computation.
-usLrcConsumer :: MonadDBCore m => LrcConsumer m
+usLrcConsumer :: MonadDB m => LrcConsumer m
 
 -- | Listeners for requests related to update system
 usListeners :: (UpdateMode m) => m ([ListenerSpec m], OutSpecs)
@@ -3421,7 +3416,7 @@ processConfirmProxySk :: (MonadDelegation m, MonadIO m) => ProxySKLight -> Proxy
 isProxySKConfirmed :: ProxySKLight -> DelegationStateAction Bool
 
 -- | Consumer will be called on every Richmen computation.
-delegationLrcConsumer :: MonadDBCore m => LrcConsumer m
+delegationLrcConsumer :: MonadDB m => LrcConsumer m
 
 -- | Sends epoch psk to neighbours
 sendProxySKLight :: (MinWorkMode m) => ProxySKLight -> Action' m ()
@@ -3617,13 +3612,13 @@ getHeadersFromToIncl :: forall ssc m. (MonadDB m, SscHelpersClass ssc) => Header
 --   to apply as much blocks as it's possible and return header hash of new
 --   tip. It's up to caller to log warning that partial application
 --   happened.
-verifyAndApplyBlocks :: (MonadDBCore m, WorkMode ssc m, SscWorkersClass ssc) => Bool -> OldestFirst NE (Block ssc) -> m (Either Text HeaderHash)
+verifyAndApplyBlocks :: (WorkMode ssc m, SscWorkersClass ssc) => Bool -> OldestFirst NE (Block ssc) -> m (Either Text HeaderHash)
 
 -- | Rollbacks blocks. Head must be the current tip.
 rollbackBlocks :: (WorkMode ssc m) => NewestFirst NE (Blund ssc) -> m (Maybe Text)
 
 -- | Rollbacks some blocks and then applies some blocks.
-applyWithRollback :: (MonadDBCore m, WorkMode ssc m, SscWorkersClass ssc) => NewestFirst NE (Blund ssc) -> OldestFirst NE (Block ssc) -> m (Either Text HeaderHash)
+applyWithRollback :: (WorkMode ssc m, SscWorkersClass ssc) => NewestFirst NE (Blund ssc) -> OldestFirst NE (Block ssc) -> m (Either Text HeaderHash)
 
 -- | Create genesis block if necessary.
 --   
@@ -3676,8 +3671,8 @@ requestHeaders :: forall ssc s m. (SscWorkersClass ssc, WorkMode ssc m) => MsgGe
 --   LcaChild is the first block after LCA we don't know. WantedBlock is
 --   the newest one we want to get.
 mkBlocksRequest :: HeaderHash -> HeaderHash -> MsgGetBlocks
-handleBlocks :: forall ssc m. (MonadDBCore m, SscWorkersClass ssc, WorkMode ssc m) => NodeId -> OldestFirst NE (Block ssc) -> SendActions m -> m ()
-retrievalWorker :: forall ssc m. (MonadDBCore m, SscWorkersClass ssc, WorkMode ssc m) => (WorkerSpec m, OutSpecs)
+handleBlocks :: forall ssc m. (SscWorkersClass ssc, WorkMode ssc m) => NodeId -> OldestFirst NE (Block ssc) -> SendActions m -> m ()
+retrievalWorker :: forall ssc m. (SscWorkersClass ssc, WorkMode ssc m) => (WorkerSpec m, OutSpecs)
 
 -- | <tt>GetHeaders</tt> message. Behaviour of the response depends on
 --   particular combination of <a>mghFrom</a> and <a>mghTo</a>.
@@ -3790,7 +3785,7 @@ Invalid :: RichmenStake -> InvalidRichmenStake thd
 newtype ValidRichmenStake thd
 Valid :: RichmenStake -> ValidRichmenStake thd
 [getValid] :: ValidRichmenStake thd -> RichmenStake
-allLrcConsumers :: (SscWorkersClass ssc, WorkMode ssc m, MonadDBCore m) => [LrcConsumer m]
+allLrcConsumers :: (SscWorkersClass ssc, WorkMode ssc m) => [LrcConsumer m]
 getLeaders :: MonadDB m => EpochIndex -> m (Maybe SlotLeaders)
 putLeaders :: MonadDB m => EpochIndex -> SlotLeaders -> m ()
 prepareLrcLeaders :: forall ssc m. (WithNodeContext ssc m, MonadDB m) => m ()
@@ -3823,14 +3818,14 @@ findDelegatedRichmen :: (MonadDB m, MonadIterator (StakeholderId, Coin) m) => Co
 data RichmenType
 RTUsual :: RichmenType
 RTDelegation :: (HashMap StakeholderId [StakeholderId]) -> RichmenType
-lrcOnNewSlotWorker :: (SscWorkersClass ssc, WorkMode ssc m, MonadDBCore m) => (WorkerSpec m, OutSpecs)
+lrcOnNewSlotWorker :: (SscWorkersClass ssc, WorkMode ssc m) => (WorkerSpec m, OutSpecs)
 
 -- | Run leaders and richmen computation for given epoch. If stable block
 --   for this epoch is not known, LrcError will be thrown.
-lrcSingleShot :: (SscWorkersClass ssc, WorkMode ssc m, MonadDBCore m) => EpochIndex -> m ()
+lrcSingleShot :: (SscWorkersClass ssc, WorkMode ssc m) => EpochIndex -> m ()
 
 -- | Same, but doesn't take lock on the semaphore.
-lrcSingleShotNoLock :: (SscWorkersClass ssc, WorkMode ssc m, MonadDBCore m) => EpochIndex -> m ()
+lrcSingleShotNoLock :: (SscWorkersClass ssc, WorkMode ssc m) => EpochIndex -> m ()
 
 module Pos.Security.Workers
 class Ssc ssc => SecurityWorkersClass ssc
@@ -3843,8 +3838,8 @@ instance Pos.Security.Class.SecurityWorkersClass Pos.Ssc.NistBeacon.SscNistBeaco
 module Pos.Worker
 
 -- | All, but in reality not all, workers used by full node.
-allWorkers :: (SscWorkersClass ssc, SecurityWorkersClass ssc, WorkMode ssc m, MonadDBCore m) => ([WorkerSpec m], OutSpecs)
-allWorkersCount :: forall ssc m. (MonadDBCore m, SscWorkersClass ssc, SecurityWorkersClass ssc, WorkMode ssc m) => Int
+allWorkers :: (SscWorkersClass ssc, SecurityWorkersClass ssc, WorkMode ssc m) => ([WorkerSpec m], OutSpecs)
+allWorkersCount :: forall ssc m. (SscWorkersClass ssc, SecurityWorkersClass ssc, WorkMode ssc m) => Int
 
 module Pos.Launcher
 
@@ -3968,12 +3963,12 @@ RealModeResources :: Transport -> KademliaDHTInstance -> RealModeResources
 [rmDHT] :: RealModeResources -> KademliaDHTInstance
 
 -- | Run full node in any WorkMode.
-runNode :: (SscConstraint ssc, WorkMode ssc m, MonadDBCore m) => ([WorkerSpec m], OutSpecs) -> (WorkerSpec m, OutSpecs)
+runNode :: (SscConstraint ssc, WorkMode ssc m) => ([WorkerSpec m], OutSpecs) -> (WorkerSpec m, OutSpecs)
 initSemaphore :: (WorkMode ssc m) => m ()
 initLrc :: WorkMode ssc m => m ()
 
 -- | Run full node in any WorkMode.
-runNode' :: forall ssc m. (SscConstraint ssc, WorkMode ssc m, MonadDBCore m) => [WorkerSpec m] -> WorkerSpec m
+runNode' :: forall ssc m. (SscConstraint ssc, WorkMode ssc m) => [WorkerSpec m] -> WorkerSpec m
 
 module Pos.Wallet
 data WalletParams
