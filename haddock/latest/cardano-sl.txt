@@ -940,7 +940,7 @@ readLoggerConfig :: MonadIO m => Maybe FilePath -> m LoggerConfig
 -- | Decides which secret-sharing algorithm to use.
 sscAlgoParser :: Parser SscAlgo
 data CommonArgs
-CommonArgs :: !Bool -> ![DHTNode] -> !(Maybe FilePath) -> !(Maybe FilePath) -> !(Maybe FilePath) -> !SscAlgo -> !Bool -> ![Text] -> ![Text] -> !(Maybe (Int, Int)) -> !(Maybe (Int, Int)) -> !Bool -> CommonArgs
+CommonArgs :: !Bool -> ![DHTNode] -> !(Maybe FilePath) -> !(Maybe FilePath) -> !(Maybe FilePath) -> !SscAlgo -> !Bool -> ![Text] -> ![Text] -> !(Maybe (Int, Int)) -> !(Maybe (Int, Int)) -> !(Maybe (Int, Int, Integer, Double)) -> !Bool -> CommonArgs
 [dhtExplicitInitial] :: CommonArgs -> !Bool
 [dhtPeers] :: CommonArgs -> ![DHTNode]
 [dhtPeersFile] :: CommonArgs -> !(Maybe FilePath)
@@ -952,6 +952,7 @@ CommonArgs :: !Bool -> ![DHTNode] -> !(Maybe FilePath) -> !(Maybe FilePath) -> !
 [updateServers] :: CommonArgs -> ![Text]
 [flatDistr] :: CommonArgs -> !(Maybe (Int, Int))
 [bitcoinDistr] :: CommonArgs -> !(Maybe (Int, Int))
+[richPoorDistr] :: CommonArgs -> !(Maybe (Int, Int, Integer, Double))
 [expDistr] :: CommonArgs -> !Bool
 commonArgsParser :: String -> Parser CommonArgs
 optionalJSONPath :: Parser (Maybe FilePath)
@@ -1347,7 +1348,7 @@ module Pos.Genesis
 data StakeDistribution
 FlatStakes :: !Word -> !Coin -> StakeDistribution
 BitcoinStakes :: !Word -> !Coin -> StakeDistribution
-TestnetStakes :: !Word -> !Coin -> !Word -> !Coin -> StakeDistribution
+RichPoorStakes :: !Word -> !Coin -> !Word -> !Coin -> StakeDistribution
 [sdRichmen] :: StakeDistribution -> !Word
 [sdRichStake] :: StakeDistribution -> !Coin
 [sdPoor] :: StakeDistribution -> !Word
@@ -3847,7 +3848,7 @@ runNodeProduction :: forall ssc. SscConstraint ssc => RealModeResources -> ([Wor
 
 -- | Run full node in benchmarking node
 runNodeStats :: forall ssc. SscConstraint ssc => RealModeResources -> ([WorkerSpec (StatsMode ssc)], OutSpecs) -> NodeParams -> SscParams ssc -> Production ()
-stakesDistr :: DistrOption -> DistrOption -> Bool -> StakeDistribution
+stakesDistr :: DistrOption -> DistrOption -> Maybe (Int, Int, Integer, Double) -> Bool -> StakeDistribution
 
 -- | Contains all parameters required for hierarchical logger
 --   initialization.
