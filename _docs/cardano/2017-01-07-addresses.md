@@ -53,9 +53,9 @@ and `ScriptAddress`. Here are the `type`s for each:
 | [1](https://github.com/input-output-hk/cardano-sl/blob/2f3c7df7d324bc056fefe0fce856e39a692f6d9f/src/Pos/Binary/Address.hs#L22)       | `ScriptAddress` |
 | [arbitrary number](https://github.com/input-output-hk/cardano-sl/blob/2f3c7df7d324bc056fefe0fce856e39a692f6d9f/src/Pos/Binary/Address.hs#L26) | `UnknownAddressType` |
 
-For hashing, we use a combination of `SHA3-256` and `BLAKE2s-224`, i.e.:
+For hashing, we use a combination of `SHA3-256` and `BLAKE2b-224`, i.e.:
 
-	address_hash(x) = BLAKE2s_224(SHA3_256(x))
+	address_hash(x) = BLAKE2b_224(SHA3_256(x))
 
 See more on [hash functions](https://en.wikipedia.org/wiki/Hash_function).
 See also sections on
