@@ -940,7 +940,7 @@ readLoggerConfig :: MonadIO m => Maybe FilePath -> m LoggerConfig
 -- | Decides which secret-sharing algorithm to use.
 sscAlgoParser :: Parser SscAlgo
 data CommonArgs
-CommonArgs :: !Bool -> ![DHTNode] -> !(Maybe FilePath) -> !(Maybe FilePath) -> !(Maybe FilePath) -> !SscAlgo -> !Bool -> ![Text] -> ![Text] -> !(Maybe (Int, Int)) -> !(Maybe (Int, Int)) -> !Bool -> CommonArgs
+CommonArgs :: !Bool -> ![DHTNode] -> !(Maybe FilePath) -> !(Maybe FilePath) -> !(Maybe FilePath) -> !SscAlgo -> !Bool -> ![Text] -> ![Text] -> !(Maybe (Int, Int)) -> !(Maybe (Int, Int)) -> !(Maybe (Int, Int, Integer, Double)) -> !Bool -> CommonArgs
 [dhtExplicitInitial] :: CommonArgs -> !Bool
 [dhtPeers] :: CommonArgs -> ![DHTNode]
 [dhtPeersFile] :: CommonArgs -> !(Maybe FilePath)
@@ -952,6 +952,7 @@ CommonArgs :: !Bool -> ![DHTNode] -> !(Maybe FilePath) -> !(Maybe FilePath) -> !
 [updateServers] :: CommonArgs -> ![Text]
 [flatDistr] :: CommonArgs -> !(Maybe (Int, Int))
 [bitcoinDistr] :: CommonArgs -> !(Maybe (Int, Int))
+[richPoorDistr] :: CommonArgs -> !(Maybe (Int, Int, Integer, Double))
 [expDistr] :: CommonArgs -> !Bool
 commonArgsParser :: String -> Parser CommonArgs
 optionalJSONPath :: Parser (Maybe FilePath)
@@ -1070,9 +1071,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679110865 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679110865)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679110858 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679110858)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679110854 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679110854)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679110825 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679110825)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679110818 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679110818)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679110814 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679110814)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SoftwareVersion
@@ -1341,7 +1342,7 @@ module Pos.Genesis
 data StakeDistribution
 FlatStakes :: !Word -> !Coin -> StakeDistribution
 BitcoinStakes :: !Word -> !Coin -> StakeDistribution
-TestnetStakes :: !Word -> !Coin -> !Word -> !Coin -> StakeDistribution
+RichPoorStakes :: !Word -> !Coin -> !Word -> !Coin -> StakeDistribution
 [sdRichmen] :: StakeDistribution -> !Word
 [sdRichStake] :: StakeDistribution -> !Coin
 [sdPoor] :: StakeDistribution -> !Word
@@ -2963,11 +2964,11 @@ ToilModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> !exten
 [_tmUndos] :: GenericToilModifier extension -> !UndoMap
 [_tmExtra] :: GenericToilModifier extension -> !extension
 type ToilModifier = GenericToilModifier ()
-tmUtxo :: forall extension_a1R6c. Lens' (GenericToilModifier extension_a1R6c) UtxoModifier
-tmBalances :: forall extension_a1R6c. Lens' (GenericToilModifier extension_a1R6c) BalancesView
-tmMemPool :: forall extension_a1R6c. Lens' (GenericToilModifier extension_a1R6c) MemPool
-tmUndos :: forall extension_a1R6c. Lens' (GenericToilModifier extension_a1R6c) UndoMap
-tmExtra :: forall extension_a1R6c extension_a1R8f. Lens (GenericToilModifier extension_a1R6c) (GenericToilModifier extension_a1R8f) extension_a1R6c extension_a1R8f
+tmUtxo :: forall extension_a1S1S. Lens' (GenericToilModifier extension_a1S1S) UtxoModifier
+tmBalances :: forall extension_a1S1S. Lens' (GenericToilModifier extension_a1S1S) BalancesView
+tmMemPool :: forall extension_a1S1S. Lens' (GenericToilModifier extension_a1S1S) MemPool
+tmUndos :: forall extension_a1S1S. Lens' (GenericToilModifier extension_a1S1S) UndoMap
+tmExtra :: forall extension_a1S1S extension_a1S3V. Lens (GenericToilModifier extension_a1S1S) (GenericToilModifier extension_a1S3V) extension_a1S1S extension_a1S3V
 
 -- | Environment used by Toil.
 data ToilEnv
@@ -3841,7 +3842,7 @@ runNodeProduction :: forall ssc. SscConstraint ssc => RealModeResources -> ([Wor
 
 -- | Run full node in benchmarking node
 runNodeStats :: forall ssc. SscConstraint ssc => RealModeResources -> ([WorkerSpec (StatsMode ssc)], OutSpecs) -> NodeParams -> SscParams ssc -> Production ()
-stakesDistr :: DistrOption -> DistrOption -> Bool -> StakeDistribution
+stakesDistr :: DistrOption -> DistrOption -> Maybe (Int, Int, Integer, Double) -> Bool -> StakeDistribution
 
 -- | Contains all parameters required for hierarchical logger
 --   initialization.
