@@ -74,9 +74,9 @@ with the following rule, where `+` is concatenation:
 
 Here is an example of a valid address:
 
-	1EWYSJnvgnSUmp8Gi4mADvU2zkJgVAA7McgFRXiqwDBs8
+	1fsAhhf4E1LQDB8agSds8teuD4E7U8JsRESngEX52kinBhi
 
-It can be decoded into the following byte string (with spaces separating
+It can be decoded into the byte string like this one (with spaces separating
 type, hash and checksum):
 
 	00 C8B9519459F5D4E42B002EF06AE94DC9C0A5B87E52D0D0375FD83ECE C52CEB43
