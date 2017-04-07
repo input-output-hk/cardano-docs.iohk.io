@@ -230,6 +230,17 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                     </tr>
                     <tr>
                             <td class="swagger--summary-path" rowspan="1">
+                                <a href="#path--api-reporting-electroncrash">/api/reporting/electroncrash</a>
+                            </td>
+                        <td>
+                            <a href="#operation--api-reporting-electroncrash-post">POST</a>
+                        </td>
+                        <td>
+                            
+                        </td>
+                    </tr>
+                    <tr>
+                            <td class="swagger--summary-path" rowspan="1">
                                 <a href="#path--api-reporting-initialized">/api/reporting/initialized</a>
                             </td>
                         <td>
@@ -500,7 +511,7 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                         </section>
                     
                         <section class="sw-responses">
-                                <p><span class="label label-default">application/json</span> 
+                                <p><span class="label label-default">application/json;charset=utf-8</span> 
                     </p>
                     
                             <dl>
@@ -558,7 +569,7 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                     
                     
                         <section class="sw-responses">
-                                <p><span class="label label-default">application/json</span> 
+                                <p><span class="label label-default">application/json;charset=utf-8</span> 
                     </p>
                     
                             <dl>
@@ -597,7 +608,7 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                         
                             <section class="sw-request-body">
                                 
-                                    <p><span class="label label-default">application/json</span> 
+                                    <p><span class="label label-default">application/json;charset=utf-8</span> 
                         </p>
                                         <div class="row">
                                             <div class="col-md-6">
@@ -613,7 +624,7 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                             </section>        
                     
                         <section class="sw-responses">
-                                <p><span class="label label-default">application/json</span> 
+                                <p><span class="label label-default">application/json;charset=utf-8</span> 
                     </p>
                     
                             <dl>
@@ -671,7 +682,7 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                         
                             <section class="sw-request-body">
                                 
-                                    <p><span class="label label-default">application/json</span> 
+                                    <p><span class="label label-default">application/json;charset=utf-8</span> 
                         </p>
                                         <div class="row">
                                             <div class="col-md-6">
@@ -687,7 +698,7 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                             </section>        
                     
                         <section class="sw-responses">
-                                <p><span class="label label-default">application/json</span> 
+                                <p><span class="label label-default">application/json;charset=utf-8</span> 
                     </p>
                     
                             <dl>
@@ -732,6 +743,47 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                         </section>
                 </div>
             </div>    
+        <span id="path--api-reporting-electroncrash"></span>
+            <div id="operation--api-reporting-electroncrash-post" class="swagger--panel-operation-post panel">
+                <div class="panel-heading">
+                    <div class="operation-summary"></div>
+                    <h3 class="panel-title"><span class="operation-name">POST</span> <strong>/api/reporting/electroncrash</strong></h3>
+                </div>
+                <div class="panel-body">
+                    <section class="sw-operation-description">
+                        
+                    </section>
+                    
+                    
+                        <section class="sw-responses">
+                                <p><span class="label label-default">application/json;charset=utf-8</span> 
+                    </p>
+                    
+                            <dl>
+                                    <dt class="sw-response-200">
+                                        200 OK
+                                    
+                                    </dt>
+                                    <dd class="sw-response-200">
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                
+                                                <div class="col-md-6 sw-response-model">
+                                                <div  class="panel panel-definition">
+                                                    <div class="panel-body">
+                                                                <a class="json-schema-ref" href="#/definitions/Either WalletError ()">Either WalletError ()</a>
+                                                    </div>
+                                                </div></div>
+                                            
+                                            </div>                </dd>
+                            </dl>
+                        </section>
+                </div>
+            </div>    
         <span id="path--api-reporting-initialized"></span>
             <div id="operation--api-reporting-initialized-post" class="swagger--panel-operation-post panel">
                 <div class="panel-heading">
@@ -745,7 +797,7 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                         
                             <section class="sw-request-body">
                                 
-                                    <p><span class="label label-default">application/json</span> 
+                                    <p><span class="label label-default">application/json;charset=utf-8</span> 
                         </p>
                                         <div class="row">
                                             <div class="col-md-6">
@@ -761,7 +813,7 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                             </section>        
                     
                         <section class="sw-responses">
-                                <p><span class="label label-default">application/json</span> 
+                                <p><span class="label label-default">application/json;charset=utf-8</span> 
                     </p>
                     
                             <dl>
@@ -819,7 +871,7 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                     
                     
                         <section class="sw-responses">
-                                <p><span class="label label-default">application/json</span> 
+                                <p><span class="label label-default">application/json;charset=utf-8</span> 
                     </p>
                     
                             <dl>
@@ -860,7 +912,7 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                     
                     
                         <section class="sw-responses">
-                                <p><span class="label label-default">application/json</span> 
+                                <p><span class="label label-default">application/json;charset=utf-8</span> 
                     </p>
                     
                             <dl>
@@ -901,7 +953,7 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                     
                     
                         <section class="sw-responses">
-                                <p><span class="label label-default">application/json</span> 
+                                <p><span class="label label-default">application/json;charset=utf-8</span> 
                     </p>
                     
                             <dl>
@@ -942,7 +994,7 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                     
                     
                         <section class="sw-responses">
-                                <p><span class="label label-default">application/json</span> 
+                                <p><span class="label label-default">application/json;charset=utf-8</span> 
                     </p>
                     
                             <dl>
@@ -1038,7 +1090,7 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                         </section>
                     
                         <section class="sw-responses">
-                                <p><span class="label label-default">application/json</span> 
+                                <p><span class="label label-default">application/json;charset=utf-8</span> 
                     </p>
                     
                             <dl>
@@ -1182,7 +1234,7 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                         </section>
                     
                         <section class="sw-responses">
-                                <p><span class="label label-default">application/json</span> 
+                                <p><span class="label label-default">application/json;charset=utf-8</span> 
                     </p>
                     
                             <dl>
@@ -1257,7 +1309,7 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                         
                             <section class="sw-request-body">
                                 
-                                    <p><span class="label label-default">application/json</span> 
+                                    <p><span class="label label-default">application/json;charset=utf-8</span> 
                         </p>
                                         <div class="row">
                                             <div class="col-md-6">
@@ -1316,7 +1368,7 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                         </section>
                     
                         <section class="sw-responses">
-                                <p><span class="label label-default">application/json</span> 
+                                <p><span class="label label-default">application/json;charset=utf-8</span> 
                     </p>
                     
                             <dl>
@@ -1462,7 +1514,7 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                         </section>
                     
                         <section class="sw-responses">
-                                <p><span class="label label-default">application/json</span> 
+                                <p><span class="label label-default">application/json;charset=utf-8</span> 
                     </p>
                     
                             <dl>
@@ -1641,7 +1693,7 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                         </section>
                     
                         <section class="sw-responses">
-                                <p><span class="label label-default">application/json</span> 
+                                <p><span class="label label-default">application/json;charset=utf-8</span> 
                     </p>
                     
                             <dl>
@@ -1699,7 +1751,7 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                     
                     
                         <section class="sw-responses">
-                                <p><span class="label label-default">application/json</span> 
+                                <p><span class="label label-default">application/json;charset=utf-8</span> 
                     </p>
                     
                             <dl>
@@ -1738,7 +1790,7 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                     
                     
                         <section class="sw-responses">
-                                <p><span class="label label-default">application/json</span> 
+                                <p><span class="label label-default">application/json;charset=utf-8</span> 
                     </p>
                     
                             <dl>
@@ -1779,7 +1831,7 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                     
                     
                         <section class="sw-responses">
-                                <p><span class="label label-default">application/json</span> 
+                                <p><span class="label label-default">application/json;charset=utf-8</span> 
                     </p>
                     
                             <dl>
@@ -1820,7 +1872,7 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                         
                             <section class="sw-request-body">
                                 
-                                    <p><span class="label label-default">application/json</span> 
+                                    <p><span class="label label-default">application/json;charset=utf-8</span> 
                         </p>
                                         <div class="row">
                                             <div class="col-md-6">
@@ -1836,7 +1888,7 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                             </section>        
                     
                         <section class="sw-responses">
-                                <p><span class="label label-default">application/json</span> 
+                                <p><span class="label label-default">application/json;charset=utf-8</span> 
                     </p>
                     
                             <dl>
@@ -1894,7 +1946,7 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                         
                             <section class="sw-request-body">
                                 
-                                    <p><span class="label label-default">application/json</span> 
+                                    <p><span class="label label-default">application/json;charset=utf-8</span> 
                         </p>
                                         <div class="row">
                                             <div class="col-md-6">
@@ -1939,7 +1991,7 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                         </section>
                     
                         <section class="sw-responses">
-                                <p><span class="label label-default">application/json</span> 
+                                <p><span class="label label-default">application/json;charset=utf-8</span> 
                     </p>
                     
                             <dl>
@@ -2014,7 +2066,7 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                         
                             <section class="sw-request-body">
                                 
-                                    <p><span class="label label-default">application/json</span> 
+                                    <p><span class="label label-default">application/json;charset=utf-8</span> 
                         </p>
                                         <div class="row">
                                             <div class="col-md-6">
@@ -2059,7 +2111,7 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                         </section>
                     
                         <section class="sw-responses">
-                                <p><span class="label label-default">application/json</span> 
+                                <p><span class="label label-default">application/json;charset=utf-8</span> 
                     </p>
                     
                             <dl>
@@ -2163,7 +2215,7 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                         </section>
                     
                         <section class="sw-responses">
-                                <p><span class="label label-default">application/json</span> 
+                                <p><span class="label label-default">application/json;charset=utf-8</span> 
                     </p>
                     
                             <dl>
@@ -2248,7 +2300,7 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                         </section>
                     
                         <section class="sw-responses">
-                                <p><span class="label label-default">application/json</span> 
+                                <p><span class="label label-default">application/json;charset=utf-8</span> 
                     </p>
                     
                             <dl>
@@ -2304,7 +2356,7 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                         
                             <section class="sw-request-body">
                                 
-                                    <p><span class="label label-default">application/json</span> 
+                                    <p><span class="label label-default">application/json;charset=utf-8</span> 
                         </p>
                                         <div class="row">
                                             <div class="col-md-6">
@@ -2349,7 +2401,7 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                         </section>
                     
                         <section class="sw-responses">
-                                <p><span class="label label-default">application/json</span> 
+                                <p><span class="label label-default">application/json;charset=utf-8</span> 
                     </p>
                     
                             <dl>
