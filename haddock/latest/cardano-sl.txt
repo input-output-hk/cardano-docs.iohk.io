@@ -1071,9 +1071,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679110832 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679110832)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679110825 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679110825)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679110821 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679110821)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679110833 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679110833)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679110826 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679110826)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679110822 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679110822)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SoftwareVersion
@@ -1482,13 +1482,11 @@ getTxOut :: MonadDB m => TxIn -> m (Maybe TxOutAux)
 data UtxoOp
 DelTxIn :: !TxIn -> UtxoOp
 AddTxOut :: !TxIn -> !TxOutAux -> UtxoOp
-AddGenTxOut :: !TxIn -> !TxOutAux -> UtxoOp
 prepareGStateUtxo :: forall m. MonadDB m => Utxo -> m ()
 data UtxoIter
 runUtxoIterator :: forall i m a. (MonadDB m, DBIteratorClass i, IterKey i ~ TxIn, IterValue i ~ TxOutAux) => DBnIterator i a -> m a
 runUtxoMapIterator :: forall i v m a. (MonadDB m, DBIteratorClass i, IterKey i ~ TxIn, IterValue i ~ TxOutAux) => DBnMapIterator i v a -> (IterType i -> v) -> m a
 getFilteredUtxo :: MonadDB m => Address -> m Utxo
-getFilteredGenUtxo :: MonadDB m => Address -> m Utxo
 sanityCheckUtxo :: (MonadDB m, WithLogger m) => Coin -> m ()
 
 
@@ -2970,11 +2968,11 @@ ToilModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> !exten
 [_tmUndos] :: GenericToilModifier extension -> !UndoMap
 [_tmExtra] :: GenericToilModifier extension -> !extension
 type ToilModifier = GenericToilModifier ()
-tmUtxo :: forall extension_a1S21. Lens' (GenericToilModifier extension_a1S21) UtxoModifier
-tmBalances :: forall extension_a1S21. Lens' (GenericToilModifier extension_a1S21) BalancesView
-tmMemPool :: forall extension_a1S21. Lens' (GenericToilModifier extension_a1S21) MemPool
-tmUndos :: forall extension_a1S21. Lens' (GenericToilModifier extension_a1S21) UndoMap
-tmExtra :: forall extension_a1S21 extension_a1S44. Lens (GenericToilModifier extension_a1S21) (GenericToilModifier extension_a1S44) extension_a1S21 extension_a1S44
+tmUtxo :: forall extension_a1S20. Lens' (GenericToilModifier extension_a1S20) UtxoModifier
+tmBalances :: forall extension_a1S20. Lens' (GenericToilModifier extension_a1S20) BalancesView
+tmMemPool :: forall extension_a1S20. Lens' (GenericToilModifier extension_a1S20) MemPool
+tmUndos :: forall extension_a1S20. Lens' (GenericToilModifier extension_a1S20) UndoMap
+tmExtra :: forall extension_a1S20 extension_a1S43. Lens (GenericToilModifier extension_a1S20) (GenericToilModifier extension_a1S43) extension_a1S20 extension_a1S43
 
 -- | Environment used by Toil.
 data ToilEnv
@@ -4033,7 +4031,7 @@ module Pos.Wallet.Web
 -- | Servant API which provides access to wallet. TODO: Should be composed
 --   depending on the resource - wallets, txs, ...
 --   <a>http://haskell-servant.github.io/tutorial/0.4/server.html#nested-apis</a>
-type WalletApi = ("api" :> ("test" :> ("reset" :> Post '[JSON] (Either WalletError ())))) :<|> (("api" :> ("walletSets" :> (Capture "walletSetId" CWalletSetAddress :> Get '[JSON] (Either WalletError CWalletSet)))) :<|> (("api" :> ("walletSets" :> Get '[JSON] (Either WalletError [CWalletSet]))) :<|> (("api" :> ("walletSets" :> ("new" :> (Capture "passphrase" CPassPhrase :> (ReqBody '[JSON] CWalletSetInit :> Post '[JSON] (Either WalletError CWalletSet)))))) :<|> (("api" :> ("walletSets" :> ("restore" :> (Capture "passphrase" CPassPhrase :> (ReqBody '[JSON] CWalletSetInit :> Post '[JSON] (Either WalletError CWalletSet)))))) :<|> (("api" :> ("walletSets" :> ("keys" :> (ReqBody '[JSON] Text :> Post '[JSON] (Either WalletError CWalletSet))))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CWalletAddress :> Get '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("wallets" :> ("all" :> (QueryParam "walletSetId" CWalletSetAddress :> Get '[JSON] (Either WalletError [CWallet]))))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CWalletAddress :> (ReqBody '[JSON] CWalletMeta :> Put '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("wallets" :> (Capture "passphrase" CPassPhrase :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CWalletAddress :> Delete '[JSON] (Either WalletError ())))) :<|> (("api" :> ("account" :> (Capture "passphrase" CPassPhrase :> (ReqBody '[JSON] CWalletAddress :> Post '[JSON] (Either WalletError CAccount))))) :<|> (("api" :> ("addresses" :> (Capture "address" Text :> ("currencies" :> (Capture "currency" CCurrency :> Get '[JSON] (Either WalletError Bool)))))) :<|> (("api" :> ("profile" :> Get '[JSON] (Either WalletError CProfile))) :<|> (("api" :> ("profile" :> (ReqBody '[JSON] CProfile :> Post '[JSON] (Either WalletError CProfile)))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "passphrase" CPassPhrase :> (Capture "from" CAccountAddress :> (Capture "to" CAccountAddress :> (Capture "amount" Coin :> Post '[JSON] (Either WalletError CTx)))))))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "passphrase" CPassPhrase :> (Capture "from" CAccountAddress :> (Capture "to" CAccountAddress :> (Capture "amount" Coin :> (Capture "currency" CCurrency :> (Capture "title" Text :> (Capture "description" Text :> Post '[JSON] (Either WalletError CTx))))))))))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "address" CAccountAddress :> (Capture "transaction" CTxId :> (ReqBody '[JSON] CTxMeta :> Post '[JSON] (Either WalletError ()))))))) :<|> (("api" :> ("txs" :> ("histories" :> (Capture "walletId" CWalletAddress :> (QueryParam "skip" Word :> (QueryParam "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word)))))))) :<|> (("api" :> ("txs" :> ("histories" :> (Capture "walletId" CWalletAddress :> (Capture "search" Text :> (QueryParam "account" CAccountAddress :> (QueryParam "skip" Word :> (QueryParam "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word)))))))))) :<|> (("api" :> ("update" :> Get '[JSON] (Either WalletError CUpdateInfo))) :<|> (("api" :> ("update" :> Post '[JSON] (Either WalletError ()))) :<|> (("api" :> ("redemptions" :> ("ada" :> (Capture "passphrase" CPassPhrase :> (ReqBody '[JSON] CWalletRedeem :> Post '[JSON] (Either WalletError CTx)))))) :<|> (("api" :> ("reporting" :> ("initialized" :> (ReqBody '[JSON] CInitialized :> Post '[JSON] (Either WalletError ()))))) :<|> (("api" :> ("settings" :> ("slots" :> ("duration" :> Get '[JSON] (Either WalletError Word))))) :<|> (("api" :> ("settings" :> ("version" :> Get '[JSON] (Either WalletError SoftwareVersion)))) :<|> ("api" :> ("settings" :> ("sync" :> ("progress" :> Get '[JSON] (Either WalletError SyncProgress))))))))))))))))))))))))))))))
+type WalletApi = ("api" :> ("test" :> ("reset" :> Post '[JSON] (Either WalletError ())))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> Get '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("wallets" :> Get '[JSON] (Either WalletError [CWallet]))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> (ReqBody '[JSON] CWalletMeta :> Put '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> Delete '[JSON] (Either WalletError ())))) :<|> (("api" :> ("wallets" :> ("keys" :> (ReqBody '[JSON] Text :> Post '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("wallets" :> ("restore" :> (Capture "passphrase" CPassPhrase :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet)))))) :<|> (("api" :> ("wallets" :> (Capture "passphrase" CPassPhrase :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("addresses" :> (Capture "address" Text :> ("currencies" :> (Capture "currency" CCurrency :> Get '[JSON] (Either WalletError Bool)))))) :<|> (("api" :> ("profile" :> Get '[JSON] (Either WalletError CProfile))) :<|> (("api" :> ("profile" :> (ReqBody '[JSON] CProfile :> Post '[JSON] (Either WalletError CProfile)))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "passphrase" CPassPhrase :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> Post '[JSON] (Either WalletError CTx)))))))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "passphrase" CPassPhrase :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> (Capture "currency" CCurrency :> (Capture "title" Text :> (Capture "description" Text :> Post '[JSON] (Either WalletError CTx))))))))))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "address" CAddress :> (Capture "transaction" CTxId :> (ReqBody '[JSON] CTxMeta :> Post '[JSON] (Either WalletError ()))))))) :<|> (("api" :> ("txs" :> ("histories" :> (Capture "address" CAddress :> (QueryParam "skip" Word :> (QueryParam "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word)))))))) :<|> (("api" :> ("txs" :> ("histories" :> (Capture "address" CAddress :> (Capture "search" Text :> (QueryParam "skip" Word :> (QueryParam "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word))))))))) :<|> (("api" :> ("update" :> Get '[JSON] (Either WalletError CUpdateInfo))) :<|> (("api" :> ("update" :> Post '[JSON] (Either WalletError ()))) :<|> (("api" :> ("redemptions" :> ("ada" :> (ReqBody '[JSON] CWalletRedeem :> Post '[JSON] (Either WalletError CTx))))) :<|> (("api" :> ("reporting" :> ("initialized" :> (ReqBody '[JSON] CInitialized :> Post '[JSON] (Either WalletError ()))))) :<|> (("api" :> ("settings" :> ("slots" :> ("duration" :> Get '[JSON] (Either WalletError Word))))) :<|> (("api" :> ("settings" :> ("version" :> Get '[JSON] (Either WalletError SoftwareVersion)))) :<|> ("api" :> ("settings" :> ("sync" :> ("progress" :> Get '[JSON] (Either WalletError SyncProgress))))))))))))))))))))))))))
 
 -- | Helper Proxy.
 walletApi :: Proxy WalletApi
@@ -4043,7 +4041,7 @@ SyncProgress :: ChainDifficulty -> Maybe ChainDifficulty -> Word -> SyncProgress
 [_spNetworkCD] :: SyncProgress -> Maybe ChainDifficulty
 [_spPeers] :: SyncProgress -> Word
 
--- | Client address TODO: [CSL-931] introduce phantom type for type safety?
+-- | Client address
 newtype CAddress
 CAddress :: CHash -> CAddress
 
@@ -4079,12 +4077,11 @@ type CPwHash = Text
 --   by client. It includes meta data which are not part of Cardano, too
 --   (Flow type: transactionType)
 data CTx
-CTx :: CTxId -> Coin -> Word -> CTType -> CAccountAddress -> CTx
+CTx :: CTxId -> Coin -> Word -> CTType -> CTx
 [ctId] :: CTx -> CTxId
 [ctAmount] :: CTx -> Coin
 [ctConfirmations] :: CTx -> Word
 [ctType] :: CTx -> CTType
-[ctAccAddr] :: CTx -> CAccountAddress
 
 -- | Client transaction id
 data CTxId
@@ -4120,49 +4117,12 @@ CInitialized :: Word -> Word -> CInitialized
 --   established.
 [cPreInit] :: CInitialized -> Word
 
--- | Wallet set identifier
-newtype CWalletSetAddress
-CWalletSetAddress :: CAddress -> CWalletSetAddress
-[cwsaAddress] :: CWalletSetAddress -> CAddress
-
--- | Wallet identifier
-data CWalletAddress
-CWalletAddress :: CWalletSetAddress -> Word32 -> CWalletAddress
-
--- | Address of wallet set this wallet belongs to
-[cwaWSAddress] :: CWalletAddress -> CWalletSetAddress
-
--- | Derivation index of this wallet key
-[cwaIndex] :: CWalletAddress -> Word32
-
--- | Account identifier
-data CAccountAddress
-CAccountAddress :: CWalletSetAddress -> Word32 -> Word32 -> CAddress -> CAccountAddress
-
--- | Address of wallet set this account belongs to
-[caaWSAddress] :: CAccountAddress -> CWalletSetAddress
-
--- | First index in derivation path of this account key
-[caaWalletIndex] :: CAccountAddress -> Word32
-
--- | Second index in derivation path of this account key
-[caaAccountIndex] :: CAccountAddress -> Word32
-
--- | Actual adress of this account
-[caaAddress] :: CAccountAddress -> CAddress
-
--- | Single account in a wallet
-data CAccount
-CAccount :: !CAccountAddress -> !Coin -> CAccount
-[caAddress] :: CAccount -> !CAccountAddress
-[caAmount] :: CAccount -> !Coin
-
 -- | Client Wallet (CW) (Flow type: walletType)
 data CWallet
-CWallet :: !CWalletAddress -> !CWalletMeta -> ![CAccount] -> CWallet
-[cwAddress] :: CWallet -> !CWalletAddress
+CWallet :: !CAddress -> !Coin -> !CWalletMeta -> CWallet
+[cwAddress] :: CWallet -> !CAddress
+[cwAmount] :: CWallet -> !Coin
 [cwMeta] :: CWallet -> !CWalletMeta
-[cwAccounts] :: CWallet -> ![CAccount]
 
 -- | A wallet can be used as personal or shared wallet
 data CWalletType
@@ -4173,6 +4133,8 @@ CWTShared :: CWalletType
 data CWalletAssurance
 CWAStrict :: CWalletAssurance
 CWANormal :: CWalletAssurance
+
+-- | Meta data of CWallet Includes data which are not provided by Cardano
 data CWalletMeta
 CWalletMeta :: !CWalletType -> !CCurrency -> !Text -> !CWalletAssurance -> !Int -> CWalletMeta
 [cwType] :: CWalletMeta -> !CWalletType
@@ -4183,29 +4145,11 @@ CWalletMeta :: !CWalletType -> !CCurrency -> !Text -> !CWalletAssurance -> !Int 
 -- | <a>https://issues.serokell.io/issue/CSM-163#comment=96-2480</a>
 [cwUnit] :: CWalletMeta -> !Int
 
--- | Query data for wallet creation
+-- | Query data for wallet creation (wallet meta + backup phrase)
 data CWalletInit
-CWalletInit :: !CWalletMeta -> !CWalletSetAddress -> CWalletInit
+CWalletInit :: !BackupPhrase -> !CWalletMeta -> CWalletInit
+[cwBackupPhrase] :: CWalletInit -> !BackupPhrase
 [cwInitMeta] :: CWalletInit -> !CWalletMeta
-[cwInitWSetId] :: CWalletInit -> !CWalletSetAddress
-
--- | Client Wallet (CW)
-data CWalletSet
-CWalletSet :: !CWalletSetAddress -> !CWalletSetMeta -> !Int -> CWalletSet
-[cwsAddress] :: CWalletSet -> !CWalletSetAddress
-[cwsWSetMeta] :: CWalletSet -> !CWalletSetMeta
-[cwsWalletsNumber] :: CWalletSet -> !Int
-
--- | Meta data of <a>CWalletSet</a>
-data CWalletSetMeta
-CWalletSetMeta :: !Text -> !BackupPhrase -> CWalletSetMeta
-[cwsName] :: CWalletSetMeta -> !Text
-[cwsBackupPhrase] :: CWalletSetMeta -> !BackupPhrase
-
--- | Query data for wallet set creation
-data CWalletSetInit
-CWalletSetInit :: !CWalletSetMeta -> CWalletSetInit
-[cwsInitMeta] :: CWalletSetInit -> !CWalletSetMeta
 
 -- | Update system data
 data CUpdateInfo
@@ -4221,8 +4165,8 @@ CUpdateInfo :: !SoftwareVersion -> !BlockVersion -> !ScriptVersion -> !Bool -> !
 
 -- | Query data for redeem
 data CWalletRedeem
-CWalletRedeem :: !CWalletAddress -> !Text -> CWalletRedeem
-[crWalletId] :: CWalletRedeem -> !CWalletAddress
+CWalletRedeem :: !CAddress -> !Text -> CWalletRedeem
+[crWalletId] :: CWalletRedeem -> !CAddress
 [crSeed] :: CWalletRedeem -> !Text
 data NotifyEvent
 ConnectionOpened :: NotifyEvent
@@ -4231,15 +4175,13 @@ LocalDifficultyChanged :: ChainDifficulty -> NotifyEvent
 ConnectedPeersChanged :: Word -> NotifyEvent
 UpdateAvailable :: NotifyEvent
 ConnectionClosed :: NotifyEvent
-class WithDerivationPath a
-getDerivationPath :: WithDerivationPath a => a -> [Word32]
 
 -- | Transform Address into CAddress
 addressToCAddress :: Address -> CAddress
 cAddressToAddress :: CAddress -> Either Text Address
 passPhraseToCPassPhrase :: PassPhrase -> CPassPhrase
 cPassPhraseToPassPhrase :: CPassPhrase -> Either Text PassPhrase
-mkCTx :: Address -> ChainDifficulty -> TxHistoryEntry -> CTxMeta -> CAccountAddress -> CTx
+mkCTx :: Address -> ChainDifficulty -> TxHistoryEntry -> CTxMeta -> CTx
 mkCTxId :: Text -> CTxId
 
 -- | transform TxId into CTxId
@@ -4249,7 +4191,6 @@ txContainsTitle :: Text -> CTx -> Bool
 
 -- | Creates <tt>CTUpdateInfo</tt> from <a>ConfirmedProposalState</a>
 toCUpdateInfo :: ConfirmedProposalState -> CUpdateInfo
-walletAddrByAccount :: CAccountAddress -> CWalletAddress
 walletDocsText :: Text
 walletTableDocsText :: Text
 data WalletError
@@ -4302,32 +4243,21 @@ openState :: MonadIO m => Bool -> FilePath -> m WalletState
 openMemState :: MonadIO m => m WalletState
 closeState :: MonadIO m => WalletState -> m ()
 getProfile :: WebWalletModeDB m => m (Maybe CProfile)
-getWalletAddresses :: WebWalletModeDB m => m [CWalletAddress]
 getWalletMetas :: WebWalletModeDB m => m [CWalletMeta]
-getWalletMeta :: WebWalletModeDB m => CWalletAddress -> m (Maybe CWalletMeta)
-getWalletAccounts :: WebWalletModeDB m => CWalletAddress -> m (Maybe [CAccountAddress])
-getWSetMetas :: WebWalletModeDB m => m ([CWalletSetMeta])
-getWSetMeta :: WebWalletModeDB m => CWalletSetAddress -> m (Maybe CWalletSetMeta)
-getWSetAddresses :: WebWalletModeDB m => m [CWalletSetAddress]
-doesAccountExist :: WebWalletModeDB m => CAccountAddress -> m Bool
-getTxMeta :: WebWalletModeDB m => CAccountAddress -> CTxId -> m (Maybe CTxMeta)
-getAccountHistory :: WebWalletModeDB m => CAccountAddress -> m (Maybe [CTxMeta])
+getWalletMeta :: WebWalletModeDB m => CAddress -> m (Maybe CWalletMeta)
+getTxMeta :: WebWalletModeDB m => CAddress -> CTxId -> m (Maybe CTxMeta)
+getWalletHistory :: WebWalletModeDB m => CAddress -> m (Maybe [CTxMeta])
 getUpdates :: WebWalletModeDB m => m [CUpdateInfo]
 getNextUpdate :: WebWalletModeDB m => m (Maybe CUpdateInfo)
-getHistoryCache :: WebWalletModeDB m => CAccountAddress -> m (Maybe (HeaderHash, Utxo, [TxHistoryEntry]))
+getHistoryCache :: WebWalletModeDB m => CAddress -> m (Maybe (HeaderHash, Utxo, [TxHistoryEntry]))
 testReset :: WebWalletModeDB m => m ()
-createWallet :: WebWalletModeDB m => CWalletAddress -> CWalletMeta -> m ()
-createWSet :: WebWalletModeDB m => CWalletSetAddress -> CWalletSetMeta -> m ()
-addAccount :: WebWalletModeDB m => CAccountAddress -> m ()
+createWallet :: WebWalletModeDB m => CAddress -> CWalletMeta -> m ()
 setProfile :: WebWalletModeDB m => CProfile -> m ()
-setWalletMeta :: WebWalletModeDB m => CWalletAddress -> CWalletMeta -> m ()
-setWSetMeta :: WebWalletModeDB m => CWalletSetAddress -> CWalletSetMeta -> m ()
-setWalletTransactionMeta :: WebWalletModeDB m => CAccountAddress -> CTxId -> CTxMeta -> m ()
-setAccountHistory :: WebWalletModeDB m => CAccountAddress -> [(CTxId, CTxMeta)] -> m ()
-addOnlyNewTxMeta :: WebWalletModeDB m => CAccountAddress -> CTxId -> CTxMeta -> m ()
-removeWSet :: WebWalletModeDB m => CWalletSetAddress -> m ()
-removeWallet :: WebWalletModeDB m => CWalletAddress -> m ()
-removeAccount :: WebWalletModeDB m => CAccountAddress -> m ()
+setWalletMeta :: WebWalletModeDB m => CAddress -> CWalletMeta -> m ()
+setWalletTransactionMeta :: WebWalletModeDB m => CAddress -> CTxId -> CTxMeta -> m ()
+setWalletHistory :: WebWalletModeDB m => CAddress -> [(CTxId, CTxMeta)] -> m ()
+addOnlyNewTxMeta :: WebWalletModeDB m => CAddress -> CTxId -> CTxMeta -> m ()
+removeWallet :: WebWalletModeDB m => CAddress -> m ()
 addUpdate :: WebWalletModeDB m => CUpdateInfo -> m ()
 removeNextUpdate :: WebWalletModeDB m => m ()
-updateHistoryCache :: WebWalletModeDB m => CAccountAddress -> HeaderHash -> Utxo -> [TxHistoryEntry] -> m ()
+updateHistoryCache :: WebWalletModeDB m => CAddress -> HeaderHash -> Utxo -> [TxHistoryEntry] -> m ()
