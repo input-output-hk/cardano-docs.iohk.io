@@ -818,8 +818,8 @@ CompileConfig :: !Int -> !Int -> !Word -> ![String] -> !Int -> !Word -> !Int -> 
 -- | Timeout for holding light psks confirmations
 [ccLightDlgConfirmationTimeout] :: CompileConfig -> !Int
 
--- | We consider node as known if it was pinged at most 10 sec ago.
-[ccEnhancedMessageTimeout] :: CompileConfig -> !Word
+-- | True if we should enable enhanced bessage broadcast
+[ccEnhancedMessageBroadcast] :: CompileConfig -> !Word
 
 -- | Numbers of headers put in message in recovery mode.
 [ccRecoveryHeadersMessage] :: CompileConfig -> !Int
@@ -1071,9 +1071,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679110843 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679110843)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679110836 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679110836)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679110832 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679110832)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679110874 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679110874)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679110867 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679110867)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679110863 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679110863)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SoftwareVersion
@@ -2970,11 +2970,11 @@ ToilModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> !exten
 [_tmUndos] :: GenericToilModifier extension -> !UndoMap
 [_tmExtra] :: GenericToilModifier extension -> !extension
 type ToilModifier = GenericToilModifier ()
-tmUtxo :: forall extension_a1S2u. Lens' (GenericToilModifier extension_a1S2u) UtxoModifier
-tmBalances :: forall extension_a1S2u. Lens' (GenericToilModifier extension_a1S2u) BalancesView
-tmMemPool :: forall extension_a1S2u. Lens' (GenericToilModifier extension_a1S2u) MemPool
-tmUndos :: forall extension_a1S2u. Lens' (GenericToilModifier extension_a1S2u) UndoMap
-tmExtra :: forall extension_a1S2u extension_a1S4x. Lens (GenericToilModifier extension_a1S2u) (GenericToilModifier extension_a1S4x) extension_a1S2u extension_a1S4x
+tmUtxo :: forall extension_a1S2F. Lens' (GenericToilModifier extension_a1S2F) UtxoModifier
+tmBalances :: forall extension_a1S2F. Lens' (GenericToilModifier extension_a1S2F) BalancesView
+tmMemPool :: forall extension_a1S2F. Lens' (GenericToilModifier extension_a1S2F) MemPool
+tmUndos :: forall extension_a1S2F. Lens' (GenericToilModifier extension_a1S2F) UndoMap
+tmExtra :: forall extension_a1S2F extension_a1S4I. Lens (GenericToilModifier extension_a1S2F) (GenericToilModifier extension_a1S4I) extension_a1S2F extension_a1S4I
 
 -- | Environment used by Toil.
 data ToilEnv
@@ -3125,11 +3125,11 @@ baseDocsText :: Text
 gtDocsText :: Text
 type MyWorkMode ssc m = (WorkMode ssc m, SscConstraint ssc)
 type WebHandler ssc = TxpHolder TxpExtra_TMP (ContextHolder ssc (DBHolder Production))
-serveImpl :: MonadIO m => m Application -> String -> Word16 -> m ()
+serveImpl :: MonadIO m => m Application -> String -> Word16 -> FilePath -> FilePath -> m ()
 nat :: forall ssc m. (MyWorkMode ssc m) => m (WebHandler ssc :~> Handler)
-serveWebBase :: MyWorkMode ssc m => Word16 -> m ()
+serveWebBase :: MyWorkMode ssc m => Word16 -> FilePath -> FilePath -> m ()
 applicationBase :: MyWorkMode ssc m => m Application
-serveWebGT :: MyWorkMode SscGodTossing m => Word16 -> m ()
+serveWebGT :: MyWorkMode SscGodTossing m => Word16 -> FilePath -> FilePath -> m ()
 applicationGT :: MyWorkMode SscGodTossing m => m Application
 
 
@@ -4199,14 +4199,14 @@ data WalletError
 
 -- | Some internal error.
 Internal :: !Text -> WalletError
-walletServeWebFull :: forall ssc. (SscConstraint ssc) => SendActions (RawRealMode ssc) -> Bool -> FilePath -> Bool -> Word16 -> RawRealMode ssc ()
+walletServeWebFull :: forall ssc. (SscConstraint ssc) => SendActions (RawRealMode ssc) -> Bool -> FilePath -> Bool -> Word16 -> FilePath -> FilePath -> RawRealMode ssc ()
 walletServerOuts :: OutSpecs
-walletServeWebLite :: forall ssc. SscHelpersClass ssc => Proxy ssc -> SendActions WalletRealMode -> FilePath -> Bool -> Word16 -> WalletRealMode ()
+walletServeWebLite :: forall ssc. SscHelpersClass ssc => Proxy ssc -> SendActions WalletRealMode -> FilePath -> Bool -> Word16 -> FilePath -> FilePath -> WalletRealMode ()
 walletServerOuts :: OutSpecs
 type WalletWebHandler m = WalletWebSockets (WalletWebDB m)
 walletApplication :: WalletWebMode ssc m => m (Server WalletApi) -> m Application
 walletServer :: forall ssc m. (SscHelpersClass ssc, Monad m, MonadIO m, WalletWebMode ssc (WalletWebHandler m)) => SendActions m -> WalletWebHandler m (WalletWebHandler m :~> Handler) -> WalletWebHandler m (Server WalletApi)
-walletServeImpl :: (MonadIO m, MonadMask m, WalletWebMode ssc (WalletWebHandler m)) => WalletWebHandler m Application -> FilePath -> Bool -> Word16 -> m ()
+walletServeImpl :: (MonadIO m, MonadMask m, WalletWebMode ssc (WalletWebHandler m)) => WalletWebHandler m Application -> FilePath -> Bool -> Word16 -> FilePath -> FilePath -> m ()
 walletServerOuts :: OutSpecs
 
 -- | Holder for web wallet data
