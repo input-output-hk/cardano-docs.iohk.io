@@ -818,8 +818,8 @@ CompileConfig :: !Int -> !Int -> !Word -> ![String] -> !Int -> !Word -> !Int -> 
 -- | Timeout for holding light psks confirmations
 [ccLightDlgConfirmationTimeout] :: CompileConfig -> !Int
 
--- | True if we should enable enhanced bessage broadcast
-[ccEnhancedMessageBroadcast] :: CompileConfig -> !Word
+-- | We consider node as known if it was pinged at most 10 sec ago.
+[ccEnhancedMessageTimeout] :: CompileConfig -> !Word
 
 -- | Numbers of headers put in message in recovery mode.
 [ccRecoveryHeadersMessage] :: CompileConfig -> !Int
@@ -1071,9 +1071,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679110833 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679110833)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679110826 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679110826)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679110822 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679110822)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679110843 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679110843)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679110836 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679110836)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679110832 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679110832)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SoftwareVersion
@@ -2970,11 +2970,11 @@ ToilModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> !exten
 [_tmUndos] :: GenericToilModifier extension -> !UndoMap
 [_tmExtra] :: GenericToilModifier extension -> !extension
 type ToilModifier = GenericToilModifier ()
-tmUtxo :: forall extension_a1S20. Lens' (GenericToilModifier extension_a1S20) UtxoModifier
-tmBalances :: forall extension_a1S20. Lens' (GenericToilModifier extension_a1S20) BalancesView
-tmMemPool :: forall extension_a1S20. Lens' (GenericToilModifier extension_a1S20) MemPool
-tmUndos :: forall extension_a1S20. Lens' (GenericToilModifier extension_a1S20) UndoMap
-tmExtra :: forall extension_a1S20 extension_a1S43. Lens (GenericToilModifier extension_a1S20) (GenericToilModifier extension_a1S43) extension_a1S20 extension_a1S43
+tmUtxo :: forall extension_a1S2u. Lens' (GenericToilModifier extension_a1S2u) UtxoModifier
+tmBalances :: forall extension_a1S2u. Lens' (GenericToilModifier extension_a1S2u) BalancesView
+tmMemPool :: forall extension_a1S2u. Lens' (GenericToilModifier extension_a1S2u) MemPool
+tmUndos :: forall extension_a1S2u. Lens' (GenericToilModifier extension_a1S2u) UndoMap
+tmExtra :: forall extension_a1S2u extension_a1S4x. Lens (GenericToilModifier extension_a1S2u) (GenericToilModifier extension_a1S4x) extension_a1S2u extension_a1S4x
 
 -- | Environment used by Toil.
 data ToilEnv
