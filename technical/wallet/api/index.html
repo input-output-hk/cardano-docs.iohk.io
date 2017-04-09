@@ -199,6 +199,17 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                         </td>
                     </tr>
                     <tr>
+                            <td class="swagger--summary-path" rowspan="1">
+                                <a href="#path--api-postvend-redemptions-ada">/api/postvend/redemptions/ada</a>
+                            </td>
+                        <td>
+                            <a href="#operation--api-postvend-redemptions-ada-post">POST</a>
+                        </td>
+                        <td>
+                            
+                        </td>
+                    </tr>
+                    <tr>
                             <td class="swagger--summary-path" rowspan="2">
                                 <a href="#path--api-profile">/api/profile</a>
                             </td>
@@ -543,6 +554,80 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                                             <div class="row">
                                                 <div class="col-md-12">
                                                     <p><code>address</code> or <code>currency</code> not found</p>
+                                            
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                
+                                                <div class="col-md-6 sw-response-model">
+                                            </div>
+                                            
+                                            </div>                </dd>
+                            </dl>
+                        </section>
+                </div>
+            </div>    
+        <span id="path--api-postvend-redemptions-ada"></span>
+            <div id="operation--api-postvend-redemptions-ada-post" class="swagger--panel-operation-post panel">
+                <div class="panel-heading">
+                    <div class="operation-summary"></div>
+                    <h3 class="panel-title"><span class="operation-name">POST</span> <strong>/api/postvend/redemptions/ada</strong></h3>
+                </div>
+                <div class="panel-body">
+                    <section class="sw-operation-description">
+                        
+                    </section>
+                        
+                            <section class="sw-request-body">
+                                
+                                    <p><span class="label label-default">application/json;charset=utf-8</span> 
+                        </p>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <p></p>
+                                            </div>
+                                            <div class="col-md-6 sw-request-model">
+                            <div  class="panel panel-definition">
+                                <div class="panel-body">
+                                            <a class="json-schema-ref" href="#/definitions/CPostVendWalletRedeem">CPostVendWalletRedeem</a>
+                                </div>
+                            </div></div>
+                                        </div>
+                            </section>        
+                    
+                        <section class="sw-responses">
+                                <p><span class="label label-default">application/json;charset=utf-8</span> 
+                    </p>
+                    
+                            <dl>
+                                    <dt class="sw-response-200">
+                                        200 OK
+                                    
+                                    </dt>
+                                    <dd class="sw-response-200">
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                
+                                                <div class="col-md-6 sw-response-model">
+                                                <div  class="panel panel-definition">
+                                                    <div class="panel-body">
+                                                                <a class="json-schema-ref" href="#/definitions/Either WalletError CTx">Either WalletError CTx</a>
+                                                    </div>
+                                                </div></div>
+                                            
+                                            </div>                </dd>
+                                    <dt class="sw-response-400">
+                                        400 Bad Request
+                                    
+                                    </dt>
+                                    <dd class="sw-response-400">
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <p>Invalid <code>body</code></p>
                                             
                                                 </div>
                                             </div>
@@ -2615,6 +2700,38 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                             
                     </div>
                 </div>        
+                <div id="definition-CCoin" class="panel panel-definition">
+                        <div class="panel-heading">
+                                <h3 class="panel-title"><a name="/definitions/CCoin"></a>CCoin:
+                                    <span class="json-property-type">
+                <span class="json-property-type">object</span>
+                <span class="json-property-range" title="Value limits"></span>
+                
+                </span>
+                                </h3>
+                        </div>
+                    <div class="panel-body">
+                            
+                                    <section class="json-schema-properties">
+                                        <dl>
+                                                <dt data-property-name="getCoin">
+                                                    <span class="json-property-name">getCoin:</span>
+                                                    
+                                                    <span class="json-property-type">string</span>
+                                                    <span class="json-property-range" title="Value limits"></span>
+                                                    
+                                                        <span class="json-property-required"></span>
+                                                </dt>
+                                                <dd>
+                                                    
+                                                    <div class="json-inner-schema">
+                                                        
+                                                    </div>
+                                                </dd>
+                                        </dl>
+                                    </section>
+                    </div>
+                </div>        
                 <div id="definition-CCurrency" class="panel panel-definition">
                         <div class="panel-heading">
                                 <h3 class="panel-title"><a name="/definitions/CCurrency"></a>CCurrency:
@@ -2715,9 +2832,9 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                                     </section>
                     </div>
                 </div>        
-                <div id="definition-Coin" class="panel panel-definition">
+                <div id="definition-CPostVendWalletRedeem" class="panel panel-definition">
                         <div class="panel-heading">
-                                <h3 class="panel-title"><a name="/definitions/Coin"></a>Coin:
+                                <h3 class="panel-title"><a name="/definitions/CPostVendWalletRedeem"></a>CPostVendWalletRedeem:
                                     <span class="json-property-type">
                 <span class="json-property-type">object</span>
                 <span class="json-property-range" title="Value limits"></span>
@@ -2729,11 +2846,41 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                             
                                     <section class="json-schema-properties">
                                         <dl>
-                                                <dt data-property-name="getCoin">
-                                                    <span class="json-property-name">getCoin:</span>
+                                                <dt data-property-name="pvWalletId">
+                                                    <span class="json-property-name">pvWalletId:</span>
                                                     
-                                                    <span class="json-property-type">integer</span>
-                                                    <span class="json-property-range" title="Value limits">, { x ∈ ℤ | 0 ≤ x ≤ 18446744073709552000 }</span>
+                                                    <span class="json-property-type">    <a class="json-schema-ref" href="#/definitions/CAddress">CAddress</a>
+                                                    </span>
+                                                    <span class="json-property-range" title="Value limits"></span>
+                                                    
+                                                        <span class="json-property-required"></span>
+                                                </dt>
+                                                <dd>
+                                                    
+                                                    <div class="json-inner-schema">
+                                                        
+                                                    </div>
+                                                </dd>
+                                                <dt data-property-name="pvSeed">
+                                                    <span class="json-property-name">pvSeed:</span>
+                                                    
+                                                    <span class="json-property-type">string</span>
+                                                    <span class="json-property-range" title="Value limits"></span>
+                                                    
+                                                        <span class="json-property-required"></span>
+                                                </dt>
+                                                <dd>
+                                                    
+                                                    <div class="json-inner-schema">
+                                                        
+                                                    </div>
+                                                </dd>
+                                                <dt data-property-name="pvBackupPhrase">
+                                                    <span class="json-property-name">pvBackupPhrase:</span>
+                                                    
+                                                    <span class="json-property-type">    <a class="json-schema-ref" href="#/definitions/BackupPhrase">BackupPhrase</a>
+                                                    </span>
+                                                    <span class="json-property-range" title="Value limits"></span>
                                                     
                                                         <span class="json-property-required"></span>
                                                 </dt>
@@ -2857,7 +3004,7 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                                                 <dt data-property-name="ctAmount">
                                                     <span class="json-property-name">ctAmount:</span>
                                                     
-                                                    <span class="json-property-type">    <a class="json-schema-ref" href="#/definitions/Coin">Coin</a>
+                                                    <span class="json-property-type">    <a class="json-schema-ref" href="#/definitions/CCoin">CCoin</a>
                                                     </span>
                                                     <span class="json-property-range" title="Value limits"></span>
                                                     
@@ -3094,7 +3241,7 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                                                 <dt data-property-name="cuiPositiveStake">
                                                     <span class="json-property-name">cuiPositiveStake:</span>
                                                     
-                                                    <span class="json-property-type">    <a class="json-schema-ref" href="#/definitions/Coin">Coin</a>
+                                                    <span class="json-property-type">    <a class="json-schema-ref" href="#/definitions/CCoin">CCoin</a>
                                                     </span>
                                                     <span class="json-property-range" title="Value limits"></span>
                                                     
@@ -3109,7 +3256,7 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                                                 <dt data-property-name="cuiNegativeStake">
                                                     <span class="json-property-name">cuiNegativeStake:</span>
                                                     
-                                                    <span class="json-property-type">    <a class="json-schema-ref" href="#/definitions/Coin">Coin</a>
+                                                    <span class="json-property-type">    <a class="json-schema-ref" href="#/definitions/CCoin">CCoin</a>
                                                     </span>
                                                     <span class="json-property-range" title="Value limits"></span>
                                                     
@@ -3157,7 +3304,7 @@ Original style from softwaremaniacs.org (c) Ivan Sagalaev <Maniac@SoftwareManiac
                                                 <dt data-property-name="cwAmount">
                                                     <span class="json-property-name">cwAmount:</span>
                                                     
-                                                    <span class="json-property-type">    <a class="json-schema-ref" href="#/definitions/Coin">Coin</a>
+                                                    <span class="json-property-type">    <a class="json-schema-ref" href="#/definitions/CCoin">CCoin</a>
                                                     </span>
                                                     <span class="json-property-range" title="Value limits"></span>
                                                     
