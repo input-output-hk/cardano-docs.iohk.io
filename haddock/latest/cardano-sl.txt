@@ -26,19 +26,19 @@ simpleUserSecret :: SecretKey -> FilePath -> UserSecret
 
 -- | Create user secret file at the given path, but only when one doesn't
 --   already exist.
-initializeUserSecret :: (MonadIO m, MonadThrow m) => FilePath -> m ()
+initializeUserSecret :: (MonadIO m, WithLogger m) => FilePath -> m ()
 
 -- | Reads user secret from file, assuming that file exists, and has mode
 --   600, throws exception in other case
-readUserSecret :: (MonadIO m, MonadThrow m) => FilePath -> m UserSecret
+readUserSecret :: (MonadIO m, WithLogger m) => FilePath -> m UserSecret
 
 -- | Reads user secret from the given file. If the file does not exist/is
 --   empty, returns empty user secret
-peekUserSecret :: (MonadIO m, MonadThrow m) => FilePath -> m UserSecret
+peekUserSecret :: (MonadIO m, WithLogger m) => FilePath -> m UserSecret
 
 -- | Read user secret putting an exclusive lock on it. To unlock, use
 --   <a>writeUserSecretRelease</a>.
-takeUserSecret :: (MonadIO m, MonadThrow m) => FilePath -> m UserSecret
+takeUserSecret :: (MonadIO m, WithLogger m) => FilePath -> m UserSecret
 
 -- | Writes user secret .
 writeUserSecret :: (MonadIO m) => UserSecret -> m ()
@@ -816,16 +816,6 @@ instance Pos.Types.Block.Types.BiHeader ssc => Pos.Core.Class.IsHeader (Pos.Type
 instance Pos.Types.Block.Types.BiHeader ssc => Pos.Core.Class.IsMainHeader (Pos.Types.Block.Types.MainBlockHeader ssc)
 instance Pos.Types.Block.Types.BiHeader ssc => Pos.Core.Class.IsHeader (Pos.Types.Block.Types.BlockHeader ssc)
 
-
--- | Core of explorer.
-module Pos.Explorer.Core
-data TxExtra
-TxExtra :: !(Maybe (HeaderHash, Word32)) -> !Timestamp -> NonEmpty TxOutAux -> TxExtra
-[teBlockchainPlace] :: TxExtra -> !(Maybe (HeaderHash, Word32))
-[teReceivedTime] :: TxExtra -> !Timestamp
-[teInputOutputs] :: TxExtra -> NonEmpty TxOutAux
-type AddrHistory = NewestFirst [] TxId
-
 module Pos.CompileConfig
 compileConfig :: CompileConfig
 
@@ -1119,9 +1109,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679110998 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679110998)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679110991 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679110991)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679110987 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679110987)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679113157 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679113157)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679113150 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679113150)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679113146 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679113146)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SoftwareVersion
@@ -1407,10 +1397,11 @@ CombinedStakes :: StakeDistribution -> StakeDistribution -> StakeDistribution
 
 -- | Hardcoded genesis data
 data GenesisData
-GenesisData :: [Address] -> StakeDistribution -> VssCertificatesMap -> GenesisData
+GenesisData :: [Address] -> StakeDistribution -> VssCertificatesMap -> !(HashMap StakeholderId Coin) -> GenesisData
 [gdAddresses] :: GenesisData -> [Address]
 [gdDistribution] :: GenesisData -> StakeDistribution
 [gdVssCertificates] :: GenesisData -> VssCertificatesMap
+[gdBootstrapBalances] :: GenesisData -> !(HashMap StakeholderId Coin)
 getTotalStake :: StakeDistribution -> Coin
 
 -- | Fetch pre-generated genesis data from <i>genesis.bin</i> in compile
@@ -1425,6 +1416,7 @@ genesisDelegation :: HashMap StakeholderId [StakeholderId]
 
 -- | List of addresses in genesis. See <tt>genesisPublicKeys</tt>.
 genesisAddresses :: [Address]
+genesisBalances :: HashMap StakeholderId Coin
 
 -- | List of pairs from <a>SecretKey</a> with corresponding
 --   <a>PublicKey</a>.
@@ -1452,14 +1444,17 @@ module Pos.Util.BackupPhrase
 data BackupPhrase
 
 -- | Make backup phrase from list
-mkBackupPhrase :: [Text] -> BackupPhrase
+mkBackupPhrase12 :: [Text] -> BackupPhrase
+
+-- | Make backup phrase from list
+mkBackupPhrase9 :: [Text] -> BackupPhrase
 
 -- | Number of words in backup phrase
 backupPhraseWordsNum :: Int
 bpToList :: BackupPhrase -> [Text]
-toSeed :: BackupPhrase -> ByteString
-keysFromPhrase :: BackupPhrase -> (SecretKey, VssKeyPair)
-safeKeysFromPhrase :: PassPhrase -> BackupPhrase -> (EncryptedSecretKey, VssKeyPair)
+toSeed :: BackupPhrase -> Either Text ByteString
+keysFromPhrase :: BackupPhrase -> Either Text (SecretKey, VssKeyPair)
+safeKeysFromPhrase :: PassPhrase -> BackupPhrase -> Either Text (EncryptedSecretKey, VssKeyPair)
 instance GHC.Generics.Generic Pos.Util.BackupPhrase.BackupPhrase
 instance GHC.Classes.Eq Pos.Util.BackupPhrase.BackupPhrase
 instance GHC.Show.Show Pos.Util.BackupPhrase.BackupPhrase
@@ -1520,10 +1515,13 @@ runPskMapIterator :: forall v m a. MonadDB m => DBnMapIterator PskIter v a -> (I
 data BalancesOp
 PutFtsSum :: !Coin -> BalancesOp
 PutFtsStake :: !StakeholderId -> !Coin -> BalancesOp
+isBootstrapEra :: MonadDB m => m Bool
+getTotalFtsStake :: MonadDB m => m Coin
+getFtsStake :: MonadDB m => StakeholderId -> m (Maybe Coin)
 prepareGStateBalances :: forall m. MonadDB m => Utxo -> m ()
 data BalanceIter :: *
-runBalanceIterator :: forall m a. MonadDB m => DBnIterator BalanceIter a -> m a
-runBalanceMapIterator :: forall v m a. MonadDB m => DBnMapIterator BalanceIter v a -> (IterType BalanceIter -> v) -> m a
+runBalanceIterator :: forall m a. MonadDB m => (forall iter. (MonadIterator (IterType BalanceIter) iter, MonadDB iter) => iter a) -> m a
+runBalanceMapIterator :: forall v m a. MonadDB m => (forall iter. (MonadIterator v iter, MonadDB iter) => iter a) -> ((StakeholderId, Coin) -> v) -> m a
 sanityCheckBalances :: (MonadMask m, MonadDB m, WithLogger m) => m ()
 getTxOutFromDB :: (MonadIO m, MonadThrow m) => TxIn -> DB -> m (Maybe TxOutAux)
 getTxOut :: MonadDB m => TxIn -> m (Maybe TxOutAux)
@@ -3021,11 +3019,11 @@ ToilModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> !exten
 [_tmUndos] :: GenericToilModifier extension -> !UndoMap
 [_tmExtra] :: GenericToilModifier extension -> !extension
 type ToilModifier = GenericToilModifier ()
-tmUtxo :: forall extension_a1Sxv. Lens' (GenericToilModifier extension_a1Sxv) UtxoModifier
-tmBalances :: forall extension_a1Sxv. Lens' (GenericToilModifier extension_a1Sxv) BalancesView
-tmMemPool :: forall extension_a1Sxv. Lens' (GenericToilModifier extension_a1Sxv) MemPool
-tmUndos :: forall extension_a1Sxv. Lens' (GenericToilModifier extension_a1Sxv) UndoMap
-tmExtra :: forall extension_a1Sxv extension_a1Szy. Lens (GenericToilModifier extension_a1Sxv) (GenericToilModifier extension_a1Szy) extension_a1Sxv extension_a1Szy
+tmUtxo :: forall extension_a1SLC. Lens' (GenericToilModifier extension_a1SLC) UtxoModifier
+tmBalances :: forall extension_a1SLC. Lens' (GenericToilModifier extension_a1SLC) BalancesView
+tmMemPool :: forall extension_a1SLC. Lens' (GenericToilModifier extension_a1SLC) MemPool
+tmUndos :: forall extension_a1SLC. Lens' (GenericToilModifier extension_a1SLC) UndoMap
+tmExtra :: forall extension_a1SLC extension_a1SNF. Lens (GenericToilModifier extension_a1SLC) (GenericToilModifier extension_a1SNF) extension_a1SLC extension_a1SNF
 
 -- | Environment used by Toil.
 data ToilEnv
@@ -3116,6 +3114,18 @@ type TxError = Text
 
 -- | Explorer functionality (to be moved into cardano-explorer).
 module Pos.Explorer
+data TxExtra
+TxExtra :: !(Maybe (HeaderHash, Word32)) -> !Timestamp -> NonEmpty TxOutAux -> TxExtra
+[teBlockchainPlace] :: TxExtra -> !(Maybe (HeaderHash, Word32))
+[teReceivedTime] :: TxExtra -> !Timestamp
+[teInputOutputs] :: TxExtra -> NonEmpty TxOutAux
+type AddrHistory = NewestFirst [] TxId
+data TxExtra
+TxExtra :: !(Maybe (HeaderHash, Word32)) -> !Timestamp -> NonEmpty TxOutAux -> TxExtra
+[teBlockchainPlace] :: TxExtra -> !(Maybe (HeaderHash, Word32))
+[teReceivedTime] :: TxExtra -> !Timestamp
+[teInputOutputs] :: TxExtra -> NonEmpty TxOutAux
+type AddrHistory = NewestFirst [] TxId
 data ExplorerOp
 AddTxExtra :: !TxId -> !TxExtra -> ExplorerOp
 DelTxExtra :: !TxId -> ExplorerOp
@@ -3161,6 +3171,13 @@ eNormalizeToil :: (ELocalToilMode m) => [(TxId, (TxAux, TxExtra))] -> m ()
 -- | Verify one transaction and also add it to mem pool and apply to utxo
 --   if transaction is valid.
 eProcessTx :: (ELocalToilMode m, MonadError ToilVerFailure m) => (TxId, TxAux) -> TxExtra -> m ()
+data ExplorerExtra
+ExplorerExtra :: !TxMapExtra -> !UpdatedAddrHistories -> ExplorerExtra
+[_eeLocalTxsExtra] :: ExplorerExtra -> !TxMapExtra
+[_eeAddrHistories] :: ExplorerExtra -> !UpdatedAddrHistories
+type EToilModifier = GenericToilModifier ExplorerExtra
+eeLocalTxsExtra :: Lens' ExplorerExtra TxMapExtra
+eeAddrHistories :: Lens' ExplorerExtra UpdatedAddrHistories
 data ExplorerExtra
 ExplorerExtra :: !TxMapExtra -> !UpdatedAddrHistories -> ExplorerExtra
 [_eeLocalTxsExtra] :: ExplorerExtra -> !TxMapExtra
@@ -4022,6 +4039,28 @@ initLrc :: WorkMode ssc m => m ()
 runNode' :: forall ssc m. (SscConstraint ssc, WorkMode ssc m, MonadDBCore m) => [WorkerSpec m] -> WorkerSpec m
 
 module Pos.Wallet
+class Monad m => MonadKeys m where getPrimaryKey = lift getPrimaryKey getSecretKeys = lift getSecretKeys addSecretKey = lift . addSecretKey deleteSecretKey = lift . deleteSecretKey
+getPrimaryKey :: MonadKeys m => m (Maybe SecretKey)
+getSecretKeys :: MonadKeys m => m [EncryptedSecretKey]
+addSecretKey :: MonadKeys m => EncryptedSecretKey -> m ()
+deleteSecretKey :: MonadKeys m => Word -> m ()
+getPrimaryKey :: (MonadKeys m, MonadTrans t, MonadKeys m', t m' ~ m) => m (Maybe SecretKey)
+getSecretKeys :: (MonadKeys m, MonadTrans t, MonadKeys m', t m' ~ m) => m [EncryptedSecretKey]
+addSecretKey :: (MonadKeys m, MonadTrans t, MonadKeys m', t m' ~ m) => EncryptedSecretKey -> m ()
+deleteSecretKey :: (MonadKeys m, MonadTrans t, MonadKeys m', t m' ~ m) => Word -> m ()
+
+-- | Helper for generating a new secret key
+newSecretKey :: (MonadIO m, MonadKeys m) => PassPhrase -> m EncryptedSecretKey
+newtype KeyStorage m a
+KeyStorage :: ReaderT KeyData m a -> KeyStorage m a
+[getKeyStorage] :: KeyStorage m a -> ReaderT KeyData m a
+type KeyData = TVar UserSecret
+data KeyError
+
+-- | Failed attempt to delete primary key
+PrimaryKey :: !Text -> KeyError
+runKeyStorage :: (MonadIO m, WithLogger m) => FilePath -> KeyStorage m a -> m a
+runKeyStorageRaw :: KeyStorage m a -> KeyData -> m a
 data WalletParams
 WalletParams :: !(Maybe FilePath) -> !Bool -> !FilePath -> Timestamp -> !Bool -> !BaseParams -> !Utxo -> WalletParams
 [wpDbPath] :: WalletParams -> !(Maybe FilePath)
@@ -4044,7 +4083,7 @@ runWallet :: WalletMode ssc m => ([WorkerSpec m], OutSpecs) -> (WorkerSpec m, Ou
 submitVote :: (MinWorkMode m, MonadDBLimits m) => SendActions m -> [DHTNode] -> UpdateVote -> m ()
 
 -- | Send UpdateProposal with one positive vote to given addresses
-submitUpdateProposal :: (MinWorkMode m, MonadDBLimits m) => SendActions m -> SecretKey -> [DHTNode] -> UpdateProposal -> m ()
+submitUpdateProposal :: (MinWorkMode m, MonadDBLimits m) => SendActions m -> SafeSigner -> [DHTNode] -> UpdateProposal -> m ()
 sendVoteOuts :: OutSpecs
 sendProposalOuts :: OutSpecs
 
@@ -4084,7 +4123,7 @@ module Pos.Wallet.Web
 -- | Servant API which provides access to wallet. TODO: Should be composed
 --   depending on the resource - wallets, txs, ...
 --   <a>http://haskell-servant.github.io/tutorial/0.4/server.html#nested-apis</a>
-type WalletApi = ("api" :> ("test" :> ("reset" :> Post '[JSON] (Either WalletError ())))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> Get '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("wallets" :> Get '[JSON] (Either WalletError [CWallet]))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> (ReqBody '[JSON] CWalletMeta :> Put '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> Delete '[JSON] (Either WalletError ())))) :<|> (("api" :> ("wallets" :> ("keys" :> (ReqBody '[JSON] Text :> Post '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("wallets" :> ("restore" :> (Capture "passphrase" CPassPhrase :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet)))))) :<|> (("api" :> ("wallets" :> (Capture "passphrase" CPassPhrase :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("addresses" :> (Capture "address" Text :> ("currencies" :> (Capture "currency" CCurrency :> Get '[JSON] (Either WalletError Bool)))))) :<|> (("api" :> ("profile" :> Get '[JSON] (Either WalletError CProfile))) :<|> (("api" :> ("profile" :> (ReqBody '[JSON] CProfile :> Post '[JSON] (Either WalletError CProfile)))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "passphrase" CPassPhrase :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> Post '[JSON] (Either WalletError CTx)))))))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "passphrase" CPassPhrase :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> (Capture "currency" CCurrency :> (Capture "title" Text :> (Capture "description" Text :> Post '[JSON] (Either WalletError CTx))))))))))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "address" CAddress :> (Capture "transaction" CTxId :> (ReqBody '[JSON] CTxMeta :> Post '[JSON] (Either WalletError ()))))))) :<|> (("api" :> ("txs" :> ("histories" :> (Capture "address" CAddress :> (QueryParam "skip" Word :> (QueryParam "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word)))))))) :<|> (("api" :> ("txs" :> ("histories" :> (Capture "address" CAddress :> (Capture "search" Text :> (QueryParam "skip" Word :> (QueryParam "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word))))))))) :<|> (("api" :> ("update" :> Get '[JSON] (Either WalletError CUpdateInfo))) :<|> (("api" :> ("update" :> Post '[JSON] (Either WalletError ()))) :<|> (("api" :> ("redemptions" :> ("ada" :> (ReqBody '[JSON] CWalletRedeem :> Post '[JSON] (Either WalletError CTx))))) :<|> (("api" :> ("reporting" :> ("initialized" :> (ReqBody '[JSON] CInitialized :> Post '[JSON] (Either WalletError ()))))) :<|> (("api" :> ("reporting" :> ("electroncrash" :> (MultipartForm CElectronCrashReport :> Post '[JSON] (Either WalletError ()))))) :<|> (("api" :> ("settings" :> ("slots" :> ("duration" :> Get '[JSON] (Either WalletError Word))))) :<|> (("api" :> ("settings" :> ("version" :> Get '[JSON] (Either WalletError SoftwareVersion)))) :<|> ("api" :> ("settings" :> ("sync" :> ("progress" :> Get '[JSON] (Either WalletError SyncProgress)))))))))))))))))))))))))))
+type WalletApi = ("api" :> ("test" :> ("reset" :> Post '[JSON] (Either WalletError ())))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> Get '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("wallets" :> Get '[JSON] (Either WalletError [CWallet]))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> (ReqBody '[JSON] CWalletMeta :> Put '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> Delete '[JSON] (Either WalletError ())))) :<|> (("api" :> ("wallets" :> ("keys" :> (ReqBody '[JSON] Text :> Post '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("wallets" :> ("restore" :> (Capture "passphrase" CPassPhrase :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet)))))) :<|> (("api" :> ("wallets" :> (Capture "passphrase" CPassPhrase :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("addresses" :> (Capture "address" Text :> ("currencies" :> (Capture "currency" CCurrency :> Get '[JSON] (Either WalletError Bool)))))) :<|> (("api" :> ("profile" :> Get '[JSON] (Either WalletError CProfile))) :<|> (("api" :> ("profile" :> (ReqBody '[JSON] CProfile :> Post '[JSON] (Either WalletError CProfile)))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "passphrase" CPassPhrase :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> Post '[JSON] (Either WalletError CTx)))))))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "passphrase" CPassPhrase :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> (Capture "currency" CCurrency :> (Capture "title" Text :> (Capture "description" Text :> Post '[JSON] (Either WalletError CTx))))))))))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "address" CAddress :> (Capture "transaction" CTxId :> (ReqBody '[JSON] CTxMeta :> Post '[JSON] (Either WalletError ()))))))) :<|> (("api" :> ("txs" :> ("histories" :> (Capture "address" CAddress :> (QueryParam "skip" Word :> (QueryParam "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word)))))))) :<|> (("api" :> ("txs" :> ("histories" :> (Capture "address" CAddress :> (Capture "search" Text :> (QueryParam "skip" Word :> (QueryParam "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word))))))))) :<|> (("api" :> ("update" :> Get '[JSON] (Either WalletError CUpdateInfo))) :<|> (("api" :> ("update" :> Post '[JSON] (Either WalletError ()))) :<|> (("api" :> ("redemptions" :> ("ada" :> (ReqBody '[JSON] CWalletRedeem :> Post '[JSON] (Either WalletError CTx))))) :<|> (("api" :> ("postvend" :> ("redemptions" :> ("ada" :> (ReqBody '[JSON] CPostVendWalletRedeem :> Post '[JSON] (Either WalletError CTx)))))) :<|> (("api" :> ("reporting" :> ("initialized" :> (ReqBody '[JSON] CInitialized :> Post '[JSON] (Either WalletError ()))))) :<|> (("api" :> ("reporting" :> ("electroncrash" :> (MultipartForm CElectronCrashReport :> Post '[JSON] (Either WalletError ()))))) :<|> (("api" :> ("settings" :> ("slots" :> ("duration" :> Get '[JSON] (Either WalletError Word))))) :<|> (("api" :> ("settings" :> ("version" :> Get '[JSON] (Either WalletError SoftwareVersion)))) :<|> ("api" :> ("settings" :> ("sync" :> ("progress" :> Get '[JSON] (Either WalletError SyncProgress))))))))))))))))))))))))))))
 
 -- | Helper Proxy.
 walletApi :: Proxy WalletApi
@@ -4130,9 +4169,9 @@ type CPwHash = Text
 --   by client. It includes meta data which are not part of Cardano, too
 --   (Flow type: transactionType)
 data CTx
-CTx :: CTxId -> Coin -> Word -> CTType -> CTx
+CTx :: CTxId -> CCoin -> Word -> CTType -> CTx
 [ctId] :: CTx -> CTxId
-[ctAmount] :: CTx -> Coin
+[ctAmount] :: CTx -> CCoin
 [ctConfirmations] :: CTx -> Word
 [ctType] :: CTx -> CTType
 
@@ -4172,9 +4211,9 @@ CInitialized :: Word -> Word -> CInitialized
 
 -- | Client Wallet (CW) (Flow type: walletType)
 data CWallet
-CWallet :: !CAddress -> !Coin -> !CWalletMeta -> CWallet
+CWallet :: !CAddress -> !CCoin -> !CWalletMeta -> CWallet
 [cwAddress] :: CWallet -> !CAddress
-[cwAmount] :: CWallet -> !Coin
+[cwAmount] :: CWallet -> !CCoin
 [cwMeta] :: CWallet -> !CWalletMeta
 
 -- | A wallet can be used as personal or shared wallet
@@ -4206,21 +4245,30 @@ CWalletInit :: !BackupPhrase -> !CWalletMeta -> CWalletInit
 
 -- | Update system data
 data CUpdateInfo
-CUpdateInfo :: !SoftwareVersion -> !BlockVersion -> !ScriptVersion -> !Bool -> !Int -> !Int -> !Coin -> !Coin -> CUpdateInfo
+CUpdateInfo :: !SoftwareVersion -> !BlockVersion -> !ScriptVersion -> !Bool -> !Int -> !Int -> !CCoin -> !CCoin -> CUpdateInfo
 [cuiSoftwareVersion] :: CUpdateInfo -> !SoftwareVersion
 [cuiBlockVesion] :: CUpdateInfo -> !BlockVersion
 [cuiScriptVersion] :: CUpdateInfo -> !ScriptVersion
 [cuiImplicit] :: CUpdateInfo -> !Bool
 [cuiVotesFor] :: CUpdateInfo -> !Int
 [cuiVotesAgainst] :: CUpdateInfo -> !Int
-[cuiPositiveStake] :: CUpdateInfo -> !Coin
-[cuiNegativeStake] :: CUpdateInfo -> !Coin
+[cuiPositiveStake] :: CUpdateInfo -> !CCoin
+[cuiNegativeStake] :: CUpdateInfo -> !CCoin
 
 -- | Query data for redeem
 data CWalletRedeem
 CWalletRedeem :: !CAddress -> !Text -> CWalletRedeem
 [crWalletId] :: CWalletRedeem -> !CAddress
 [crSeed] :: CWalletRedeem -> !Text
+
+-- | Query data for redeem
+data CPostVendWalletRedeem
+CPostVendWalletRedeem :: !CAddress -> !Text -> !BackupPhrase -> CPostVendWalletRedeem
+[pvWalletId] :: CPostVendWalletRedeem -> !CAddress
+[pvSeed] :: CPostVendWalletRedeem -> !Text
+[pvBackupPhrase] :: CPostVendWalletRedeem -> !BackupPhrase
+data CCoin
+mkCCoin :: Coin -> CCoin
 data CElectronCrashReport
 CElectronCrashReport :: Text -> Text -> Text -> Text -> Text -> Text -> Text -> Text -> FileData -> CElectronCrashReport
 [cecVersion] :: CElectronCrashReport -> Text
