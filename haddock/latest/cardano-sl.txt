@@ -336,6 +336,66 @@ instance GHC.Classes.Eq Pos.Security.CLI.AttackType
 instance GHC.Exception.Exception Pos.Security.CLI.NodeAttackedError
 
 
+-- | <tt>Arbitrary</tt> unsafe instances for some types from <a>Types</a>.
+module Pos.Types.Arbitrary.Unsafe
+instance Pos.Util.Arbitrary.ArbitraryUnsafe Pos.Core.Types.SharedSeed
+instance Pos.Util.Arbitrary.ArbitraryUnsafe Pos.Core.Types.EpochIndex
+instance Pos.Util.Arbitrary.ArbitraryUnsafe Pos.Core.Types.LocalSlotIndex
+instance Pos.Util.Arbitrary.ArbitraryUnsafe Pos.Core.Types.Coin
+instance Pos.Util.Arbitrary.ArbitraryUnsafe Pos.Core.Types.Address
+instance Pos.Util.Arbitrary.ArbitraryUnsafe Pos.Core.Types.SlotId
+instance Pos.Util.Arbitrary.ArbitraryUnsafe Pos.Txp.Core.Types.TxOut
+
+
+-- | <a>Arbitrary</a> instances for using in tests and benchmarks
+module Pos.Crypto.Arbitrary
+data SharedSecrets
+SharedSecrets :: SecretSharingExtra -> Secret -> SecretProof -> [(EncShare, Share)] -> Threshold -> [VssPublicKey] -> Int -> SharedSecrets
+[ssSecShare] :: SharedSecrets -> SecretSharingExtra
+[ssSecret] :: SharedSecrets -> Secret
+[ssSecProof] :: SharedSecrets -> SecretProof
+[ssShares] :: SharedSecrets -> [(EncShare, Share)]
+[ssThreshold] :: SharedSecrets -> Threshold
+[ssVSSPKs] :: SharedSecrets -> [VssPublicKey]
+[ssPos] :: SharedSecrets -> Int
+instance GHC.Classes.Eq Pos.Crypto.Arbitrary.SharedSecrets
+instance GHC.Show.Show Pos.Crypto.Arbitrary.SharedSecrets
+instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.SignTag.SignTag
+instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.Signing.PublicKey
+instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.Signing.SecretKey
+instance Pos.Util.Arbitrary.Nonrepeating Pos.Crypto.Signing.PublicKey
+instance Pos.Util.Arbitrary.Nonrepeating Pos.Crypto.Signing.SecretKey
+instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.RedeemSigning.RedeemPublicKey
+instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.RedeemSigning.RedeemSecretKey
+instance Pos.Util.Arbitrary.Nonrepeating Pos.Crypto.RedeemSigning.RedeemPublicKey
+instance Pos.Util.Arbitrary.Nonrepeating Pos.Crypto.RedeemSigning.RedeemSecretKey
+instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.SecretSharing.VssKeyPair
+instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.SecretSharing.VssPublicKey
+instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.AsBinary Pos.Crypto.SecretSharing.VssPublicKey)
+instance Pos.Util.Arbitrary.Nonrepeating Pos.Crypto.SecretSharing.VssKeyPair
+instance Pos.Util.Arbitrary.Nonrepeating Pos.Crypto.SecretSharing.VssPublicKey
+instance (Pos.Binary.Class.Bi a, Test.QuickCheck.Arbitrary.Arbitrary a) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Crypto.Signing.Signature a)
+instance (Pos.Binary.Class.Bi a, Test.QuickCheck.Arbitrary.Arbitrary a) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Crypto.RedeemSigning.RedeemSignature a)
+instance (Pos.Binary.Class.Bi a, Test.QuickCheck.Arbitrary.Arbitrary a) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Crypto.Signing.Signed a)
+instance (Pos.Binary.Class.Bi w, Test.QuickCheck.Arbitrary.Arbitrary w) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Crypto.Signing.ProxyCert w)
+instance (Pos.Binary.Class.Bi w, Test.QuickCheck.Arbitrary.Arbitrary w) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Crypto.Signing.ProxySecretKey w)
+instance (Pos.Binary.Class.Bi w, Test.QuickCheck.Arbitrary.Arbitrary w, Pos.Binary.Class.Bi a, Test.QuickCheck.Arbitrary.Arbitrary a) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Crypto.Signing.ProxySignature w a)
+instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.SecretSharing.SecretSharingExtra
+instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.AsBinary Pos.Crypto.SecretSharing.SecretSharingExtra)
+instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.AsBinary Pos.Crypto.SecretSharing.SecretProof)
+instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.SecretSharing.Secret
+instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.AsBinary Pos.Crypto.SecretSharing.Secret)
+instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.SecretSharing.SecretProof
+instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.SecretSharing.EncShare
+instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.AsBinary Pos.Crypto.SecretSharing.EncShare)
+instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.SecretSharing.Share
+instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.AsBinary Pos.Crypto.SecretSharing.Share)
+instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.Arbitrary.SharedSecrets
+instance (Crypto.Hash.Types.HashAlgorithm algo, Pos.Binary.Class.Bi a) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Crypto.Hashing.AbstractHash algo a)
+instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.SafeSigning.PassPhrase
+instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.HD.HDPassphrase
+
+
 -- | A wrapper over Plutus (the scripting language used in transactions).
 module Pos.Script
 
@@ -391,65 +451,6 @@ shaStressRedeemer :: Int -> Script
 
 -- | Checks a signature N times. Should be used with <a>idValidator</a>.
 sigStressRedeemer :: Int -> Script
-
-
--- | <tt>Arbitrary</tt> unsafe instances for some types from <a>Types</a>.
-module Pos.Types.Arbitrary.Unsafe
-instance Pos.Util.Arbitrary.ArbitraryUnsafe Pos.Core.Types.SharedSeed
-instance Pos.Util.Arbitrary.ArbitraryUnsafe Pos.Core.Types.EpochIndex
-instance Pos.Util.Arbitrary.ArbitraryUnsafe Pos.Core.Types.LocalSlotIndex
-instance Pos.Util.Arbitrary.ArbitraryUnsafe Pos.Core.Types.Coin
-instance Pos.Util.Arbitrary.ArbitraryUnsafe Pos.Core.Types.Address
-instance Pos.Util.Arbitrary.ArbitraryUnsafe Pos.Core.Types.SlotId
-instance Pos.Util.Arbitrary.ArbitraryUnsafe Pos.Txp.Core.Types.TxOut
-
-
--- | <a>Arbitrary</a> instances for using in tests and benchmarks
-module Pos.Crypto.Arbitrary
-data SharedSecrets
-SharedSecrets :: SecretSharingExtra -> Secret -> SecretProof -> [(EncShare, Share)] -> Threshold -> [VssPublicKey] -> Int -> SharedSecrets
-[ssSecShare] :: SharedSecrets -> SecretSharingExtra
-[ssSecret] :: SharedSecrets -> Secret
-[ssSecProof] :: SharedSecrets -> SecretProof
-[ssShares] :: SharedSecrets -> [(EncShare, Share)]
-[ssThreshold] :: SharedSecrets -> Threshold
-[ssVSSPKs] :: SharedSecrets -> [VssPublicKey]
-[ssPos] :: SharedSecrets -> Int
-instance GHC.Classes.Eq Pos.Crypto.Arbitrary.SharedSecrets
-instance GHC.Show.Show Pos.Crypto.Arbitrary.SharedSecrets
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.Signing.PublicKey
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.Signing.SecretKey
-instance Pos.Util.Arbitrary.Nonrepeating Pos.Crypto.Signing.PublicKey
-instance Pos.Util.Arbitrary.Nonrepeating Pos.Crypto.Signing.SecretKey
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.RedeemSigning.RedeemPublicKey
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.RedeemSigning.RedeemSecretKey
-instance Pos.Util.Arbitrary.Nonrepeating Pos.Crypto.RedeemSigning.RedeemPublicKey
-instance Pos.Util.Arbitrary.Nonrepeating Pos.Crypto.RedeemSigning.RedeemSecretKey
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.SecretSharing.VssKeyPair
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.SecretSharing.VssPublicKey
-instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.AsBinary Pos.Crypto.SecretSharing.VssPublicKey)
-instance Pos.Util.Arbitrary.Nonrepeating Pos.Crypto.SecretSharing.VssKeyPair
-instance Pos.Util.Arbitrary.Nonrepeating Pos.Crypto.SecretSharing.VssPublicKey
-instance (Pos.Binary.Class.Bi a, Test.QuickCheck.Arbitrary.Arbitrary a) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Crypto.Signing.Signature a)
-instance (Pos.Binary.Class.Bi a, Test.QuickCheck.Arbitrary.Arbitrary a) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Crypto.RedeemSigning.RedeemSignature a)
-instance (Pos.Binary.Class.Bi a, Test.QuickCheck.Arbitrary.Arbitrary a) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Crypto.Signing.Signed a)
-instance (Pos.Binary.Class.Bi w, Test.QuickCheck.Arbitrary.Arbitrary w) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Crypto.Signing.ProxyCert w)
-instance (Pos.Binary.Class.Bi w, Test.QuickCheck.Arbitrary.Arbitrary w) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Crypto.Signing.ProxySecretKey w)
-instance (Pos.Binary.Class.Bi w, Test.QuickCheck.Arbitrary.Arbitrary w, Pos.Binary.Class.Bi a, Test.QuickCheck.Arbitrary.Arbitrary a) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Crypto.Signing.ProxySignature w a)
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.SecretSharing.SecretSharingExtra
-instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.AsBinary Pos.Crypto.SecretSharing.SecretSharingExtra)
-instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.AsBinary Pos.Crypto.SecretSharing.SecretProof)
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.SecretSharing.Secret
-instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.AsBinary Pos.Crypto.SecretSharing.Secret)
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.SecretSharing.SecretProof
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.SecretSharing.EncShare
-instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.AsBinary Pos.Crypto.SecretSharing.EncShare)
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.SecretSharing.Share
-instance Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.AsBinary Pos.Crypto.SecretSharing.Share)
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.Arbitrary.SharedSecrets
-instance (Crypto.Hash.Types.HashAlgorithm algo, Pos.Binary.Class.Bi a) => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Crypto.Hashing.AbstractHash algo a)
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.SafeSigning.PassPhrase
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Crypto.HD.HDPassphrase
 
 module Pos.Txp.Core
 
@@ -511,7 +512,19 @@ TxDistribution :: NonEmpty TxOutDistribution -> TxDistribution
 [getTxDistribution] :: TxDistribution -> NonEmpty TxOutDistribution
 
 -- | Data that is being signed when creating a TxSig.
-type TxSigData = (TxId, Word32, Hash (NonEmpty TxOut), Hash TxDistribution)
+data TxSigData
+TxSigData :: !TxIn -> !(Hash (NonEmpty TxOut)) -> !(Hash TxDistribution) -> TxSigData
+
+-- | Input that we're signing (i.e. our signature certifies that we own
+--   funds referenced by this input)
+[txSigInput] :: TxSigData -> !TxIn
+
+-- | Outputs of the transaction (i.e. our signature certifies that we
+--   actually want the funds to go to these particular outputs)
+[txSigOutsHash] :: TxSigData -> !(Hash (NonEmpty TxOut))
+
+-- | Distribution of the transaction
+[txSigDistrHash] :: TxSigData -> !(Hash TxDistribution)
 
 -- | <a>Signature</a> of addrId.
 type TxSig = Signature TxSigData
@@ -978,7 +991,7 @@ readLoggerConfig :: MonadIO m => Maybe FilePath -> m LoggerConfig
 -- | Decides which secret-sharing algorithm to use.
 sscAlgoParser :: Parser SscAlgo
 data CommonArgs
-CommonArgs :: !Bool -> ![DHTNode] -> !(Maybe FilePath) -> !(Maybe FilePath) -> !(Maybe FilePath) -> !SscAlgo -> !Bool -> ![Text] -> ![Text] -> !(Maybe (Int, Int)) -> !(Maybe (Int, Int)) -> !(Maybe (Int, Int, Integer, Double)) -> !Bool -> !Timestamp -> CommonArgs
+CommonArgs :: !Bool -> ![DHTNode] -> !(Maybe FilePath) -> !(Maybe FilePath) -> !(Maybe FilePath) -> !SscAlgo -> !Bool -> ![Text] -> ![Text] -> !(Maybe (Int, Int)) -> !(Maybe (Int, Int)) -> !(Maybe (Int, Int, Integer, Double)) -> !Bool -> CommonArgs
 [dhtExplicitInitial] :: CommonArgs -> !Bool
 [dhtPeers] :: CommonArgs -> ![DHTNode]
 [dhtPeersFile] :: CommonArgs -> !(Maybe FilePath)
@@ -992,7 +1005,6 @@ CommonArgs :: !Bool -> ![DHTNode] -> !(Maybe FilePath) -> !(Maybe FilePath) -> !
 [bitcoinDistr] :: CommonArgs -> !(Maybe (Int, Int))
 [richPoorDistr] :: CommonArgs -> !(Maybe (Int, Int, Integer, Double))
 [expDistr] :: CommonArgs -> !Bool
-[sysStart] :: CommonArgs -> !Timestamp
 commonArgsParser :: String -> Parser CommonArgs
 optionalJSONPath :: Parser (Maybe FilePath)
 optionalLogPrefix :: Parser (Maybe String)
@@ -1110,11 +1122,11 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679113157 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679113157)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679113150 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679113150)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679113146 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679113146)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679173306 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679173306)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679173298 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679173298)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679173290 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679173290)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.Timestamp
+instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Timestamp.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SoftwareVersion
 instance Test.QuickCheck.Arbitrary.Arbitrary Data.Time.Units.Millisecond
 instance Test.QuickCheck.Arbitrary.Arbitrary Data.Time.Units.Microsecond
@@ -1160,7 +1172,7 @@ instance GHC.Classes.Eq Pos.Types.Arbitrary.CoinPairOverflowSum
 instance GHC.Show.Show Pos.Types.Arbitrary.CoinPairOverflowSum
 instance System.Random.Random Pos.Core.Types.EpochIndex
 instance System.Random.Random Pos.Core.Types.LocalSlotIndex
-instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Txp.Core.Types.TxOutAux
+instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Txp.Core.Types.TxSigData
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.Coin
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Arbitrary.CoinPairOverflowSum
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Types.Arbitrary.SafeCoinPairSum
@@ -1179,6 +1191,7 @@ instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.LocalSlotIndex
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SlotId
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.EpochOrSlot
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Txp.Core.Types.TxInWitness
+instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Txp.Core.Types.TxOutAux
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Txp.Core.Types.TxOut
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.ChainDifficulty
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.Script
@@ -3020,11 +3033,11 @@ ToilModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> !exten
 [_tmUndos] :: GenericToilModifier extension -> !UndoMap
 [_tmExtra] :: GenericToilModifier extension -> !extension
 type ToilModifier = GenericToilModifier ()
-tmUtxo :: forall extension_a1SLA. Lens' (GenericToilModifier extension_a1SLA) UtxoModifier
-tmBalances :: forall extension_a1SLA. Lens' (GenericToilModifier extension_a1SLA) BalancesView
-tmMemPool :: forall extension_a1SLA. Lens' (GenericToilModifier extension_a1SLA) MemPool
-tmUndos :: forall extension_a1SLA. Lens' (GenericToilModifier extension_a1SLA) UndoMap
-tmExtra :: forall extension_a1SLA extension_a1SND. Lens (GenericToilModifier extension_a1SLA) (GenericToilModifier extension_a1SND) extension_a1SLA extension_a1SND
+tmUtxo :: forall extension_a1U4y. Lens' (GenericToilModifier extension_a1U4y) UtxoModifier
+tmBalances :: forall extension_a1U4y. Lens' (GenericToilModifier extension_a1U4y) BalancesView
+tmMemPool :: forall extension_a1U4y. Lens' (GenericToilModifier extension_a1U4y) MemPool
+tmUndos :: forall extension_a1U4y. Lens' (GenericToilModifier extension_a1U4y) UndoMap
+tmExtra :: forall extension_a1U4y extension_a1U6B. Lens (GenericToilModifier extension_a1U4y) (GenericToilModifier extension_a1U6B) extension_a1U4y extension_a1U6B
 
 -- | Environment used by Toil.
 data ToilEnv
@@ -4009,6 +4022,12 @@ runStatsMode :: forall ssc a. (SscConstraint ssc) => RealModeResources -> NodePa
 
 -- | ServiceMode runner.
 runServiceMode :: RealModeResources -> BaseParams -> ListenersWithOut ServiceMode -> OutSpecs -> ActionSpec ServiceMode a -> Production a
+
+-- | Runs node as time-slave inside IO monad.
+runTimeSlaveReal :: (SscListenersClass ssc, SscHelpersClass ssc) => Proxy ssc -> RealModeResources -> BaseParams -> Production Timestamp
+
+-- | Runs time-lord to acquire system start.
+runTimeLordReal :: LoggingParams -> Production Timestamp
 addDevListeners :: MinWorkMode m => Timestamp -> ListenersWithOut m -> ListenersWithOut m
 setupLoggers :: MonadIO m => LoggingParams -> m ()
 bracketDHTInstance :: BaseParams -> (KademliaDHTInstance -> Production a) -> Production a
