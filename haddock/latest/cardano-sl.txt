@@ -978,7 +978,7 @@ readLoggerConfig :: MonadIO m => Maybe FilePath -> m LoggerConfig
 -- | Decides which secret-sharing algorithm to use.
 sscAlgoParser :: Parser SscAlgo
 data CommonArgs
-CommonArgs :: !Bool -> ![DHTNode] -> !(Maybe FilePath) -> !(Maybe FilePath) -> !(Maybe FilePath) -> !SscAlgo -> !Bool -> ![Text] -> ![Text] -> !(Maybe (Int, Int)) -> !(Maybe (Int, Int)) -> !(Maybe (Int, Int, Integer, Double)) -> !Bool -> !Timestamp -> CommonArgs
+CommonArgs :: !Bool -> ![DHTNode] -> !(Maybe FilePath) -> !(Maybe FilePath) -> !(Maybe FilePath) -> !SscAlgo -> !Bool -> ![Text] -> ![Text] -> !(Maybe (Int, Int)) -> !(Maybe (Int, Int)) -> !(Maybe (Int, Int, Integer, Double)) -> !Bool -> CommonArgs
 [dhtExplicitInitial] :: CommonArgs -> !Bool
 [dhtPeers] :: CommonArgs -> ![DHTNode]
 [dhtPeersFile] :: CommonArgs -> !(Maybe FilePath)
@@ -992,7 +992,6 @@ CommonArgs :: !Bool -> ![DHTNode] -> !(Maybe FilePath) -> !(Maybe FilePath) -> !
 [bitcoinDistr] :: CommonArgs -> !(Maybe (Int, Int))
 [richPoorDistr] :: CommonArgs -> !(Maybe (Int, Int, Integer, Double))
 [expDistr] :: CommonArgs -> !Bool
-[sysStart] :: CommonArgs -> !Timestamp
 commonArgsParser :: String -> Parser CommonArgs
 optionalJSONPath :: Parser (Maybe FilePath)
 optionalLogPrefix :: Parser (Maybe String)
@@ -4009,6 +4008,12 @@ runStatsMode :: forall ssc a. (SscConstraint ssc) => RealModeResources -> NodePa
 
 -- | ServiceMode runner.
 runServiceMode :: RealModeResources -> BaseParams -> ListenersWithOut ServiceMode -> OutSpecs -> ActionSpec ServiceMode a -> Production a
+
+-- | Runs node as time-slave inside IO monad.
+runTimeSlaveReal :: (SscListenersClass ssc, SscHelpersClass ssc) => Proxy ssc -> RealModeResources -> BaseParams -> Production Timestamp
+
+-- | Runs time-lord to acquire system start.
+runTimeLordReal :: LoggingParams -> Production Timestamp
 addDevListeners :: MinWorkMode m => Timestamp -> ListenersWithOut m -> ListenersWithOut m
 setupLoggers :: MonadIO m => LoggingParams -> m ()
 bracketDHTInstance :: BaseParams -> (KademliaDHTInstance -> Production a) -> Production a
