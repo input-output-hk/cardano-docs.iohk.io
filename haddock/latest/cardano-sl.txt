@@ -1109,9 +1109,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679113157 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679113157)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679113150 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679113150)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679113146 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679113146)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679113160 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679113160)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679113153 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679113153)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679113149 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679113149)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SoftwareVersion
@@ -1312,7 +1312,7 @@ getBlock :: (SscHelpersClass ssc, MonadDB m) => HeaderHash -> m (Maybe (Block ss
 getBlockHeader :: (SscHelpersClass ssc, MonadDB m) => HeaderHash -> m (Maybe (BlockHeader ssc))
 
 -- | Get undo data for block with given hash from Block DB.
-getUndo :: MonadDB m => HeaderHash -> m (Maybe Undo)
+getUndo :: (MonadDB m) => HeaderHash -> m (Maybe Undo)
 
 -- | Retrieves block and undo together.
 getBlockWithUndo :: (SscHelpersClass ssc, MonadDB m) => HeaderHash -> m (Maybe (Block ssc, Undo))
@@ -1562,7 +1562,7 @@ loadBlundsFromTipWhile :: (SscHelpersClass ssc, MonadDB m) => (Block ssc -> Bool
 --   given.
 loadBlundsFromTipByDepth :: (SscHelpersClass ssc, MonadDB m) => Word -> m (NewestFirst [] (Blund ssc))
 sanityCheckDB :: (MonadMask m, MonadDB m, WithLogger m) => m ()
-instance (Control.Monad.IO.Class.MonadIO m, Control.Monad.Catch.MonadThrow m) => Pos.DB.Class.MonadDBCore (Pos.DB.Holder.DBHolder m)
+instance (Control.Monad.IO.Class.MonadIO m, Control.Monad.Catch.MonadThrow m, Control.Monad.Catch.MonadCatch m) => Pos.DB.Class.MonadDBCore (Pos.DB.Holder.DBHolder m)
 
 
 -- | Monadic represantion of something that has <tt>json</tt> journaled log
@@ -3019,11 +3019,11 @@ ToilModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> !exten
 [_tmUndos] :: GenericToilModifier extension -> !UndoMap
 [_tmExtra] :: GenericToilModifier extension -> !extension
 type ToilModifier = GenericToilModifier ()
-tmUtxo :: forall extension_a1SLA. Lens' (GenericToilModifier extension_a1SLA) UtxoModifier
-tmBalances :: forall extension_a1SLA. Lens' (GenericToilModifier extension_a1SLA) BalancesView
-tmMemPool :: forall extension_a1SLA. Lens' (GenericToilModifier extension_a1SLA) MemPool
-tmUndos :: forall extension_a1SLA. Lens' (GenericToilModifier extension_a1SLA) UndoMap
-tmExtra :: forall extension_a1SLA extension_a1SND. Lens (GenericToilModifier extension_a1SLA) (GenericToilModifier extension_a1SND) extension_a1SLA extension_a1SND
+tmUtxo :: forall extension_a1SMd. Lens' (GenericToilModifier extension_a1SMd) UtxoModifier
+tmBalances :: forall extension_a1SMd. Lens' (GenericToilModifier extension_a1SMd) BalancesView
+tmMemPool :: forall extension_a1SMd. Lens' (GenericToilModifier extension_a1SMd) MemPool
+tmUndos :: forall extension_a1SMd. Lens' (GenericToilModifier extension_a1SMd) UndoMap
+tmExtra :: forall extension_a1SMd extension_a1SOg. Lens (GenericToilModifier extension_a1SMd) (GenericToilModifier extension_a1SOg) extension_a1SMd extension_a1SOg
 
 -- | Environment used by Toil.
 data ToilEnv
