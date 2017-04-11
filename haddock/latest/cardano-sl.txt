@@ -650,15 +650,11 @@ type TxpGlobalRollbackMode m = (WithLogger m, MonadDB m)
 type TxpBlock = Either (Some IsGenesisHeader) (Some IsMainHeader, TxPayload)
 type TxpBlund = (TxpBlock, TxpUndo)
 data TxpGlobalSettings
-TxpGlobalSettings :: (forall m. TxpGlobalVerifyMode m => Bool -> OldestFirst NE TxpBlock -> m (OldestFirst NE TxpUndo)) -> (forall m. TxpGlobalApplyMode m => OldestFirst NE TxpBlund -> m SomeBatchOp) -> (forall m. TxpGlobalRollbackMode m => NewestFirst NE TxpBlund -> m SomeBatchOp) -> TxpGlobalSettings
+TxpGlobalSettings :: (forall m. TxpGlobalVerifyMode m => OldestFirst NE TxpBlock -> m (OldestFirst NE TxpUndo)) -> (forall m. TxpGlobalApplyMode m => OldestFirst NE TxpBlund -> m SomeBatchOp) -> (forall m. TxpGlobalRollbackMode m => NewestFirst NE TxpBlund -> m SomeBatchOp) -> TxpGlobalSettings
 
 -- | Verify a chain of payloads from blocks and return txp undos for each
 --   payload.
---   
---   First argument determines whether it should be checked that all data
---   from transactions is known (script versions, attributes, addresses,
---   witnesses).
-[tgsVerifyBlocks] :: TxpGlobalSettings -> forall m. TxpGlobalVerifyMode m => Bool -> OldestFirst NE TxpBlock -> m (OldestFirst NE TxpUndo)
+[tgsVerifyBlocks] :: TxpGlobalSettings -> forall m. TxpGlobalVerifyMode m => OldestFirst NE TxpBlock -> m (OldestFirst NE TxpUndo)
 
 -- | Apply chain of <i>definitely</i> valid blocks to Txp's GState.
 [tgsApplyBlocks] :: TxpGlobalSettings -> forall m. TxpGlobalApplyMode m => OldestFirst NE TxpBlund -> m SomeBatchOp
@@ -1246,7 +1242,7 @@ genesisHash :: Hash a
 --   references previous block and/or is referenced by next block, use
 --   header verification (via vbpVerifyHeader).
 data VerifyBlockParams ssc
-VerifyBlockParams :: !(Maybe (VerifyHeaderParams ssc)) -> !Bool -> !Bool -> !Bool -> !Byte -> VerifyBlockParams ssc
+VerifyBlockParams :: !(Maybe (VerifyHeaderParams ssc)) -> !Bool -> !Bool -> !Bool -> !(Maybe BlockVersion) -> !Byte -> VerifyBlockParams ssc
 
 -- | Verifies header accordingly to params (<a>verifyHeader</a>)
 [vbpVerifyHeader] :: VerifyBlockParams ssc -> !(Maybe (VerifyHeaderParams ssc))
@@ -1259,6 +1255,14 @@ VerifyBlockParams :: !(Maybe (VerifyHeaderParams ssc)) -> !Bool -> !Bool -> !Boo
 
 -- | Check that's number of sks is limited (1000 for now).
 [vbpVerifyProxySKs] :: VerifyBlockParams ssc -> !Bool
+
+-- | Verify that there are no unknown script, address or witness versions
+--   anywhere in the block. The check is only done if
+--   <a>vbpVerifyVersions</a> is <a>Just</a> and the current adopted
+--   BlockVersion (passed in the <a>Just</a>) is higher (or equal) than the
+--   version of the block we're checking, because in this case there really
+--   shouldn't be anything unparseable in the block.
+[vbpVerifyVersions] :: VerifyBlockParams ssc -> !(Maybe BlockVersion)
 
 -- | Maximal block size.
 [vbpMaxSize] :: VerifyBlockParams ssc -> !Byte
@@ -1285,7 +1289,7 @@ verifyBlock :: (SscHelpersClass ssc, BiSsc ssc) => VerifyBlockParams ssc -> Bloc
 --   foldl' is used here which eliminates laziness of triple. It doesn't
 --   affect laziness of <a>VerificationRes</a> which is good because
 --   laziness for this data type is crucial.
-verifyBlocks :: forall ssc f t. (SscHelpersClass ssc, BiSsc ssc, t ~ OldestFirst f (Block ssc), NontrivialContainer t) => Maybe SlotId -> BlockVersionData -> Maybe SlotLeaders -> OldestFirst f (Block ssc) -> VerificationRes
+verifyBlocks :: forall ssc f t. (SscHelpersClass ssc, BiSsc ssc, t ~ OldestFirst f (Block ssc), NontrivialContainer t) => Maybe SlotId -> BlockVersionData -> Maybe SlotLeaders -> Maybe BlockVersion -> OldestFirst f (Block ssc) -> VerificationRes
 
 -- | Perform cheap checks of GenericBlock, which can be done using only
 --   block itself. Checks which can be done using only header are ignored
@@ -2938,18 +2942,13 @@ ToilInvalidInputs :: ![Text] -> ToilVerFailure
 ToilTooLargeTx :: !Byte -> !Byte -> ToilVerFailure
 [ttltSize] :: ToilVerFailure -> !Byte
 [ttltLimit] :: ToilVerFailure -> !Byte
-ToilUnknownAttributes :: !ByteString -> ToilVerFailure
 type GlobalToilMode m = (MonadUtxo m, MonadBalances m, MonadToilEnv m, WithLogger m)
 
 -- | Verify transactions correctness with respect to Utxo applying them
 --   one-by-one. Note: transactions must be topsorted to pass check.
 --   Warning: this function may apply some transactions and fail
 --   eventually. Use it only on temporary data.
---   
---   If the first argument is <a>True</a>, all data (script versions,
---   witnesses, addresses, attributes) must be known. Otherwise unknown
---   data is just ignored.
-verifyToil :: (GlobalToilMode m, MonadError ToilVerFailure m) => Bool -> [TxAux] -> m TxpUndo
+verifyToil :: (GlobalToilMode m, MonadError ToilVerFailure m) => [TxAux] -> m TxpUndo
 
 -- | Apply transactions from one block. They must be valid (for example, it
 --   implies topological sort).
@@ -3034,11 +3033,11 @@ ToilModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> !exten
 [_tmUndos] :: GenericToilModifier extension -> !UndoMap
 [_tmExtra] :: GenericToilModifier extension -> !extension
 type ToilModifier = GenericToilModifier ()
-tmUtxo :: forall extension_a1Umv. Lens' (GenericToilModifier extension_a1Umv) UtxoModifier
-tmBalances :: forall extension_a1Umv. Lens' (GenericToilModifier extension_a1Umv) BalancesView
-tmMemPool :: forall extension_a1Umv. Lens' (GenericToilModifier extension_a1Umv) MemPool
-tmUndos :: forall extension_a1Umv. Lens' (GenericToilModifier extension_a1Umv) UndoMap
-tmExtra :: forall extension_a1Umv extension_a1Uoy. Lens (GenericToilModifier extension_a1Umv) (GenericToilModifier extension_a1Uoy) extension_a1Umv extension_a1Uoy
+tmUtxo :: forall extension_a1U4w. Lens' (GenericToilModifier extension_a1U4w) UtxoModifier
+tmBalances :: forall extension_a1U4w. Lens' (GenericToilModifier extension_a1U4w) BalancesView
+tmMemPool :: forall extension_a1U4w. Lens' (GenericToilModifier extension_a1U4w) MemPool
+tmUndos :: forall extension_a1U4w. Lens' (GenericToilModifier extension_a1U4w) UndoMap
+tmExtra :: forall extension_a1U4w extension_a1U6z. Lens (GenericToilModifier extension_a1U4w) (GenericToilModifier extension_a1U6z) extension_a1U4w extension_a1U6z
 
 -- | Environment used by Toil.
 data ToilEnv
@@ -3050,9 +3049,8 @@ ToilEnv :: !Byte -> ToilEnv
 data VTxContext
 VTxContext :: !Bool -> VTxContext
 
--- | Verify that script versions in tx are known, addresses' and witnesses'
---   types are known, attributes are known too.
-[vtcVerifyAllIsKnown] :: VTxContext -> !Bool
+-- | Verify that script &amp; address versions in tx are known
+[vtcVerifyVersions] :: VTxContext -> !Bool
 
 -- | CHECK: Verify Tx correctness using <a>MonadUtxoRead</a>. Specifically
 --   there are the following checks:
@@ -3062,18 +3060,15 @@ VTxContext :: !Bool -> VTxContext
 --   <li>sum of inputs &gt;= sum of outputs;</li>
 --   <li>every input has a proper witness verifying that input;</li>
 --   <li>script witnesses have matching script versions;</li>
---   <li>if <a>vtcVerifyAllIsKnown</a> is <a>True</a>, addresses' versions
---   are verified to be known, as well as witnesses, attributes, script
---   versions.</li>
+--   <li>if <a>vtcVerifyVersions</a> is <a>True</a>, addresses' versions
+--   are verified to be known.</li>
 --   </ul>
 --   
 --   Note that <a>verifyTxUtxo</a> doesn't attempt to verify scripts with
 --   versions higher than maximum script version we can handle. That's
 --   because we want blocks with such transactions to be accepted (to avoid
 --   hard forks). However, we won't include such transactions into blocks
---   when we're creating a block (because transactions for inclusion into
---   blocks are verified with <a>vtcVerifyAllIsKnown</a> set to
---   <a>True</a>, so unknown script versions are rejected).
+--   when we're creating a block.
 verifyTxUtxo :: (MonadUtxoRead m, MonadError ToilVerFailure m) => VTxContext -> TxAux -> m TxUndo
 
 -- | Remove unspent outputs used in given transaction, add new unspent
