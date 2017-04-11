@@ -37,7 +37,8 @@ of NTP servers. Specifically, each node periodically queries NTP
 servers and calculates mean of results. Node stores last margin
 (difference between local time and global time) and last obtained
 global time. Node also stores last slot to ensure that slots are
-monotonic.
+monotonic. Please read about [Time in Cardano SL](/technical/time)
+for implementation details.
 
 ## Coin Tossing and Verifiable Secret Sharing
 
@@ -56,7 +57,8 @@ network. `VssCertificate`s are stored in blocks.
 PVSS scheme by Schoenmakers uses share verification information which
 also includes a commitment to the secret. It is also used as a
 commitment in Ouroboros protocol. PVSS scheme has been implemented
-over the elliptic curve secp256r1.
+over the elliptic curve secp256r1. Please read about [PVSS implementation in Cardano SL](/technical/pvss/)
+for more details. 
 
 ## Block Generation Time
 
