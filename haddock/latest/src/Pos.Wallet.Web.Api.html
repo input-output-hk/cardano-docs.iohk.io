@@ -75,9 +75,9 @@
      :&gt; ReqBody '[JSON] CWalletInit
      :&gt; Post '[JSON] (Either WalletError CWallet)
     :&lt;|&gt;
-     ----------------------------------------------------------------------------
+     -------------------------------------------------------------------------
      -- Addresses
-     ----------------------------------------------------------------------------
+     -------------------------------------------------------------------------
      &quot;api&quot;
      :&gt; &quot;addresses&quot;
      :&gt; Capture &quot;address&quot; Text
@@ -85,10 +85,11 @@
      :&gt; Capture &quot;currency&quot; CCurrency
      :&gt; Get '[JSON] (Either WalletError Bool)
     :&lt;|&gt;
-     ----------------------------------------------------------------------------
+     -------------------------------------------------------------------------
      -- Profile(s)
-     ----------------------------------------------------------------------------
-     -- TODO: A single profile? Should be possible in the future to have multiple profiles?
+     -------------------------------------------------------------------------
+     -- TODO: A single profile? Should be possible in the future to have
+     -- multiple profiles?
      &quot;api&quot;
      :&gt; &quot;profile&quot;
      :&gt; Get '[JSON] (Either WalletError CProfile)
@@ -98,10 +99,11 @@
      :&gt; ReqBody '[JSON] CProfile
      :&gt; Post '[JSON] (Either WalletError CProfile)
     :&lt;|&gt;
-     ----------------------------------------------------------------------------
+     -------------------------------------------------------------------------
      -- Transactons
-     ----------------------------------------------------------------------------
-    -- TODO: for now we only support one2one sending. We should extend this to support many2many
+     -------------------------------------------------------------------------
+    -- TODO: for now we only support one2one sending. We should extend this
+    -- to support many2many
      &quot;api&quot;
      :&gt; &quot;txs&quot;
      :&gt; &quot;payments&quot;
@@ -111,7 +113,8 @@
      :&gt; Capture &quot;amount&quot; Coin
      :&gt; Post '[JSON] (Either WalletError CTx)
     :&lt;|&gt;
-    -- TODO: for now we only support one2one sending. We should extend this to support many2many
+    -- TODO: for now we only support one2one sending. We should extend this
+    -- to support many2many
      &quot;api&quot;
      :&gt; &quot;txs&quot;
      :&gt; &quot;payments&quot;
@@ -150,9 +153,9 @@
      :&gt; QueryParam &quot;limit&quot; Word
      :&gt; Get '[JSON] (Either WalletError ([CTx], Word))
     :&lt;|&gt;
-     ----------------------------------------------------------------------------
+     -------------------------------------------------------------------------
      -- Updates
-     ----------------------------------------------------------------------------
+     -------------------------------------------------------------------------
      &quot;api&quot;
      :&gt; &quot;update&quot;
      :&gt; Get '[JSON] (Either WalletError CUpdateInfo)
@@ -161,9 +164,9 @@
      :&gt; &quot;update&quot;
      :&gt; Post '[JSON] (Either WalletError ())
     :&lt;|&gt;
-     ----------------------------------------------------------------------------
+     -------------------------------------------------------------------------
      -- Redemptions
-     ----------------------------------------------------------------------------
+     -------------------------------------------------------------------------
      &quot;api&quot;
      :&gt; &quot;redemptions&quot;
      :&gt; &quot;ada&quot;
@@ -177,9 +180,9 @@
      :&gt; ReqBody '[JSON] CPostVendWalletRedeem
      :&gt; Post '[JSON] (Either WalletError CTx)
     :&lt;|&gt;
-     ----------------------------------------------------------------------------
+     -------------------------------------------------------------------------
      -- Reporting
-     ----------------------------------------------------------------------------
+     -------------------------------------------------------------------------
      &quot;api&quot;
      :&gt; &quot;reporting&quot;
      :&gt; &quot;initialized&quot;
@@ -192,9 +195,9 @@
      :&gt; MultipartForm CElectronCrashReport
      :&gt; Post '[JSON] (Either WalletError ())
     :&lt;|&gt;
-     ----------------------------------------------------------------------------
+     -------------------------------------------------------------------------
      -- Settings
-     ----------------------------------------------------------------------------
+     -------------------------------------------------------------------------
      &quot;api&quot;
      :&gt; &quot;settings&quot;
      :&gt; &quot;slots&quot;
