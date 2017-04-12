@@ -4,7 +4,7 @@ title: Addresses
 permalink: /cardano/addresses/
 group: cardano
 ---
-[//]: # (Reviewed at d0d6c2fedefb642744a24b4b0a6d8d7ad11532f6)
+[//]: # (Reviewed at a6a1cdf72c7e167a13f500c0679c01fe4cfa0ca8)
 
 # Addresses in Cardano SL
 
@@ -44,7 +44,7 @@ human users who enter the data manually, copying it from some visual source,
 and also allows easy copy and paste by double-clicking which usually selects
 the whole string.
 
-Currently there are only two types of addresses in Cardano: `PubKeyAddress`
+There are currently only two types of addresses in Cardano: `PubKeyAddress`
 and `ScriptAddress`. Here are the `type`s for each:
 
 | `type`  | Address type    |
@@ -67,7 +67,7 @@ We also adopt a way to make sure that an address is entered correctly
 by appending a 32-bit Cyclic Redundancy Code checksum (`CRC32`) to
 the end of the address. This way, the full address is
 [generated](https://github.com/input-output-hk/cardano-sl/blob/2f3c7df7d324bc056fefe0fce856e39a692f6d9f/src/Pos/Binary/Address.hs#L50)
-with the following rule, where `+` is concatenation:
+with the following rule, where `+` means concatenation:
 
 	address' ← type + address_hash(x)
 	address ← toBase58(address' + crc32(address'))
@@ -84,7 +84,7 @@ type, hash and checksum):
 ## Public Key Addresses
 
 As mentioned in the [Introduction](/#you-own-your-money), the
-wallets you see in the user interface are a convenient representation of
+wallets you can see in the user interface are a convenient representation of
 the fact that you own a secret key to spend money in this particular
 wallet. But how is such spending verified by the network and how can you
 receive money from others? The answer is that along with the secret key
@@ -124,7 +124,7 @@ To quote Bitcoin Wiki,
 	address' ← 0x01 + address_hash(serialize(validator_script))
 	address ← toBase58(address' + crc32(address'))
 
-## Other address types
+## Other Address Types
 
 In the future, we may use the update system to introduce other address types
 with different values in the `type` field.

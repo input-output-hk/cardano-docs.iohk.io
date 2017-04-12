@@ -5,11 +5,11 @@ permalink: /cardano/differences/
 group: cardano
 visible: true
 ---
-[//]: # (Reviewed at d0d6c2fedefb642744a24b4b0a6d8d7ad11532f6)
+[//]: # (Reviewed at a6a1cdf72c7e167a13f500c0679c01fe4cfa0ca8)
 
 # Differences Between Paper and Implementation
 
-The goal of this document is to enumerate all the ways in which
+The goal of this document is to enumerate all ways in which
 *cardano-sl* implementation differs from the specifications presented in
 the paper and clarify everything that may be obscure after reading the
 paper.
@@ -21,8 +21,7 @@ This document is divided into four parts:
     paper, but are implemented differently in Cardano SL.
  3. *Added features* part briefly mentions new features which are not
     described in paper, but have been implemented in Cardano SL.
- 4. *Ommisions* part says which topics described in paper haven't
-    been implemented in Cardano SL.
+ 4. *Ommisions* part lists topics described in paper but not implemented into Cardano SL.
 
 # Clarifications
 
@@ -34,9 +33,9 @@ time securely and with enough precision.
 
 In *cardano-sl* current time is obtained by querying a predefined set
 of NTP servers. Specifically, each node periodically queries NTP
-servers and calculates mean of results. Node stores last margin
-(difference between local time and global time) and last obtained
-global time. Node also stores last slot to ensure that slots are
+servers and calculates mean value of results. A node stores last margin
+(i.e. difference between local time and global time) and last obtained
+global time. A node also stores last slot to ensure that slots are
 monotonic.
 
 ## Coin Tossing and Verifiable Secret Sharing
@@ -62,7 +61,7 @@ over the elliptic curve secp256r1.
 
 In *Ouroboros* paper, they do not state explicitly when a slot leader
 should generate a new block and send it to the network: it can be done
-in the beginning of a slot, in the end of a slot, in the middle of a slot,
+at the beginning of a slot, at the end of a slot, in the middle of a slot,
 etc. In `cardano-sl` there is a special constant (`networkDiameter`)
 which approximates maximal time necessary to broadcast a block to all
 nodes in the network. A block is generated and announced
@@ -78,8 +77,8 @@ it's barely possible to consider delegated stake in checking
 eligibility threshold. On the other hand, if all certificates are
 stored in the blockchain, it may lead to a blockchain bloat when a big portion
 of blocks will be occupied by proxy certificates. Submitting a
-certificate is free, so adversary can generate as many certificates as
-she wants.
+certificate is free, so adversaries can generate as many certificates as
+they want.
 
 There are two types of delegation in `cardano-sl`: heavyweight and
 lightweight. There is a threshold on stake that one has to posses in
@@ -94,23 +93,23 @@ suggests, *delegation-by-proxy* scheme is used.
 
 ## Leader Selection Process
 
-In *Ouroboros* Leader Selection Process is described as flipping
+In *Ouroboros*, Leader Selection Process is described as flipping
 a `(1 - p₁) … (1 - pⱼ₋₁) pⱼ`-biased coin to see whether `j`-th
 stakeholder is selected as leader of given slot. Here `pⱼ` is
 probability of selecting `j`-th stakeholder.
 
-In `cardano-sl` it is implemented in a slightly different way. `R`
+In `cardano-sl`, it is implemented in a slightly different way. `R`
 random numbers in a range `[0 .. totalCoins]` are generated where `R`
 is number of slots in epoch. Stakeholders occupy different subsegments
 on this range proportional to their stakes. This way each random
-number maps into stakeholder.  Also, as paper suggests, short
+number maps into stakeholder.  Also, as the paper suggests, short
 (32-bits) seed is used for initializing PRG instead of using `n ⌈log
 λ⌉` random bits.
 
 ## Commitments, openings, shares sending
 
 Time of sending is randomized within small interval. It is done to
-avoid network overload when all coin tossing participants send their
+avoid network overload when all coin-tossing participants send their
 data at the same time. This interval is chosen to be small enough for
 protocol to remain secure. If this data is sent too late and there are
 many adversaries leading last few slots of a certain phase, it can
@@ -126,16 +125,14 @@ honest stakeholders control 60% of stake in total (each of them
 controls 20%) and there are 40 adversary stakeholders each having 1%
 of stake, then adversary has full control over secret sharing.
 
-To overcome this problem, in *cardano-sl* for each stakeholder we
-generate number of shares proportional to their stake.
-
+To overcome this problem, a number of shares for each stakeholder proportional to their stake is generated in *cardano-sl*.
 
 ## Randomness Generation Failure
 
 *Ouroboros* doesn't cover the situation when commitments can't be
 recovered. However, practical implementation should account for such
 scenarios. *cardano-sl* implementation uses a seed consisting of all
-zeroes if there no commitments could be recovered.
+zeroes if there are no commitments that could be recovered.
 
 # Added Features
 
