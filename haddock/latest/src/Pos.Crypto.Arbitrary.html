@@ -139,7 +139,7 @@ instance (Bi w, Arbitrary w, Bi a, Arbitrary a) =&gt;
         issuerSk &lt;- arbitrary
         w &lt;- arbitrary
         let psk = createProxySecretKey issuerSk (toPublic delegateSk) w
-        proxySign delegateSk psk &lt;$&gt; arbitrary
+        proxySign SignProxySK delegateSk psk &lt;$&gt; arbitrary
 
 ----------------------------------------------------------------------------
 -- Arbitrary secrets

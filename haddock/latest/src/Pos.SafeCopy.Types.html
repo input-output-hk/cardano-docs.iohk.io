@@ -1,0 +1,183 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE TemplateHaskell      #-}</span><span>
+</span><a name="line-2"></a><span class="hs-pragma">{-# LANGUAGE UndecidableInstances #-}</span><span>
+</span><a name="line-3"></a><span>
+</span><a name="line-4"></a><span class="hs-comment">-- | SafeCopy serialization of Pos.Types.* modules</span><span>
+</span><a name="line-5"></a><span>
+</span><a name="line-6"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">SafeCopy</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span><span>
+</span><a name="line-7"></a><span>       </span><span class="hs-special">(</span><span>
+</span><a name="line-8"></a><span>       </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-9"></a><span>
+</span><a name="line-10"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">SafeCopy</span><span>         </span><span class="hs-special">(</span><span class="hs-identifier hs-type">SafeCopy</span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">base</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">contain</span><span class="hs-special">,</span><span>
+</span><a name="line-11"></a><span>                                        </span><span class="hs-identifier hs-var">deriveSafeCopySimple</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">safeGet</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">safePut</span><span class="hs-special">)</span><span>
+</span><a name="line-12"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Serialize</span><span>        </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">Cereal</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">getWord8</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">putWord8</span><span class="hs-special">)</span><span>
+</span><a name="line-13"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Universum</span><span>
+</span><a name="line-14"></a><span>
+</span><a name="line-15"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Crypto</span><span class="hs-operator">.</span><span class="hs-identifier">HD</span><span>         </span><span class="hs-special">(</span><span class="hs-identifier hs-type">HDAddressPayload</span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><a name="line-16"></a><span class="hs-keyword">import</span><span>           </span><a href="Pos.Ssc.Class.Types.html"><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Ssc</span><span class="hs-operator">.</span><span class="hs-identifier">Class</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>   </span><span class="hs-special">(</span><a href="Pos.Ssc.Class.Types.html#Ssc"><span class="hs-identifier hs-type">Ssc</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><a name="line-17"></a><span>
+</span><a name="line-18"></a><span class="hs-comment">-- FIXME</span><span>
+</span><a name="line-19"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Core</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span><span>
+</span><a name="line-20"></a><span class="hs-keyword">import</span><span>           </span><a href="Pos.Txp.Core.Types.html"><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Txp</span><span class="hs-operator">.</span><span class="hs-identifier">Core</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-21"></a><span class="hs-keyword">import</span><span>           </span><a href="Pos.Types.Block.html"><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span><span class="hs-operator">.</span><span class="hs-identifier">Block</span></a><span>
+</span><a name="line-22"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Update</span><span class="hs-operator">.</span><span class="hs-identifier">Core</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span><span>
+</span><a name="line-23"></a><span>
+</span><a name="line-24"></a><span class="hs-identifier hs-var">deriveSafeCopySimple</span><span> </span><span class="hs-number">0</span><span> </span><span class="hs-char">'base ''CoinPortion
+deriveSafeCopySimple 0 'base ''EpochIndex
+deriveSafeCopySimple 0 'base ''LocalSlotIndex
+deriveSafeCopySimple 0 'base ''SlotId
+deriveSafeCopySimple 0 'base ''EpochOrSlot
+deriveSafeCopySimple 0 'base ''Coin
+deriveSafeCopySimple 0 'base ''HDAddressPayload
+deriveSafeCopySimple 0 'base ''AddrPkAttrs
+deriveSafeCopySimple 0 'base ''Address
+deriveSafeCopySimple 0 'base ''TxInWitness
+-- TODO: in many cases TxDistribution would just be lots of empty lists, so
+-- its SafeCopy instance could be optimised
+deriveSafeCopySimple 0 'base ''TxDistribution
+deriveSafeCopySimple 0 'base ''TxIn
+deriveSafeCopySimple 0 'base ''TxOut
+deriveSafeCopySimple 0 'base ''TxOutAux
+deriveSafeCopySimple 0 'base ''Tx
+deriveSafeCopySimple 0 'base ''TxProof
+deriveSafeCopySimple 0 'base ''TxPayload
+deriveSafeCopySimple 0 'base ''SharedSeed
+
+deriveSafeCopySimple 0 'base ''MainExtraBodyData
+deriveSafeCopySimple 0 'base ''MainExtraHeaderData
+deriveSafeCopySimple 0 'base ''GenesisExtraHeaderData
+deriveSafeCopySimple 0 'base ''GenesisExtraBodyData
+
+deriveSafeCopySimple 0 'base ''SystemTag
+deriveSafeCopySimple 0 'base ''UpdateData
+deriveSafeCopySimple 0 'base ''BlockVersionData
+deriveSafeCopySimple 0 'base ''UpdateProposal
+deriveSafeCopySimple 0 'base ''UpdateVote
+deriveSafeCopySimple 0 'base ''UpdatePayload
+
+-- Manually written instances can't be derived because
+-- 'deriveSafeCopySimple' is not clever enough to add
+-- &#8220;SafeCopy (Whatever a) =&gt;&#8221; constaints.
+instance ( SafeCopy (BHeaderHash b)
+         , SafeCopy (BodyProof b)
+         , SafeCopy (ConsensusData b)
+         , SafeCopy (ExtraHeaderData b)
+         ) =&gt;
+         SafeCopy (GenericBlockHeader b) where
+    getCopy =
+        contain $
+        do _gbhPrevBlock &lt;- safeGet
+           _gbhBodyProof &lt;- safeGet
+           _gbhConsensus &lt;- safeGet
+           _gbhExtra &lt;- safeGet
+           return $! GenericBlockHeader {..}
+    putCopy GenericBlockHeader {..} =
+        contain $
+        do safePut _gbhPrevBlock
+           safePut _gbhBodyProof
+           safePut _gbhConsensus
+           safePut _gbhExtra
+
+instance ( SafeCopy (BHeaderHash b)
+         , SafeCopy (BodyProof b)
+         , SafeCopy (ConsensusData b)
+         , SafeCopy (ExtraHeaderData b)
+         , SafeCopy (Body b)
+         , SafeCopy (ExtraBodyData b)
+         ) =&gt;
+         SafeCopy (GenericBlock b) where
+    getCopy =
+        contain $
+        do _gbHeader &lt;- safeGet
+           _gbBody &lt;- safeGet
+           _gbExtra &lt;- safeGet
+           return $! GenericBlock {..}
+    putCopy GenericBlock {..} =
+        contain $
+        do safePut _gbHeader
+           safePut _gbBody
+           safePut _gbExtra
+
+deriveSafeCopySimple 0 'base ''ChainDifficulty
+
+instance (Ssc ssc, SafeCopy (SscProof ssc)) =&gt;
+         SafeCopy (BodyProof (MainBlockchain ssc)) where
+    getCopy = contain $ do
+        mpTxProof &lt;- safeGet
+        mpMpcProof      &lt;- safeGet
+        mpProxySKsProof &lt;- safeGet
+        mpUpdateProof   &lt;- safeGet
+        return $! MainProof{..}
+    putCopy MainProof {..} = contain $ do
+        safePut mpTxProof
+        safePut mpMpcProof
+        safePut mpProxySKsProof
+        safePut mpUpdateProof
+
+instance SafeCopy (BodyProof (GenesisBlockchain ssc)) where
+    getCopy =
+        contain $
+        do x &lt;- safeGet
+           return $! GenesisProof x
+    putCopy (GenesisProof x) =
+        contain $
+        do safePut x
+
+instance SafeCopy (BlockSignature ssc) where
+    getCopy = contain $ Cereal.getWord8 &gt;&gt;= \case
+        0 -&gt; BlockSignature &lt;$&gt; safeGet
+        1 -&gt; BlockPSignatureEpoch &lt;$&gt; safeGet
+        2 -&gt; BlockPSignatureSimple &lt;$&gt; safeGet
+        t -&gt; fail $ &quot;getCopy@BlockSignature: couldn't read tag: &quot; &lt;&gt; show t
+    putCopy (BlockSignature sig)       = contain $ Cereal.putWord8 0 &gt;&gt; safePut sig
+    putCopy (BlockPSignatureEpoch proxySig) = contain $ Cereal.putWord8 1 &gt;&gt; safePut proxySig
+    putCopy (BlockPSignatureSimple proxySig) = contain $ Cereal.putWord8 2 &gt;&gt; safePut proxySig
+
+instance SafeCopy (ConsensusData (MainBlockchain ssc)) where
+    getCopy =
+        contain $
+        do _mcdSlot &lt;- safeGet
+           _mcdLeaderKey &lt;- safeGet
+           _mcdDifficulty &lt;- safeGet
+           _mcdSignature &lt;- safeGet
+           return $! MainConsensusData {..}
+    putCopy MainConsensusData {..} =
+        contain $
+        do safePut _mcdSlot
+           safePut _mcdLeaderKey
+           safePut _mcdDifficulty
+           safePut _mcdSignature
+
+instance SafeCopy (ConsensusData (GenesisBlockchain ssc)) where
+    getCopy =
+        contain $
+        do _gcdEpoch &lt;- safeGet
+           _gcdDifficulty &lt;- safeGet
+           return $! GenesisConsensusData {..}
+    putCopy GenesisConsensusData {..} =
+        contain $
+        do safePut _gcdEpoch
+           safePut _gcdDifficulty
+
+instance (Ssc ssc, SafeCopy (SscPayload ssc)) =&gt;
+         SafeCopy (Body (MainBlockchain ssc)) where
+    getCopy = contain $ do
+        _mbTxPayload     &lt;- safeGet
+        _mbMpc           &lt;- safeGet
+        _mbProxySKs      &lt;- safeGet
+        _mbUpdatePayload &lt;- safeGet
+        return $! MainBody{..}
+    putCopy MainBody {..} = contain $ do
+        safePut _mbTxPayload
+        safePut _mbMpc
+        safePut _mbProxySKs
+        safePut _mbUpdatePayload
+
+instance SafeCopy (Body (GenesisBlockchain ssc)) where
+    getCopy =
+        contain $
+        do _gbLeaders &lt;- safeGet
+           return $! GenesisBody {..}
+    putCopy GenesisBody {..} =
+        contain $
+        do safePut _gbLeaders
+</span></pre></body></html>
