@@ -6,7 +6,7 @@ permalink: /technical/
 children: technical
 ---
 
-[//]: # (Reviewed at 60033350e60408fc79f202491e6985b3b47acd90)
+[//]: # (Reviewed at 42f226733a3d0e92af736f076a9fb1a7388d8da1)
 
 # Implementation
 
@@ -43,24 +43,24 @@ constants and their actual values.
 In other words, **a slot lasts 120 seconds**, and an epoch has `10×k=600` slots
 in it, so it lasts **1200 minutes** or **20 hours**.
 
-There's one node called slot-leader on each slot, and only this node has right to generate
-a new block during this slot, and this block will be added to the blockchain. However
+There's one node called the slot-leader on each slot. Only this node has right to generate
+a new block during this slot; this block will be added to the blockchain. However,
 there's no guarantee that new block will be actually generated (e.g. slot-leader can be
-offline during corresponding slot).
+offline during a corresponding slot).
 
-Furthermore, slot-leader may delegate its right to another node `N`, in this case node
+Furthermore, slot-leader may delegate its right to another node `N`; in this case node
 `N` will have a right to generate a new block instead of slot-leader. Please note that
 node `N` with delegated right isn't called a slot-leader though.
 
-It's theoretically possible to delegate slot-leader's right to multiple nodes, but it's
+It's theoretically possible to delegate the slot-leader's right to multiple nodes, but it's
 **not** recommended by reasons explained later. Moreover, we can run multiple nodes with the same
-key (i.e. on one computer), let's say nodes `A`, `B` and `C`, and if node `A` will be elected as a
-slot-leader, not only `A` will be able to generate a new block, but nodes `B` and `C` as well.
-But in this case all these nodes will issue (most probably different) block and network will fork
-- each other node will accept **only one** of these concurrent blocks. Later, fork will be eliminated.
+key (i.e. on one computer), let's say nodes `A`, `B` and `C`, and if node `A` is elected as the
+slot-leader, not only `A` itself, but nodes `B` and `C` will be able to generate a new block as well.
+In this case, every one of these nodes will issue a most probably different block, and the network will fork
+— each other node will accept **only one** of these concurrent blocks. Later, this fork will be eliminated.
 
 During the epoch, nodes send each other MPC messages to come to the consensus as to who
-would be allowed to generate blocks in the next epoch. Payloads from `Data` messages 
+would be allowed to generate blocks in the next epoch. Payloads from `Data` messages
 (along with transactions) are included into blocks.
 
 The more currency (or "stake") an address holds, the more likely it is to
@@ -74,30 +74,31 @@ block (if you're the selected stakeholder), repeat.
 
 ### Listeners
 
-Listeners handle incoming messages and respond to them. 
+Listeners handle incoming messages and respond to them.
 Various supplemental listeners will not be covered, focusing on the main ones instead.
 
-Listeners mostly use the [Relay framework](/technical/protocols/csl-application-level/#invreqdata-and-messagepart), which inludes three type of messages:
+Listeners mostly use the [Relay framework](/technical/protocols/csl-application-level/#invreqdata-and-messagepart), which includes three type of messages:
   - `Inventory` message: node publishes message to network when gets a new data.
   - `Request` message: node requests a new data which  was published in `Inventory` message.
   (from other node), if this data is not known yet by this node
   - `Data` message: node replies with this message on `Request` message. `Data` message contains concrete data.
 
-For instance, when user creates a new transaction, wallet sends `Inventory` message with
-transaction id to network, if node which received `Inventory` doesn't know transaction with such id, 
-then it replies with `Request` message, after that wallet sends this transaction in `Data` message.
-After node recieved `Data` message it can send `Inventory` message
-to their neighbors in DHT network and repeat previous iterations again.
+For instance, when a user creates a new transaction, the wallet sends `Inventory` message with
+transaction ID to the network. If the node that has received `Inventory` doesn't know any transaction with such ID,
+then it replies with `Request` message, after that the wallet sends this transaction in `Data` message.
+After the node has received the `Data` message, it can send the `Inventory` message
+to its neighbors in DHT network and repeat previous iterations again.
 
-Other example is:
+Another example
 
 - Block listeners:
+
     - `handleBlockHeader`: Handles an incoming block header. Decides whether
     the block is needed; if it is needed, requests the block.
-    
+
     - `handleBlockRequest`: Handles an incoming block request. If the block is
     in possession, sends it to the other node.
-    
+
     - `handleBlock`: Handles an incoming block. Takes transactions from it,
     sends the block header to other nodes, etc.
 
@@ -109,14 +110,15 @@ are:
 - `onNewSlotWorker`: Runs at the beginning of each slot. Does some cleanup
 and then runs `sscOnNewSlot` and `blkOnNewSlot`. This worker also creates
 a _genesis block_ at the beginning of the epoch. There are two kinds of blocks:
-"genesis blocks" and "main blocks". Main blocks are stored in the blockchain,
+"genesis blocks" and "main blocks". Main blocks are stored in the blockchain;
 genesis blocks are generated by each node internally between epochs. Genesis
 blocks aren't announced to other nodes. However, a node may request a genesis
 block from someone else for convenience, if this node was offline for some
 time and needs to catch up with the blockchain.
-    - `blkOnNewSlot`: Creates a new block (when it is the node's turn to create
+
+- `blkOnNewSlot`: Creates a new block (when it is the node's turn to create
    a new block) and announces it to other nodes.
-    - `sscOnNewSlot`: Sends a message to other nodes. The actual consensus
+- `sscOnNewSlot`: Sends a message to other nodes. The actual consensus
    algorithm and the nature of sent messages will be discussed later.
 
 - `blocksTransmitter`: Runs two times per slot. Announces the header of the
@@ -137,7 +139,7 @@ Generally, one chain (the _main chain_) is maintained by a node, but eventually
 alternative chains may arise. Recall that only blocks k and more slots deep
 are considered stable. This way, if a block which is neither a part nor
 a continuation of our blockchain is received, we first check if its complexity
-is bigger than ours (the complexity is the length of the chain), and we start
+is bigger than ours (the complexity is the length of the chain), and then we start
 subsequently requesting previous blocks from the node that provided an alternative
 chain header. If we come deeper than `k` slots ago, the alternative chain gets
 rejected. Otherwise, once we get to the block existing in our chain, the
@@ -164,14 +166,14 @@ the 0th epoch).
 ### Peer discovery
 
 We use Kademlia DHT for peer discovery. It is a general solution for distributed
-hash tables, based on [a whitepaper by Petar Maymounkov and David Mazières, 2002.](https://pdos.csail.mit.edu/~petar/papers/maymounkov-kademlia-lncs.pdf)
+hash tables, based on [a whitepaper by Petar Maymounkov and David Mazières, 2002](https://pdos.csail.mit.edu/~petar/papers/maymounkov-kademlia-lncs.pdf).
 
 However, we only take advantage of its peer discovery mechanism, and use none of
 its hash table capabilities.
 
-In short, each node in the Kademlia network is provided a `160`-bit ID which is
+In short, each node in the Kademlia network is provided a `160`-bit ID
 generated randomly. The distance between the nodes is defined by `XOR` metric. The
-network is organized in such way that node knows no more than `K` (`K=7` in the
+network is organized in such a way that node knows no more than `K` (`K=7` in the
 original client implementation) nodes for each relative distance range:
 `2^i < d <= 2^(i+1)`.
 
@@ -213,31 +215,29 @@ handling). Also, they are being checked against LRU cache, and messages
 that have been already received once get ignored.
 
 ### Leaders and rich men computation (LRC)
-"Slot leaders" and "rich men" are two important notions of Ouroboros Proof of Stake Algorithm:
+"Slot leaders" and "rich men" are two important notions of Ouroboros Proof of Stake Algorithm.
 
 - Slot leaders: Slot leaders for the current epoch (for each slot of the current epoch) are computed by [Follow the Satoshi](/cardano/proof-of-stake/#follow-the-satoshi) (FTS) algorithm in the beginning of current epoch.
 FTS uses a `shared seed` which is result of [Multi Party Computation](/cardano/proof-of-stake/#multi-party-computation) (MPC) algorithm for previous epoch: in the result of MPC some nodes reveal their seeds, `xor` of these seeds is called `shared seed`.
 
-- Rich men: Only nodes which sent their VSS certificates
-and also has enough stake can participate in MPC algorithm. 
+- Rich men: Only nodes that have sent their VSS certificates and also have enough stake can participate in the MPC algorithm.
 So in the beginning of epoch node must know all potential participants for validation of MPC messages during this epoch.
 Rich men are also computed in the beginning of current epoch.
 
-Rich men are also important for other components, for instance Update system uses rich men for checking that
+Rich men are important for other components as well; for instance, Update system uses rich men for checking that
 node can publish update proposal and vote.
 
 There are two ways of computing who the rich men will be:
- - with considering common stake
- 
- - with considering delegated stake. Ouroboros provides opportunity to delegate own stake to other node, see more in 
- [Delegation section](/cardano/differences/#stake-delegation).
+ - considering common stake
+ - considering delegated stake (Ouroboros provides opportunity to delegate own stake to other node, see more in
+ [Delegation section](/cardano/differences/#stake-delegation))
 
 MPC and Update System components need rich men with delegated stake, but Delegation component with common stake.
 
 ## Constants
 
-Cardano SL uses a list of the fundamental constants. Their values have been discussed with 
-the original authors of the protocol as well as independent security auditors, 
+Cardano SL uses a list of the fundamental constants. Their values have been discussed with
+the original authors of the protocol as well as independent security auditors,
 so reusing these constants is strongly recommended for alternative clients.
 
 Values of these constants are defined in two configuration files:
