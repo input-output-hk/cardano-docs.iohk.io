@@ -1527,11 +1527,15 @@ data BalancesOp
 PutFtsSum :: !Coin -> BalancesOp
 PutFtsStake :: !StakeholderId -> !Coin -> BalancesOp
 isBootstrapEra :: MonadDB m => m Bool
-getTotalFtsStake :: MonadDB m => m Coin
-getFtsStake :: MonadDB m => StakeholderId -> m (Maybe Coin)
+getEffectiveTotalStake :: MonadDB m => m Coin
+getEffectiveStake :: MonadDB m => StakeholderId -> m (Maybe Coin)
 prepareGStateBalances :: forall m. MonadDB m => Utxo -> m ()
 data BalanceIter :: *
+
+-- | Run iterator over effective balances.
 runBalanceIterator :: forall m a. MonadDB m => (forall iter. (MonadIterator (IterType BalanceIter) iter, MonadDB iter) => iter a) -> m a
+
+-- | Run map iterator over effective balances.
 runBalanceMapIterator :: forall v m a. MonadDB m => (forall iter. (MonadIterator v iter, MonadDB iter) => iter a) -> ((StakeholderId, Coin) -> v) -> m a
 sanityCheckBalances :: (MonadMask m, MonadDB m, WithLogger m) => m ()
 getTxOutFromDB :: (MonadIO m, MonadThrow m) => TxIn -> DB -> m (Maybe TxOutAux)
