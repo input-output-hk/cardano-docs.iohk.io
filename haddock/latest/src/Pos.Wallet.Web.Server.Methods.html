@@ -47,17 +47,17 @@
 </span><a name="line-47"></a><span class="hs-keyword">import</span><span>           </span><a href="Pos.Aeson.ClientTypes.html"><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Aeson</span><span class="hs-operator">.</span><span class="hs-identifier">ClientTypes</span></a><span>         </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
 </span><a name="line-48"></a><span class="hs-keyword">import</span><span>           </span><a href="Pos.Client.Txp.History.html"><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Client</span><span class="hs-operator">.</span><span class="hs-identifier">Txp</span><span class="hs-operator">.</span><span class="hs-identifier">History</span></a><span>        </span><span class="hs-special">(</span><a href="Pos.Client.Txp.History.html#TxHistoryAnswer"><span class="hs-identifier hs-type">TxHistoryAnswer</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><a href="Pos.Client.Txp.History.html#TxHistoryEntry"><span class="hs-identifier hs-type">TxHistoryEntry</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
 </span><a name="line-49"></a><span class="hs-keyword">import</span><span>           </span><a href="Pos.Communication.html"><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Communication</span></a><span>             </span><span class="hs-special">(</span><span class="hs-identifier hs-type">OutSpecs</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">SendActions</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">hoistSendActions</span><span class="hs-special">,</span><span>
-</span><a name="line-50"></a><span>                                                </span><a href="Pos.Communication.Specs.html#sendTxOuts"><span class="hs-identifier hs-var">sendTxOuts</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Communication.Tx.html#submitRedemptionTx"><span class="hs-identifier hs-var">submitRedemptionTx</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Communication.Tx.html#submitTx"><span class="hs-identifier hs-var">submitTx</span></a><span class="hs-special">)</span><span>
-</span><a name="line-51"></a><span class="hs-keyword">import</span><span>           </span><a href="Pos.Constants.html"><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Constants</span></a><span>                 </span><span class="hs-special">(</span><span class="hs-identifier hs-var">curSoftwareVersion</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">isDevelopment</span><span class="hs-special">)</span><span>
-</span><a name="line-52"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Core</span><span>                      </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Address</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Coin</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">addressF</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">coinF</span><span class="hs-special">,</span><span>
-</span><a name="line-53"></a><span>                                                </span><span class="hs-identifier hs-var">decodeTextAddress</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">makePubKeyAddress</span><span class="hs-special">,</span><span>
-</span><a name="line-54"></a><span>                                                </span><span class="hs-identifier hs-var">mkCoin</span><span class="hs-special">)</span><span>
-</span><a name="line-55"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Crypto</span><span>                    </span><span class="hs-special">(</span><span class="hs-identifier hs-type">PassPhrase</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">aesDecrypt</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">deriveAesKeyBS</span><span class="hs-special">,</span><span>
-</span><a name="line-56"></a><span>                                                </span><span class="hs-identifier hs-var">encToPublic</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">hash</span><span class="hs-special">,</span><span>
-</span><a name="line-57"></a><span>                                                </span><span class="hs-identifier hs-var">redeemDeterministicKeyGen</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">withSafeSigner</span><span class="hs-special">,</span><span>
-</span><a name="line-58"></a><span>                                                </span><span class="hs-identifier hs-var">withSafeSigner</span><span class="hs-special">)</span><span>
-</span><a name="line-59"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">DB</span><span class="hs-operator">.</span><span class="hs-identifier">Limits</span><span>                 </span><span class="hs-special">(</span><span class="hs-identifier hs-type">MonadDBLimits</span><span class="hs-special">)</span><span>
-</span><a name="line-60"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">DHT</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span>                 </span><span class="hs-special">(</span><span class="hs-identifier hs-var">getKnownPeers</span><span class="hs-special">)</span><span>
+</span><a name="line-50"></a><span>                                                </span><a href="Pos.Communication.Specs.html#sendTxOuts"><span class="hs-identifier hs-var">sendTxOuts</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Communication.Tx.html#submitRedemptionTx"><span class="hs-identifier hs-var">submitRedemptionTx</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Communication.Tx.html#submitTx"><span class="hs-identifier hs-var">submitTx</span></a><span class="hs-special">,</span><span>
+</span><a name="line-51"></a><span>                                                </span><span class="hs-identifier hs-type">NodeId</span><span class="hs-special">)</span><span>
+</span><a name="line-52"></a><span class="hs-keyword">import</span><span>           </span><a href="Pos.Constants.html"><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Constants</span></a><span>                 </span><span class="hs-special">(</span><span class="hs-identifier hs-var">curSoftwareVersion</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">isDevelopment</span><span class="hs-special">)</span><span>
+</span><a name="line-53"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Core</span><span>                      </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Address</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Coin</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">addressF</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">coinF</span><span class="hs-special">,</span><span>
+</span><a name="line-54"></a><span>                                                </span><span class="hs-identifier hs-var">decodeTextAddress</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">makePubKeyAddress</span><span class="hs-special">,</span><span>
+</span><a name="line-55"></a><span>                                                </span><span class="hs-identifier hs-var">mkCoin</span><span class="hs-special">)</span><span>
+</span><a name="line-56"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Crypto</span><span>                    </span><span class="hs-special">(</span><span class="hs-identifier hs-type">PassPhrase</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">aesDecrypt</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">deriveAesKeyBS</span><span class="hs-special">,</span><span>
+</span><a name="line-57"></a><span>                                                </span><span class="hs-identifier hs-var">encToPublic</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">hash</span><span class="hs-special">,</span><span>
+</span><a name="line-58"></a><span>                                                </span><span class="hs-identifier hs-var">redeemDeterministicKeyGen</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">withSafeSigner</span><span class="hs-special">,</span><span>
+</span><a name="line-59"></a><span>                                                </span><span class="hs-identifier hs-var">withSafeSigner</span><span class="hs-special">)</span><span>
+</span><a name="line-60"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">DB</span><span class="hs-operator">.</span><span class="hs-identifier">Limits</span><span>                 </span><span class="hs-special">(</span><span class="hs-identifier hs-type">MonadDBLimits</span><span class="hs-special">)</span><span>
 </span><a name="line-61"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Reporting</span><span class="hs-operator">.</span><span class="hs-identifier">MemState</span><span>        </span><span class="hs-special">(</span><span class="hs-identifier hs-type">MonadReportingMem</span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">rcReportServers</span><span class="hs-special">)</span><span>
 </span><a name="line-62"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Reporting</span><span class="hs-operator">.</span><span class="hs-identifier">Methods</span><span>         </span><span class="hs-special">(</span><span class="hs-identifier hs-var">sendReport</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">sendReportNodeNologs</span><span class="hs-special">)</span><span>
 </span><a name="line-63"></a><span class="hs-keyword">import</span><span>           </span><a href="Pos.Ssc.Class.html"><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Ssc</span><span class="hs-operator">.</span><span class="hs-identifier">Class</span></a><span>                 </span><span class="hs-special">(</span><a href="Pos.Ssc.Class.Helpers.html#SscHelpersClass"><span class="hs-identifier hs-type">SscHelpersClass</span></a><span class="hs-special">)</span><span>
@@ -106,14 +106,14 @@
 </span><a name="line-106"></a><span class="hs-comment">-- Top level functionality</span><span>
 </span><a name="line-107"></a><span class="hs-comment">----------------------------------------------------------------------------</span><span>
 </span><a name="line-108"></a><span>
-</span><a name="line-109"></a><span class="hs-keyword">type</span><span> </span><a name="WalletWebHandler"><a href="Pos.Wallet.Web.Server.Methods.html#WalletWebHandler"><span class="hs-identifier">WalletWebHandler</span></a></a><span> </span><a name="local-6989586621681941159"><a href="#local-6989586621681941159"><span class="hs-identifier">m</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="Pos.Wallet.Web.Server.Sockets.html#WalletWebSockets"><span class="hs-identifier hs-type">WalletWebSockets</span></a><span> </span><span class="hs-special">(</span><a href="Pos.Wallet.Web.State.Holder.html#WalletWebDB"><span class="hs-identifier hs-type">WalletWebDB</span></a><span> </span><a href="#local-6989586621681941159"><span class="hs-identifier hs-type">m</span></a><span class="hs-special">)</span><span>
+</span><a name="line-109"></a><span class="hs-keyword">type</span><span> </span><a name="WalletWebHandler"><a href="Pos.Wallet.Web.Server.Methods.html#WalletWebHandler"><span class="hs-identifier">WalletWebHandler</span></a></a><span> </span><a name="local-6989586621681887862"><a href="#local-6989586621681887862"><span class="hs-identifier">m</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="Pos.Wallet.Web.Server.Sockets.html#WalletWebSockets"><span class="hs-identifier hs-type">WalletWebSockets</span></a><span> </span><span class="hs-special">(</span><a href="Pos.Wallet.Web.State.Holder.html#WalletWebDB"><span class="hs-identifier hs-type">WalletWebDB</span></a><span> </span><a href="#local-6989586621681887862"><span class="hs-identifier hs-type">m</span></a><span class="hs-special">)</span><span>
 </span><a name="line-110"></a><span>
-</span><a name="line-111"></a><span class="hs-keyword">type</span><span> </span><a name="WalletWebMode"><a href="Pos.Wallet.Web.Server.Methods.html#WalletWebMode"><span class="hs-identifier">WalletWebMode</span></a></a><span> </span><a name="local-6989586621681941157"><a href="#local-6989586621681941157"><span class="hs-identifier">ssc</span></a></a><span> </span><a name="local-6989586621681941158"><a href="#local-6989586621681941158"><span class="hs-identifier">m</span></a></a><span>
-</span><a name="line-112"></a><span>    </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span> </span><a href="Pos.Wallet.WalletMode.html#WalletMode"><span class="hs-identifier hs-type">WalletMode</span></a><span> </span><a href="#local-6989586621681941157"><span class="hs-identifier hs-type">ssc</span></a><span> </span><a href="#local-6989586621681941158"><span class="hs-identifier hs-type">m</span></a><span>
-</span><a name="line-113"></a><span>      </span><span class="hs-special">,</span><span> </span><a href="Pos.Wallet.Web.State.State.html#MonadWalletWebDB"><span class="hs-identifier hs-type">MonadWalletWebDB</span></a><span> </span><a href="#local-6989586621681941158"><span class="hs-identifier hs-type">m</span></a><span>
-</span><a name="line-114"></a><span>      </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">MonadDBLimits</span><span> </span><a href="#local-6989586621681941158"><span class="hs-identifier hs-type">m</span></a><span>
-</span><a name="line-115"></a><span>      </span><span class="hs-special">,</span><span> </span><a href="Pos.Wallet.Web.Server.Sockets.html#MonadWalletWebSockets"><span class="hs-identifier hs-type">MonadWalletWebSockets</span></a><span> </span><a href="#local-6989586621681941158"><span class="hs-identifier hs-type">m</span></a><span>
-</span><a name="line-116"></a><span>      </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">MonadReportingMem</span><span> </span><a href="#local-6989586621681941158"><span class="hs-identifier hs-type">m</span></a><span>
+</span><a name="line-111"></a><span class="hs-keyword">type</span><span> </span><a name="WalletWebMode"><a href="Pos.Wallet.Web.Server.Methods.html#WalletWebMode"><span class="hs-identifier">WalletWebMode</span></a></a><span> </span><a name="local-6989586621681887860"><a href="#local-6989586621681887860"><span class="hs-identifier">ssc</span></a></a><span> </span><a name="local-6989586621681887861"><a href="#local-6989586621681887861"><span class="hs-identifier">m</span></a></a><span>
+</span><a name="line-112"></a><span>    </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span> </span><a href="Pos.Wallet.WalletMode.html#WalletMode"><span class="hs-identifier hs-type">WalletMode</span></a><span> </span><a href="#local-6989586621681887860"><span class="hs-identifier hs-type">ssc</span></a><span> </span><a href="#local-6989586621681887861"><span class="hs-identifier hs-type">m</span></a><span>
+</span><a name="line-113"></a><span>      </span><span class="hs-special">,</span><span> </span><a href="Pos.Wallet.Web.State.State.html#MonadWalletWebDB"><span class="hs-identifier hs-type">MonadWalletWebDB</span></a><span> </span><a href="#local-6989586621681887861"><span class="hs-identifier hs-type">m</span></a><span>
+</span><a name="line-114"></a><span>      </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">MonadDBLimits</span><span> </span><a href="#local-6989586621681887861"><span class="hs-identifier hs-type">m</span></a><span>
+</span><a name="line-115"></a><span>      </span><span class="hs-special">,</span><span> </span><a href="Pos.Wallet.Web.Server.Sockets.html#MonadWalletWebSockets"><span class="hs-identifier hs-type">MonadWalletWebSockets</span></a><span> </span><a href="#local-6989586621681887861"><span class="hs-identifier hs-type">m</span></a><span>
+</span><a name="line-116"></a><span>      </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">MonadReportingMem</span><span> </span><a href="#local-6989586621681887861"><span class="hs-identifier hs-type">m</span></a><span>
 </span><a name="line-117"></a><span>      </span><span class="hs-special">)</span><span>
 </span><a name="line-118"></a><span>
 </span><a name="line-119"></a><span class="hs-identifier hs-var">makeLenses</span><span> </span><span class="hs-char">''SyncProgress
@@ -149,21 +149,23 @@ walletApplication serv = do
 walletServer
     :: forall ssc m.
        (SscHelpersClass ssc, Monad m, MonadIO m, WalletWebMode ssc (WalletWebHandler m))
-    =&gt; SendActions m
+    =&gt; m (Set NodeId)
+    -&gt; SendActions m
     -&gt; WalletWebHandler m (WalletWebHandler m :~&gt; Handler)
     -&gt; WalletWebHandler m (Server WalletApi)
-walletServer sendActions nat = do
+walletServer getPeers sendActions nat = do
     whenM (isNothing &lt;$&gt; getProfile) $
         createUserProfile &gt;&gt;= setProfile
     ws    &lt;- lift getWalletState
     socks &lt;- getWalletWebSockets
+    let getPeers' = lift . lift $ getPeers
     let sendActions' = hoistSendActions
             (lift . lift)
             (runWalletWebDB ws . runWalletWS socks)
             sendActions
     nat &gt;&gt;= launchNotifier
     myCAddresses &gt;&gt;= mapM_ insertAddressMeta
-    (`enter` servantHandlers @ssc sendActions') &lt;$&gt; nat
+    (`enter` servantHandlers @ssc getPeers' sendActions') &lt;$&gt; nat
   where
     insertAddressMeta cAddr =
         getWalletMeta cAddr &gt;&gt;= createWallet cAddr . fromMaybe def
@@ -245,8 +247,10 @@ walletServerOuts = sendTxOuts
 servantHandlers
     :: forall ssc m.
        (SscHelpersClass ssc, WalletWebMode ssc m)
-    =&gt; SendActions m -&gt; ServerT WalletApi m
-servantHandlers sendActions =
+    =&gt; m (Set NodeId)
+    -&gt; SendActions m
+    -&gt; ServerT WalletApi m
+servantHandlers getPeers sendActions =
      catchWalletError testResetAll
     :&lt;|&gt;
      apiGetWallet
@@ -309,15 +313,15 @@ servantHandlers sendActions =
     apiIsValidAddress           = (\a -&gt; catchWalletError . isValidAddress a)
     apiGetUserProfile           = catchWalletError getUserProfile
     apiUpdateUserProfile        = catchWalletError . updateUserProfile
-    apiTxsPayments              = (\a b c -&gt; catchWalletError . send sendActions a b c)
-    apiTxsPaymentsExt           = (\a b c d e f -&gt; catchWalletError . sendExtended sendActions a b c d e f)
+    apiTxsPayments              = (\a b c -&gt; catchWalletError . send getPeers sendActions a b c)
+    apiTxsPaymentsExt           = (\a b c d e f -&gt; catchWalletError . sendExtended getPeers sendActions a b c d e f)
     apiUpdateTransaction        = (\a b -&gt; catchWalletError . updateTransaction a b)
     apiGetHistory               = (\a b -&gt; catchWalletError . getHistory @ssc a b )
     apiSearchHistory            = (\a b c -&gt; catchWalletError . searchHistory @ssc a b c)
     apiNextUpdate               = catchWalletError nextUpdate
     apiApplyUpdate              = catchWalletError applyUpdate
-    apiRedeemAda                = catchWalletError . redeemADA sendActions
-    apiPostVendRedeemAda        = catchWalletError . postVendRedeemADA sendActions
+    apiRedeemAda                = catchWalletError . redeemADA getPeers sendActions
+    apiPostVendRedeemAda        = catchWalletError . postVendRedeemADA getPeers sendActions
     apiReportingInitialized     = catchWalletError . reportingInitialized
     apiReportingElectroncrash   = catchWalletError . reportingElectroncrash
     apiSettingsSlotDuration     = catchWalletError (fromIntegral &lt;$&gt; blockchainSlotDuration)
@@ -359,21 +363,40 @@ decodeCAddressOrFail = either wrongAddress pure . cAddressToAddress
 getWallets :: WalletWebMode ssc m =&gt; m [CWallet]
 getWallets = join $ mapM getWallet &lt;$&gt; myCAddresses
 
-send :: WalletWebMode ssc m =&gt; SendActions m -&gt; CPassPhrase -&gt; CAddress -&gt; CAddress -&gt; Coin -&gt; m CTx
-send sendActions cpass srcCAddr dstCAddr c =
-    sendExtended sendActions cpass srcCAddr dstCAddr c ADA mempty mempty
+send
+    :: WalletWebMode ssc m
+    =&gt; m (Set NodeId)
+    -&gt; SendActions m
+    -&gt; CPassPhrase
+    -&gt; CAddress
+    -&gt; CAddress
+    -&gt; Coin
+    -&gt; m CTx
+send getPeers sendActions cpass srcCAddr dstCAddr c =
+    sendExtended getPeers sendActions cpass srcCAddr dstCAddr c ADA mempty mempty
 
-sendExtended :: WalletWebMode ssc m =&gt; SendActions m -&gt; CPassPhrase -&gt; CAddress -&gt; CAddress -&gt; Coin -&gt; CCurrency -&gt; Text -&gt; Text -&gt; m CTx
-sendExtended sendActions cpassphrase srcCAddr dstCAddr c curr title desc = do
+sendExtended
+    :: WalletWebMode ssc m
+    =&gt; m (Set NodeId)
+    -&gt; SendActions m
+    -&gt; CPassPhrase
+    -&gt; CAddress
+    -&gt; CAddress
+    -&gt; Coin
+    -&gt; CCurrency
+    -&gt; Text
+    -&gt; Text
+    -&gt; m CTx
+sendExtended getPeers sendActions cpassphrase srcCAddr dstCAddr c curr title desc = do
     passphrase &lt;- decodeCPassPhraseOrFail cpassphrase
     srcAddr &lt;- decodeCAddressOrFail srcCAddr
     dstAddr &lt;- decodeCAddressOrFail dstCAddr
     idx &lt;- getAddrIdx srcAddr
     sks &lt;- getSecretKeys
     let sk = sks !! idx
-    na &lt;- getKnownPeers
+    na &lt;- getPeers
     withSafeSigner sk (return passphrase) $ \ss -&gt; do
-        etx &lt;- submitTx sendActions ss na (one $ TxOutAux (TxOut dstAddr c) [])
+        etx &lt;- submitTx sendActions ss (toList na) (one $ TxOutAux (TxOut dstAddr c) [])
         case etx of
             Left err -&gt; throwM . Internal $ sformat (&quot;Cannot send transaction: &quot;%stext) err
             Right (tx, _, _) -&gt; do
@@ -486,34 +509,34 @@ nextUpdate = getNextUpdate &gt;&gt;=
 applyUpdate :: WalletWebMode ssc m =&gt; m ()
 applyUpdate = removeNextUpdate &gt;&gt; applyLastUpdate
 
-redeemADA :: WalletWebMode ssc m =&gt; SendActions m -&gt; CWalletRedeem -&gt; m CTx
-redeemADA sendActions CWalletRedeem {..} = do
+redeemADA :: WalletWebMode ssc m =&gt; m (Set NodeId) -&gt; SendActions m -&gt; CWalletRedeem -&gt; m CTx
+redeemADA getPeers sendActions CWalletRedeem {..} = do
     seedBs &lt;- maybe invalidBase64 pure
         -- NOTE: this is just safety measure
         $ rightToMaybe (B64.decode crSeed) &lt;|&gt; rightToMaybe (B64.decodeUrl crSeed)
-    redeemADAInternal sendActions crWalletId seedBs
+    redeemADAInternal getPeers sendActions crWalletId seedBs
   where
     invalidBase64 = throwM . Internal $ &quot;Seed is invalid base64(url) string: &quot; &lt;&gt; crSeed
 
 -- Decrypts certificate based on:
 --  * https://github.com/input-output-hk/postvend-app/blob/master/src/CertGen.hs#L205
 --  * https://github.com/input-output-hk/postvend-app/blob/master/src/CertGen.hs#L160
-postVendRedeemADA :: WalletWebMode ssc m =&gt; SendActions m -&gt; CPostVendWalletRedeem -&gt; m CTx
-postVendRedeemADA sendActions CPostVendWalletRedeem {..} = do
+postVendRedeemADA :: WalletWebMode ssc m =&gt; m (Set NodeId) -&gt; SendActions m -&gt; CPostVendWalletRedeem -&gt; m CTx
+postVendRedeemADA getPeers sendActions CPostVendWalletRedeem {..} = do
     seedEncBs &lt;- maybe invalidBase58 pure
         $ decodeBase58 bitcoinAlphabet $ encodeUtf8 pvSeed
     aesKey &lt;- either invalidMnemonic pure
         $ deriveAesKeyBS &lt;$&gt; toSeed pvBackupPhrase
     seedDecBs &lt;- either decryptionFailed pure
         $ aesDecrypt seedEncBs aesKey
-    redeemADAInternal sendActions pvWalletId seedDecBs
+    redeemADAInternal getPeers sendActions pvWalletId seedDecBs
   where
     invalidBase58 = throwM . Internal $ &quot;Seed is invalid base58 string: &quot; &lt;&gt; pvSeed
     invalidMnemonic e = throwM . Internal $ &quot;Invalid mnemonic: &quot; &lt;&gt; toText e
     decryptionFailed e = throwM . Internal $ &quot;Decryption failed: &quot; &lt;&gt; show e
 
-redeemADAInternal :: WalletWebMode ssc m =&gt; SendActions m -&gt; CAddress -&gt; ByteString -&gt; m CTx
-redeemADAInternal sendActions walletId seedBs = do
+redeemADAInternal :: WalletWebMode ssc m =&gt; m (Set NodeId) -&gt; SendActions m -&gt; CAddress -&gt; ByteString -&gt; m CTx
+redeemADAInternal getPeers sendActions walletId seedBs = do
     (_, redeemSK) &lt;- maybeThrow (Internal &quot;Seed is not 32-byte long&quot;) $
                      redeemDeterministicKeyGen seedBs
     -- new redemption wallet
@@ -522,8 +545,8 @@ redeemADAInternal sendActions walletId seedBs = do
     -- send from seedAddress to walletB
     let dstCAddr = cwAddress walletB
     dstAddr &lt;- decodeCAddressOrFail dstCAddr
-    na &lt;- getKnownPeers
-    etx &lt;- submitRedemptionTx sendActions redeemSK na dstAddr
+    na &lt;- getPeers
+    etx &lt;- submitRedemptionTx sendActions redeemSK (toList na) dstAddr
     case etx of
         Left err -&gt; throwM . Internal $ &quot;Cannot send redemption transaction: &quot; &lt;&gt; err
         Right (tx, _, _) -&gt; do
