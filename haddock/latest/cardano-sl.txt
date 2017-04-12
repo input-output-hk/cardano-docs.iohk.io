@@ -1774,7 +1774,7 @@ BaseParams :: !NetworkAddress -> ![DHTNode] -> !(Maybe DHTKey) -> !Bool -> !Logg
 -- | Path to kademlia dump file
 [bpKademliaDump] :: BaseParams -> !FilePath
 genesisUtxoM :: (Functor m, WithNodeContext ssc m) => m Utxo
-genesisLeadersM :: (MonadDB m, WithNodeContext ssc m) => m SlotLeaders
+genesisLeadersM :: (Functor m, WithNodeContext ssc m) => m SlotLeaders
 putBlkSemaphore :: (MonadIO m, WithNodeContext ssc m) => HeaderHash -> m ()
 readBlkSemaphore :: (MonadIO m, WithNodeContext ssc m) => m HeaderHash
 takeBlkSemaphore :: (MonadIO m, WithNodeContext ssc m) => m HeaderHash
@@ -3035,11 +3035,11 @@ ToilModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> !exten
 [_tmUndos] :: GenericToilModifier extension -> !UndoMap
 [_tmExtra] :: GenericToilModifier extension -> !extension
 type ToilModifier = GenericToilModifier ()
-tmUtxo :: forall extension_a1Uqb. Lens' (GenericToilModifier extension_a1Uqb) UtxoModifier
-tmBalances :: forall extension_a1Uqb. Lens' (GenericToilModifier extension_a1Uqb) BalancesView
-tmMemPool :: forall extension_a1Uqb. Lens' (GenericToilModifier extension_a1Uqb) MemPool
-tmUndos :: forall extension_a1Uqb. Lens' (GenericToilModifier extension_a1Uqb) UndoMap
-tmExtra :: forall extension_a1Uqb extension_a1Use. Lens (GenericToilModifier extension_a1Uqb) (GenericToilModifier extension_a1Use) extension_a1Uqb extension_a1Use
+tmUtxo :: forall extension_a1Uqd. Lens' (GenericToilModifier extension_a1Uqd) UtxoModifier
+tmBalances :: forall extension_a1Uqd. Lens' (GenericToilModifier extension_a1Uqd) BalancesView
+tmMemPool :: forall extension_a1Uqd. Lens' (GenericToilModifier extension_a1Uqd) MemPool
+tmUndos :: forall extension_a1Uqd. Lens' (GenericToilModifier extension_a1Uqd) UndoMap
+tmExtra :: forall extension_a1Uqd extension_a1Usg. Lens (GenericToilModifier extension_a1Uqd) (GenericToilModifier extension_a1Usg) extension_a1Uqd extension_a1Usg
 
 -- | Environment used by Toil.
 data ToilEnv
