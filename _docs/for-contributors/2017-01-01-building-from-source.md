@@ -50,7 +50,7 @@ following command:
 
 ```
 [nix-shell:~/github/cardano-sl]
-$ stack build --flag cardano-sl-core:with-wallet --flag cardano-sl-core:with-web
+$ stack build --flag cardano-sl:with-wallet --flag cardano-sl:with-web
 ```
 
 Here is the [asciinema
@@ -62,7 +62,7 @@ If the compilation breaks with `No space left on device` error, it means that yo
 
 ```
 $ mkdir ~/stacktmp
-$ TMPDIR=~/stacktmp stack build --flag cardano-sl-core:with-wallet --flag cardano-sl-core:with-web
+$ TMPDIR=~/stacktmp stack build --flag cardano-sl:with-wallet --flag cardano-sl:with-web
 $ rm -rf ~/stacktmp
 ```
 
