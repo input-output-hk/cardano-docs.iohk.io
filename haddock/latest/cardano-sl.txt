@@ -1425,6 +1425,7 @@ genesisDelegation :: HashMap StakeholderId [StakeholderId]
 
 -- | List of addresses in genesis. See <tt>genesisPublicKeys</tt>.
 genesisAddresses :: [Address]
+genesisSeed :: SharedSeed
 genesisBalances :: HashMap StakeholderId Coin
 
 -- | List of pairs from <a>SecretKey</a> with corresponding
@@ -1527,6 +1528,7 @@ PutFtsStake :: !StakeholderId -> !Coin -> BalancesOp
 isBootstrapEra :: MonadDB m => m Bool
 getEffectiveTotalStake :: MonadDB m => m Coin
 getEffectiveStake :: MonadDB m => StakeholderId -> m (Maybe Coin)
+genesisFakeTotalStake :: Coin
 prepareGStateBalances :: forall m. MonadDB m => Utxo -> m ()
 data BalanceIter :: *
 
@@ -1534,7 +1536,8 @@ data BalanceIter :: *
 runBalanceIterator :: forall m a. MonadDB m => (forall iter. (MonadIterator (IterType BalanceIter) iter, MonadDB iter) => iter a) -> m a
 
 -- | Run map iterator over effective balances.
-runBalanceMapIterator :: forall v m a. MonadDB m => (forall iter. (MonadIterator v iter, MonadDB iter) => iter a) -> ((StakeholderId, Coin) -> v) -> m a
+runBalanceMapIterator :: forall v m a. MonadDB m => (forall iter. (MonadIterator v iter, MonadDB iter) => iter a) -> (IterType BalanceIter -> v) -> m a
+runBalanceIterBootstrap :: forall m a. Monad m => ListHolderT (IterType BalanceIter) m a -> m a
 sanityCheckBalances :: (MonadMask m, MonadDB m, WithLogger m) => m ()
 getTxOutFromDB :: (MonadIO m, MonadThrow m) => TxIn -> DB -> m (Maybe TxOutAux)
 getTxOut :: MonadDB m => TxIn -> m (Maybe TxOutAux)
@@ -1639,7 +1642,7 @@ getNodeContext :: (WithNodeContext ssc m, MonadTrans t, WithNodeContext ssc m', 
 
 -- | NodeContext contains runtime context of node.
 data NodeContext ssc
-NodeContext :: !(Maybe (MVar FilePath)) -> !(SscNodeContext ssc) -> !UpdateContext -> !LrcContext -> !(MVar HeaderHash) -> !(TVar UserSecret) -> !(TBQueue (NodeId, NewestFirst NE (BlockHeader ssc))) -> !(TMVar (NodeId, BlockHeader ssc)) -> !(TMVar (BlockHeader ssc)) -> !RelayInvQueue -> !LoggerConfig -> !NodeParams -> !(TVar Bool) -> !(TBQueue ()) -> !(Maybe (MVar ())) -> !UTCTime -> !(TVar (Maybe (BlockHeader ssc))) -> !TxpGlobalSettings -> NodeContext ssc
+NodeContext :: !(Maybe (MVar FilePath)) -> !(SscNodeContext ssc) -> !UpdateContext -> !LrcContext -> !(MVar HeaderHash) -> !(TVar UserSecret) -> !(TBQueue (NodeId, NewestFirst NE (BlockHeader ssc))) -> !(TMVar (NodeId, BlockHeader ssc)) -> !(TMVar (BlockHeader ssc)) -> !RelayInvQueue -> !LoggerConfig -> !NodeParams -> !(TVar Bool) -> !(TBQueue ()) -> !(Maybe (MVar ())) -> !UTCTime -> !(TVar (Maybe (BlockHeader ssc))) -> !TxpGlobalSettings -> !SlotLeaders -> NodeContext ssc
 [ncJLFile] :: NodeContext ssc -> !(Maybe (MVar FilePath))
 [ncSscContext] :: NodeContext ssc -> !(SscNodeContext ssc)
 
@@ -1704,13 +1707,15 @@ NodeContext :: !(Maybe (MVar FilePath)) -> !(SscNodeContext ssc) -> !UpdateConte
 -- | Settings for global Txp.
 [ncTxpGlobalSettings] :: NodeContext ssc -> !TxpGlobalSettings
 
+-- | Leaders of the first epoch
+[ncGenesisLeaders] :: NodeContext ssc -> !SlotLeaders
+
 -- | Generate <a>PublicKey</a> from <tt>SecretKey</tt> of
 --   <a>NodeContext</a>.
 ncPublicKey :: NodeContext ssc -> PublicKey
 
 -- | Generate <a>Address</a> from <tt>SecretKey</tt> of <a>NodeContext</a>
 ncPubKeyAddress :: NodeContext ssc -> Address
-ncGenesisLeaders :: NodeContext ssc -> SlotLeaders
 ncGenesisUtxo :: NodeContext ssc -> Utxo
 ncSystemStart :: NodeContext __ -> Timestamp
 
@@ -3037,11 +3042,11 @@ ToilModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> !exten
 [_tmUndos] :: GenericToilModifier extension -> !UndoMap
 [_tmExtra] :: GenericToilModifier extension -> !extension
 type ToilModifier = GenericToilModifier ()
-tmUtxo :: forall extension_a1Tta. Lens' (GenericToilModifier extension_a1Tta) UtxoModifier
-tmBalances :: forall extension_a1Tta. Lens' (GenericToilModifier extension_a1Tta) BalancesView
-tmMemPool :: forall extension_a1Tta. Lens' (GenericToilModifier extension_a1Tta) MemPool
-tmUndos :: forall extension_a1Tta. Lens' (GenericToilModifier extension_a1Tta) UndoMap
-tmExtra :: forall extension_a1Tta extension_a1Tvd. Lens (GenericToilModifier extension_a1Tta) (GenericToilModifier extension_a1Tvd) extension_a1Tta extension_a1Tvd
+tmUtxo :: forall extension_a1Ttc. Lens' (GenericToilModifier extension_a1Ttc) UtxoModifier
+tmBalances :: forall extension_a1Ttc. Lens' (GenericToilModifier extension_a1Ttc) BalancesView
+tmMemPool :: forall extension_a1Ttc. Lens' (GenericToilModifier extension_a1Ttc) MemPool
+tmUndos :: forall extension_a1Ttc. Lens' (GenericToilModifier extension_a1Ttc) UndoMap
+tmExtra :: forall extension_a1Ttc extension_a1Tvf. Lens (GenericToilModifier extension_a1Ttc) (GenericToilModifier extension_a1Tvf) extension_a1Ttc extension_a1Tvf
 
 -- | Environment used by Toil.
 data ToilEnv
