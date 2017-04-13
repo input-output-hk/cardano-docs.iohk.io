@@ -1125,9 +1125,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172255 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679172255)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172247 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679172247)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172239 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679172239)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172259 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679172259)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172251 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679172251)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172243 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679172243)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Timestamp.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SoftwareVersion
@@ -1776,7 +1776,7 @@ BaseParams :: !NetworkAddress -> ![DHTNode] -> !(Maybe DHTKey) -> !Bool -> !Logg
 -- | Path to kademlia dump file
 [bpKademliaDump] :: BaseParams -> !FilePath
 genesisUtxoM :: (Functor m, WithNodeContext ssc m) => m Utxo
-genesisLeadersM :: (MonadDB m, WithNodeContext ssc m) => m SlotLeaders
+genesisLeadersM :: (Functor m, WithNodeContext ssc m) => m SlotLeaders
 putBlkSemaphore :: (MonadIO m, WithNodeContext ssc m) => HeaderHash -> m ()
 readBlkSemaphore :: (MonadIO m, WithNodeContext ssc m) => m HeaderHash
 takeBlkSemaphore :: (MonadIO m, WithNodeContext ssc m) => m HeaderHash
@@ -3037,11 +3037,11 @@ ToilModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> !exten
 [_tmUndos] :: GenericToilModifier extension -> !UndoMap
 [_tmExtra] :: GenericToilModifier extension -> !extension
 type ToilModifier = GenericToilModifier ()
-tmUtxo :: forall extension_a1Tt6. Lens' (GenericToilModifier extension_a1Tt6) UtxoModifier
-tmBalances :: forall extension_a1Tt6. Lens' (GenericToilModifier extension_a1Tt6) BalancesView
-tmMemPool :: forall extension_a1Tt6. Lens' (GenericToilModifier extension_a1Tt6) MemPool
-tmUndos :: forall extension_a1Tt6. Lens' (GenericToilModifier extension_a1Tt6) UndoMap
-tmExtra :: forall extension_a1Tt6 extension_a1Tv9. Lens (GenericToilModifier extension_a1Tt6) (GenericToilModifier extension_a1Tv9) extension_a1Tt6 extension_a1Tv9
+tmUtxo :: forall extension_a1Tta. Lens' (GenericToilModifier extension_a1Tta) UtxoModifier
+tmBalances :: forall extension_a1Tta. Lens' (GenericToilModifier extension_a1Tta) BalancesView
+tmMemPool :: forall extension_a1Tta. Lens' (GenericToilModifier extension_a1Tta) MemPool
+tmUndos :: forall extension_a1Tta. Lens' (GenericToilModifier extension_a1Tta) UndoMap
+tmExtra :: forall extension_a1Tta extension_a1Tvd. Lens (GenericToilModifier extension_a1Tta) (GenericToilModifier extension_a1Tvd) extension_a1Tta extension_a1Tvd
 
 -- | Environment used by Toil.
 data ToilEnv
