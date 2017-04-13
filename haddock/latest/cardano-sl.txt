@@ -167,8 +167,6 @@ readUntilEqualTVar :: (Eq a, MonadIO m) => (x -> a) -> TVar x -> a -> m x
 withReadLifted :: (MonadIO m, MonadMask m) => RWLock -> m a -> m a
 withWriteLifted :: (MonadIO m, MonadMask m) => RWLock -> m a -> m a
 instance Control.Monad.Fail.MonadFail m => Control.Monad.Fail.MonadFail (System.Wlog.LoggerNameBox.LoggerNameBox m)
-instance Data.SafeCopy.SafeCopy.SafeCopy Serokell.Util.Verify.VerificationRes
-instance (GHC.Classes.Ord k, Data.SafeCopy.SafeCopy.SafeCopy k, Data.SafeCopy.SafeCopy.SafeCopy v) => Data.SafeCopy.SafeCopy.SafeCopy (Data.Cache.LRU.Internal.LRU k v)
 instance Control.Monad.Fail.MonadFail (Text.Parsec.Prim.ParsecT s u m)
 instance Control.Monad.Fail.MonadFail m => Control.Monad.Fail.MonadFail (Control.Monad.Trans.Resource.Internal.ResourceT m)
 
@@ -1127,9 +1125,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679173337 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679173337)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679173329 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679173329)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679173321 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679173321)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172255 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679172255)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172247 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679172247)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172239 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679172239)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Timestamp.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SoftwareVersion
@@ -3039,11 +3037,11 @@ ToilModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> !exten
 [_tmUndos] :: GenericToilModifier extension -> !UndoMap
 [_tmExtra] :: GenericToilModifier extension -> !extension
 type ToilModifier = GenericToilModifier ()
-tmUtxo :: forall extension_a1Uqb. Lens' (GenericToilModifier extension_a1Uqb) UtxoModifier
-tmBalances :: forall extension_a1Uqb. Lens' (GenericToilModifier extension_a1Uqb) BalancesView
-tmMemPool :: forall extension_a1Uqb. Lens' (GenericToilModifier extension_a1Uqb) MemPool
-tmUndos :: forall extension_a1Uqb. Lens' (GenericToilModifier extension_a1Uqb) UndoMap
-tmExtra :: forall extension_a1Uqb extension_a1Use. Lens (GenericToilModifier extension_a1Uqb) (GenericToilModifier extension_a1Use) extension_a1Uqb extension_a1Use
+tmUtxo :: forall extension_a1Tt8. Lens' (GenericToilModifier extension_a1Tt8) UtxoModifier
+tmBalances :: forall extension_a1Tt8. Lens' (GenericToilModifier extension_a1Tt8) BalancesView
+tmMemPool :: forall extension_a1Tt8. Lens' (GenericToilModifier extension_a1Tt8) MemPool
+tmUndos :: forall extension_a1Tt8. Lens' (GenericToilModifier extension_a1Tt8) UndoMap
+tmExtra :: forall extension_a1Tt8 extension_a1Tvb. Lens (GenericToilModifier extension_a1Tt8) (GenericToilModifier extension_a1Tvb) extension_a1Tt8 extension_a1Tvb
 
 -- | Environment used by Toil.
 data ToilEnv
