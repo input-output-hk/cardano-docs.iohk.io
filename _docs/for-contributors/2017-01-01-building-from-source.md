@@ -5,11 +5,11 @@ permalink: /for-contributors/building-from-source/
 group: for-contributors
 ---
 
-[//]: # (Reviewed at e1d0f9fb37a3f1378341716916f0321fb55698df)
+[//]: # (Reviewed at c507f6675c16810ba9ca72b71dac57288fd1735c)
 
 # Building Cardano SL and Daedalus from Source
 
-Cardano SL consists of a collection of binaries that constitutes
+Cardano SL consists of a collection of binaries that constitute
 the backend, a PureScript API for the Electron-based wallet, and the
 Electron-based wallet called “Daedalus”.
 
@@ -98,7 +98,7 @@ stack exec -- cardano-node \
   --listen 127.0.0.1:3000 \
   --time-lord \
   --wallet \
-  --kademlia-dump-path kademlia.dump 
+  --kademlia-dump-path kademlia.dump
 ```
 
 Please make sure that file `logs/2017-01-10_035413/conf/node2.log.yaml` passed to `--log-config` actually exists. It's possible to use [default configuration file](https://github.com/input-output-hk/cardano-sl/blob/44d3482a7ff72d02eef3cc2b47fa0def232b999c/log-config-prod.yaml).
@@ -186,7 +186,7 @@ Running `npm install` will register `daedalus-client-api` in local npm package r
 
 ## Building Daedalus
 
-If the instructions of building Cardano SL and the Bridge are followed, building Daedalus wallet will be as simple as cloning Daedalus' repository:
+If the instructions of building Cardano SL and the Bridge are followed, building Daedalus wallet is as simple as cloning Daedalus' repository:
 
 ```
 git clone https://github.com/input-output-hk/daedalus.git
@@ -208,7 +208,7 @@ npm run dev
 
 ## Building Cardano SL node for Testing Purpose
 
-If you want to test functionality of Cardano SL node in our [testnet](/timeline/testnet/), you should go to the root directory of the repository and switch to release branch, for example, `cardano-sl-0.2`. After that build a node with this command:
+If you want to test functionality of Cardano SL node in our [testnet](/timeline/testnet/), you should go to the root directory of the repository and switch to release branch, for example, `cardano-sl-0.2`. After that, build a node with this command:
 
 ~~~ bash
 CSL_SYSTEM_TAG=linux64 stack build --flag cardano-sl-core:-dev-mode
@@ -248,28 +248,28 @@ stack exec -- cardano-node \
 
 You can download `secret.key` from [Cardano Test-Net Faucet](https://tada.iohk.io). You can place `secret.key` file anywhere, and value of `--keyfile` option should contain a path to this file.
 
-Please make sure you're using correct list of peers! You must take this list from `installers/data/ip-dht-mappings` file in the same release branch of `daedalus` repository. For example, if you're using `cardano-sl-0.3` release branch, corresponding `ip-dht-mappings` file is [here](https://github.com/input-output-hk/daedalus/blob/cardano-sl-0.3/installers/data/ip-dht-mappings).
+Please make sure you're using correct list of peers! You must take this list from `installers/data/ip-dht-mappings` file in the same release branch of `daedalus` repository. For example, if you're using `cardano-sl-0.3` release branch, then the corresponding `ip-dht-mappings` file is [here](https://github.com/input-output-hk/daedalus/blob/cardano-sl-0.3/installers/data/ip-dht-mappings).
 
-After running with this command your node will listen two ports:
+After running this command, your node will be listening to two ports:
 
 1. `3000` for communication with other nodes in our testnet,
 2. `8090` for use wallet functionality, via wallet web API.
 
-Please make sure you ran your node with `--wallet` option, otherwise port `8090` won't be available. You can use another port for wallet web API, via `--wallet-port` option. 
+Please make sure you have run your node with `--wallet` option, otherwise `8090` port won't be available. You can use another port for wallet web API, via `--wallet-port` option.
 
 Now you can test your node.
 
 ## Use Case - Sending Transaction
 
-Although you can work with a node via Daedalus GUI, the simplest way to test a node is a CLI-based way. The main purpose of a node is a sending/receiving money, so let's create your first wallet and initiate your first transaction.
+Although it is possible to work with a node via Daedalus GUI, the simplest way to test a node is a CLI-based one. The main purpose of a node is a sending/receiving money, so let's create your first wallet and initiate your first transaction.
 
-You can create new wallet with foillowing command. 12-word phrase is your backup phrase for this wallet. Please note that each backup phrase corresponds to a single secret key (the value of `--keyfile` mentioned above).
+You can create new wallet with the following command. 12-word phrase is your backup phrase for this wallet. Please note that each backup phrase corresponds to a single secret key (the value of `--keyfile` mentioned above).
 
 ~~~ bash
 curl -X POST -H "Content-Type: application/json" -d '{"cwBackupPhrase": {"bpToList": ["squirrel", "material", "silly", "twice", "direct", "slush", "pistol","razor", "become", "junk", "kingdom", "flee"]},"cwInitMeta": {"cwType": "CWTPersonal","cwCurrency": "ADA","cwName": "Personal Wallet 1"}}' http://localhost:8090/api/new_wallet
 ~~~
 
-You should see an answer, for example:
+After running it, you should see an answer, for example:
 
 ~~~ json
 {
@@ -287,7 +287,7 @@ You should see an answer, for example:
 }
 ~~~
 
-It means your first wallet was created successfully. Value of `cwAddress` is an address of your node, and value of `getCoin` is your initial amount.
+It means that your first wallet has been created successfully. Value of `cwAddress` is an address of your node, and value of `getCoin` is your initial amount.
 
 Now you can send money to some user with this command:
 
@@ -326,4 +326,4 @@ Now you should see an answer, for example:
 
 As you can see, the value of `getCoin` now is `1900`, because you've sent `100` ADA.
 
-You can test other functionalit of the node, please see description of [Wallet Backend API](/technical/wallet/#wallet-backend-api) for detailed info.
+You can test other functionalities of the node. Please see description of [Wallet Backend API](/technical/wallet/#wallet-backend-api) for detailed info.
