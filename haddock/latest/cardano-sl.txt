@@ -1125,9 +1125,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172259 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679172259)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172251 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679172251)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172243 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679172243)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172260 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679172260)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172252 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679172252)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172244 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679172244)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Timestamp.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SoftwareVersion
@@ -1425,7 +1425,6 @@ genesisDelegation :: HashMap StakeholderId [StakeholderId]
 
 -- | List of addresses in genesis. See <tt>genesisPublicKeys</tt>.
 genesisAddresses :: [Address]
-genesisSeed :: SharedSeed
 genesisBalances :: HashMap StakeholderId Coin
 
 -- | List of pairs from <a>SecretKey</a> with corresponding
@@ -1528,7 +1527,6 @@ PutFtsStake :: !StakeholderId -> !Coin -> BalancesOp
 isBootstrapEra :: MonadDB m => m Bool
 getEffectiveTotalStake :: MonadDB m => m Coin
 getEffectiveStake :: MonadDB m => StakeholderId -> m (Maybe Coin)
-genesisFakeTotalStake :: Coin
 prepareGStateBalances :: forall m. MonadDB m => Utxo -> m ()
 data BalanceIter :: *
 
@@ -1536,8 +1534,7 @@ data BalanceIter :: *
 runBalanceIterator :: forall m a. MonadDB m => (forall iter. (MonadIterator (IterType BalanceIter) iter, MonadDB iter) => iter a) -> m a
 
 -- | Run map iterator over effective balances.
-runBalanceMapIterator :: forall v m a. MonadDB m => (forall iter. (MonadIterator v iter, MonadDB iter) => iter a) -> (IterType BalanceIter -> v) -> m a
-runBalanceIterBootstrap :: forall m a. Monad m => ListHolderT (IterType BalanceIter) m a -> m a
+runBalanceMapIterator :: forall v m a. MonadDB m => (forall iter. (MonadIterator v iter, MonadDB iter) => iter a) -> ((StakeholderId, Coin) -> v) -> m a
 sanityCheckBalances :: (MonadMask m, MonadDB m, WithLogger m) => m ()
 getTxOutFromDB :: (MonadIO m, MonadThrow m) => TxIn -> DB -> m (Maybe TxOutAux)
 getTxOut :: MonadDB m => TxIn -> m (Maybe TxOutAux)
@@ -1642,7 +1639,7 @@ getNodeContext :: (WithNodeContext ssc m, MonadTrans t, WithNodeContext ssc m', 
 
 -- | NodeContext contains runtime context of node.
 data NodeContext ssc
-NodeContext :: !(Maybe (MVar FilePath)) -> !(SscNodeContext ssc) -> !UpdateContext -> !LrcContext -> !(MVar HeaderHash) -> !(TVar UserSecret) -> !(TBQueue (NodeId, NewestFirst NE (BlockHeader ssc))) -> !(TMVar (NodeId, BlockHeader ssc)) -> !(TMVar (BlockHeader ssc)) -> !RelayInvQueue -> !LoggerConfig -> !NodeParams -> !(TVar Bool) -> !(TBQueue ()) -> !(Maybe (MVar ())) -> !UTCTime -> !(TVar (Maybe (BlockHeader ssc))) -> !TxpGlobalSettings -> !SlotLeaders -> NodeContext ssc
+NodeContext :: !(Maybe (MVar FilePath)) -> !(SscNodeContext ssc) -> !UpdateContext -> !LrcContext -> !(MVar HeaderHash) -> !(TVar UserSecret) -> !(TBQueue (NodeId, NewestFirst NE (BlockHeader ssc))) -> !(TMVar (NodeId, BlockHeader ssc)) -> !(TMVar (BlockHeader ssc)) -> !RelayInvQueue -> !LoggerConfig -> !NodeParams -> !(TVar Bool) -> !(TBQueue ()) -> !(Maybe (MVar ())) -> !UTCTime -> !(TVar (Maybe (BlockHeader ssc))) -> !TxpGlobalSettings -> NodeContext ssc
 [ncJLFile] :: NodeContext ssc -> !(Maybe (MVar FilePath))
 [ncSscContext] :: NodeContext ssc -> !(SscNodeContext ssc)
 
@@ -1707,15 +1704,13 @@ NodeContext :: !(Maybe (MVar FilePath)) -> !(SscNodeContext ssc) -> !UpdateConte
 -- | Settings for global Txp.
 [ncTxpGlobalSettings] :: NodeContext ssc -> !TxpGlobalSettings
 
--- | Leaders of the first epoch
-[ncGenesisLeaders] :: NodeContext ssc -> !SlotLeaders
-
 -- | Generate <a>PublicKey</a> from <tt>SecretKey</tt> of
 --   <a>NodeContext</a>.
 ncPublicKey :: NodeContext ssc -> PublicKey
 
 -- | Generate <a>Address</a> from <tt>SecretKey</tt> of <a>NodeContext</a>
 ncPubKeyAddress :: NodeContext ssc -> Address
+ncGenesisLeaders :: NodeContext ssc -> SlotLeaders
 ncGenesisUtxo :: NodeContext ssc -> Utxo
 ncSystemStart :: NodeContext __ -> Timestamp
 
@@ -2457,7 +2452,7 @@ verifyEntriesGuardM :: MonadError TossVerFailure m => (entry -> key) -> (entry -
 
 -- | Type class which provides functions necessary for read-only
 --   verification of GodTossing data.
-class (Monad m, WithLogger m) => MonadTossRead m where getCommitments = lift getCommitments getOpenings = lift getOpenings getShares = lift getShares getVssCertificates = lift getVssCertificates getStableCertificates = lift . getStableCertificates getRichmen = lift . getRichmen
+class (Monad m, WithLogger m) => MonadTossRead m where getCommitments = lift getCommitments getOpenings = lift getOpenings getShares = lift getShares getVssCertData = lift getVssCertData getVssCertificates = lift getVssCertificates getStableCertificates = lift . getStableCertificates getRichmen = lift . getRichmen
 
 -- | Get <a>CommitmentsMap</a> with all commitments.
 getCommitments :: MonadTossRead m => m CommitmentsMap
@@ -2470,6 +2465,9 @@ getShares :: MonadTossRead m => m SharesMap
 
 -- | Get <a>VssCertificatesMap</a> with all VSS certificates.
 getVssCertificates :: MonadTossRead m => m VssCertificatesMap
+
+-- | Get <a>VssCertData</a>.
+getVssCertData :: MonadTossRead m => m VssCertData
 
 -- | Retrieve all stable <a>VssCertificate</a>s for given epoch.
 getStableCertificates :: MonadTossRead m => EpochIndex -> m VssCertificatesMap
@@ -2485,6 +2483,9 @@ getOpenings :: (MonadTossRead m, MonadTrans t, MonadTossRead m', t m' ~ m) => m 
 
 -- | Get <a>SharesMap</a> with all shares.
 getShares :: (MonadTossRead m, MonadTrans t, MonadTossRead m', t m' ~ m) => m SharesMap
+
+-- | Get <a>VssCertData</a>.
+getVssCertData :: (MonadTossRead m, MonadTrans t, MonadTossRead m', t m' ~ m) => m VssCertData
 
 -- | Get <a>VssCertificatesMap</a> with all VSS certificates.
 getVssCertificates :: (MonadTossRead m, MonadTrans t, MonadTossRead m', t m' ~ m) => m VssCertificatesMap
@@ -2606,6 +2607,7 @@ PureToss :: NamedPureLogger (RWS MultiRichmenStake () GtGlobalState) a -> PureTo
 [getPureToss] :: PureToss a -> NamedPureLogger (RWS MultiRichmenStake () GtGlobalState) a
 type MultiRichmenStake = HashMap EpochIndex RichmenStake
 type MultiRichmenSet = HashMap EpochIndex RichmenSet
+runPureToss :: MultiRichmenStake -> GtGlobalState -> PureToss a -> (a, GtGlobalState, [LogEvent])
 runPureTossWithLogger :: WithLogger m => MultiRichmenStake -> GtGlobalState -> PureToss a -> m (a, GtGlobalState)
 evalPureTossWithLogger :: WithLogger m => MultiRichmenStake -> GtGlobalState -> PureToss a -> m a
 execPureTossWithLogger :: WithLogger m => MultiRichmenStake -> GtGlobalState -> PureToss a -> m GtGlobalState
@@ -3042,11 +3044,11 @@ ToilModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> !exten
 [_tmUndos] :: GenericToilModifier extension -> !UndoMap
 [_tmExtra] :: GenericToilModifier extension -> !extension
 type ToilModifier = GenericToilModifier ()
-tmUtxo :: forall extension_a1Ttc. Lens' (GenericToilModifier extension_a1Ttc) UtxoModifier
-tmBalances :: forall extension_a1Ttc. Lens' (GenericToilModifier extension_a1Ttc) BalancesView
-tmMemPool :: forall extension_a1Ttc. Lens' (GenericToilModifier extension_a1Ttc) MemPool
-tmUndos :: forall extension_a1Ttc. Lens' (GenericToilModifier extension_a1Ttc) UndoMap
-tmExtra :: forall extension_a1Ttc extension_a1Tvf. Lens (GenericToilModifier extension_a1Ttc) (GenericToilModifier extension_a1Tvf) extension_a1Ttc extension_a1Tvf
+tmUtxo :: forall extension_a1Ttd. Lens' (GenericToilModifier extension_a1Ttd) UtxoModifier
+tmBalances :: forall extension_a1Ttd. Lens' (GenericToilModifier extension_a1Ttd) BalancesView
+tmMemPool :: forall extension_a1Ttd. Lens' (GenericToilModifier extension_a1Ttd) MemPool
+tmUndos :: forall extension_a1Ttd. Lens' (GenericToilModifier extension_a1Ttd) UndoMap
+tmExtra :: forall extension_a1Ttd extension_a1Tvg. Lens (GenericToilModifier extension_a1Ttd) (GenericToilModifier extension_a1Tvg) extension_a1Ttd extension_a1Tvg
 
 -- | Environment used by Toil.
 data ToilEnv
