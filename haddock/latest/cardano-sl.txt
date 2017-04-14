@@ -1015,7 +1015,7 @@ portOption :: Word16 -> Parser Word16
 timeLordOption :: Parser Bool
 webPortOption :: Word16 -> String -> Parser Word16
 walletPortOption :: Word16 -> String -> Parser Word16
-networkAddressOption :: NetworkAddress -> Parser NetworkAddress
+ipPortOption :: NetworkAddress -> Parser NetworkAddress
 
 -- | Parse <a>DHTNode</a>s from a file (nodes should be separated by
 --   newlines).
@@ -1125,9 +1125,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172371 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679172371)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172363 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679172363)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172355 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679172355)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172260 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679172260)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172252 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679172252)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172244 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679172244)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Timestamp.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SoftwareVersion
@@ -1765,10 +1765,10 @@ NodeParams :: !FilePath -> !Bool -> !Timestamp -> !SecretKey -> !UserSecret -> !
 
 -- | Contains basic &amp; networking parameters for running node.
 data BaseParams
-BaseParams :: !(Maybe NetworkAddress) -> ![DHTNode] -> !(Maybe DHTKey) -> !Bool -> !LoggingParams -> !FilePath -> BaseParams
+BaseParams :: !NetworkAddress -> ![DHTNode] -> !(Maybe DHTKey) -> !Bool -> !LoggingParams -> !FilePath -> BaseParams
 
--- | Host/port to run on
-[bpNetworkAddress] :: BaseParams -> !(Maybe NetworkAddress)
+-- | Port to run on
+[bpIpPort] :: BaseParams -> !NetworkAddress
 
 -- | Peers passed from CLI
 [bpDHTPeers] :: BaseParams -> ![DHTNode]
@@ -3049,11 +3049,11 @@ ToilModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> !exten
 [_tmUndos] :: GenericToilModifier extension -> !UndoMap
 [_tmExtra] :: GenericToilModifier extension -> !extension
 type ToilModifier = GenericToilModifier ()
-tmUtxo :: forall extension_a1TxF. Lens' (GenericToilModifier extension_a1TxF) UtxoModifier
-tmBalances :: forall extension_a1TxF. Lens' (GenericToilModifier extension_a1TxF) BalancesView
-tmMemPool :: forall extension_a1TxF. Lens' (GenericToilModifier extension_a1TxF) MemPool
-tmUndos :: forall extension_a1TxF. Lens' (GenericToilModifier extension_a1TxF) UndoMap
-tmExtra :: forall extension_a1TxF extension_a1TzI. Lens (GenericToilModifier extension_a1TxF) (GenericToilModifier extension_a1TzI) extension_a1TxF extension_a1TzI
+tmUtxo :: forall extension_a1Ttf. Lens' (GenericToilModifier extension_a1Ttf) UtxoModifier
+tmBalances :: forall extension_a1Ttf. Lens' (GenericToilModifier extension_a1Ttf) BalancesView
+tmMemPool :: forall extension_a1Ttf. Lens' (GenericToilModifier extension_a1Ttf) MemPool
+tmUndos :: forall extension_a1Ttf. Lens' (GenericToilModifier extension_a1Ttf) UndoMap
+tmExtra :: forall extension_a1Ttf extension_a1Tvi. Lens (GenericToilModifier extension_a1Ttf) (GenericToilModifier extension_a1Tvi) extension_a1Ttf extension_a1Tvi
 
 -- | Environment used by Toil.
 data ToilEnv
@@ -3969,10 +3969,10 @@ LoggingParams :: !LoggerName -> !(Maybe FilePath) -> !(Maybe FilePath) -> !(Mayb
 
 -- | Contains basic &amp; networking parameters for running node.
 data BaseParams
-BaseParams :: !(Maybe NetworkAddress) -> ![DHTNode] -> !(Maybe DHTKey) -> !Bool -> !LoggingParams -> !FilePath -> BaseParams
+BaseParams :: !NetworkAddress -> ![DHTNode] -> !(Maybe DHTKey) -> !Bool -> !LoggingParams -> !FilePath -> BaseParams
 
--- | Host/port to run on
-[bpNetworkAddress] :: BaseParams -> !(Maybe NetworkAddress)
+-- | Port to run on
+[bpIpPort] :: BaseParams -> !NetworkAddress
 
 -- | Peers passed from CLI
 [bpDHTPeers] :: BaseParams -> ![DHTNode]
@@ -4050,7 +4050,7 @@ runServer_ :: (MonadIO m, MonadMockable m, MonadFix m, WithLogger m, MonadDHT m)
 
 -- | RAII for node starter.
 loggerBracket :: LoggingParams -> IO a -> IO a
-createTransport :: (MonadIO m, WithLogger m, Mockable Throw m) => TCPAddr -> m Transport
+createTransport :: (MonadIO m, WithLogger m, Mockable Throw m) => String -> Word16 -> m Transport
 bracketTransport :: BaseParams -> (Transport -> Production a) -> Production a
 bracketResources :: BaseParams -> (RealModeResources -> Production a) -> IO a
 data RealModeResources
