@@ -5,11 +5,11 @@ permalink: /technical/cli-options/
 group: technical
 ---
 
-[//]: # (Reviewed at e1d0f9fb37a3f1378341716916f0321fb55698df)
+[//]: # (Reviewed at ac0126b2753f1f5ca6fbfb555783fbeb1aa141bd)
 
 # Cardano SL CLI Options
 
-This guide describes all executables we use in Cardano SL and all corresponding CLI-options/parameters.
+This guide describes all executables that are used in Cardano SL and all corresponding CLI-options/parameters.
 
 ## `cardano-nodes`
 
@@ -28,7 +28,7 @@ Available options:
     <br/>&nbsp;
 2.  `--db-path FILEPATH`
     <br/>Path to the directory with node's database (called Global State).
-    <br/>If specified path doesn'n exist, directory will be created.
+    <br/>If the specified path doesn't exist, a directory will be created.
     <br/>Default value: none.
     <br/>&nbsp;
 3.  `--rebuild-db`
@@ -48,25 +48,25 @@ Available options:
     <br/>Default value: `secret.key`.
     <br/>&nbsp;
 7.  `--backup-phrase PHRASE`
-    <br/>12-word phrase to recover the wallet. This phrase was generated during wallet's creation.
+    <br/>A 12-word phrase to recover the wallet. This phrase was generated during wallet's creation.
     <br/>Words should be separated by spaces.
     <br/>Default value: none.
     <br/>&nbsp;
 8.  `--listen IP:PORT`
     <br>Specify IP-address and port node uses to listen requests from other nodes.
     <br/>Default value: `0.0.0.0:3000`.
-    <br/>**Please make sure that IP-address and port are accessible, otherwise work of the node isn't guaranteed**.
+    <br/>**Please make sure that IP-address and port are accessible, otherwise it is not guaranteed that the node works properly**.
     <br/>&nbsp;
 9.  `--supporter`
-    <br/>Launch DHT supporter instead of full node.
+    <br/>Launch DHT supporter instead of a full node.
     <br/>&nbsp;
 10. `--dht-key HOST_ID`
-    <br/>DHT key in Base64-URL format (we use it for Kademlia instance).
+    <br/>DHT key in Base64-URL format (it is used for Kademlia instance).
     <br/>Default value: none
     <br/>Example: `--dht-key dYGuDj0BrJxCsTC9ntJE7ePT7wUoVdQMH3sKLzQD8bo=`
     <br/>&nbsp;
 11. `--time-lord`
-    <br/>Node is a **time lord**, i.e. one responsible for system start time decision & propagation.
+    <br/> A node is a **time lord**, i.e. one responsible for system start time decision & propagation.
     <br/>This option is used in **development** mode only.
     <br/>&nbsp;
 12. `--stats`
@@ -74,7 +74,7 @@ Available options:
     <br/>&nbsp;
 13. `--json-log FILEPATH`
     <br/>Path to JSON log file.
-    <br/>If specified path doesn't exist, file will be created.
+    <br/>If the specified path doesn't exist, the file will be created.
     <br/>&nbsp;
 14. `--attack TYPE`
     <br/>Attack type to emulate.
@@ -85,14 +85,14 @@ Available options:
 15. `--attack-target HOST:PORT|PUBKEYHASH`
     <br/>
     <br/>Possible values:
-    <br/>* `HOST:PORT` - target defined by its network address.
-    <br/>* `PUBKEYHASH` - target defined by its public key address (in Base58 format).
+    <br/>* `HOST:PORT` - a target defined by its network address.
+    <br/>* `PUBKEYHASH` - a target defined by its public key address (in Base58 format).
     <br/>**This option can be used more than once.**
     <br/>Default value: none.
     <br/>&nbsp;
 16. `--kademlia-dump-path FILEPATH`
-    <br/>Path to file we use to write Kademlia snapshot in.
-    <br/>If specified path doesn't exist, file will be created.
+    <br/>Path to the file we use to write Kademlia snapshot in.
+    <br/>If the specified path doesn't exist, the file will be created.
     <br/>Default value: `kademlia.dump`.
     <br/>&nbsp;
 17. `--web`
@@ -104,16 +104,16 @@ Available options:
     <br/>Default value: `8080`.
     <br/>&nbsp;
 19. `--wallet`
-    <br/>Runs Daedalus Wallet web API (node will be able to accept requests from the wallet).
+    <br/>Runs Daedalus Wallet web API (a node will be able to accept requests from the wallet).
     <br/>&nbsp;
 20. `--wallet-port PORT`
     <br/>Port for Daedalus Wallet web API.
-    <br/>Please make sure you use `--wallet` option as well, otherwise this value will be ignored.
+    <br/>Please make sure you use `--wallet` option too, otherwise this value will be ignored.
     <br/>Default value: `8090`.
     <br/>&nbsp;
 21. `--wallet-db-path FILEPATH`
     <br/>Path to the wallet's database.
-    <br/>Specified path must exist.
+    <br/>The specified path must exist.
     <br/>Default value: none.
     <br/>&nbsp;
 22. `--wallet-rebuild-db`
@@ -145,13 +145,13 @@ Available options:
     <br/>Default value: none.
     <br/>&nbsp;
 29. `--ssc-algo ALGO`
-    <br>Shared Seed Calculation algorithm which nodes will use.
+    <br>Shared Seed Calculation algorithm which will be used by nodes.
     <br>Possible values: `GodTossing` and `NistBeacon`.
     <br/>Default value: `GodTossing`.
     <br/>&nbsp;
 30. `--disable-propagation`
     <br/>Disable network propagation (transactions, SSC data, blocks). I.e. all data is to be sent only by entity
-    who creates data and entity is yosend it to all peers on his own.
+    which creates data, and this entity is to send it to all peers on its own.
     <br/>&nbsp;
 31. `--report-server URL`
     <br/>URL of reporting server to send crash/error logs on.
@@ -172,7 +172,7 @@ Available options:
     <br/>Example: `--flat-distr "(3, 100000)"`
     <br/>&nbsp;
 34. `--bitcoin-distr (INT,INT)`
-    <br/>Use bitcoin stake distribution with given parameters. Bitcoin distribution is a Bitcoin mining pool-style ditribution.
+    <br/>Use bitcoin stake distribution with given parameters. Bitcoin distribution is a Bitcoin mining pool-style distribution.
     <br/>Format: (nodes, coins), both numbers must be positive.
     <br/>This option is used in **development** mode only.
     <br/>Please make sure you don't use `--flat-distr` option with this one.
@@ -180,11 +180,11 @@ Available options:
     <br/>Example: `--bitcoin-distr "(3, 100000)"`
     <br/>&nbsp;
 35. `--exp-distr`
-    <br/>Enable exponential distribution. It means that first three nodes get 0.875% of stake.
+    <br/>Enable exponential distribution. It means that the first three nodes get 0.875% of stake.
     <br/>This option is used in **development** mode only.
     <br/>&nbsp;
 36. `--update-latest-path FILEPATH`
-    <br/>Path to update installer file, which should be downloaded by Update System.
+    <br/>Path to update the installer file, which should be downloaded by Update System.
     <br/>Default value: `update-installer.exe`.
     <br/>&nbsp;
 37. `--update-with-package`
@@ -212,7 +212,7 @@ stack exec -- cardano-node \
 
 An executable `cardano-web-docs` is used for building documentation of `cardano-node` web API (see `cardano-node` above).
 
-`cardano-web-docs` hasn't any options or parameters, it runs and produce `web-api.md` file in the current directory.
+`cardano-web-docs` has no options or parameters, it runs and produces a `web-api.md` file in the current directory.
 
 ## `cardano-launcher`
 
@@ -220,7 +220,7 @@ Please read [Cardano SL Launcher](/technical/launcher/) guide for info about `ca
 
 ## `cardano-genupdate`
 
-An executable `cardano-genupdate` is used for generation of update. There's no CLI-options, only 3 mandatory parameters:
+An executable `cardano-genupdate` is used for generation of update. There's no CLI-options — only 3 mandatory parameters:
 
 ~~~
 cardano-genupdate [OLD_DIR] [NEW_DIR] [OUTPUT_TAR_FILE]
@@ -228,9 +228,9 @@ cardano-genupdate [OLD_DIR] [NEW_DIR] [OUTPUT_TAR_FILE]
 
 where:
 
-1. `OLD_DIR` - path to a directory with a program, old version. Path must exist.
-2. `NEW_DIR` - path to a directory with a program, new version. Path must exist.
-3. `OUTPUT_TAR_FILE` - path to output `.tar`-file with diff (based on a difference between old version and new one).
+1. `OLD_DIR` - the path to a directory with a program, old version. The path must exist.
+2. `NEW_DIR` - the path to a directory with a program, new version. The path must exist.
+3. `OUTPUT_TAR_FILE` - the path to output `.tar`-file with diff (based on a difference between old version and new one).
 
 Both directories must have equal file structure (e.g. they must contain the same files in the same subdirectories correspondingly), otherwise `cardano-genupdate` will fail.
 
@@ -250,7 +250,7 @@ An executable `cardano-wallet-hs2purs` is used for generating PureScript types b
 
 ## `cardano-analyzer`
 
-An executable `cardano-analyzer` is an analyzer of JSON log files. It extracts TPS info and store statistics in `.csv`-file.
+An executable `cardano-analyzer` is an analyzer of JSON log files. It extracts TPS info and stores statistics in `.csv`-file.
 
 Available options:
 
@@ -259,7 +259,7 @@ Available options:
     <br/>&nbsp;
 2.  `--file FILEPATH`
     <br/>Path to JSON log to analyze.
-    <br/>Specified path must exist.
+    <br/>The specified path must exist.
     <br/>**Mandatory option**.
     <br/>**This option can be used more than once.**
     <br/>Default value: none.
@@ -269,11 +269,11 @@ Available options:
     <br/>If this option is defined, `cardano-analyzer` shows a number of transactions which are sent and accepted.
     <br/>&nbsp;
 4.  `-k, --confirmation ARG`
-    <br/>How many blocks are needed for confirmation.
+    <br/>The amount of blocks needed for confirmation.
     <br/>Default value: none.
     <br/>&nbsp;
 
-Example of `cardano-analyzer` command:
+An example of `cardano-analyzer` command:
 
 ~~~
 stack exec -- cardano-analyzer --file node2.json
@@ -283,7 +283,7 @@ Name of the result file is formed from the value of `--file` option. Thus, in th
 
 ## `cardano-avvmmigrate`
 
-An executable `cardano-avvmmigrate` is an AVVM converter. AVVM is a mechanism people buy ADA-certificates with. ADA-certificate is a special document with seed for generation of key pair. We're storing public key only and bind money to it. So `cardano-avvmmigrate` takes JSON file with "address + money" pairs and generates special binary file with that info. Based on this binary file the node knows genesis utxo.
+An executable `cardano-avvmmigrate` is an AVVM converter. AVVM is a mechanism people buy ADA-certificates with. ADA-certificate is a special document with a seed for generation of key pair. We're storing public key only and bind money to it. So `cardano-avvmmigrate` takes JSON file with "address + money" pairs and generates special binary file with that info. Based on this binary file, the node knows genesis utxo.
 
 Example of part of an input JSON file:
 

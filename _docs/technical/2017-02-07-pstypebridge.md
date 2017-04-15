@@ -4,12 +4,13 @@ title: PureScript Type Bridge in Cardano SL
 permalink: /technical/pstypebridge/
 group: technical
 ---
+[//]: # (Reviewed at ac0126b2753f1f5ca6fbfb555783fbeb1aa141bd)
 
 # PureScript type bridge
 
 In the [Wallets](/technical/wallet/) section, it was discussed how the wallet
-types are organized and how the API is structured. This section will be a
-review of the way these types are used in the frontend, which was written in
+types are organized and how the API is structured. This section is a
+review of the way these types are used in the frontend written in
 PureScript.
 
 ## PureScript
@@ -32,7 +33,7 @@ function. This function works for any Haskell type that has an equivalent in
 PureScript, like Haskell's `Int` and PureScript's `Number`, Haskell's strings
 and PureScript's `String`, Haskell's tuple, `(,)`, and PureScript's
 `Tuple`, Haskell's records, and PureScript's records, which only have a slight
-difference in syntax, and so on.
+difference in syntax, etc.
 
 In these cases, all that one needs to write is, for example,
 
@@ -49,22 +50,22 @@ main =
 	  ]
 ~~~
 
-where `writePSTypes` is a function from `purescript-bridge` that will write the
+where `writePSTypes` is a function from `purescript-bridge` that writes the
 generated PureScript types to the specified directory, mirroring the hierarchy
-of the Haskell modules the types came from. The `buildBridge` line will be
+of the Haskell modules the types came from. The `buildBridge` line is
 important for the next section.
 
-This is what was done for most types in the wallet's backend. For the rest,
-another mechanism was required.
+This is what has been done for most types in the wallet's backend. For the rest,
+another mechanism is required.
 
 ## Custom bridges
 
-Like mentioned before, `mkSumType` works for most types, but for Haskell's
+As mentioned previously, `mkSumType` works for most types, but for Haskell's
 `Word`, in this project's case, it did not. This is because PureScript does not
 have the variety of numerical types that Haskell does, so for `Word, Word8,
 Word 32, Word64` and other very specific integral types, PureScript's compiler
 is unable to automatically perform the conversion. In these cases, we require a
-custom bridge. Such a mechanism is simple. Building on the previous example:
+custom bridge. This mechanism is simple. Building on the previous example,
 
 ~~~ haskell
 import           Language.PureScript.Bridge         (BridgePart, buildBridge,
@@ -88,8 +89,8 @@ wordBridge = typeName ^== "Word" >> pure psInt
 ~~~
 
 This means a type called `Word` will be created in the generated PureScript
-files, which will be a newtype wrapper ove PureScript's integer type.
+files, which will be a newtype wrapper over PureScript's integer type.
 
-For all types for which a custom bridge is needed, after writing one, the bridge
+For all types which need a custom bridge, after writing one, the bridge
 should simply be appended to the `customBridge` being used, with the `(<|>)`
 combinator.
