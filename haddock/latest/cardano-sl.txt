@@ -836,7 +836,7 @@ compileConfig :: CompileConfig
 
 -- | Compile time configuration. See example in <i>constants.yaml</i> file.
 data CompileConfig
-CompileConfig :: !Int -> !Int -> !Word -> ![String] -> !Int -> !Word -> !Int -> !Int -> !Word64 -> !Word64 -> !Int -> !Word -> !Int -> !Int -> !Int -> !Int -> !Int -> CompileConfig
+CompileConfig :: !Int -> !Int -> !Word -> ![String] -> !Int -> !Word -> !Int -> !Int -> !Word64 -> !Word64 -> !Int -> !Word -> !Int -> !Int -> !Int -> !Int -> !Int -> !Int -> CompileConfig
 
 -- | Number of pre-generated keys
 [ccGenesisN] :: CompileConfig -> !Int
@@ -888,6 +888,7 @@ CompileConfig :: !Int -> !Int -> !Word -> ![String] -> !Int -> !Word -> !Int -> 
 
 -- | InvMsg propagation queue capacity
 [ccPropagationQueueSize] :: CompileConfig -> !Int
+[ccMaxBlundFileSize] :: CompileConfig -> !Int
 
 
 -- | Constants used by algorithm. See paper for more details. Some
@@ -947,6 +948,9 @@ recoveryHeadersMessage :: (Integral a) => a
 -- | Timeout for caching system. Components that use caching on messages
 --   can use this timeout to invalidate caches.
 messageCacheTimeout :: (Integral a) => a
+
+-- | Max size of blund file on disk (in bytes).
+maxBlundFileSize :: (Integral a) => a
 
 -- | Amount of time we hold confirmations for light PSKs.
 lightDlgConfirmationTimeout :: (Integral a) => a
@@ -1125,9 +1129,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172260 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679172260)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172252 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679172252)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172244 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679172244)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172274 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679172274)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172266 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679172266)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172258 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679172258)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Timestamp.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SoftwareVersion
@@ -1310,9 +1314,27 @@ module Pos.Types.Block
 -- | Re-export of Pos.Types.* + binary instances
 module Pos.Types
 
-
--- | Interface to Blocks DB.
 module Pos.DB.Block
+
+-- | Structure describes location of block and undo with specific header
+--   hash. Block and corresponding Undo are stored in same file.
+data BlundAux
+BlundAux :: !Word32 -> !Word32 -> !Word32 -> !Word32 -> !Word32 -> BlundAux
+
+-- | In which file the blund is stored.
+[blundFileNum] :: BlundAux -> !Word32
+
+-- | Offset of blob of the block in a file.
+[blockOffset] :: BlundAux -> !Word32
+
+-- | Length of blob of the block.
+[blockLen] :: BlundAux -> !Word32
+
+-- | Offset of blob of the undo in a file.
+[undoOffset] :: BlundAux -> !Word32
+
+-- | Length of blob of the undo.
+[undoLen] :: BlundAux -> !Word32
 
 -- | Get block with given hash from Block DB.
 getBlock :: (SscHelpersClass ssc, MonadDB m) => HeaderHash -> m (Maybe (Block ssc))
@@ -1325,10 +1347,9 @@ getUndo :: (MonadDB m) => HeaderHash -> m (Maybe Undo)
 
 -- | Retrieves block and undo together.
 getBlockWithUndo :: (SscHelpersClass ssc, MonadDB m) => HeaderHash -> m (Maybe (Block ssc, Undo))
-deleteBlock :: (MonadDB m) => HeaderHash -> m ()
 
 -- | Put given block, its metadata and Undo data into Block DB.
-putBlock :: (SscHelpersClass ssc, MonadDB m) => Undo -> Block ssc -> m ()
+putBlund :: (SscHelpersClass ssc, MonadDB m) => Block ssc -> Undo -> m ()
 prepareBlockDB :: forall ssc m. (SscHelpersClass ssc, MonadDB m) => GenesisBlock ssc -> m ()
 
 -- | Load blunds starting from block with header hash equal to given hash
@@ -3049,11 +3070,11 @@ ToilModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> !exten
 [_tmUndos] :: GenericToilModifier extension -> !UndoMap
 [_tmExtra] :: GenericToilModifier extension -> !extension
 type ToilModifier = GenericToilModifier ()
-tmUtxo :: forall extension_a1Ttd. Lens' (GenericToilModifier extension_a1Ttd) UtxoModifier
-tmBalances :: forall extension_a1Ttd. Lens' (GenericToilModifier extension_a1Ttd) BalancesView
-tmMemPool :: forall extension_a1Ttd. Lens' (GenericToilModifier extension_a1Ttd) MemPool
-tmUndos :: forall extension_a1Ttd. Lens' (GenericToilModifier extension_a1Ttd) UndoMap
-tmExtra :: forall extension_a1Ttd extension_a1Tvg. Lens (GenericToilModifier extension_a1Ttd) (GenericToilModifier extension_a1Tvg) extension_a1Ttd extension_a1Tvg
+tmUtxo :: forall extension_a1XFC. Lens' (GenericToilModifier extension_a1XFC) UtxoModifier
+tmBalances :: forall extension_a1XFC. Lens' (GenericToilModifier extension_a1XFC) BalancesView
+tmMemPool :: forall extension_a1XFC. Lens' (GenericToilModifier extension_a1XFC) MemPool
+tmUndos :: forall extension_a1XFC. Lens' (GenericToilModifier extension_a1XFC) UndoMap
+tmExtra :: forall extension_a1XFC extension_a1XHF. Lens (GenericToilModifier extension_a1XFC) (GenericToilModifier extension_a1XHF) extension_a1XFC extension_a1XHF
 
 -- | Environment used by Toil.
 data ToilEnv
