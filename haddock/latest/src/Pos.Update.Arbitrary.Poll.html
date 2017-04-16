@@ -18,8 +18,9 @@
 </span><a name="line-18"></a><span>                                            </span><span class="hs-identifier hs-type">DecidedProposalState</span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">DpsExtra</span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
 </span><a name="line-19"></a><span>                                            </span><span class="hs-identifier hs-type">PollModifier</span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">ProposalState</span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
 </span><a name="line-20"></a><span>                                            </span><span class="hs-identifier hs-type">UndecidedProposalState</span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">UpsExtra</span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
-</span><a name="line-21"></a><span>
-</span><a name="line-22"></a><span class="hs-identifier hs-var">derive</span><span> </span><span class="hs-identifier hs-var">makeArbitrary</span><span> </span><span class="hs-char">''UpsExtra
+</span><a name="line-21"></a><span class="hs-keyword">import</span><span>           </span><span class="hs-identifier">Pos</span><span class="hs-operator">.</span><span class="hs-identifier">Util</span><span class="hs-operator">.</span><span class="hs-identifier">Modifier</span><span>         </span><span class="hs-special">(</span><span class="hs-identifier hs-type">MapModifier</span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><a name="line-22"></a><span>
+</span><a name="line-23"></a><span class="hs-identifier hs-var">derive</span><span> </span><span class="hs-identifier hs-var">makeArbitrary</span><span> </span><span class="hs-char">''UpsExtra
 derive makeArbitrary ''UndecidedProposalState
 
 derive makeArbitrary ''DpsExtra
@@ -29,6 +30,9 @@ derive makeArbitrary ''ConfirmedProposalState
 derive makeArbitrary ''ProposalState
 
 derive makeArbitrary ''BlockVersionState
+
+deriving instance (Eq k, Hashable k, Arbitrary k, Arbitrary v) =&gt;
+    Arbitrary (MapModifier k v)
 
 derive makeArbitrary ''PollModifier
 </span></pre></body></html>
