@@ -4,7 +4,7 @@ title: Introduction
 permalink: /technical/plutus/introduction/
 group: technical-plutus
 ---
-[//]: # (Reviewed at e1d0f9fb37a3f1378341716916f0321fb55698df)
+[//]: # (Reviewed at 25dc86c0fd9741b2f1c59d3a594c48844bbc73f5)
 
 # Introduction
 
@@ -46,7 +46,7 @@ case t of {
 
 ## Declaring Values
 
-To declare a new value (whether it's a function or not), we give its type, and
+To declare a new value (whether it's a function or not), we provide its type, and
 then specify its value. For instance, to define addition for natural numbers,
 we can give a recursive definition using `case`:
 
