@@ -4,7 +4,7 @@ title: CSL Application-Level Messaging
 permalink: /technical/protocols/csl-application-level/
 group: technical-protocols
 ---
-[//]: # (Reviewed at 25dc86c0fd9741b2f1c59d3a594c48844bbc73f5)
+[//]: # (Reviewed at ef835a2334888eda7384da707c4077a8b576b192)
 
 # CSL Application-Level Messaging
 
@@ -14,8 +14,8 @@ and Kademlia DHT, click together and make implementing a full CSL node possible.
 
 ## Message Typeclass and Message Types
 
-When reading the source code, you often encounter things
-[like](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Types.hs#L20-L29)
+When reading the source code, you often encounter things like
+[this](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Types.hs#L20-L29)
 
 ~~~ haskell
 -- | 'GetHeaders' message (see protocol specification).
@@ -38,8 +38,7 @@ In this particular case, the data structure has two fields: `mghFrom` and `mghTo
 Prefixes like `mgh` are used because Haskell puts symbols for record fields in
 the global namespace, so it's programmer's duty to avoid clashes.
 
-It should be noted that sometimes you see messages that are parametrized with a
-`ssc` type variable. That is done for the code to be polymorphic with respect
+It should be noted that sometimes you see messages that are parametrized with a type `ssc` variable. That is done for the code to be polymorphic with respect
 to the way we carry out shared seed computation.
 [Here](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Types.hs#L42-L44)
 is an example of a message that sends newest headers first, minding ssc.
@@ -160,7 +159,7 @@ To distinguish from integers addition, concatenation is denoted here as `(++)`.
 
 ## Communication Messages
 
-This table is about data structures that are included in communication
+This table describes data structures that are included in communication
 maintenance messages.
 It covers the following modules:
 
@@ -200,7 +199,7 @@ Lightweight delegation data is stored in memory and gets deleted after some time
 (500 seconds).
 
 This delegation type can be used to delegate blocks generating right to some
-trusted node when issuer knows she will be absent in some time range.
+trusted node when an issuer knows it will be absent in some time range.
 
 ### Heavyweight Delegation
 
@@ -212,7 +211,7 @@ Follow-The-Satoshi. No real money is transferred; stake of issuer is added to
 stake of delegate when calculating stakeholders for Follow-The-Satoshi.
 
 Every particular stakeholder can share stake with one and only one delegate.
-To revoke certificate a node should create a new certificate and put itself as
+To revoke certificate, a node should create a new certificate and put itself as
 both issuer and delegate.
 
 ### Messages table
@@ -246,7 +245,7 @@ You can see how system messages are implemented under `WorkMode`
 
 # Workers, Listeners and Handlers in CSL
 
-You can think about it as «operating personnel» for messages.
+You can think about them as «operating personnel» for messages.
 
 **Workers** initiate messages exchange, so a worker is an _active_
 communication part of Cardano SL. **Listeners** accept messages from the
@@ -269,7 +268,7 @@ Block acquisition is handled in
 [Pos.Block.Network.Retrieval](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Retrieval.hs)
 module.
 
-Function `retrievalWorker` is very important: it's a server that
+The `retrievalWorker` function  is very important: it's a server that
 operates on [block retrieval
 queue](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Context/Context.hs#L74)
 validating headers, and these blocks form a proper chain. Thus, at [this
@@ -438,7 +437,7 @@ Listeners for update system are defined
 ## WorkMode and WorkModeMin
 
 A special type called `WorkMode` represents a bunch of constraints to perform
-work for the real world distributed system. You can think about constraint as
+work for the real world distributed system. You can think about a constraint as
 a _compile-time guarantee_ that particular actions can be performed in the
 particular context. For example, if we define type of some function `f` in the terms of **logging** constraint, we definitely know that we can log different info inside of this function `f`.
 
@@ -448,7 +447,7 @@ These constraints guarantee the following abilities:
 * [`WithLogger`](https://hackage.haskell.org/package/log-warper-0.2.1/docs/System-Wlog-CanLog.html#t:WithLogger).
 An ability to log different info, see [example](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Retrieval.hs#L58).
 * [`MonadIO`](http://hackage.haskell.org/package/transformers-0.5.1.0/docs/Control-Monad-IO-Class.html#t:MonadIO).
-An ability to interact with the real world. For example, standard input/output, filesystem, etc., see [example](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Retrieval.hs#L61).
+An ability to interact with the real world. For example, standard input/output, filesystem, etc. — see [example](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Retrieval.hs#L61).
 * [`MonadMockable`](https://github.com/serokell/time-warp-nt/blob/9b4927f8115499db2fa3ba07df50d60d02190790/src/Mockable/Monad.hs).
 An ability to work with our network layer, see [example](https://github.com/input-output-hk/cardano-sl/blob/d564b3f5a7e03e086b62c88212870b5ea89f5e8b/src/Pos/Block/Network/Listeners.hs#L86).
 Please read [Time-Warp-NT Guide](/technical/protocols/time-warp-nt/) for more info.

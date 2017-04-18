@@ -4,7 +4,7 @@ title: Time-warp-NT Layer
 permalink: /technical/protocols/time-warp-nt/
 group: technical-protocols
 ---
-[//]: # (Reviewed at e1d0f9fb37a3f1378341716916f0321fb55698df)
+[//]: # (Reviewed at ef835a2334888eda7384da707c4077a8b576b192)
 
 # Time-Warp-NT Layer
 
@@ -108,9 +108,9 @@ where `Nonce` is the same nonce which came from request.
 If the initiator receives the acknowledgement with correct nonce, a conversation
 is started.
 
-The opposite case could take place if the node never sent request on that nonce
+The opposite case could take place if the node have never sent any request on that nonce
 (peer made a protocol error), but it could also be that the node did send the
-`BI_SYN`, but its handler for that conversation has already finished. That's
+`BI_SYN`, but its handler for that conversation had already finished. That's
 normal, and the node should ignore this acknowledgement.
 
 
