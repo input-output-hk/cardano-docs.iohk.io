@@ -99,7 +99,12 @@ arbitrarySizedSL :: Int -> Gen ByteString
 
 -- | Get something out of a quickcheck <a>Gen</a> without having to do IO
 runGen :: Gen a -> a
+
+-- | Specialized version of <a>mappend</a> for restricted to pair type.
 mappendPair :: (Monoid a, Monoid b) => (a, b) -> (a, b) -> (a, b)
+
+-- | Specialized version of <a>mconcat</a> (or <a>fold</a>) for restricting
+--   type to list of pairs.
 mconcatPair :: (Monoid a, Monoid b) => [(a, b)] -> (a, b)
 
 -- | Concatenates two url part using regular slash <a>/</a>. E.g.
@@ -1125,9 +1130,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172400 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679172400)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172392 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679172392)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172384 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679172384)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172384 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679172384)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172376 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679172376)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172368 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679172368)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Timestamp.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SoftwareVersion
@@ -3054,11 +3059,11 @@ ToilModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> !exten
 [_tmUndos] :: GenericToilModifier extension -> !UndoMap
 [_tmExtra] :: GenericToilModifier extension -> !extension
 type ToilModifier = GenericToilModifier ()
-tmUtxo :: forall extension_a1Tya. Lens' (GenericToilModifier extension_a1Tya) UtxoModifier
-tmBalances :: forall extension_a1Tya. Lens' (GenericToilModifier extension_a1Tya) BalancesView
-tmMemPool :: forall extension_a1Tya. Lens' (GenericToilModifier extension_a1Tya) MemPool
-tmUndos :: forall extension_a1Tya. Lens' (GenericToilModifier extension_a1Tya) UndoMap
-tmExtra :: forall extension_a1Tya extension_a1TAd. Lens (GenericToilModifier extension_a1Tya) (GenericToilModifier extension_a1TAd) extension_a1Tya extension_a1TAd
+tmUtxo :: forall extension_a1Tl9. Lens' (GenericToilModifier extension_a1Tl9) UtxoModifier
+tmBalances :: forall extension_a1Tl9. Lens' (GenericToilModifier extension_a1Tl9) BalancesView
+tmMemPool :: forall extension_a1Tl9. Lens' (GenericToilModifier extension_a1Tl9) MemPool
+tmUndos :: forall extension_a1Tl9. Lens' (GenericToilModifier extension_a1Tl9) UndoMap
+tmExtra :: forall extension_a1Tl9 extension_a1Tnc. Lens (GenericToilModifier extension_a1Tl9) (GenericToilModifier extension_a1Tnc) extension_a1Tl9 extension_a1Tnc
 
 -- | Environment used by Toil.
 data ToilEnv
