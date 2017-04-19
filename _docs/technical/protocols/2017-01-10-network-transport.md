@@ -4,7 +4,7 @@ title: Network Transport Layer
 permalink: /technical/protocols/network-transport/
 group: technical-protocols
 ---
-[//]: # (Reviewed at e1d0f9fb37a3f1378341716916f0321fb55698df)
+[//]: # (Reviewed at ef835a2334888eda7384da707c4077a8b576b192)
 
 # Network Transport Layer
 
@@ -26,16 +26,16 @@ connection is unidirectional and provides reliable ordered message transport
 Properties of the transport protocol:
 
 - **Single TCP connection**. Only a single TCP connection at a time is used
-between any pair of peers. These connections are potentially long lived. Once
+between any pair of peers. These connections are potentially long-lived. Once
 a connection with a peer is established, it is used for sending/receiving
 messages until the TCP connection is _explicitly_ closed or some unrecoverable
-error occurred.
+error occurs.
 
 Properties of the implementation:
 
 - **Reporting of network failures**. Network failures are not hidden from the
 application layer. If a TCP connection is dropped unexpectedly, the transport
-layer should notify the application layer. In Cardano SL the policy is to try
+layer should notify the application layer. In Cardano SL, the policy is to try
 to reconnect and only declare a peer unreachable if reconnecting also fails.
 
 ## Overview
@@ -44,15 +44,15 @@ Typical use of the transport involves:
 
 1. Listening for new TCP connections from peers.
 2. Establishing a TCP connection to other peer(s).
-3. Creating lightweight connections on an established TCP connection
+3. Creating lightweight connections on an established TCP connection.
 4. Sending message(s) to peer(s) (on one or more lightweight connections).
 5. Receiving message(s) from peer(s) (on one or more lightweight connections).
-6. Closing lightweight connections
+6. Closing lightweight connections.
 4. Closing TCP connections.
 
 In Cardano SL, multiple lightweight connections are used to support
 the application level messaging protocol. Multiple application level messages
-can be sent concurrently and multiple conversations can be in progress at once.
+can be sent concurrently, and multiple conversations can be in progress at once.
 Most application messages are sent on a newly created lightweight connection,
 and, if needed, larger application level message are broken into multiple
 transport level messages for transport. Other application level messages are
@@ -183,7 +183,7 @@ heavyweight to B. It may then proceed to the main part of the protocol
 described below.
 
 A `ConnectionRequestInvalid` response occurs when the endpoint identified by
-the local endpoint id does not exist. For example, it happens if A sends to B
+the local endpoint ID does not exist. For example, it happens if A sends to B
 that it wishes to connect to local endpoint ID 1, when only ID 0 exists. In
 this case both endpoints must close the TCP connection.
 
@@ -428,7 +428,7 @@ blocking. Head of line blocking is a problem common to many protocols layered
 on top of TCP, such as HTTP 1.x where one large response can "block" other
 smaller responses for other URLs because the responses are sent in order. This
 problem is less severe in this transport protocol because connection are
-multiplexed so small messages need not be blocked by large messages.
-Nevertheless it is still the case that the multiplexed stream of data for all
+multiplexed, so small messages need not be blocked by large messages.
+Nevertheless, it is still the case that the multiplexed stream of data for all
 connections must be received in order: it is not possible to push back on one
 lightweight connection vs another, only on the whole heavyweight connection.
