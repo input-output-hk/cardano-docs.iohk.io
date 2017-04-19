@@ -91,6 +91,9 @@ everybody, but certificates are not stored within the blockchain and
 aren't considered when checking eligibility threshold. As paper
 suggests, *delegation-by-proxy* scheme is used.
 
+Please read about [Stake Delegation in Cardano SL](/technical/delegation/)
+for implementation details.
+
 # Modifications
 
 ## Leader Selection Process
@@ -107,6 +110,9 @@ on this range proportional to their stakes. This way each random
 number maps into stakeholder.  Also, as the paper suggests, short
 (32-bits) seed is used for initializing PRG instead of using `n ⌈log
 λ⌉` random bits.
+
+Please read about [Leader Selection in Cardano SL](/technical/leader-selection/)
+for implementation details.
 
 ## Commitments, openings, shares sending
 
