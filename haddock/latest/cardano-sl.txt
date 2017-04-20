@@ -99,7 +99,12 @@ arbitrarySizedSL :: Int -> Gen ByteString
 
 -- | Get something out of a quickcheck <a>Gen</a> without having to do IO
 runGen :: Gen a -> a
+
+-- | Specialized version of <a>mappend</a> for restricted to pair type.
 mappendPair :: (Monoid a, Monoid b) => (a, b) -> (a, b) -> (a, b)
+
+-- | Specialized version of <a>mconcat</a> (or <a>fold</a>) for restricting
+--   type to list of pairs.
 mconcatPair :: (Monoid a, Monoid b) => [(a, b)] -> (a, b)
 
 -- | Concatenates two url part using regular slash <a>/</a>. E.g.
@@ -1125,9 +1130,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172372 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679172372)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172364 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679172364)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172356 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679172356)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172389 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679172389)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172381 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679172381)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172373 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679172373)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Timestamp.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SoftwareVersion
@@ -2809,15 +2814,6 @@ difference :: VssCertData -> HashMap StakeholderId a -> VssCertData
 filter :: (StakeholderId -> Bool) -> VssCertData -> VssCertData
 
 
--- | Global export of the <tt>SSC</tt> type. Exported in order to be able
---   to switch to different type-level implementations.
-module Pos.Ssc.Type
-
--- | We can also use CPP flags that I proposed that would enable switching
---   between implementations without changing the code.
-type SscType = SscGodTossing
-
-
 -- | Txp system reexports.
 module Pos.Txp
 data TxpError
@@ -3063,11 +3059,11 @@ ToilModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> !exten
 [_tmUndos] :: GenericToilModifier extension -> !UndoMap
 [_tmExtra] :: GenericToilModifier extension -> !extension
 type ToilModifier = GenericToilModifier ()
-tmUtxo :: forall extension_a1TxI. Lens' (GenericToilModifier extension_a1TxI) UtxoModifier
-tmBalances :: forall extension_a1TxI. Lens' (GenericToilModifier extension_a1TxI) BalancesView
-tmMemPool :: forall extension_a1TxI. Lens' (GenericToilModifier extension_a1TxI) MemPool
-tmUndos :: forall extension_a1TxI. Lens' (GenericToilModifier extension_a1TxI) UndoMap
-tmExtra :: forall extension_a1TxI extension_a1TzL. Lens (GenericToilModifier extension_a1TxI) (GenericToilModifier extension_a1TzL) extension_a1TxI extension_a1TzL
+tmUtxo :: forall extension_a1Tld. Lens' (GenericToilModifier extension_a1Tld) UtxoModifier
+tmBalances :: forall extension_a1Tld. Lens' (GenericToilModifier extension_a1Tld) BalancesView
+tmMemPool :: forall extension_a1Tld. Lens' (GenericToilModifier extension_a1Tld) MemPool
+tmUndos :: forall extension_a1Tld. Lens' (GenericToilModifier extension_a1Tld) UndoMap
+tmExtra :: forall extension_a1Tld extension_a1Tng. Lens (GenericToilModifier extension_a1Tld) (GenericToilModifier extension_a1Tng) extension_a1Tld extension_a1Tng
 
 -- | Environment used by Toil.
 data ToilEnv
@@ -4361,9 +4357,9 @@ walletServerOuts :: OutSpecs
 walletServeWebLite :: forall ssc. SscHelpersClass ssc => Proxy ssc -> SendActions WalletRealMode -> FilePath -> Bool -> Word16 -> WalletRealMode ()
 walletServerOuts :: OutSpecs
 type WalletWebHandler m = WalletWebSockets (WalletWebDB m)
-walletApplication :: WalletWebMode m => m (Server WalletApi) -> m Application
-walletServer :: (Monad m, MonadIO m, WalletWebMode (WalletWebHandler m)) => SendActions m -> WalletWebHandler m (WalletWebHandler m :~> Handler) -> WalletWebHandler m (Server WalletApi)
-walletServeImpl :: (MonadIO m, MonadMask m, WalletWebMode (WalletWebHandler m)) => WalletWebHandler m Application -> FilePath -> Bool -> Word16 -> m ()
+walletApplication :: WalletWebMode ssc m => m (Server WalletApi) -> m Application
+walletServer :: forall ssc m. (SscHelpersClass ssc, Monad m, MonadIO m, WalletWebMode ssc (WalletWebHandler m)) => SendActions m -> WalletWebHandler m (WalletWebHandler m :~> Handler) -> WalletWebHandler m (Server WalletApi)
+walletServeImpl :: (MonadIO m, MonadMask m, WalletWebMode ssc (WalletWebHandler m)) => WalletWebHandler m Application -> FilePath -> Bool -> Word16 -> m ()
 walletServerOuts :: OutSpecs
 
 -- | Holder for web wallet data
