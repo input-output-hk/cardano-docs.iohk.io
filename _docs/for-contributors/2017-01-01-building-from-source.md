@@ -70,7 +70,7 @@ After the project is built, the built binaries can be launched using the `stack 
 
 ### Cardano-node
 
-The `cardano-node` binary is the most important binary of the system. It launches nodes. In order to attach to a network, Hardened Kadmelia DHT peer information has to be supplied. Peer discovery will follow if an initial DHT peer is available. The syntax for communicating initial
+The `cardano-node` binary is the most important binary of the system. It launches nodes. In order to attach to a network, Hardened Kademlia DHT peer information has to be supplied. Peer discovery will follow if an initial DHT peer is available. The syntax for communicating initial
 DHT peer is as follows: `--peer HOST:PORT/HOST_ID`, for example
 `discover.memorici.de:21989/dYGuDj0BrJxCsTC9ntJE7ePT7wUoVdQMH3sKLzQD8bo=`.
 
