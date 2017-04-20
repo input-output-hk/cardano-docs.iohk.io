@@ -1130,9 +1130,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172386 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679172386)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172378 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679172378)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172370 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679172370)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172389 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679172389)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172381 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679172381)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172373 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679172373)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Timestamp.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SoftwareVersion
@@ -3059,11 +3059,11 @@ ToilModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> !exten
 [_tmUndos] :: GenericToilModifier extension -> !UndoMap
 [_tmExtra] :: GenericToilModifier extension -> !extension
 type ToilModifier = GenericToilModifier ()
-tmUtxo :: forall extension_a1Tl8. Lens' (GenericToilModifier extension_a1Tl8) UtxoModifier
-tmBalances :: forall extension_a1Tl8. Lens' (GenericToilModifier extension_a1Tl8) BalancesView
-tmMemPool :: forall extension_a1Tl8. Lens' (GenericToilModifier extension_a1Tl8) MemPool
-tmUndos :: forall extension_a1Tl8. Lens' (GenericToilModifier extension_a1Tl8) UndoMap
-tmExtra :: forall extension_a1Tl8 extension_a1Tnb. Lens (GenericToilModifier extension_a1Tl8) (GenericToilModifier extension_a1Tnb) extension_a1Tl8 extension_a1Tnb
+tmUtxo :: forall extension_a1Tld. Lens' (GenericToilModifier extension_a1Tld) UtxoModifier
+tmBalances :: forall extension_a1Tld. Lens' (GenericToilModifier extension_a1Tld) BalancesView
+tmMemPool :: forall extension_a1Tld. Lens' (GenericToilModifier extension_a1Tld) MemPool
+tmUndos :: forall extension_a1Tld. Lens' (GenericToilModifier extension_a1Tld) UndoMap
+tmExtra :: forall extension_a1Tld extension_a1Tng. Lens (GenericToilModifier extension_a1Tld) (GenericToilModifier extension_a1Tng) extension_a1Tld extension_a1Tng
 
 -- | Environment used by Toil.
 data ToilEnv
@@ -3132,8 +3132,11 @@ applyTxToUtxoPure :: WithHash Tx -> TxDistribution -> Utxo -> Utxo
 -- | Pure version of verifyTxUtxo.
 verifyTxUtxoPure :: MonadError ToilVerFailure m => VTxContext -> Utxo -> TxAux -> m TxUndo
 
--- | Select only TxOuts for given addresses
+-- | Select only TxOuts for given address
 filterUtxoByAddr :: Address -> Utxo -> Utxo
+
+-- | Select only TxOuts for given addresses
+filterUtxoByAddrs :: [Address] -> Utxo -> Utxo
 
 -- | Convert <a>Utxo</a> to map from <a>StakeholderId</a> to stake.
 utxoToStakes :: Utxo -> HashMap StakeholderId Coin
@@ -3583,15 +3586,17 @@ module Pos.Client.Txp.History
 
 -- | Datatype for returning info about tx history
 data TxHistoryEntry
-THEntry :: !TxId -> !Tx -> !Bool -> !(Maybe ChainDifficulty) -> TxHistoryEntry
+THEntry :: !TxId -> !Tx -> !Bool -> !(Maybe ChainDifficulty) -> !Address -> TxHistoryEntry
 [_thTxId] :: TxHistoryEntry -> !TxId
 [_thTx] :: TxHistoryEntry -> !Tx
 [_thIsOutput] :: TxHistoryEntry -> !Bool
 [_thDifficulty] :: TxHistoryEntry -> !(Maybe ChainDifficulty)
+[_thInputAddr] :: TxHistoryEntry -> !Address
 thTxId :: Lens' TxHistoryEntry TxId
 thTx :: Lens' TxHistoryEntry Tx
 thIsOutput :: Lens' TxHistoryEntry Bool
 thDifficulty :: Lens' TxHistoryEntry (Maybe ChainDifficulty)
+thInputAddr :: Lens' TxHistoryEntry Address
 data TxHistoryAnswer
 TxHistoryAnswer :: HeaderHash -> Int -> Utxo -> [TxHistoryEntry] -> TxHistoryAnswer
 [taLastCachedHash] :: TxHistoryAnswer -> HeaderHash
@@ -3601,20 +3606,20 @@ TxHistoryAnswer :: HeaderHash -> Int -> Utxo -> [TxHistoryEntry] -> TxHistoryAns
 
 -- | A class which have methods to get transaction history
 class Monad m => MonadTxHistory m where getTxHistory = fmap lift <<$>> getTxHistory saveTx = lift . saveTx
-getTxHistory :: (MonadTxHistory m, SscHelpersClass ssc) => Tagged ssc (Address -> Maybe (HeaderHash, Utxo) -> m TxHistoryAnswer)
+getTxHistory :: (MonadTxHistory m, SscHelpersClass ssc) => Tagged ssc ([Address] -> Maybe (HeaderHash, Utxo) -> m TxHistoryAnswer)
 saveTx :: MonadTxHistory m => (TxId, TxAux) -> m ()
-getTxHistory :: (MonadTxHistory m, SscHelpersClass ssc, MonadTrans t, MonadTxHistory m', t m' ~ m) => Tagged ssc (Address -> Maybe (HeaderHash, Utxo) -> m TxHistoryAnswer)
+getTxHistory :: (MonadTxHistory m, SscHelpersClass ssc, MonadTrans t, MonadTxHistory m', t m' ~ m) => Tagged ssc ([Address] -> Maybe (HeaderHash, Utxo) -> m TxHistoryAnswer)
 saveTx :: (MonadTxHistory m, MonadTrans t, MonadTxHistory m', t m' ~ m) => (TxId, TxAux) -> m ()
 
--- | Select transactions related to given address. <a>Bool</a> indicates
+-- | Select transactions related to given addresses. <a>Bool</a> indicates
 --   whether the transaction is outgoing (i. e. is sent from given address)
-getRelatedTxs :: Monad m => Address -> [(WithHash Tx, TxWitness, TxDistribution)] -> TxSelectorT m [TxHistoryEntry]
+getRelatedTxs :: Monad m => [Address] -> [(WithHash Tx, TxWitness, TxDistribution)] -> TxSelectorT m [TxHistoryEntry]
 
 -- | Given a full blockchain, derive address history and Utxo TODO: Such
 --   functionality will still be useful for merging blockchains when wallet
 --   state is ready, but some metadata for Tx will be required.
-deriveAddrHistory :: (Monad m) => Address -> [Block ssc] -> TxSelectorT m [TxHistoryEntry]
-deriveAddrHistoryPartial :: (Monad m) => [TxHistoryEntry] -> Address -> [Block ssc] -> TxSelectorT m [TxHistoryEntry]
+deriveAddrHistory :: (Monad m) => [Address] -> [Block ssc] -> TxSelectorT m [TxHistoryEntry]
+deriveAddrHistoryPartial :: (Monad m) => [TxHistoryEntry] -> [Address] -> [Block ssc] -> TxSelectorT m [TxHistoryEntry]
 instance Pos.Client.Txp.History.MonadTxHistory m => Pos.Client.Txp.History.MonadTxHistory (Pos.Context.Holder.ContextHolder ssc m)
 instance Pos.Client.Txp.History.MonadTxHistory m => Pos.Client.Txp.History.MonadTxHistory (Pos.Ssc.Extra.Holder.SscHolder ssc m)
 instance Pos.Client.Txp.History.MonadTxHistory m => Pos.Client.Txp.History.MonadTxHistory (Pos.Delegation.Holder.DelegationT m)
@@ -4138,9 +4143,9 @@ getOwnUtxo :: (MonadBalances m, MonadTrans t, MonadBalances m', t m' ~ m) => Add
 
 -- | A class which have methods to get transaction history
 class Monad m => MonadTxHistory m where getTxHistory = fmap lift <<$>> getTxHistory saveTx = lift . saveTx
-getTxHistory :: (MonadTxHistory m, SscHelpersClass ssc) => Tagged ssc (Address -> Maybe (HeaderHash, Utxo) -> m TxHistoryAnswer)
+getTxHistory :: (MonadTxHistory m, SscHelpersClass ssc) => Tagged ssc ([Address] -> Maybe (HeaderHash, Utxo) -> m TxHistoryAnswer)
 saveTx :: MonadTxHistory m => (TxId, TxAux) -> m ()
-getTxHistory :: (MonadTxHistory m, SscHelpersClass ssc, MonadTrans t, MonadTxHistory m', t m' ~ m) => Tagged ssc (Address -> Maybe (HeaderHash, Utxo) -> m TxHistoryAnswer)
+getTxHistory :: (MonadTxHistory m, SscHelpersClass ssc, MonadTrans t, MonadTxHistory m', t m' ~ m) => Tagged ssc ([Address] -> Maybe (HeaderHash, Utxo) -> m TxHistoryAnswer)
 saveTx :: (MonadTxHistory m, MonadTrans t, MonadTxHistory m', t m' ~ m) => (TxId, TxAux) -> m ()
 class Monad m => MonadBlockchainInfo m where networkChainDifficulty = lift networkChainDifficulty localChainDifficulty = lift localChainDifficulty blockchainSlotDuration = lift blockchainSlotDuration connectedPeers = lift connectedPeers
 networkChainDifficulty :: MonadBlockchainInfo m => m (Maybe ChainDifficulty)
@@ -4166,7 +4171,7 @@ module Pos.Wallet.Web
 -- | Servant API which provides access to wallet. TODO: Should be composed
 --   depending on the resource - wallets, txs, ...
 --   <a>http://haskell-servant.github.io/tutorial/0.4/server.html#nested-apis</a>
-type WalletApi = ("api" :> ("test" :> ("reset" :> Post '[JSON] (Either WalletError ())))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> Get '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("wallets" :> Get '[JSON] (Either WalletError [CWallet]))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> (ReqBody '[JSON] CWalletMeta :> Put '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> Delete '[JSON] (Either WalletError ())))) :<|> (("api" :> ("wallets" :> ("keys" :> (ReqBody '[JSON] Text :> Post '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("wallets" :> ("restore" :> (Capture "passphrase" CPassPhrase :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet)))))) :<|> (("api" :> ("wallets" :> (Capture "passphrase" CPassPhrase :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("addresses" :> (Capture "address" Text :> ("currencies" :> (Capture "currency" CCurrency :> Get '[JSON] (Either WalletError Bool)))))) :<|> (("api" :> ("profile" :> Get '[JSON] (Either WalletError CProfile))) :<|> (("api" :> ("profile" :> (ReqBody '[JSON] CProfile :> Post '[JSON] (Either WalletError CProfile)))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "passphrase" CPassPhrase :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> Post '[JSON] (Either WalletError CTx)))))))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "passphrase" CPassPhrase :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> (Capture "currency" CCurrency :> (Capture "title" Text :> (Capture "description" Text :> Post '[JSON] (Either WalletError CTx))))))))))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "address" CAddress :> (Capture "transaction" CTxId :> (ReqBody '[JSON] CTxMeta :> Post '[JSON] (Either WalletError ()))))))) :<|> (("api" :> ("txs" :> ("histories" :> (Capture "address" CAddress :> (QueryParam "skip" Word :> (QueryParam "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word)))))))) :<|> (("api" :> ("txs" :> ("histories" :> (Capture "address" CAddress :> (Capture "search" Text :> (QueryParam "skip" Word :> (QueryParam "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word))))))))) :<|> (("api" :> ("update" :> Get '[JSON] (Either WalletError CUpdateInfo))) :<|> (("api" :> ("update" :> Post '[JSON] (Either WalletError ()))) :<|> (("api" :> ("redemptions" :> ("ada" :> (ReqBody '[JSON] CWalletRedeem :> Post '[JSON] (Either WalletError CTx))))) :<|> (("api" :> ("postvend" :> ("redemptions" :> ("ada" :> (ReqBody '[JSON] CPostVendWalletRedeem :> Post '[JSON] (Either WalletError CTx)))))) :<|> (("api" :> ("reporting" :> ("initialized" :> (ReqBody '[JSON] CInitialized :> Post '[JSON] (Either WalletError ()))))) :<|> (("api" :> ("reporting" :> ("electroncrash" :> (MultipartForm CElectronCrashReport :> Post '[JSON] (Either WalletError ()))))) :<|> (("api" :> ("settings" :> ("slots" :> ("duration" :> Get '[JSON] (Either WalletError Word))))) :<|> (("api" :> ("settings" :> ("version" :> Get '[JSON] (Either WalletError SoftwareVersion)))) :<|> ("api" :> ("settings" :> ("sync" :> ("progress" :> Get '[JSON] (Either WalletError SyncProgress))))))))))))))))))))))))))))
+type WalletApi = ("api" :> ("test" :> ("reset" :> Post '[JSON] (Either WalletError ())))) :<|> (("api" :> ("walletSets" :> (Capture "walletSetId" (CAddress WS) :> Get '[JSON] (Either WalletError CWalletSet)))) :<|> (("api" :> ("walletSets" :> Get '[JSON] (Either WalletError [CWalletSet]))) :<|> (("api" :> ("walletSets" :> ("new" :> (Capture "passphrase" CPassPhrase :> (ReqBody '[JSON] CWalletSetInit :> Post '[JSON] (Either WalletError CWalletSet)))))) :<|> (("api" :> ("walletSets" :> ("restore" :> (Capture "passphrase" CPassPhrase :> (ReqBody '[JSON] CWalletSetInit :> Post '[JSON] (Either WalletError CWalletSet)))))) :<|> (("api" :> ("walletSets" :> ("keys" :> (ReqBody '[JSON] Text :> Post '[JSON] (Either WalletError CWalletSet))))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CWalletAddress :> Get '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("wallets" :> ("all" :> (QueryParam "walletSetId" (CAddress WS) :> Get '[JSON] (Either WalletError [CWallet]))))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CWalletAddress :> (ReqBody '[JSON] CWalletMeta :> Put '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("wallets" :> (Capture "passphrase" CPassPhrase :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CWalletAddress :> Delete '[JSON] (Either WalletError ())))) :<|> (("api" :> ("account" :> (Capture "passphrase" CPassPhrase :> (ReqBody '[JSON] CWalletAddress :> Post '[JSON] (Either WalletError CAccount))))) :<|> (("api" :> ("addresses" :> (Capture "address" Text :> ("currencies" :> (Capture "currency" CCurrency :> Get '[JSON] (Either WalletError Bool)))))) :<|> (("api" :> ("profile" :> Get '[JSON] (Either WalletError CProfile))) :<|> (("api" :> ("profile" :> (ReqBody '[JSON] CProfile :> Post '[JSON] (Either WalletError CProfile)))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "passphrase" CPassPhrase :> (Capture "from" CWalletAddress :> (Capture "to" (CAddress Acc) :> (Capture "amount" Coin :> Post '[JSON] (Either WalletError [CTx])))))))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "passphrase" CPassPhrase :> (Capture "from" CWalletAddress :> (Capture "to" (CAddress Acc) :> (Capture "amount" Coin :> (Capture "currency" CCurrency :> (Capture "title" Text :> (Capture "description" Text :> Post '[JSON] (Either WalletError [CTx]))))))))))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "address" (CAddress Acc) :> (Capture "transaction" CTxId :> (ReqBody '[JSON] CTxMeta :> Post '[JSON] (Either WalletError ()))))))) :<|> (("api" :> ("txs" :> ("histories" :> (Capture "walletId" CWalletAddress :> (QueryParam "skip" Word :> (QueryParam "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word)))))))) :<|> (("api" :> ("txs" :> ("histories" :> (Capture "walletId" CWalletAddress :> (Capture "search" Text :> (QueryParam "account" (CAddress Acc) :> (QueryParam "skip" Word :> (QueryParam "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word)))))))))) :<|> (("api" :> ("update" :> Get '[JSON] (Either WalletError CUpdateInfo))) :<|> (("api" :> ("update" :> Post '[JSON] (Either WalletError ()))) :<|> (("api" :> ("redemptions" :> ("ada" :> (Capture "passphrase" CPassPhrase :> (ReqBody '[JSON] CWalletRedeem :> Post '[JSON] (Either WalletError CTx)))))) :<|> (("api" :> ("postvend" :> ("redemptions" :> ("ada" :> (Capture "passphrase" CPassPhrase :> (ReqBody '[JSON] CPostVendWalletRedeem :> Post '[JSON] (Either WalletError CTx))))))) :<|> (("api" :> ("reporting" :> ("initialized" :> (ReqBody '[JSON] CInitialized :> Post '[JSON] (Either WalletError ()))))) :<|> (("api" :> ("reporting" :> ("electroncrash" :> (MultipartForm CElectronCrashReport :> Post '[JSON] (Either WalletError ()))))) :<|> (("api" :> ("settings" :> ("slots" :> ("duration" :> Get '[JSON] (Either WalletError Word))))) :<|> (("api" :> ("settings" :> ("version" :> Get '[JSON] (Either WalletError SoftwareVersion)))) :<|> ("api" :> ("settings" :> ("sync" :> ("progress" :> Get '[JSON] (Either WalletError SyncProgress))))))))))))))))))))))))))))))))
 
 -- | Helper Proxy.
 walletApi :: Proxy WalletApi
@@ -4176,9 +4181,10 @@ SyncProgress :: ChainDifficulty -> Maybe ChainDifficulty -> Word -> SyncProgress
 [_spNetworkCD] :: SyncProgress -> Maybe ChainDifficulty
 [_spPeers] :: SyncProgress -> Word
 
--- | Client address
-newtype CAddress
-CAddress :: CHash -> CAddress
+-- | Client address <tt>w</tt> is phantom type and stands for type of item
+--   this address belongs to.
+newtype CAddress w
+CAddress :: CHash -> CAddress w
 
 -- | Currencies handled by client. Note: Cardano does not deal with other
 --   currency than ADA yet.
@@ -4212,11 +4218,12 @@ type CPwHash = Text
 --   by client. It includes meta data which are not part of Cardano, too
 --   (Flow type: transactionType)
 data CTx
-CTx :: CTxId -> CCoin -> Word -> CTType -> CTx
+CTx :: CTxId -> CCoin -> Word -> CTType -> CAddress Acc -> CTx
 [ctId] :: CTx -> CTxId
 [ctAmount] :: CTx -> CCoin
 [ctConfirmations] :: CTx -> Word
 [ctType] :: CTx -> CTType
+[ctAccAddress] :: CTx -> CAddress Acc
 
 -- | Client transaction id
 data CTxId
@@ -4231,14 +4238,14 @@ CTxMeta :: CCurrency -> Text -> Text -> POSIXTime -> CTxMeta
 
 -- | meta data of exchanges
 data CTExMeta
-CTExMeta :: CCurrency -> Text -> Text -> POSIXTime -> Text -> Text -> CAddress -> CTExMeta
+CTExMeta :: CCurrency -> Text -> Text -> POSIXTime -> Text -> Text -> CAddress Acc -> CTExMeta
 [cexCurrency] :: CTExMeta -> CCurrency
 [cexTitle] :: CTExMeta -> Text
 [cexDescription] :: CTExMeta -> Text
 [cexDate] :: CTExMeta -> POSIXTime
 [cexRate] :: CTExMeta -> Text
 [cexLabel] :: CTExMeta -> Text
-[cexAddress] :: CTExMeta -> CAddress
+[cexAddress] :: CTExMeta -> CAddress Acc
 
 -- | Represents a knowledge about how much time did it take for client
 --   (wallet) to initialize. All numbers are milliseconds.
@@ -4252,12 +4259,44 @@ CInitialized :: Word -> Word -> CInitialized
 --   established.
 [cPreInit] :: CInitialized -> Word
 
+-- | Wallet identifier
+data CWalletAddress
+CWalletAddress :: CAddress WS -> Word32 -> CWalletAddress
+
+-- | Address of wallet set this wallet belongs to
+[cwaWSAddress] :: CWalletAddress -> CAddress WS
+
+-- | Derivation index of this wallet key
+[cwaIndex] :: CWalletAddress -> Word32
+
+-- | Account identifier
+data CAccountAddress
+CAccountAddress :: CAddress WS -> Word32 -> Word32 -> CAddress Acc -> CAccountAddress
+
+-- | Address of wallet set this account belongs to
+[caaWSAddress] :: CAccountAddress -> CAddress WS
+
+-- | First index in derivation path of this account key
+[caaWalletIndex] :: CAccountAddress -> Word32
+
+-- | Second index in derivation path of this account key
+[caaAccountIndex] :: CAccountAddress -> Word32
+
+-- | Actual adress of this account
+[caaAddress] :: CAccountAddress -> CAddress Acc
+
+-- | Single account in a wallet
+data CAccount
+CAccount :: !CAccountAddress -> !CCoin -> CAccount
+[caAddress] :: CAccount -> !CAccountAddress
+[caAmount] :: CAccount -> !CCoin
+
 -- | Client Wallet (CW) (Flow type: walletType)
 data CWallet
-CWallet :: !CAddress -> !CCoin -> !CWalletMeta -> CWallet
-[cwAddress] :: CWallet -> !CAddress
-[cwAmount] :: CWallet -> !CCoin
+CWallet :: !CWalletAddress -> !CWalletMeta -> ![CAccount] -> CWallet
+[cwAddress] :: CWallet -> !CWalletAddress
 [cwMeta] :: CWallet -> !CWalletMeta
+[cwAccounts] :: CWallet -> ![CAccount]
 
 -- | A wallet can be used as personal or shared wallet
 data CWalletType
@@ -4268,8 +4307,6 @@ CWTShared :: CWalletType
 data CWalletAssurance
 CWAStrict :: CWalletAssurance
 CWANormal :: CWalletAssurance
-
--- | Meta data of CWallet Includes data which are not provided by Cardano
 data CWalletMeta
 CWalletMeta :: !CWalletType -> !CCurrency -> !Text -> !CWalletAssurance -> !Int -> CWalletMeta
 [cwType] :: CWalletMeta -> !CWalletType
@@ -4280,11 +4317,29 @@ CWalletMeta :: !CWalletType -> !CCurrency -> !Text -> !CWalletAssurance -> !Int 
 -- | <a>https://issues.serokell.io/issue/CSM-163#comment=96-2480</a>
 [cwUnit] :: CWalletMeta -> !Int
 
--- | Query data for wallet creation (wallet meta + backup phrase)
+-- | Query data for wallet creation
 data CWalletInit
-CWalletInit :: !BackupPhrase -> !CWalletMeta -> CWalletInit
-[cwBackupPhrase] :: CWalletInit -> !BackupPhrase
+CWalletInit :: !CWalletMeta -> !(CAddress WS) -> CWalletInit
 [cwInitMeta] :: CWalletInit -> !CWalletMeta
+[cwInitWSetId] :: CWalletInit -> !(CAddress WS)
+
+-- | Client Wallet (CW)
+data CWalletSet
+CWalletSet :: !(CAddress WS) -> !CWalletSetMeta -> !Int -> CWalletSet
+[cwsAddress] :: CWalletSet -> !(CAddress WS)
+[cwsWSetMeta] :: CWalletSet -> !CWalletSetMeta
+[cwsWalletsNumber] :: CWalletSet -> !Int
+
+-- | Meta data of <a>CWalletSet</a>
+data CWalletSetMeta
+CWalletSetMeta :: !Text -> !BackupPhrase -> CWalletSetMeta
+[cwsName] :: CWalletSetMeta -> !Text
+[cwsBackupPhrase] :: CWalletSetMeta -> !BackupPhrase
+
+-- | Query data for wallet set creation
+data CWalletSetInit
+CWalletSetInit :: !CWalletSetMeta -> CWalletSetInit
+[cwsInitMeta] :: CWalletSetInit -> !CWalletSetMeta
 
 -- | Update system data
 data CUpdateInfo
@@ -4300,14 +4355,14 @@ CUpdateInfo :: !SoftwareVersion -> !BlockVersion -> !ScriptVersion -> !Bool -> !
 
 -- | Query data for redeem
 data CWalletRedeem
-CWalletRedeem :: !CAddress -> !Text -> CWalletRedeem
-[crWalletId] :: CWalletRedeem -> !CAddress
+CWalletRedeem :: !CWalletAddress -> !Text -> CWalletRedeem
+[crWalletId] :: CWalletRedeem -> !CWalletAddress
 [crSeed] :: CWalletRedeem -> !Text
 
 -- | Query data for redeem
 data CPostVendWalletRedeem
-CPostVendWalletRedeem :: !CAddress -> !Text -> !BackupPhrase -> CPostVendWalletRedeem
-[pvWalletId] :: CPostVendWalletRedeem -> !CAddress
+CPostVendWalletRedeem :: !CWalletAddress -> !Text -> !BackupPhrase -> CPostVendWalletRedeem
+[pvWalletId] :: CPostVendWalletRedeem -> !CWalletAddress
 [pvSeed] :: CPostVendWalletRedeem -> !Text
 [pvBackupPhrase] :: CPostVendWalletRedeem -> !BackupPhrase
 data CCoin
@@ -4330,10 +4385,20 @@ LocalDifficultyChanged :: ChainDifficulty -> NotifyEvent
 ConnectedPeersChanged :: Word -> NotifyEvent
 UpdateAvailable :: NotifyEvent
 ConnectionClosed :: NotifyEvent
+class WithDerivationPath a
+getDerivationPath :: WithDerivationPath a => a -> [Word32]
+
+-- | Marks address as belonging to wallet set.
+data WS
+WS :: WS
+
+-- | Marks address as belonging to account.
+data Acc
+Acc :: Acc
 
 -- | Transform Address into CAddress
-addressToCAddress :: Address -> CAddress
-cAddressToAddress :: CAddress -> Either Text Address
+addressToCAddress :: Address -> (CAddress w)
+cAddressToAddress :: CAddress w -> Either Text Address
 passPhraseToCPassPhrase :: PassPhrase -> CPassPhrase
 cPassPhraseToPassPhrase :: CPassPhrase -> Either Text PassPhrase
 mkCTx :: Address -> ChainDifficulty -> TxHistoryEntry -> CTxMeta -> CTx
@@ -4346,6 +4411,7 @@ txContainsTitle :: Text -> CTx -> Bool
 
 -- | Creates <tt>CTUpdateInfo</tt> from <a>ConfirmedProposalState</a>
 toCUpdateInfo :: ConfirmedProposalState -> CUpdateInfo
+walletAddrByAccount :: CAccountAddress -> CWalletAddress
 walletDocsText :: Text
 walletTableDocsText :: Text
 data WalletError
@@ -4357,9 +4423,9 @@ walletServerOuts :: OutSpecs
 walletServeWebLite :: forall ssc. SscHelpersClass ssc => Proxy ssc -> SendActions WalletRealMode -> FilePath -> Bool -> Word16 -> WalletRealMode ()
 walletServerOuts :: OutSpecs
 type WalletWebHandler m = WalletWebSockets (WalletWebDB m)
-walletApplication :: WalletWebMode m => m (Server WalletApi) -> m Application
-walletServer :: (Monad m, MonadIO m, WalletWebMode (WalletWebHandler m)) => SendActions m -> WalletWebHandler m (WalletWebHandler m :~> Handler) -> WalletWebHandler m (Server WalletApi)
-walletServeImpl :: (MonadIO m, MonadMask m, WalletWebMode (WalletWebHandler m)) => WalletWebHandler m Application -> FilePath -> Bool -> Word16 -> m ()
+walletApplication :: WalletWebMode ssc m => m (Server WalletApi) -> m Application
+walletServer :: forall ssc m. (SscHelpersClass ssc, Monad m, MonadIO m, WalletWebMode ssc (WalletWebHandler m)) => SendActions m -> WalletWebHandler m (WalletWebHandler m :~> Handler) -> WalletWebHandler m (Server WalletApi)
+walletServeImpl :: (MonadIO m, MonadMask m, WalletWebMode ssc (WalletWebHandler m)) => WalletWebHandler m Application -> FilePath -> Bool -> Word16 -> m ()
 walletServerOuts :: OutSpecs
 
 -- | Holder for web wallet data
@@ -4398,21 +4464,32 @@ openState :: MonadIO m => Bool -> FilePath -> m WalletState
 openMemState :: MonadIO m => m WalletState
 closeState :: MonadIO m => WalletState -> m ()
 getProfile :: WebWalletModeDB m => m (Maybe CProfile)
+getWalletAddresses :: WebWalletModeDB m => m [CWalletAddress]
 getWalletMetas :: WebWalletModeDB m => m [CWalletMeta]
-getWalletMeta :: WebWalletModeDB m => CAddress -> m (Maybe CWalletMeta)
-getTxMeta :: WebWalletModeDB m => CAddress -> CTxId -> m (Maybe CTxMeta)
-getWalletHistory :: WebWalletModeDB m => CAddress -> m (Maybe [CTxMeta])
+getWalletMeta :: WebWalletModeDB m => CWalletAddress -> m (Maybe CWalletMeta)
+getWalletAccounts :: WebWalletModeDB m => CWalletAddress -> m (Maybe [CAccountAddress])
+getWSetMetas :: WebWalletModeDB m => m ([CWalletSetMeta])
+getWSetMeta :: WebWalletModeDB m => CAddress WS -> m (Maybe CWalletSetMeta)
+getWSetAddresses :: WebWalletModeDB m => m [CAddress WS]
+doesAccountExist :: WebWalletModeDB m => CAddress Acc -> m Bool
+getTxMeta :: WebWalletModeDB m => CAddress Acc -> CTxId -> m (Maybe CTxMeta)
+getAccountHistory :: WebWalletModeDB m => CAddress Acc -> m (Maybe [CTxMeta])
 getUpdates :: WebWalletModeDB m => m [CUpdateInfo]
 getNextUpdate :: WebWalletModeDB m => m (Maybe CUpdateInfo)
-getHistoryCache :: WebWalletModeDB m => CAddress -> m (Maybe (HeaderHash, Utxo, [TxHistoryEntry]))
+getHistoryCache :: WebWalletModeDB m => CWalletAddress -> m (Maybe (HeaderHash, Utxo, [TxHistoryEntry]))
 testReset :: WebWalletModeDB m => m ()
-createWallet :: WebWalletModeDB m => CAddress -> CWalletMeta -> m ()
+createWallet :: WebWalletModeDB m => CWalletAddress -> CWalletMeta -> m ()
+createWSet :: WebWalletModeDB m => CAddress WS -> CWalletSetMeta -> m ()
+addAccount :: WebWalletModeDB m => CAccountAddress -> m ()
 setProfile :: WebWalletModeDB m => CProfile -> m ()
-setWalletMeta :: WebWalletModeDB m => CAddress -> CWalletMeta -> m ()
-setWalletTransactionMeta :: WebWalletModeDB m => CAddress -> CTxId -> CTxMeta -> m ()
-setWalletHistory :: WebWalletModeDB m => CAddress -> [(CTxId, CTxMeta)] -> m ()
-addOnlyNewTxMeta :: WebWalletModeDB m => CAddress -> CTxId -> CTxMeta -> m ()
-removeWallet :: WebWalletModeDB m => CAddress -> m ()
+setWalletMeta :: WebWalletModeDB m => CWalletAddress -> CWalletMeta -> m ()
+setWSetMeta :: WebWalletModeDB m => CAddress WS -> CWalletSetMeta -> m ()
+setWalletTransactionMeta :: WebWalletModeDB m => CAddress Acc -> CTxId -> CTxMeta -> m ()
+setAccountHistory :: WebWalletModeDB m => CAddress Acc -> [(CTxId, CTxMeta)] -> m ()
+addOnlyNewTxMeta :: WebWalletModeDB m => CAddress Acc -> CTxId -> CTxMeta -> m ()
+removeWSet :: WebWalletModeDB m => CAddress WS -> m ()
+removeWallet :: WebWalletModeDB m => CWalletAddress -> m ()
+removeAccount :: WebWalletModeDB m => CAccountAddress -> m ()
 addUpdate :: WebWalletModeDB m => CUpdateInfo -> m ()
 removeNextUpdate :: WebWalletModeDB m => m ()
-updateHistoryCache :: WebWalletModeDB m => CAddress -> HeaderHash -> Utxo -> [TxHistoryEntry] -> m ()
+updateHistoryCache :: WebWalletModeDB m => CWalletAddress -> HeaderHash -> Utxo -> [TxHistoryEntry] -> m ()
