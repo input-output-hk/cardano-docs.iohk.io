@@ -294,8 +294,6 @@ mehBlockVersion :: Lens' MainExtraHeaderData BlockVersion
 mehSoftwareVersion :: Lens' MainExtraHeaderData SoftwareVersion
 mehAttributes :: Lens' MainExtraHeaderData BlockHeaderAttributes
 mebAttributes :: Iso' MainExtraBodyData BlockBodyAttributes
-gehAttributes :: Iso' GenesisExtraHeaderData GenesisHeaderAttributes
-gebAttributes :: Iso' GenesisExtraBodyData GenesisBodyAttributes
 instance GHC.Generics.Generic Pos.Types.Block.Types.GenesisExtraBodyData
 instance GHC.Show.Show Pos.Types.Block.Types.GenesisExtraBodyData
 instance GHC.Classes.Eq Pos.Types.Block.Types.GenesisExtraBodyData
@@ -838,10 +836,6 @@ instance Pos.Types.Block.Types.BiHeader ssc => Pos.Core.Class.IsHeader (Pos.Type
 instance Pos.Types.Block.Types.BiHeader ssc => Pos.Core.Class.IsMainHeader (Pos.Types.Block.Types.MainBlockHeader ssc)
 instance Pos.Types.Block.Types.BiHeader ssc => Pos.Core.Class.IsHeader (Pos.Types.Block.Types.BlockHeader ssc)
 
-
--- | Functions related to blocks and headers.
-module Pos.Types.Block
-
 module Pos.CompileConfig
 compileConfig :: CompileConfig
 
@@ -970,108 +964,6 @@ mdNoBlocksSlotThreshold :: Integral i => i
 --   commitments are not included in blockchain.
 mdNoCommitmentsEpochThreshold :: Integral i => i
 appSystemTag :: SystemTag
-
-
--- | Pure functions related to blocks and headers.
-module Pos.Block.Pure
-
--- | Difficulty of the Block, which is determined from header.
-blockDifficultyIncrement :: Block ssc -> ChainDifficulty
-
--- | Difficulty of the BlockHeader. 0 for genesis block, 1 for main block.
-headerDifficultyIncrement :: BlockHeader ssc -> ChainDifficulty
-
--- | Smart constructor for <a>GenericBlock</a>. Uses
---   <tt>mkGenericBlockHeader</tt>.
-mkGenericBlock :: forall b. (HasHeaderHash (BBlockHeader b), Blockchain b, BHeaderHash b ~ HeaderHash) => Maybe (BBlockHeader b) -> Body b -> (BHeaderHash b -> BodyProof b -> ConsensusData b) -> ExtraHeaderData b -> ExtraBodyData b -> GenericBlock b
-
--- | Smart constructor for <a>GenericBlockHeader</a>.
-mkGenericHeader :: forall b. (HasHeaderHash (BBlockHeader b), Blockchain b, BHeaderHash b ~ HeaderHash) => Maybe (BBlockHeader b) -> Body b -> (BHeaderHash b -> BodyProof b -> ConsensusData b) -> ExtraHeaderData b -> GenericBlockHeader b
-
--- | Smart constructor for <a>MainBlock</a>. Uses <a>mkMainHeader</a>.
-mkMainBlock :: (BiSsc ssc, SscHelpersClass ssc, MonadFail m) => Maybe (BlockHeader ssc) -> SlotId -> SecretKey -> Maybe ProxySKEither -> Body (MainBlockchain ssc) -> MainExtraHeaderData -> MainExtraBodyData -> m (MainBlock ssc)
-recreateMainBlock :: (BiSsc ssc, SscHelpersClass ssc, MonadFail m) => MainBlockHeader ssc -> Body (MainBlockchain ssc) -> MainExtraBodyData -> m (MainBlock ssc)
-
--- | Smart constructor for <a>MainBlockHeader</a>.
-mkMainHeader :: (BiSsc ssc, SscHelpersClass ssc) => Maybe (BlockHeader ssc) -> SlotId -> SecretKey -> Maybe ProxySKEither -> Body (MainBlockchain ssc) -> MainExtraHeaderData -> MainBlockHeader ssc
-
--- | Smart constructor for <a>GenesisBlockHeader</a>. Uses
---   <a>mkGenericHeader</a>.
-mkGenesisHeader :: BiSsc ssc => Maybe (BlockHeader ssc) -> EpochIndex -> Body (GenesisBlockchain ssc) -> GenesisBlockHeader ssc
-
--- | Smart constructor for <a>GenesisBlock</a>. Uses
---   <a>mkGenesisHeader</a>.
-mkGenesisBlock :: BiSsc ssc => Maybe (BlockHeader ssc) -> EpochIndex -> SlotLeaders -> GenesisBlock ssc
-
--- | Predefined <a>Hash</a> of <a>GenesisBlock</a>.
-genesisHash :: Hash a
-
--- | Parameters of Block static verification. Note: to check that block
---   references previous block and/or is referenced by next block, use
---   header verification (via vbpVerifyHeader).
-data VerifyBlockParams ssc
-VerifyBlockParams :: !(Maybe (VerifyHeaderParams ssc)) -> !Bool -> !Bool -> !Bool -> !(Maybe Byte) -> !Bool -> VerifyBlockParams ssc
-
--- | Verifies header accordingly to params (<a>verifyHeader</a>)
-[vbpVerifyHeader] :: VerifyBlockParams ssc -> !(Maybe (VerifyHeaderParams ssc))
-
--- | Checks <tt>verifyGenesisBlock</tt> property.
-[vbpVerifyGeneric] :: VerifyBlockParams ssc -> !Bool
-
--- | Verifies ssc payload with <a>sscVerifyPayload</a>.
-[vbpVerifySsc] :: VerifyBlockParams ssc -> !Bool
-
--- | Check that's number of sks is limited (1000 for now).
-[vbpVerifyProxySKs] :: VerifyBlockParams ssc -> !Bool
-
--- | Maximal block size.
-[vbpMaxSize] :: VerifyBlockParams ssc -> !(Maybe Byte)
-
--- | Check that block has no unknown attributes.
-[vbpVerifyNoUnknown] :: VerifyBlockParams ssc -> !Bool
-
--- | Extra data which may be used by verifyHeader function to do more
---   checks.
-data VerifyHeaderParams ssc
-VerifyHeaderParams :: !Bool -> !(Maybe (BlockHeader ssc)) -> !(Maybe (BlockHeader ssc)) -> !(Maybe SlotId) -> !(Maybe SlotLeaders) -> !(Maybe Byte) -> !Bool -> VerifyHeaderParams ssc
-[vhpVerifyConsensus] :: VerifyHeaderParams ssc -> !Bool
-
--- | Nothing means that block is unknown, not genesis.
-[vhpPrevHeader] :: VerifyHeaderParams ssc -> !(Maybe (BlockHeader ssc))
-[vhpNextHeader] :: VerifyHeaderParams ssc -> !(Maybe (BlockHeader ssc))
-[vhpCurrentSlot] :: VerifyHeaderParams ssc -> !(Maybe SlotId)
-[vhpLeaders] :: VerifyHeaderParams ssc -> !(Maybe SlotLeaders)
-[vhpMaxSize] :: VerifyHeaderParams ssc -> !(Maybe Byte)
-
--- | Check that header has no unknown attributes.
-[vhpVerifyNoUnknown] :: VerifyHeaderParams ssc -> !Bool
-
--- | Check predicates defined by VerifyBlockParams. #verifyHeader
---   #verifyGenericBlock
-verifyBlock :: (SscHelpersClass ssc, BiSsc ssc) => VerifyBlockParams ssc -> Block ssc -> VerificationRes
-
--- | Verify a sequence of blocks.
---   
---   foldl' is used here which eliminates laziness of triple. It doesn't
---   affect laziness of <a>VerificationRes</a> which is good because
---   laziness for this data type is crucial.
-verifyBlocks :: forall ssc f t. (SscHelpersClass ssc, BiSsc ssc, t ~ OldestFirst f (Block ssc), NontrivialContainer t) => Maybe SlotId -> Bool -> BlockVersionData -> Maybe SlotLeaders -> OldestFirst f (Block ssc) -> VerificationRes
-
--- | Perform cheap checks of GenericBlock, which can be done using only
---   block itself. Checks which can be done using only header are ignored
---   here. It is assumed that they will be done separately.
-verifyGenericBlock :: forall b. Blockchain b => GenericBlock b -> VerificationRes
-
--- | Check some predicates (determined by VerifyHeaderParams) about
---   BlockHeader. #verifyConsensusLocal
-verifyHeader :: forall ssc. BiSsc ssc => VerifyHeaderParams ssc -> BlockHeader ssc -> VerificationRes
-
--- | Verifies a set of block headers.
-verifyHeaders :: BiSsc ssc => Bool -> NewestFirst [] (BlockHeader ssc) -> VerificationRes
-instance Pos.Ssc.Class.Types.Ssc ssc => GHC.Classes.Eq (Pos.Block.Pure.VerifyHeaderParams ssc)
-instance Pos.Ssc.Class.Types.Ssc ssc => GHC.Show.Show (Pos.Block.Pure.VerifyHeaderParams ssc)
-instance Data.Default.Class.Default (Pos.Block.Pure.VerifyHeaderParams ssc)
-instance Data.Default.Class.Default (Pos.Block.Pure.VerifyBlockParams ssc)
 
 
 -- | Module for command-line utilites, parsers and convenient handlers.
@@ -1238,9 +1130,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172388 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679172388)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172380 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679172380)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172372 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679172372)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172406 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679172406)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172398 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679172398)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172390 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679172390)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Timestamp.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SoftwareVersion
@@ -1320,6 +1212,106 @@ instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Slotting.Types.SlottingData
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Slotting.Types.EpochSlottingData
 
 
+-- | Functions related to blocks and headers.
+module Pos.Types.Block.Functions
+
+-- | Difficulty of the Block, which is determined from header.
+blockDifficultyIncrement :: Block ssc -> ChainDifficulty
+
+-- | Difficulty of the BlockHeader. 0 for genesis block, 1 for main block.
+headerDifficultyIncrement :: BlockHeader ssc -> ChainDifficulty
+
+-- | Smart constructor for <a>GenericBlock</a>. Uses
+--   <tt>mkGenericBlockHeader</tt>.
+mkGenericBlock :: forall b. (HasHeaderHash (BBlockHeader b), Blockchain b, BHeaderHash b ~ HeaderHash) => Maybe (BBlockHeader b) -> Body b -> (BHeaderHash b -> BodyProof b -> ConsensusData b) -> ExtraHeaderData b -> ExtraBodyData b -> GenericBlock b
+
+-- | Smart constructor for <a>GenericBlockHeader</a>.
+mkGenericHeader :: forall b. (HasHeaderHash (BBlockHeader b), Blockchain b, BHeaderHash b ~ HeaderHash) => Maybe (BBlockHeader b) -> Body b -> (BHeaderHash b -> BodyProof b -> ConsensusData b) -> ExtraHeaderData b -> GenericBlockHeader b
+
+-- | Smart constructor for <a>MainBlock</a>. Uses <a>mkMainHeader</a>.
+mkMainBlock :: (BiSsc ssc, SscHelpersClass ssc, MonadFail m) => Maybe (BlockHeader ssc) -> SlotId -> SecretKey -> Maybe ProxySKEither -> Body (MainBlockchain ssc) -> MainExtraHeaderData -> MainExtraBodyData -> m (MainBlock ssc)
+recreateMainBlock :: (BiSsc ssc, SscHelpersClass ssc, MonadFail m) => MainBlockHeader ssc -> Body (MainBlockchain ssc) -> MainExtraBodyData -> m (MainBlock ssc)
+
+-- | Smart constructor for <a>MainBlockHeader</a>.
+mkMainHeader :: (BiSsc ssc, SscHelpersClass ssc) => Maybe (BlockHeader ssc) -> SlotId -> SecretKey -> Maybe ProxySKEither -> Body (MainBlockchain ssc) -> MainExtraHeaderData -> MainBlockHeader ssc
+
+-- | Smart constructor for <a>GenesisBlockHeader</a>. Uses
+--   <a>mkGenericHeader</a>.
+mkGenesisHeader :: BiSsc ssc => Maybe (BlockHeader ssc) -> EpochIndex -> Body (GenesisBlockchain ssc) -> GenesisBlockHeader ssc
+
+-- | Smart constructor for <a>GenesisBlock</a>. Uses
+--   <a>mkGenesisHeader</a>.
+mkGenesisBlock :: BiSsc ssc => Maybe (BlockHeader ssc) -> EpochIndex -> SlotLeaders -> GenesisBlock ssc
+
+-- | Predefined <a>Hash</a> of <a>GenesisBlock</a>.
+genesisHash :: Hash a
+
+-- | Parameters of Block static verification. Note: to check that block
+--   references previous block and/or is referenced by next block, use
+--   header verification (via vbpVerifyHeader).
+data VerifyBlockParams ssc
+VerifyBlockParams :: !(Maybe (VerifyHeaderParams ssc)) -> !Bool -> !Bool -> !Bool -> !Byte -> VerifyBlockParams ssc
+
+-- | Verifies header accordingly to params (<a>verifyHeader</a>)
+[vbpVerifyHeader] :: VerifyBlockParams ssc -> !(Maybe (VerifyHeaderParams ssc))
+
+-- | Checks <tt>verifyGenesisBlock</tt> property.
+[vbpVerifyGeneric] :: VerifyBlockParams ssc -> !Bool
+
+-- | Verifies ssc payload with <a>sscVerifyPayload</a>.
+[vbpVerifySsc] :: VerifyBlockParams ssc -> !Bool
+
+-- | Check that's number of sks is limited (1000 for now).
+[vbpVerifyProxySKs] :: VerifyBlockParams ssc -> !Bool
+
+-- | Maximal block size.
+[vbpMaxSize] :: VerifyBlockParams ssc -> !Byte
+
+-- | Extra data which may be used by verifyHeader function to do more
+--   checks.
+data VerifyHeaderParams ssc
+VerifyHeaderParams :: !Bool -> !(Maybe (BlockHeader ssc)) -> !(Maybe (BlockHeader ssc)) -> !(Maybe SlotId) -> !(Maybe SlotLeaders) -> !Byte -> VerifyHeaderParams ssc
+[vhpVerifyConsensus] :: VerifyHeaderParams ssc -> !Bool
+
+-- | Nothing means that block is unknown, not genesis.
+[vhpPrevHeader] :: VerifyHeaderParams ssc -> !(Maybe (BlockHeader ssc))
+[vhpNextHeader] :: VerifyHeaderParams ssc -> !(Maybe (BlockHeader ssc))
+[vhpCurrentSlot] :: VerifyHeaderParams ssc -> !(Maybe SlotId)
+[vhpLeaders] :: VerifyHeaderParams ssc -> !(Maybe SlotLeaders)
+[vhpMaxSize] :: VerifyHeaderParams ssc -> !Byte
+
+-- | Check predicates defined by VerifyBlockParams. #verifyHeader
+--   #verifyGenericBlock
+verifyBlock :: (SscHelpersClass ssc, BiSsc ssc) => VerifyBlockParams ssc -> Block ssc -> VerificationRes
+
+-- | Verify a sequence of blocks.
+--   
+--   foldl' is used here which eliminates laziness of triple. It doesn't
+--   affect laziness of <a>VerificationRes</a> which is good because
+--   laziness for this data type is crucial.
+verifyBlocks :: forall ssc f t. (SscHelpersClass ssc, BiSsc ssc, t ~ OldestFirst f (Block ssc), NontrivialContainer t) => Maybe SlotId -> BlockVersionData -> Maybe SlotLeaders -> OldestFirst f (Block ssc) -> VerificationRes
+
+-- | Perform cheap checks of GenericBlock, which can be done using only
+--   block itself. Checks which can be done using only header are ignored
+--   here. It is assumed that they will be done separately.
+verifyGenericBlock :: forall b. Blockchain b => GenericBlock b -> VerificationRes
+
+-- | Check some predicates (determined by VerifyHeaderParams) about
+--   BlockHeader. #verifyConsensusLocal
+verifyHeader :: forall ssc. BiSsc ssc => VerifyHeaderParams ssc -> BlockHeader ssc -> VerificationRes
+
+-- | Verifies a set of block headers.
+verifyHeaders :: BiSsc ssc => Bool -> NewestFirst [] (BlockHeader ssc) -> VerificationRes
+instance Pos.Ssc.Class.Types.Ssc ssc => GHC.Classes.Eq (Pos.Types.Block.Functions.VerifyHeaderParams ssc)
+instance Pos.Ssc.Class.Types.Ssc ssc => GHC.Show.Show (Pos.Types.Block.Functions.VerifyHeaderParams ssc)
+instance Data.Default.Class.Default (Pos.Types.Block.Functions.VerifyHeaderParams ssc)
+instance Data.Default.Class.Default (Pos.Types.Block.Functions.VerifyBlockParams ssc)
+
+
+-- | Functions related to blocks and headers.
+module Pos.Types.Block
+
+
 -- | Re-export of Pos.Types.* + binary instances
 module Pos.Types
 
@@ -1391,9 +1383,136 @@ module Pos.Lrc.FtsPure
 --   as “owning” funds for the purposes of follow-the-satoshi.
 followTheSatoshi :: SharedSeed -> Utxo -> NonEmpty StakeholderId
 
--- | A version of <tt>followTheSatoshi</tt> that uses an iterator over
---   <tt>TxOut</tt>s instead of <tt>Utxo</tt>.
-followTheSatoshiM :: MonadIterator (StakeholderId, Coin) m => SharedSeed -> Coin -> m (NonEmpty StakeholderId)
+-- | Select slot leaders for an entire epoch, randomly. The probability
+--   that a stakeholder will be chosen as a slot leader is directly
+--   proportional to his stake. The same stakeholder can be chosen for
+--   multiple slots within an epoch.
+--   
+--   As input, the <i>follow-the-satoshi</i> procedure requires:
+--   
+--   <ul>
+--   <li>a source of randomness (PRNG seed).</li>
+--   <li>the list of balances, i.e. (StakeholderId, Coin) pairs, ordered by
+--   stakeholder identifiers. Since the list can be quite large, we access
+--   it using <a>MonadIterator</a> to achieve streaming.</li>
+--   <li>the total amount of coins in the system. We could compute it as
+--   the sum of balances (indeed, it is assumed to be equal to that value),
+--   but computing it here would break streaming, so we take it as a
+--   separate input.</li>
+--   </ul>
+--   
+--   As an output, we have one slot leader per slot: a list of stakeholder
+--   identifiers of length <a>epochSlots</a>.
+--   
+--   The algorithm here is a bit tricky to ensure that it runs in
+--   O(balances) time. First we generate a random coin index for each slot,
+--   so we get a list like this:
+--   
+--   <pre>
+--   <a>assignToSlots</a> coinIndices =
+--     [ (LocalSlotIndex 0, CoinIndex 5)
+--     , (LocalSlotIndex 1, CoinIndex 327)
+--     , (LocalSlotIndex 2, CoinIndex 61)
+--     , ...
+--     , (LocalSlotIndex k, CoinIndex 205) ]
+--   
+--     where k = epochSlots - 1
+--   </pre>
+--   
+--   The coin indices are random numbers in range
+--   <tt>[0..totalCoins-1]</tt>.
+--   
+--   Then we want to find the owners of the coins with the generated
+--   indices. In the example above, the stakeholder that owns the 5th coin
+--   will be the leader of the 0th slot in the epoch, the owner of the
+--   327th coin will be the leader of the 1st slot, and so on.
+--   
+--   Recall that we have a sorted list of balances. We could use it to
+--   compute a table of coin indices, for example:
+--   
+--   <pre>
+--   StakeholderId | Coin (amount) | Coin indices (inclusive range)
+--   --------------+---------------+-----------------------------
+--             aaa | 200           |   [0..199]
+--             bbb | 50            | [200..249]
+--             ccc | 80            | [250..329]
+--             ... | ...           | ...
+--             zzz | 500           | [totalCoins - 1 - 500 .. totalCoins - 1]
+--   </pre>
+--   
+--   A solution with complexity O(slots * balances) would be
+--   straightforward: just lookup a leader for each slot in the table -
+--   whenever the selected coin is in the coin index range, we have a
+--   match.
+--   
+--   However, we can be a bit smarter and get an asymptotic improvement.
+--   First, let's sort the generated coin indices:
+--   
+--   <pre>
+--   [ (LocalSlotIndex 0, CoinIndex 5)
+--   , (LocalSlotIndex 2, CoinIndex 61)
+--   , (LocalSlotIndex k, CoinIndex 205)
+--   , (LocalSlotIndex 1, CoinIndex 327)
+--   , ... ]
+--   </pre>
+--   
+--   Since they are zipped together with their slot indices, we can restore
+--   the original ordering later (using <a>arrangeBySlots</a>).
+--   
+--   Now that selected coin indices and stakeholder coin index ranges are
+--   both sorted, we can walk through them in one pass! To do that, we
+--   <a>traverse</a> the list of selected coin indices. As we do that, we
+--   monadically iterate through the table of balances, storing current
+--   stakeholder identifier and coin index range in a state (see
+--   <a>FtsState</a>).
+--   
+--   Let's take a look at the intermediate states during execution:
+--   
+--   <ol>
+--   <li>Initialize the state as <tt>StakeholderId=aaa,
+--   CoinRange=[0..199]</tt>.</li>
+--   <li>Select the next coin, <tt>LocalSlotIndex=0, CoinIndex=5</tt>.</li>
+--   <li><tt>CoinIndex</tt> falls within the <tt>CoinRange</tt>, yield slot
+--   leader <tt>LocalSlotIndex=0, StakeholderId=aaa</tt>.</li>
+--   <li>Select the next coin, <tt>LocalSlotIndex=2,
+--   CoinIndex=61</tt>.</li>
+--   <li><tt>CoinIndex</tt> falls within the <tt>CoinRange</tt>, yield slot
+--   leader <tt>LocalSlotIndex=2, StakeholderId=aaa</tt>.</li>
+--   <li>Select the next coin, <tt>LocalSlotIndex=k,
+--   CoinIndex=205</tt>.</li>
+--   <li><tt>CoinIndex</tt> does not fall within the <tt>CoinRange</tt>.
+--   Update the state to <tt>StakeholderId=bbb,
+--   CoinRange=[200..249]</tt>.</li>
+--   <li><tt>CoinIndex</tt> falls within the <tt>CoinRange</tt>, yield slot
+--   leader <tt>LocalSlotIndex=k, StakeholderId=bbb</tt>.</li>
+--   <li>Select the next coin, <tt>LocalSlotIndex=1,
+--   CoinIndex=327</tt>.</li>
+--   <li><tt>CoinIndex</tt> does not fall within the <tt>CoinRange</tt>.
+--   Update the state to...</li>
+--   </ol>
+--   
+--   Eventually, we end up with a list of slot leaders:
+--   
+--   <pre>
+--   [ (LocalSlotIndex 0, StakeholderId aaa)
+--   , (LocalSlotIndex 2, StakeholderId aaa)
+--   , (LocalSlotIndex k, StakeholderId bbb)
+--   , (LocalSlotIndex 1, StakeholderId ccc)
+--   , ... ]
+--   </pre>
+--   
+--   and we're done. One thing to notice is that <a>MonadIterator</a>
+--   provides us with a balance - the amount of coins a stakeholder has -
+--   but not with a coin index range. So in order to have access to coin
+--   range, we have to accumulate (by summation) those balances - this way
+--   we get upper bounds. There's no need to calculate lower bounds, since
+--   every lower bound is equal to the upper bound of the previous
+--   stakeholder plus 1, and we transition to next coin only when the
+--   current coin index exceeds the upper bound. Since coin indices are
+--   sorted, whenever we transition to the next coin, its index bona fide
+--   exceeds the previous upper bound (and thus it's more or equal to the
+--   current lower bound).
+followTheSatoshiM :: MonadIterator (StakeholderId, Coin) m => SharedSeed -> Coin -> m SlotLeaders
 
 
 -- | Blockchain genesis. Not to be confused with genesis block in epoch.
@@ -3067,11 +3186,11 @@ ToilModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> !exten
 [_tmUndos] :: GenericToilModifier extension -> !UndoMap
 [_tmExtra] :: GenericToilModifier extension -> !extension
 type ToilModifier = GenericToilModifier ()
-tmUtxo :: forall extension_a1U6Y. Lens' (GenericToilModifier extension_a1U6Y) UtxoModifier
-tmBalances :: forall extension_a1U6Y. Lens' (GenericToilModifier extension_a1U6Y) BalancesView
-tmMemPool :: forall extension_a1U6Y. Lens' (GenericToilModifier extension_a1U6Y) MemPool
-tmUndos :: forall extension_a1U6Y. Lens' (GenericToilModifier extension_a1U6Y) UndoMap
-tmExtra :: forall extension_a1U6Y extension_a1U91. Lens (GenericToilModifier extension_a1U6Y) (GenericToilModifier extension_a1U91) extension_a1U6Y extension_a1U91
+tmUtxo :: forall extension_a1Tlu. Lens' (GenericToilModifier extension_a1Tlu) UtxoModifier
+tmBalances :: forall extension_a1Tlu. Lens' (GenericToilModifier extension_a1Tlu) BalancesView
+tmMemPool :: forall extension_a1Tlu. Lens' (GenericToilModifier extension_a1Tlu) MemPool
+tmUndos :: forall extension_a1Tlu. Lens' (GenericToilModifier extension_a1Tlu) UndoMap
+tmExtra :: forall extension_a1Tlu extension_a1Tnx. Lens (GenericToilModifier extension_a1Tlu) (GenericToilModifier extension_a1Tnx) extension_a1Tlu extension_a1Tnx
 
 -- | Environment used by Toil.
 data ToilEnv
@@ -3284,12 +3403,7 @@ usRollbackBlocks :: forall m. USGlobalApplyMode m => NewestFirst NE (UpdateBlock
 -- | Verify whether sequence of blocks can be applied to US part of current
 --   GState DB. This function doesn't make pure checks, they are assumed to
 --   be done earlier, most likely during objects construction.
---   
---   If the first argument is <a>True</a> it means that all data must be
---   known. Currently it only means that <tt>UpdateProposal</tt>s must have
---   only known attributes, but I can't guarantee this comment will always
---   be up-to-date.
-usVerifyBlocks :: (USGlobalVerifyMode m) => Bool -> OldestFirst NE UpdateBlock -> m (PollModifier, OldestFirst NE USUndo)
+usVerifyBlocks :: (USGlobalVerifyMode m) => OldestFirst NE UpdateBlock -> m (PollModifier, OldestFirst NE USUndo)
 
 -- | This function returns true if update proposal with given identifier
 --   should be requested.
