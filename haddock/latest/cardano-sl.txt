@@ -2987,6 +2987,7 @@ getLocalTxsMap :: (MonadIO m, MonadTxpMem e m) => m (HashMap TxId TxAux)
 getTxpExtra :: (MonadIO m, MonadTxpMem e m) => m e
 modifyTxpLocalData :: (MonadIO m, MonadTxpMem ext m) => (GenericTxpLocalDataPure ext -> (a, GenericTxpLocalDataPure ext)) -> m a
 setTxpLocalData :: (MonadIO m, MonadTxpMem ext m) => GenericTxpLocalDataPure ext -> m ()
+clearMemPool :: (MonadIO m, MonadTxpMem ext m, Default ext) => m ()
 newtype TxpHolder ext m a
 TxpHolder :: ReaderT (GenericTxpLocalData ext) m a -> TxpHolder ext m a
 [getTxpHolder] :: TxpHolder ext m a -> ReaderT (GenericTxpLocalData ext) m a
@@ -3186,11 +3187,11 @@ ToilModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> !exten
 [_tmUndos] :: GenericToilModifier extension -> !UndoMap
 [_tmExtra] :: GenericToilModifier extension -> !extension
 type ToilModifier = GenericToilModifier ()
-tmUtxo :: forall extension_a1Tlu. Lens' (GenericToilModifier extension_a1Tlu) UtxoModifier
-tmBalances :: forall extension_a1Tlu. Lens' (GenericToilModifier extension_a1Tlu) BalancesView
-tmMemPool :: forall extension_a1Tlu. Lens' (GenericToilModifier extension_a1Tlu) MemPool
-tmUndos :: forall extension_a1Tlu. Lens' (GenericToilModifier extension_a1Tlu) UndoMap
-tmExtra :: forall extension_a1Tlu extension_a1Tnx. Lens (GenericToilModifier extension_a1Tlu) (GenericToilModifier extension_a1Tnx) extension_a1Tlu extension_a1Tnx
+tmUtxo :: forall extension_a1Tls. Lens' (GenericToilModifier extension_a1Tls) UtxoModifier
+tmBalances :: forall extension_a1Tls. Lens' (GenericToilModifier extension_a1Tls) BalancesView
+tmMemPool :: forall extension_a1Tls. Lens' (GenericToilModifier extension_a1Tls) MemPool
+tmUndos :: forall extension_a1Tls. Lens' (GenericToilModifier extension_a1Tls) UndoMap
+tmExtra :: forall extension_a1Tls extension_a1Tnv. Lens (GenericToilModifier extension_a1Tls) (GenericToilModifier extension_a1Tnv) extension_a1Tls extension_a1Tnv
 
 -- | Environment used by Toil.
 data ToilEnv
