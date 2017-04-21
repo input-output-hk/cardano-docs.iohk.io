@@ -590,10 +590,10 @@ txOutputs :: Lens' Tx (NonEmpty TxOut)
 txAttributes :: Lens' Tx TxAttributes
 
 -- | Specialized formatter for <a>Tx</a>.
-txF :: Format r (Tx -> r)
+txF :: Bi Tx => Format r (Tx -> r)
 
 -- | Specialized formatter for <a>Tx</a> with auxiliary data
-txaF :: Format r (TxAux -> r)
+txaF :: Bi Tx => Format r (TxAux -> r)
 data TxProof
 TxProof :: !Word32 -> !(MerkleRoot Tx) -> !(Hash [TxWitness]) -> !(Hash [TxDistribution]) -> TxProof
 [txpNumber] :: TxProof -> !Word32
@@ -3186,11 +3186,11 @@ ToilModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> !exten
 [_tmUndos] :: GenericToilModifier extension -> !UndoMap
 [_tmExtra] :: GenericToilModifier extension -> !extension
 type ToilModifier = GenericToilModifier ()
-tmUtxo :: forall extension_a1Tls. Lens' (GenericToilModifier extension_a1Tls) UtxoModifier
-tmBalances :: forall extension_a1Tls. Lens' (GenericToilModifier extension_a1Tls) BalancesView
-tmMemPool :: forall extension_a1Tls. Lens' (GenericToilModifier extension_a1Tls) MemPool
-tmUndos :: forall extension_a1Tls. Lens' (GenericToilModifier extension_a1Tls) UndoMap
-tmExtra :: forall extension_a1Tls extension_a1Tnv. Lens (GenericToilModifier extension_a1Tls) (GenericToilModifier extension_a1Tnv) extension_a1Tls extension_a1Tnv
+tmUtxo :: forall extension_a1S0w. Lens' (GenericToilModifier extension_a1S0w) UtxoModifier
+tmBalances :: forall extension_a1S0w. Lens' (GenericToilModifier extension_a1S0w) BalancesView
+tmMemPool :: forall extension_a1S0w. Lens' (GenericToilModifier extension_a1S0w) MemPool
+tmUndos :: forall extension_a1S0w. Lens' (GenericToilModifier extension_a1S0w) UndoMap
+tmExtra :: forall extension_a1S0w extension_a1S2z. Lens (GenericToilModifier extension_a1S0w) (GenericToilModifier extension_a1S2z) extension_a1S0w extension_a1S2z
 
 -- | Environment used by Toil.
 data ToilEnv

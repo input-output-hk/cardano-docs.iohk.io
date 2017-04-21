@@ -206,18 +206,19 @@ type TxAux = (Tx, TxWitness, TxDistribution)
 
 instance Hashable Tx
 
-instance Buildable Tx where
-    build UnsafeTx {..} =
+instance Bi Tx =&gt; Buildable Tx where
+    build tx@(UnsafeTx{..}) =
         bprint
-            (&quot;Transaction with inputs &quot;%listJson%&quot;, outputs: &quot;%listJson)
-            _txInputs _txOutputs
+            (&quot;Tx &quot;%build%
+             &quot; with inputs &quot;%listJson%&quot;, outputs: &quot;%listJson)
+            (hash tx) _txInputs _txOutputs
 
 -- | Specialized formatter for 'Tx'.
-txF :: Format r (Tx -&gt; r)
+txF :: Bi Tx =&gt; Format r (Tx -&gt; r)
 txF = build
 
 -- | Specialized formatter for 'Tx' with auxiliary data
-txaF :: Format r (TxAux -&gt; r)
+txaF :: Bi Tx =&gt; Format r (TxAux -&gt; r)
 txaF = later $ \(tx, w, d) -&gt;
     bprint (build%&quot;\n&quot;%
             &quot;witnesses: &quot;%listJsonIndent 4%&quot;\n&quot;%
