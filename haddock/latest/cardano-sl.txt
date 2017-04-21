@@ -3186,11 +3186,11 @@ ToilModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> !exten
 [_tmUndos] :: GenericToilModifier extension -> !UndoMap
 [_tmExtra] :: GenericToilModifier extension -> !extension
 type ToilModifier = GenericToilModifier ()
-tmUtxo :: forall extension_a1Tlu. Lens' (GenericToilModifier extension_a1Tlu) UtxoModifier
-tmBalances :: forall extension_a1Tlu. Lens' (GenericToilModifier extension_a1Tlu) BalancesView
-tmMemPool :: forall extension_a1Tlu. Lens' (GenericToilModifier extension_a1Tlu) MemPool
-tmUndos :: forall extension_a1Tlu. Lens' (GenericToilModifier extension_a1Tlu) UndoMap
-tmExtra :: forall extension_a1Tlu extension_a1Tnx. Lens (GenericToilModifier extension_a1Tlu) (GenericToilModifier extension_a1Tnx) extension_a1Tlu extension_a1Tnx
+tmUtxo :: forall extension_a1Tls. Lens' (GenericToilModifier extension_a1Tls) UtxoModifier
+tmBalances :: forall extension_a1Tls. Lens' (GenericToilModifier extension_a1Tls) BalancesView
+tmMemPool :: forall extension_a1Tls. Lens' (GenericToilModifier extension_a1Tls) MemPool
+tmUndos :: forall extension_a1Tls. Lens' (GenericToilModifier extension_a1Tls) UndoMap
+tmExtra :: forall extension_a1Tls extension_a1Tnv. Lens (GenericToilModifier extension_a1Tls) (GenericToilModifier extension_a1Tnv) extension_a1Tls extension_a1Tnv
 
 -- | Environment used by Toil.
 data ToilEnv
@@ -4484,9 +4484,9 @@ walletServerOuts :: OutSpecs
 walletServeWebLite :: forall ssc. SscHelpersClass ssc => Proxy ssc -> SendActions WalletRealMode -> FilePath -> Bool -> Word16 -> WalletRealMode ()
 walletServerOuts :: OutSpecs
 type WalletWebHandler m = WalletWebSockets (WalletWebDB m)
-walletApplication :: WalletWebMode ssc m => m (Server WalletApi) -> m Application
-walletServer :: forall ssc m. (SscHelpersClass ssc, Monad m, MonadIO m, WalletWebMode ssc (WalletWebHandler m)) => SendActions m -> WalletWebHandler m (WalletWebHandler m :~> Handler) -> WalletWebHandler m (Server WalletApi)
-walletServeImpl :: (MonadIO m, MonadMask m, WalletWebMode ssc (WalletWebHandler m)) => WalletWebHandler m Application -> FilePath -> Bool -> Word16 -> m ()
+walletApplication :: WalletWebMode m => m (Server WalletApi) -> m Application
+walletServer :: (Monad m, MonadIO m, WalletWebMode (WalletWebHandler m)) => SendActions m -> WalletWebHandler m (WalletWebHandler m :~> Handler) -> WalletWebHandler m (Server WalletApi)
+walletServeImpl :: (MonadIO m, MonadMask m, WalletWebMode (WalletWebHandler m)) => WalletWebHandler m Application -> FilePath -> Bool -> Word16 -> m ()
 walletServerOuts :: OutSpecs
 
 -- | Holder for web wallet data
