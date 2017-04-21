@@ -2987,7 +2987,6 @@ getLocalTxsMap :: (MonadIO m, MonadTxpMem e m) => m (HashMap TxId TxAux)
 getTxpExtra :: (MonadIO m, MonadTxpMem e m) => m e
 modifyTxpLocalData :: (MonadIO m, MonadTxpMem ext m) => (GenericTxpLocalDataPure ext -> (a, GenericTxpLocalDataPure ext)) -> m a
 setTxpLocalData :: (MonadIO m, MonadTxpMem ext m) => GenericTxpLocalDataPure ext -> m ()
-clearMemPool :: (MonadIO m, MonadTxpMem ext m, Default ext) => m ()
 newtype TxpHolder ext m a
 TxpHolder :: ReaderT (GenericTxpLocalData ext) m a -> TxpHolder ext m a
 [getTxpHolder] :: TxpHolder ext m a -> ReaderT (GenericTxpLocalData ext) m a
