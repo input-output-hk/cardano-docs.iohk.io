@@ -23,6 +23,25 @@
 <meta property="og:description" content="{{site.description}}" />
 <meta property="og:site_name" content="{{ site.title }}" />
 
+
+
+
+{% if page.thumbnail %}
+<meta name="twitter:image" content="{{page.thumbnail}}">
+{% else %}
+<meta name="twitter:image" content="/img/cardano.png">
+{% endif %}
+
+{% if page.thumbnail %}
+<meta property="og:image" content="{{page.thumbnail}}" />
+{% else %}
+<meta property="og:image" content="/img/cardano.png" />
+{% endif %}
+
+
+
+
+
 <script>(function(){document.documentElement.className='js'})();</script>
 
 <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css" type="text/css" media="all" />
