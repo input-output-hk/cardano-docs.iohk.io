@@ -18,9 +18,12 @@ layout: page-home
               <!-- left, vertical navbar -->
               <div class="col-md-3 col-sm-4 col-left">
 
+
+
+
                 	<ul class="nav navbar-collapse collapse navbar-side" id="cardano-nav">
 
-                                                        {% for doc in site.pages %}
+          {% for doc in site.pages %}
                                       <li><a href="{{doc.permalink}}">{{doc.title}}</a></li>
                                                         {% endfor %}
 
