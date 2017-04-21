@@ -132,7 +132,7 @@ box-shadow:0 0 0 transparent;
 
 
 @media (max-width:767px){
-#cardano-nav{position: fixed;z-index: 99;overflow-x: auto;background: url('//static.iohk.io/cardano/images/car-sky.jpg') no-repeat center top;margin:0 -15px !important;;width:100%;top:80px;height:100%}
+#cardano-nav{position: fixed;z-index: 99;overflow-x: auto;background: url('//static.iohk.io/cardano/images/car-sky.jpg') no-repeat center top;margin:0 -15px !important;;width:100%;top:0px;height:100%;padding:70px 0 0 0}
 .navbar-side li+li,
 .navbar-side ul li{border-top:1px solid rgba(255,255,255,0.1)}
   .navbar-side ul,
