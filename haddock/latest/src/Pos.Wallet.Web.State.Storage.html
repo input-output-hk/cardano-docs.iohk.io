@@ -47,7 +47,7 @@
 </span><a name="line-47"></a><span class="hs-keyword">data</span><span> </span><a name="WalletStorage"><a href="Pos.Wallet.Web.State.Storage.html#WalletStorage"><span class="hs-identifier">WalletStorage</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a name="WalletStorage"><a href="Pos.Wallet.Web.State.Storage.html#WalletStorage"><span class="hs-identifier">WalletStorage</span></a></a><span>
 </span><a name="line-48"></a><span>    </span><span class="hs-special">{</span><span>
 </span><a name="line-49"></a><span>      </span><a name="_wsWalletMetas"><a href="Pos.Wallet.Web.State.Storage.html#_wsWalletMetas"><span class="hs-identifier">_wsWalletMetas</span></a></a><span>  </span><span class="hs-glyph">::</span><span> </span><span class="hs-glyph">!</span><span class="hs-special">(</span><span class="hs-identifier hs-type">HashMap</span><span> </span><a href="Pos.Wallet.Web.ClientTypes.html#CAddress"><span class="hs-identifier hs-type">CAddress</span></a><span> </span><span class="hs-special">(</span><a href="Pos.Wallet.Web.ClientTypes.html#CWalletMeta"><span class="hs-identifier hs-type">CWalletMeta</span></a><span class="hs-special">,</span><span> </span><a href="Pos.Wallet.Web.State.Storage.html#TransactionHistory"><span class="hs-identifier hs-type">TransactionHistory</span></a><span class="hs-special">)</span><span class="hs-special">)</span><span>
-</span><a name="line-50"></a><span>    </span><span class="hs-special">,</span><span> </span><a name="_wsProfile"><a href="Pos.Wallet.Web.State.Storage.html#_wsProfile"><span class="hs-identifier">_wsProfile</span></a></a><span>      </span><span class="hs-glyph">::</span><span> </span><span class="hs-glyph">!</span><a href="Pos.Wallet.Web.ClientTypes.html#CProfile"><span class="hs-identifier hs-type">CProfile</span></a><span>
+</span><a name="line-50"></a><span>    </span><span class="hs-special">,</span><span> </span><a name="_wsProfile"><a href="Pos.Wallet.Web.State.Storage.html#_wsProfile"><span class="hs-identifier">_wsProfile</span></a></a><span>      </span><span class="hs-glyph">::</span><span> </span><span class="hs-glyph">!</span><span class="hs-special">(</span><span class="hs-identifier hs-type">Maybe</span><span> </span><a href="Pos.Wallet.Web.ClientTypes.html#CProfile"><span class="hs-identifier hs-type">CProfile</span></a><span class="hs-special">)</span><span>
 </span><a name="line-51"></a><span>    </span><span class="hs-special">,</span><span> </span><a name="_wsReadyUpdates"><a href="Pos.Wallet.Web.State.Storage.html#_wsReadyUpdates"><span class="hs-identifier">_wsReadyUpdates</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><a href="Pos.Wallet.Web.ClientTypes.html#CUpdateInfo"><span class="hs-identifier hs-type">CUpdateInfo</span></a><span class="hs-special">]</span><span>
 </span><a name="line-52"></a><span>    </span><span class="hs-special">,</span><span> </span><a name="_wsHistoryCache"><a href="Pos.Wallet.Web.State.Storage.html#_wsHistoryCache"><span class="hs-identifier">_wsHistoryCache</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-glyph">!</span><span class="hs-special">(</span><span class="hs-identifier hs-type">HashMap</span><span> </span><a href="Pos.Wallet.Web.ClientTypes.html#CAddress"><span class="hs-identifier hs-type">CAddress</span></a><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">HeaderHash</span><span class="hs-special">,</span><span> </span><a href="Pos.Txp.Toil.Types.html#Utxo"><span class="hs-identifier hs-type">Utxo</span></a><span class="hs-special">,</span><span> </span><span class="hs-special">[</span><a href="Pos.Client.Txp.History.html#TxHistoryEntry"><span class="hs-identifier hs-type">TxHistoryEntry</span></a><span class="hs-special">]</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
 </span><a name="line-53"></a><span>    </span><span class="hs-special">}</span><span>
@@ -59,7 +59,7 @@ instance Default WalletStorage where
         WalletStorage
         {
           _wsWalletMetas  = mempty
-        , _wsProfile      = def
+        , _wsProfile      = mzero  -- TODO: Fix, like in `0.4`
         , _wsReadyUpdates = mempty
         , _wsHistoryCache = mempty
         }
@@ -67,11 +67,11 @@ instance Default WalletStorage where
 type Query a = forall m. (MonadReader WalletStorage m) =&gt; m a
 type Update a = forall m. ({-MonadThrow m, -}MonadState WalletStorage m) =&gt; m a
 
-getProfile :: Query CProfile
+getProfile :: Query (Maybe CProfile)
 getProfile = view wsProfile
 
 setProfile :: CProfile -&gt; Update ()
-setProfile profile = wsProfile .= profile
+setProfile profile = wsProfile .= Just profile
 
 getWalletMetas :: Query [CWalletMeta]
 getWalletMetas = toList . map fst &lt;$&gt; view wsWalletMetas
