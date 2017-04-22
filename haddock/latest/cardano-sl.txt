@@ -1068,9 +1068,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172382 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679172382)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172374 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679172374)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172366 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679172366)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172386 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679172386)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172378 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679172378)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172370 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679172370)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Timestamp.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SoftwareVersion
@@ -3095,11 +3095,11 @@ ToilModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> !exten
 [_tmUndos] :: GenericToilModifier extension -> !UndoMap
 [_tmExtra] :: GenericToilModifier extension -> !extension
 type ToilModifier = GenericToilModifier ()
-tmUtxo :: forall extension_a1SzG. Lens' (GenericToilModifier extension_a1SzG) UtxoModifier
-tmBalances :: forall extension_a1SzG. Lens' (GenericToilModifier extension_a1SzG) BalancesView
-tmMemPool :: forall extension_a1SzG. Lens' (GenericToilModifier extension_a1SzG) MemPool
-tmUndos :: forall extension_a1SzG. Lens' (GenericToilModifier extension_a1SzG) UndoMap
-tmExtra :: forall extension_a1SzG extension_a1SBJ. Lens (GenericToilModifier extension_a1SzG) (GenericToilModifier extension_a1SBJ) extension_a1SzG extension_a1SBJ
+tmUtxo :: forall extension_a1SzM. Lens' (GenericToilModifier extension_a1SzM) UtxoModifier
+tmBalances :: forall extension_a1SzM. Lens' (GenericToilModifier extension_a1SzM) BalancesView
+tmMemPool :: forall extension_a1SzM. Lens' (GenericToilModifier extension_a1SzM) MemPool
+tmUndos :: forall extension_a1SzM. Lens' (GenericToilModifier extension_a1SzM) UndoMap
+tmExtra :: forall extension_a1SzM extension_a1SBP. Lens (GenericToilModifier extension_a1SzM) (GenericToilModifier extension_a1SBP) extension_a1SzM extension_a1SBP
 
 -- | Environment used by Toil.
 data ToilEnv
@@ -3740,7 +3740,7 @@ classifyHeaders :: forall ssc m. WorkMode ssc m => NewestFirst NE (BlockHeader s
 --   encountered. In case we got deeper than <a>recoveryHeadersMessage</a>,
 --   we return <a>recoveryHeadersMessage</a> headers starting from the the
 --   newest checkpoint that's in our main chain to the newest ones.
-getHeadersFromManyTo :: forall ssc m. (MonadDB m, SscHelpersClass ssc, CanLog m, HasLoggerName m) => NonEmpty HeaderHash -> Maybe HeaderHash -> m (Maybe (NewestFirst NE (BlockHeader ssc)))
+getHeadersFromManyTo :: forall ssc m. (MonadDB m, SscHelpersClass ssc, CanLog m, HasLoggerName m) => NonEmpty HeaderHash -> Maybe HeaderHash -> m (Either Text (NewestFirst NE (BlockHeader ssc)))
 
 -- | Given a starting point hash (we take tip if it's not in storage) it
 --   returns not more than <a>blkSecurityParam</a> blocks distributed
