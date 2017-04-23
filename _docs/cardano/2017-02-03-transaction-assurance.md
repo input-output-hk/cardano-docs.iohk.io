@@ -67,12 +67,12 @@ group: cardano
 
 # Transaction Assurance Level
 
-Tables below show color-coded levels of assurance that a transaction won’t be canceled by some fork
+Tables below show color-coded levels of assurance that a transaction won’t be canceled by some fork.
 
-For example, at normal security level, if the attacker’s stake is **10%** (or $6 millions for Cardano market capitalization of $60 millions), user is:
-1. in the red zone when his block with coin transfer transaction for him has depth less than **3** blocks,
-2. in the yellow zone when his block has depth from **3** to **7** blocks,
-3. in the green zone when his block has depth **9** or more blocks.
+For example, at normal security level, if the attacker’s stake is **10%** (or $6 millions for Cardano market capitalization of $60 millions), the levels of assurance for a user’s transaction are:
+1. Lowest assurance (color-coded with red) — when the user’s block with coin transfer transaction has depth less than **3** blocks.
+2. Medium assurance (color-coded with yellow) — when the user’s block has depth from **3** to **7** blocks.
+3. High assurance (color-coded with green) — when the user’s block has depth **9** or more blocks.
 
 ## Normal Security Level
 
@@ -220,7 +220,7 @@ to Cardano market capitalization of $60 millions.
 
 ## Strict Security Level
 
-Strict level is against all types of adversaries (it requires more block confirmations).
+Strict security level protects against all types of adversaries (it requires more block confirmations).
 Values in the table correspond to Cardano market capitalization of $60 millions.
 
 <table class="full-width">
