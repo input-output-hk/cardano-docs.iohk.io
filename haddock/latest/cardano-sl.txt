@@ -6,7 +6,7 @@
 --   
 --   Please see README.md
 @package cardano-sl
-@version 0.4.1
+@version 0.4.3
 
 
 -- | Secret key file storage and management functions based on file
@@ -1068,9 +1068,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172613 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679172613)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172605 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679172605)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172597 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679172597)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172386 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679172386)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172378 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679172378)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172370 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679172370)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Timestamp.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SoftwareVersion
@@ -1687,9 +1687,8 @@ jlCreatedBlock :: BiSsc ssc => Block ssc -> JLEvent
 jlAdoptedBlock :: Ssc ssc => Block ssc -> JLEvent
 
 -- | Monad for things that can log Json log events.
-class Monad m => MonadJL m where jlLog = lift . jlLog
+class Monad m => MonadJL m
 jlLog :: MonadJL m => JLEvent -> m ()
-jlLog :: (MonadJL m, MonadTrans t, MonadJL m', t m' ~ m) => JLEvent -> m ()
 
 -- | Append event into log by given <a>FilePath</a>.
 appendJL :: (MonadIO m) => FilePath -> JLEvent -> m ()
@@ -1698,7 +1697,8 @@ appendJL :: (MonadIO m) => FilePath -> JLEvent -> m ()
 fromJLSlotId :: JLSlotId -> SlotId
 instance Data.Aeson.Types.ToJSON.ToJSON Pos.Util.JsonLog.JLTimedEvent
 instance Data.Aeson.Types.FromJSON.FromJSON Pos.Util.JsonLog.JLTimedEvent
-instance (Pos.Util.JsonLog.MonadJL m, Control.Monad.Trans.Class.MonadTrans t, GHC.Base.Monad (t m)) => Pos.Util.JsonLog.MonadJL (t m)
+instance Pos.Util.JsonLog.MonadJL m => Pos.Util.JsonLog.MonadJL (Control.Monad.Trans.Reader.ReaderT s m)
+instance Pos.Util.JsonLog.MonadJL m => Pos.Util.JsonLog.MonadJL (Control.Monad.Trans.State.Lazy.StateT s m)
 instance Data.Aeson.Types.ToJSON.ToJSON Pos.Util.JsonLog.JLEvent
 instance Data.Aeson.Types.FromJSON.FromJSON Pos.Util.JsonLog.JLEvent
 instance Data.Aeson.Types.ToJSON.ToJSON Pos.Util.JsonLog.JLBlock
@@ -1710,8 +1710,9 @@ instance GHC.Show.Show Pos.Util.JsonLog.JLBlock
 module Pos.Context
 
 -- | Class for something that has <a>NodeContext</a> inside.
-type WithNodeContext ssc = MonadReader ContextTag (NodeContext ssc)
+class Monad m => WithNodeContext ssc m | m -> ssc where getNodeContext = lift getNodeContext
 getNodeContext :: WithNodeContext ssc m => m (NodeContext ssc)
+getNodeContext :: (WithNodeContext ssc m, MonadTrans t, WithNodeContext ssc m', t m' ~ m) => m (NodeContext ssc)
 
 -- | NodeContext contains runtime context of node.
 data NodeContext ssc
@@ -1861,7 +1862,9 @@ getUptime :: (MonadIO m, WithNodeContext ssc m) => m Microsecond
 isRecoveryMode :: (MonadIO m, WithNodeContext ssc m) => m Bool
 
 -- | Wrapper for monadic action which brings <a>NodeContext</a>.
-type ContextHolder ssc = ContextHolder' (ContextHolderTrans ssc)
+newtype ContextHolder ssc m a
+ContextHolder :: ReaderT (NodeContext ssc) m a -> ContextHolder ssc m a
+[getContextHolder] :: ContextHolder ssc m a -> ReaderT (NodeContext ssc) m a
 
 -- | Run <a>ContextHolder</a> action.
 runContextHolder :: NodeContext ssc -> ContextHolder ssc m a -> m a
@@ -1871,10 +1874,12 @@ shouldIgnoreAddress :: NodeContext ssc -> NetworkAddress -> Bool
 shouldIgnorePkAddress :: NodeContext ssc -> StakeholderId -> Bool
 
 module Pos.Ssc.Extra
-type MonadSscMem ssc = MonadReader SscMemTag (SscState ssc)
+class Monad m => MonadSscMem ssc m | m -> ssc where askSscMem = lift askSscMem
 askSscMem :: MonadSscMem ssc m => m (SscState ssc)
-data SscMemTag
-type SscHolder ssc = ReaderT SscMemTag (SscState ssc)
+askSscMem :: (MonadSscMem ssc m, MonadTrans t, MonadSscMem ssc m', t m' ~ m) => m (SscState ssc)
+newtype SscHolder ssc m a
+SscHolder :: ReaderT (SscState ssc) m a -> SscHolder ssc m a
+[getSscHolder] :: SscHolder ssc m a -> ReaderT (SscState ssc) m a
 mkSscHolderState :: forall ssc m. (WithLogger m, HasContext LrcContext m, SscGStateClass ssc, SscLocalDataClass ssc, MonadDB m, MonadSlots m) => m (SscState ssc)
 mkStateAndRunSscHolder :: forall ssc m a. (WithLogger m, HasContext LrcContext m, SscGStateClass ssc, SscLocalDataClass ssc, MonadDB m, MonadSlots m) => SscHolder ssc m a -> m a
 
@@ -1954,12 +1959,19 @@ resetStat :: (MonadStats m, MonadTrans t, MonadStats m', t m' ~ m, StatLabel l) 
 logStatM :: (MonadStats m, StatLabel l) => l -> m (EntryType l) -> m ()
 
 -- | Stats wrapper for collecting statistics without collecting it.
-type NoStatsT = TaggedTrans NoStatsTag IdentityT
-getNoStatsT :: NoStatsT m a -> m a
+newtype NoStatsT m a
+NoStatsT :: m a -> NoStatsT m a
+
+-- | action inside wrapper without collecting statistics
+[getNoStatsT] :: NoStatsT m a -> m a
 
 -- | Statistics wrapper around some monadic action to collect statistics
 --   during execution of this action. Used in benchmarks.
-type StatsT = ReaderT StatsMap
+newtype StatsT m a
+StatsT :: ReaderT StatsMap m a -> StatsT m a
+
+-- | action inside wrapper with collected statistics
+[getStatsT] :: StatsT m a -> ReaderT StatsMap m a
 runStatsT :: MonadIO m => StatsT m a -> m a
 runStatsT' :: StatsMap -> StatsT m a -> m a
 getStatsMap :: Monad m => StatsT m StatsMap
@@ -2012,13 +2024,42 @@ type TxpExtra_TMP = ()
 type ProductionMode ssc = NoStatsT (RawRealMode ssc)
 
 -- | RawRealMode is a basis for <a>WorkMode</a>s used to really run system.
-type RawRealMode ssc = PeerStateHolder (DelegationT (TxpHolder TxpExtra_TMP (SscHolder ssc (NtpSlotting (SlottingHolder (DBHolder (ContextHolder ssc (LoggerNameBox Production))))))))
+type RawRealMode ssc = PeerStateHolder (DelegationT (TxpHolder TxpExtra_TMP (SscHolder ssc (NtpSlotting (SlottingHolder (ContextHolder ssc (DBHolder (LoggerNameBox Production))))))))
 
 -- | ServiceMode is the mode in which support nodes work.
 type ServiceMode = PeerStateHolder (LoggerNameBox Production)
 
 -- | StatsMode is used for remote benchmarking.
 type StatsMode ssc = StatsT (RawRealMode ssc)
+instance (GHC.Base.Monad m, Pos.Context.Class.WithNodeContext ssc m) => Pos.Context.Class.WithNodeContext ssc (Pos.Communication.PeerState.PeerStateHolder m)
+instance Pos.Context.Class.WithNodeContext ssc m => Pos.Context.Class.WithNodeContext ssc (Pos.Slotting.Ntp.NtpSlotting m)
+instance Pos.Context.Class.WithNodeContext ssc m => Pos.Context.Class.WithNodeContext ssc (Pos.Slotting.MemState.Holder.SlottingHolder m)
+instance Pos.Slotting.Class.MonadSlots m => Pos.Slotting.Class.MonadSlots (Pos.Communication.PeerState.PeerStateHolder m)
+instance Pos.Slotting.MemState.Class.MonadSlotsData m => Pos.Slotting.MemState.Class.MonadSlotsData (Pos.Communication.PeerState.PeerStateHolder m)
+instance Pos.DB.Class.MonadDB m => Pos.DB.Class.MonadDB (Pos.Communication.PeerState.PeerStateHolder m)
+instance Pos.DB.Class.MonadDBCore m => Pos.DB.Class.MonadDBCore (Pos.Communication.PeerState.PeerStateHolder m)
+instance Pos.DB.Limits.MonadDBLimits m => Pos.DB.Limits.MonadDBLimits (Pos.Communication.PeerState.PeerStateHolder m)
+instance Pos.DB.Class.MonadDB m => Pos.DB.Class.MonadDB (Pos.Slotting.Ntp.NtpSlotting m)
+instance Pos.DB.Class.MonadDBCore m => Pos.DB.Class.MonadDBCore (Pos.Slotting.Ntp.NtpSlotting m)
+instance Pos.DB.Limits.MonadDBLimits m => Pos.DB.Limits.MonadDBLimits (Pos.Slotting.Ntp.NtpSlotting m)
+instance Pos.DB.Class.MonadDB m => Pos.DB.Class.MonadDB (Pos.Slotting.MemState.Holder.SlottingHolder m)
+instance Pos.DB.Class.MonadDBCore m => Pos.DB.Class.MonadDBCore (Pos.Slotting.MemState.Holder.SlottingHolder m)
+instance Pos.DB.Limits.MonadDBLimits m => Pos.DB.Limits.MonadDBLimits (Pos.Slotting.MemState.Holder.SlottingHolder m)
+instance Pos.Delegation.Class.MonadDelegation m => Pos.Delegation.Class.MonadDelegation (Pos.Communication.PeerState.PeerStateHolder m)
+instance Pos.Reporting.MemState.MonadReportingMem m => Pos.Reporting.MemState.MonadReportingMem (Pos.Communication.PeerState.PeerStateHolder m)
+instance Pos.Reporting.MemState.MonadReportingMem m => Pos.Reporting.MemState.MonadReportingMem (Pos.Slotting.Ntp.NtpSlotting m)
+instance Pos.Reporting.MemState.MonadReportingMem m => Pos.Reporting.MemState.MonadReportingMem (Pos.Slotting.MemState.Holder.SlottingHolder m)
+instance Pos.Communication.Relay.Class.MonadRelayMem m => Pos.Communication.Relay.Class.MonadRelayMem (Pos.Communication.PeerState.PeerStateHolder m)
+instance Pos.Communication.Relay.Class.MonadRelayMem m => Pos.Communication.Relay.Class.MonadRelayMem (Pos.Slotting.Ntp.NtpSlotting m)
+instance Pos.Communication.Relay.Class.MonadRelayMem m => Pos.Communication.Relay.Class.MonadRelayMem (Pos.Slotting.MemState.Holder.SlottingHolder m)
+instance Pos.Ssc.Extra.Class.MonadSscMem ssc m => Pos.Ssc.Extra.Class.MonadSscMem ssc (Pos.Communication.PeerState.PeerStateHolder m)
+instance Pos.Txp.MemState.Class.MonadTxpMem x m => Pos.Txp.MemState.Class.MonadTxpMem x (Pos.Communication.PeerState.PeerStateHolder m)
+instance Pos.Shutdown.Class.MonadShutdownMem m => Pos.Shutdown.Class.MonadShutdownMem (Pos.Communication.PeerState.PeerStateHolder m)
+instance Pos.Shutdown.Class.MonadShutdownMem m => Pos.Shutdown.Class.MonadShutdownMem (Pos.Slotting.Ntp.NtpSlotting m)
+instance Pos.Shutdown.Class.MonadShutdownMem m => Pos.Shutdown.Class.MonadShutdownMem (Pos.Slotting.MemState.Holder.SlottingHolder m)
+instance Pos.Util.JsonLog.MonadJL m => Pos.Util.JsonLog.MonadJL (Pos.Communication.PeerState.PeerStateHolder m)
+instance Pos.Util.JsonLog.MonadJL m => Pos.Util.JsonLog.MonadJL (Pos.Slotting.Ntp.NtpSlotting m)
+instance Pos.Util.JsonLog.MonadJL m => Pos.Util.JsonLog.MonadJL (Pos.Slotting.MemState.Holder.SlottingHolder m)
 
 module Pos.Security.Class
 class Ssc ssc => SecurityWorkersClass ssc
@@ -2629,10 +2670,12 @@ execPureTossWithLogger :: WithLogger m => MultiRichmenStake -> GtGlobalState -> 
 --   <li><i>WARNING</i> This transformer uses StateT and is intended for
 --   single-threaded usage only.</li>
 --   </ul>
-type TossT = StateT TossModifier
+newtype TossT m a
+TossT :: StateT TossModifier m a -> TossT m a
+[getTossT] :: TossT m a -> StateT TossModifier m a
 runTossT :: TossModifier -> TossT m a -> m (a, TossModifier)
-evalTossT :: Monad m => TossModifier -> TossT m a -> m a
-execTossT :: Monad m => TossModifier -> TossT m a -> m TossModifier
+evalTossT :: Functor m => TossModifier -> TossT m a -> m a
+execTossT :: Functor m => TossModifier -> TossT m a -> m TossModifier
 
 -- | Tag corresponding to GodTossing data.
 data GtTag
@@ -2838,9 +2881,13 @@ txProcessTransaction :: TxpLocalWorkMode m => (TxId, TxAux) -> m ()
 txNormalize :: (MonadDB m, MonadTxpMem () m) => m ()
 
 -- | Reduced equivalent of <tt>MonadReader (GenericTxpLocalData mw) m</tt>.
-type MonadTxpMem ext = MonadReader TxpHolderTag (GenericTxpLocalData ext)
-askTxpMem :: MonadTxpMem ext m => m (GenericTxpLocalData ext)
-data TxpHolderTag
+class Monad m => MonadTxpMem extra m | m -> extra where askTxpMem = lift askTxpMem
+
+-- | Retrieve <a>GenericTxpLocalData</a>.
+askTxpMem :: MonadTxpMem extra m => m (GenericTxpLocalData extra)
+
+-- | Retrieve <a>GenericTxpLocalData</a>.
+askTxpMem :: (MonadTxpMem extra m, MonadTrans t, MonadTxpMem extra m', t m' ~ m) => m (GenericTxpLocalData extra)
 getUtxoModifier :: (MonadTxpMem e m, MonadIO m) => m UtxoModifier
 getLocalTxsNUndo :: (MonadIO m, MonadTxpMem e m) => m ([(TxId, TxAux)], HashMap TxId (NonEmpty TxOutAux))
 getMemPool :: (MonadIO m, MonadTxpMem e m) => m MemPool
@@ -2849,7 +2896,9 @@ getLocalTxsMap :: (MonadIO m, MonadTxpMem e m) => m (HashMap TxId TxAux)
 getTxpExtra :: (MonadIO m, MonadTxpMem e m) => m e
 modifyTxpLocalData :: (MonadIO m, MonadTxpMem ext m) => (GenericTxpLocalDataPure ext -> (a, GenericTxpLocalDataPure ext)) -> m a
 setTxpLocalData :: (MonadIO m, MonadTxpMem ext m) => GenericTxpLocalDataPure ext -> m ()
-type TxpHolder ext = ReaderT TxpHolderTag (GenericTxpLocalData ext)
+newtype TxpHolder ext m a
+TxpHolder :: ReaderT (GenericTxpLocalData ext) m a -> TxpHolder ext m a
+[getTxpHolder] :: TxpHolder ext m a -> ReaderT (GenericTxpLocalData ext) m a
 mkTxpLocalData :: (Default e, MonadIO m) => UtxoModifier -> HeaderHash -> m (GenericTxpLocalData e)
 runTxpHolder :: GenericTxpLocalData ext -> TxpHolder ext m a -> m a
 
@@ -2923,8 +2972,9 @@ putTxWithUndo :: MonadTxPool m => TxId -> TxAux -> TxUndo -> m ()
 hasTx :: (MonadTxPool m, MonadTrans t, MonadTxPool m', t m' ~ m) => TxId -> m Bool
 poolSize :: (MonadTxPool m, MonadTrans t, MonadTxPool m', t m' ~ m) => m Int
 putTxWithUndo :: (MonadTxPool m, MonadTrans t, MonadTxPool m', t m' ~ m) => TxId -> TxAux -> TxUndo -> m ()
-type DBTxp = TaggedTrans DBTxpTag IdentityT
-runDBTxp :: DBTxp m a -> m a
+newtype DBTxp m a
+DBTxp :: m a -> DBTxp m a
+[runDBTxp] :: DBTxp m a -> m a
 
 -- | Result of transaction processing
 data ToilVerFailure
@@ -2986,7 +3036,12 @@ verifyAndApplyTx :: (MonadUtxo m, MonadToilEnv m, MonadError ToilVerFailure m) =
 --   <li><i>WARNING</i> This transformer uses StateT and is intended for
 --   single-threaded usage only. Used for block application now.</li>
 --   </ul>
-type ToilT ext m = StateT (GenericToilModifier ext) m
+newtype ToilT ext m a
+ToilT :: StateT (GenericToilModifier ext) m a -> ToilT ext m a
+[getToilT] :: ToilT ext m a -> StateT (GenericToilModifier ext) m a
+
+-- | Run ToilT using specified modifier.
+runToilT :: GenericToilModifier ext -> ToilT ext m a -> m (a, GenericToilModifier ext)
 
 -- | Run ToilT using empty modifier. Should be used for global transaction
 --   processing.
@@ -3040,11 +3095,11 @@ ToilModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> !exten
 [_tmUndos] :: GenericToilModifier extension -> !UndoMap
 [_tmExtra] :: GenericToilModifier extension -> !extension
 type ToilModifier = GenericToilModifier ()
-tmUtxo :: forall extension_a1SmU. Lens' (GenericToilModifier extension_a1SmU) UtxoModifier
-tmBalances :: forall extension_a1SmU. Lens' (GenericToilModifier extension_a1SmU) BalancesView
-tmMemPool :: forall extension_a1SmU. Lens' (GenericToilModifier extension_a1SmU) MemPool
-tmUndos :: forall extension_a1SmU. Lens' (GenericToilModifier extension_a1SmU) UndoMap
-tmExtra :: forall extension_a1SmU extension_a1Sp9. Lens (GenericToilModifier extension_a1SmU) (GenericToilModifier extension_a1Sp9) extension_a1SmU extension_a1Sp9
+tmUtxo :: forall extension_a1SzK. Lens' (GenericToilModifier extension_a1SzK) UtxoModifier
+tmBalances :: forall extension_a1SzK. Lens' (GenericToilModifier extension_a1SzK) BalancesView
+tmMemPool :: forall extension_a1SzK. Lens' (GenericToilModifier extension_a1SzK) MemPool
+tmUndos :: forall extension_a1SzK. Lens' (GenericToilModifier extension_a1SzK) UndoMap
+tmExtra :: forall extension_a1SzK extension_a1SBN. Lens (GenericToilModifier extension_a1SzK) (GenericToilModifier extension_a1SBN) extension_a1SzK extension_a1SBN
 
 -- | Environment used by Toil.
 data ToilEnv
@@ -3090,11 +3145,15 @@ applyTxToUtxo :: MonadUtxo m => WithHash Tx -> TxDistribution -> m ()
 --   This function assumes that transaction has been really applied and
 --   doesn't check anything.
 rollbackTxUtxo :: (MonadUtxo m) => (TxAux, TxUndo) -> m ()
-type UtxoReaderT = ReaderT Utxo
+newtype UtxoReaderT m a
+UtxoReaderT :: ReaderT Utxo m a -> UtxoReaderT m a
+[getUtxoReaderT] :: UtxoReaderT m a -> ReaderT Utxo m a
 runUtxoReaderT :: UtxoReaderT m a -> Utxo -> m a
 type UtxoReader = UtxoReaderT Identity
 runUtxoReader :: UtxoReader a -> Utxo -> a
-type UtxoStateT = StateT Utxo
+newtype UtxoStateT m a
+UtxoStateT :: StateT Utxo m a -> UtxoStateT m a
+[getUtxoStateT] :: UtxoStateT m a -> StateT Utxo m a
 runUtxoStateT :: UtxoStateT m a -> Utxo -> m (a, Utxo)
 evalUtxoStateT :: Monad m => UtxoStateT m a -> Utxo -> m a
 execUtxoStateT :: Monad m => UtxoStateT m a -> Utxo -> m Utxo
@@ -3114,61 +3173,6 @@ filterUtxoByAddr :: Address -> Utxo -> Utxo
 
 -- | Convert <a>Utxo</a> to map from <a>StakeholderId</a> to stake.
 utxoToStakes :: Utxo -> HashMap StakeholderId Coin
-
-module Pos.Client.Txp.Balances
-
--- | A class which have the methods to get state of address' balance
-class Monad m => MonadBalances m where getOwnUtxo = lift . getOwnUtxo getBalance = lift . getBalance
-getOwnUtxo :: MonadBalances m => Address -> m Utxo
-getBalance :: MonadBalances m => Address -> m Coin
-getOwnUtxo :: (MonadBalances m, MonadTrans t, MonadBalances m', t m' ~ m) => Address -> m Utxo
-getBalance :: (MonadBalances m, MonadTrans t, MonadBalances m', t m' ~ m) => Address -> m Coin
-getBalanceFromUtxo :: MonadBalances m => Address -> m Coin
-instance (Pos.Client.Txp.Balances.MonadBalances m, Control.Monad.Trans.Class.MonadTrans t, GHC.Base.Monad (t m)) => Pos.Client.Txp.Balances.MonadBalances (t m)
-instance (Pos.DB.Class.MonadDB m, Control.Monad.Catch.MonadMask m, System.Wlog.CanLog.WithLogger m) => Pos.Client.Txp.Balances.MonadBalances (Pos.Txp.MemState.Holder.TxpHolder __ m)
-
-module Pos.Client.Txp.History
-
--- | Datatype for returning info about tx history
-data TxHistoryEntry
-THEntry :: !TxId -> !Tx -> !Bool -> !(Maybe ChainDifficulty) -> TxHistoryEntry
-[_thTxId] :: TxHistoryEntry -> !TxId
-[_thTx] :: TxHistoryEntry -> !Tx
-[_thIsOutput] :: TxHistoryEntry -> !Bool
-[_thDifficulty] :: TxHistoryEntry -> !(Maybe ChainDifficulty)
-thTxId :: Lens' TxHistoryEntry TxId
-thTx :: Lens' TxHistoryEntry Tx
-thIsOutput :: Lens' TxHistoryEntry Bool
-thDifficulty :: Lens' TxHistoryEntry (Maybe ChainDifficulty)
-data TxHistoryAnswer
-TxHistoryAnswer :: HeaderHash -> Int -> Utxo -> [TxHistoryEntry] -> TxHistoryAnswer
-[taLastCachedHash] :: TxHistoryAnswer -> HeaderHash
-[taCachedNum] :: TxHistoryAnswer -> Int
-[taCachedUtxo] :: TxHistoryAnswer -> Utxo
-[taHistory] :: TxHistoryAnswer -> [TxHistoryEntry]
-
--- | A class which have methods to get transaction history
-class Monad m => MonadTxHistory m where getTxHistory = fmap lift <<$>> getTxHistory saveTx = lift . saveTx
-getTxHistory :: (MonadTxHistory m, SscHelpersClass ssc) => Tagged ssc (Address -> Maybe (HeaderHash, Utxo) -> m TxHistoryAnswer)
-saveTx :: MonadTxHistory m => (TxId, TxAux) -> m ()
-getTxHistory :: (MonadTxHistory m, SscHelpersClass ssc, MonadTrans t, MonadTxHistory m', t m' ~ m) => Tagged ssc (Address -> Maybe (HeaderHash, Utxo) -> m TxHistoryAnswer)
-saveTx :: (MonadTxHistory m, MonadTrans t, MonadTxHistory m', t m' ~ m) => (TxId, TxAux) -> m ()
-
--- | Select transactions related to given address. <a>Bool</a> indicates
---   whether the transaction is outgoing (i. e. is sent from given address)
-getRelatedTxs :: Monad m => Address -> [(WithHash Tx, TxWitness, TxDistribution)] -> TxSelectorT m [TxHistoryEntry]
-
--- | Given a full blockchain, derive address history and Utxo TODO: Such
---   functionality will still be useful for merging blockchains when wallet
---   state is ready, but some metadata for Tx will be required.
-deriveAddrHistory :: (Monad m) => Address -> [Block ssc] -> TxSelectorT m [TxHistoryEntry]
-deriveAddrHistoryPartial :: (Monad m) => [TxHistoryEntry] -> Address -> [Block ssc] -> TxSelectorT m [TxHistoryEntry]
-instance (Pos.Client.Txp.History.MonadTxHistory m, Control.Monad.Trans.Class.MonadTrans t, GHC.Base.Monad (t m)) => Pos.Client.Txp.History.MonadTxHistory (t m)
-instance (Pos.DB.Class.MonadDB m, Control.Monad.Catch.MonadThrow m, System.Wlog.CanLog.WithLogger m, Pos.Slotting.Class.MonadSlots m, Pos.Context.Class.WithNodeContext s m) => Pos.Client.Txp.History.MonadTxHistory (Pos.Txp.MemState.Holder.TxpHolder Pos.WorkMode.TxpExtra_TMP m)
-instance GHC.Show.Show Pos.Client.Txp.History.TxHistoryAnswer
-instance GHC.Generics.Generic Pos.Client.Txp.History.TxHistoryEntry
-instance GHC.Classes.Eq Pos.Client.Txp.History.TxHistoryEntry
-instance GHC.Show.Show Pos.Client.Txp.History.TxHistoryEntry
 
 
 -- | Pure functions for operations with transactions
@@ -3268,7 +3272,7 @@ module Pos.Web
 baseDocsText :: Text
 gtDocsText :: Text
 type MyWorkMode ssc m = (WorkMode ssc m, SscConstraint ssc)
-type WebHandler ssc = TxpHolder TxpExtra_TMP (DBHolder (ContextHolder ssc Production))
+type WebHandler ssc = TxpHolder TxpExtra_TMP (ContextHolder ssc (DBHolder Production))
 serveImpl :: MonadIO m => m Application -> String -> Word16 -> m ()
 nat :: forall ssc m. (MyWorkMode ssc m) => m (WebHandler ssc :~> Handler)
 serveWebBase :: MyWorkMode ssc m => Word16 -> m ()
@@ -3374,10 +3378,6 @@ VoteMsgTag :: VoteMsgTag
 -- | Update System related workers.
 usWorkers :: WorkMode ssc m => m (Set NodeId) -> ([WorkerSpec m], OutSpecs)
 
-
--- | Module for exposing JSON instances for Cardano types
-module Pos.Aeson
-
 module Pos.Delegation
 
 -- | In-memory storage needed for delegation logic Maybe ncProxyCache
@@ -3411,8 +3411,13 @@ dwThisEpochPosted :: Lens' DelegationWrap (HashSet PublicKey)
 --   we're locking on the whole delegation wrap at once. Locking on
 --   independent components is better in performance, so there's a place
 --   for optimization here.
-type MonadDelegation = MonadReader (TVar DelegationWrap)
+class (Monad m) => MonadDelegation m where askDelegationState = lift askDelegationState
+
+-- | Retrieves <a>TVar</a> on <a>DelegationWrap</a>
 askDelegationState :: MonadDelegation m => m (TVar DelegationWrap)
+
+-- | Retrieves <a>TVar</a> on <a>DelegationWrap</a>
+askDelegationState :: (MonadDelegation m, MonadTrans t, MonadDelegation m', t m' ~ m) => m (TVar DelegationWrap)
 
 -- | Retrieves certificate by issuer address (hash of public key) if
 --   present.
@@ -3432,7 +3437,9 @@ runPskIterator :: forall m a. MonadDB m => DBnIterator PskIter a -> m a
 runPskMapIterator :: forall v m a. MonadDB m => DBnMapIterator PskIter v a -> (IterType PskIter -> v) -> m a
 
 -- | Wrapper of <tt>ReaderT (TVar DelegationWrap)</tt>, nothing smart.
-type DelegationT = ReaderT (TVar DelegationWrap)
+newtype DelegationT m a
+DelegationT :: ReaderT ReaderTCtx m a -> DelegationT m a
+[getDelegationT] :: DelegationT m a -> ReaderT ReaderTCtx m a
 
 -- | Executes delegationT transformer creating tvar from given wrap.
 runDelegationT :: MonadIO m => DelegationWrap -> DelegationT m a -> m a
@@ -3450,7 +3457,9 @@ handleConfirmProxySK :: forall ssc m. (WorkMode ssc m) => m (Set NodeId) -> (Lis
 
 -- | Convenient monad to work in <a>DelegationWrap</a> context while being
 --   in STM.
-type DelegationStateAction = StateT DelegationWrap STM
+newtype DelegationStateAction a
+DelegationStateAction :: StateT DelegationWrap STM a -> DelegationStateAction a
+[getDelegationStateM] :: DelegationStateAction a -> StateT DelegationWrap STM a
 
 -- | Effectively takes a lock on ProxyCaches mvar in NodeContext and allows
 --   you to run some computation producing updated ProxyCaches and return
@@ -3587,6 +3596,79 @@ ConfirmProxySK :: !ProxySKLight -> !(ProxySigLight ProxySKLight) -> ConfirmProxy
 
 -- | All workers specific to proxy sertificates processing.
 dlgWorkers :: (WorkMode ssc m) => m (Set NodeId) -> ([WorkerSpec m], OutSpecs)
+
+module Pos.Client.Txp.Balances
+
+-- | A class which have the methods to get state of address' balance
+class Monad m => MonadBalances m where getOwnUtxo = lift . getOwnUtxo getBalance = lift . getBalance
+getOwnUtxo :: MonadBalances m => Address -> m Utxo
+getBalance :: MonadBalances m => Address -> m Coin
+getOwnUtxo :: (MonadBalances m, MonadTrans t, MonadBalances m', t m' ~ m) => Address -> m Utxo
+getBalance :: (MonadBalances m, MonadTrans t, MonadBalances m', t m' ~ m) => Address -> m Coin
+getBalanceFromUtxo :: MonadBalances m => Address -> m Coin
+instance Pos.Client.Txp.Balances.MonadBalances m => Pos.Client.Txp.Balances.MonadBalances (Pos.Context.Holder.ContextHolder ssc m)
+instance Pos.Client.Txp.Balances.MonadBalances m => Pos.Client.Txp.Balances.MonadBalances (Pos.Ssc.Extra.Holder.SscHolder ssc m)
+instance Pos.Client.Txp.Balances.MonadBalances m => Pos.Client.Txp.Balances.MonadBalances (Pos.Delegation.Holder.DelegationT m)
+instance Pos.Client.Txp.Balances.MonadBalances m => Pos.Client.Txp.Balances.MonadBalances (Control.Monad.Trans.Reader.ReaderT r m)
+instance Pos.Client.Txp.Balances.MonadBalances m => Pos.Client.Txp.Balances.MonadBalances (Control.Monad.Trans.State.Lazy.StateT s m)
+instance Pos.Client.Txp.Balances.MonadBalances m => Pos.Client.Txp.Balances.MonadBalances (Pos.Communication.PeerState.PeerStateHolder m)
+instance Pos.Client.Txp.Balances.MonadBalances m => Pos.Client.Txp.Balances.MonadBalances (Pos.Slotting.Ntp.NtpSlotting m)
+instance Pos.Client.Txp.Balances.MonadBalances m => Pos.Client.Txp.Balances.MonadBalances (Pos.Slotting.MemState.Holder.SlottingHolder m)
+instance (Pos.DB.Class.MonadDB m, Control.Monad.Catch.MonadMask m, System.Wlog.CanLog.WithLogger m) => Pos.Client.Txp.Balances.MonadBalances (Pos.Txp.MemState.Holder.TxpHolder __ m)
+
+module Pos.Client.Txp.History
+
+-- | Datatype for returning info about tx history
+data TxHistoryEntry
+THEntry :: !TxId -> !Tx -> !Bool -> !(Maybe ChainDifficulty) -> TxHistoryEntry
+[_thTxId] :: TxHistoryEntry -> !TxId
+[_thTx] :: TxHistoryEntry -> !Tx
+[_thIsOutput] :: TxHistoryEntry -> !Bool
+[_thDifficulty] :: TxHistoryEntry -> !(Maybe ChainDifficulty)
+thTxId :: Lens' TxHistoryEntry TxId
+thTx :: Lens' TxHistoryEntry Tx
+thIsOutput :: Lens' TxHistoryEntry Bool
+thDifficulty :: Lens' TxHistoryEntry (Maybe ChainDifficulty)
+data TxHistoryAnswer
+TxHistoryAnswer :: HeaderHash -> Int -> Utxo -> [TxHistoryEntry] -> TxHistoryAnswer
+[taLastCachedHash] :: TxHistoryAnswer -> HeaderHash
+[taCachedNum] :: TxHistoryAnswer -> Int
+[taCachedUtxo] :: TxHistoryAnswer -> Utxo
+[taHistory] :: TxHistoryAnswer -> [TxHistoryEntry]
+
+-- | A class which have methods to get transaction history
+class Monad m => MonadTxHistory m where getTxHistory = fmap lift <<$>> getTxHistory saveTx = lift . saveTx
+getTxHistory :: (MonadTxHistory m, SscHelpersClass ssc) => Tagged ssc (Address -> Maybe (HeaderHash, Utxo) -> m TxHistoryAnswer)
+saveTx :: MonadTxHistory m => (TxId, TxAux) -> m ()
+getTxHistory :: (MonadTxHistory m, SscHelpersClass ssc, MonadTrans t, MonadTxHistory m', t m' ~ m) => Tagged ssc (Address -> Maybe (HeaderHash, Utxo) -> m TxHistoryAnswer)
+saveTx :: (MonadTxHistory m, MonadTrans t, MonadTxHistory m', t m' ~ m) => (TxId, TxAux) -> m ()
+
+-- | Select transactions related to given address. <a>Bool</a> indicates
+--   whether the transaction is outgoing (i. e. is sent from given address)
+getRelatedTxs :: Monad m => Address -> [(WithHash Tx, TxWitness, TxDistribution)] -> TxSelectorT m [TxHistoryEntry]
+
+-- | Given a full blockchain, derive address history and Utxo TODO: Such
+--   functionality will still be useful for merging blockchains when wallet
+--   state is ready, but some metadata for Tx will be required.
+deriveAddrHistory :: (Monad m) => Address -> [Block ssc] -> TxSelectorT m [TxHistoryEntry]
+deriveAddrHistoryPartial :: (Monad m) => [TxHistoryEntry] -> Address -> [Block ssc] -> TxSelectorT m [TxHistoryEntry]
+instance Pos.Client.Txp.History.MonadTxHistory m => Pos.Client.Txp.History.MonadTxHistory (Pos.Context.Holder.ContextHolder ssc m)
+instance Pos.Client.Txp.History.MonadTxHistory m => Pos.Client.Txp.History.MonadTxHistory (Pos.Ssc.Extra.Holder.SscHolder ssc m)
+instance Pos.Client.Txp.History.MonadTxHistory m => Pos.Client.Txp.History.MonadTxHistory (Pos.Delegation.Holder.DelegationT m)
+instance Pos.Client.Txp.History.MonadTxHistory m => Pos.Client.Txp.History.MonadTxHistory (Control.Monad.Trans.Reader.ReaderT r m)
+instance Pos.Client.Txp.History.MonadTxHistory m => Pos.Client.Txp.History.MonadTxHistory (Control.Monad.Trans.State.Lazy.StateT s m)
+instance Pos.Client.Txp.History.MonadTxHistory m => Pos.Client.Txp.History.MonadTxHistory (Pos.Communication.PeerState.PeerStateHolder m)
+instance Pos.Client.Txp.History.MonadTxHistory m => Pos.Client.Txp.History.MonadTxHistory (Pos.Slotting.Ntp.NtpSlotting m)
+instance Pos.Client.Txp.History.MonadTxHistory m => Pos.Client.Txp.History.MonadTxHistory (Pos.Slotting.MemState.Holder.SlottingHolder m)
+instance (Pos.DB.Class.MonadDB m, Control.Monad.Catch.MonadThrow m, System.Wlog.CanLog.WithLogger m, Pos.Slotting.Class.MonadSlots m, Pos.Context.Class.WithNodeContext s m) => Pos.Client.Txp.History.MonadTxHistory (Pos.Txp.MemState.Holder.TxpHolder Pos.WorkMode.TxpExtra_TMP m)
+instance GHC.Show.Show Pos.Client.Txp.History.TxHistoryAnswer
+instance GHC.Generics.Generic Pos.Client.Txp.History.TxHistoryEntry
+instance GHC.Classes.Eq Pos.Client.Txp.History.TxHistoryEntry
+instance GHC.Show.Show Pos.Client.Txp.History.TxHistoryEntry
+
+
+-- | Module for exposing JSON instances for Cardano types
+module Pos.Aeson
 
 
 -- | Logic of blocks processing.
@@ -4101,7 +4183,9 @@ deleteSecretKey :: (MonadKeys m, MonadTrans t, MonadKeys m', t m' ~ m) => Word -
 
 -- | Helper for generating a new secret key
 newSecretKey :: (MonadIO m, MonadKeys m) => PassPhrase -> m EncryptedSecretKey
-type KeyStorage = ReaderT KeyData
+newtype KeyStorage m a
+KeyStorage :: ReaderT KeyData m a -> KeyStorage m a
+[getKeyStorage] :: KeyStorage m a -> ReaderT KeyData m a
 type KeyData = TVar UserSecret
 data KeyError
 
@@ -4164,8 +4248,8 @@ waitForUpdate :: MonadUpdates m => m ConfirmedProposalState
 applyLastUpdate :: MonadUpdates m => m ()
 waitForUpdate :: (MonadUpdates m, MonadTrans t, MonadUpdates m', t m' ~ m) => m ConfirmedProposalState
 applyLastUpdate :: (MonadUpdates m, MonadTrans t, MonadUpdates m', t m' ~ m) => m ()
-type WalletMode ssc m = (TxMode ssc m, MonadKeys m, MonadBlockchainInfo m, MonadUpdates m, WithPeerState m)
-type WalletRealMode = PeerStateHolder (KeyStorage (WalletDB (ReportingContextT (LoggerNameBox Production))))
+type WalletMode ssc m = (TxMode ssc m, MonadKeys m, MonadBlockchainInfo m, MonadUpdates m, WithWalletContext m, WithPeerState m)
+type WalletRealMode = PeerStateHolder (KeyStorage (WalletDB (ContextHolder (LoggerNameBox Production))))
 
 module Pos.Wallet.Web
 
@@ -4369,12 +4453,12 @@ walletServeImpl :: (MonadIO m, MonadMask m, WalletWebMode (WalletWebHandler m)) 
 walletServerOuts :: OutSpecs
 
 -- | Holder for web wallet data
-type WalletWebSockets = ReaderT ConnectionsVar
+data WalletWebSockets m a
 type WebWalletSockets m = (MonadWalletWebSockets m, MonadIO m)
 
 -- | MonadWalletWebSockets stands for monad which is able to get web wallet
 --   sockets
-type MonadWalletWebSockets = MonadReader ConnectionsVar
+class Monad m => MonadWalletWebSockets m
 getWalletWebSockets :: MonadWalletWebSockets m => m ConnectionsVar
 type ConnectionsVar = TVar (Maybe Connection)
 initWSConnection :: MonadIO m => m ConnectionsVar
@@ -4384,7 +4468,9 @@ notify :: WebWalletSockets m => NotifyEvent -> m ()
 runWalletWS :: ConnectionsVar -> WalletWebSockets m a -> m a
 
 -- | Holder for web wallet data
-type WalletWebDB = ReaderT WalletState
+newtype WalletWebDB m a
+WalletWebDB :: ReaderT WalletState m a -> WalletWebDB m a
+[getWalletWebDB] :: WalletWebDB m a -> ReaderT WalletState m a
 
 -- | Execute <a>WalletWebDB</a> action with given <a>WalletState</a>
 runWalletWebDB :: WalletState -> WalletWebDB m a -> m a
@@ -4393,7 +4479,7 @@ type WalletState = ExtendedState WalletStorage
 
 -- | MonadWalletWebDB stands for monad which is able to get web wallet
 --   state
-type MonadWalletWebDB = MonadReader WalletState
+class Monad m => MonadWalletWebDB m
 getWalletWebState :: MonadWalletWebDB m => m WalletState
 
 -- | Constraint for working with web wallet DB
