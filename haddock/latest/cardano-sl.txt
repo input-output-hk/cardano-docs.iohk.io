@@ -4185,10 +4185,38 @@ module Pos.Wallet.Web
 -- | Servant API which provides access to wallet. TODO: Should be composed
 --   depending on the resource - wallets, txs, ...
 --   <a>http://haskell-servant.github.io/tutorial/0.4/server.html#nested-apis</a>
-type WalletApi = ("api" :> ("test" :> ("reset" :> Post '[JSON] (Either WalletError ())))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> Get '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("wallets" :> Get '[JSON] (Either WalletError [CWallet]))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> (ReqBody '[JSON] CWalletMeta :> Put '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> Delete '[JSON] (Either WalletError ())))) :<|> (("api" :> ("wallets" :> ("keys" :> (ReqBody '[JSON] Text :> Post '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("wallets" :> ("restore" :> (Capture "passphrase" CPassPhrase :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet)))))) :<|> (("api" :> ("wallets" :> (Capture "passphrase" CPassPhrase :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("addresses" :> (Capture "address" Text :> ("currencies" :> (Capture "currency" CCurrency :> Get '[JSON] (Either WalletError Bool)))))) :<|> (("api" :> ("profile" :> Get '[JSON] (Either WalletError CProfile))) :<|> (("api" :> ("profile" :> (ReqBody '[JSON] CProfile :> Post '[JSON] (Either WalletError CProfile)))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "passphrase" CPassPhrase :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> Post '[JSON] (Either WalletError CTx)))))))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "passphrase" CPassPhrase :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> (Capture "currency" CCurrency :> (Capture "title" Text :> (Capture "description" Text :> Post '[JSON] (Either WalletError CTx))))))))))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "address" CAddress :> (Capture "transaction" CTxId :> (ReqBody '[JSON] CTxMeta :> Post '[JSON] (Either WalletError ()))))))) :<|> (("api" :> ("txs" :> ("histories" :> (Capture "address" CAddress :> (QueryParam "skip" Word :> (QueryParam "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word)))))))) :<|> (("api" :> ("txs" :> ("histories" :> (Capture "address" CAddress :> (Capture "search" Text :> (QueryParam "skip" Word :> (QueryParam "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word))))))))) :<|> (("api" :> ("update" :> Get '[JSON] (Either WalletError CUpdateInfo))) :<|> (("api" :> ("update" :> Post '[JSON] (Either WalletError ()))) :<|> (("api" :> ("redemptions" :> ("ada" :> (ReqBody '[JSON] CWalletRedeem :> Post '[JSON] (Either WalletError CTx))))) :<|> (("api" :> ("papervend" :> ("redemptions" :> ("ada" :> (ReqBody '[JSON] CPaperVendWalletRedeem :> Post '[JSON] (Either WalletError CTx)))))) :<|> (("api" :> ("reporting" :> ("initialized" :> (ReqBody '[JSON] CInitialized :> Post '[JSON] (Either WalletError ()))))) :<|> (("api" :> ("reporting" :> ("electroncrash" :> (MultipartForm CElectronCrashReport :> Post '[JSON] (Either WalletError ()))))) :<|> (("api" :> ("settings" :> ("slots" :> ("duration" :> Get '[JSON] (Either WalletError Word))))) :<|> (("api" :> ("settings" :> ("version" :> Get '[JSON] (Either WalletError SoftwareVersion)))) :<|> ("api" :> ("settings" :> ("sync" :> ("progress" :> Get '[JSON] (Either WalletError SyncProgress))))))))))))))))))))))))))))
+type WalletApi = TestReset :<|> (GetWallet :<|> (GetWallets :<|> (UpdateWallet :<|> (DeleteWallet :<|> (ImportKey :<|> (WalletRestore :<|> (NewWallet :<|> (IsValidAddress :<|> (GetProfile :<|> (UpdateProfile :<|> (NewPayment :<|> (NewPaymentExt :<|> (UpdateTx :<|> (GetHistory :<|> (SearchHistory :<|> (NextUpdate :<|> (ApplyUpdate :<|> (RedeemADA :<|> (RedeemADAPaperVend :<|> (ReportingInitialized :<|> (ReportingElectroncrash :<|> (GetSlotsDuration :<|> (GetVersion :<|> GetSyncProgress)))))))))))))))))))))))
 
 -- | Helper Proxy.
 walletApi :: Proxy WalletApi
+
+-- | All endpoints are defined as a separate types, for description in
+--   Swagger-based HTML-documentation.
+type TestReset = API :> ("test" :> ("reset" :> Post '[JSON] (Either WalletError ())))
+type GetWallet = API :> ("wallets" :> (Capture "walletId" CAddress :> Get '[JSON] (Either WalletError CWallet)))
+type GetWallets = API :> ("wallets" :> Get '[JSON] (Either WalletError [CWallet]))
+type UpdateWallet = API :> ("wallets" :> (Capture "walletId" CAddress :> (ReqBody '[JSON] CWalletMeta :> Put '[JSON] (Either WalletError CWallet))))
+type DeleteWallet = API :> ("wallets" :> (Capture "walletId" CAddress :> Delete '[JSON] (Either WalletError ())))
+type ImportKey = API :> ("wallets" :> ("keys" :> (ReqBody '[JSON] Text :> Post '[JSON] (Either WalletError CWallet))))
+type WalletRestore = API :> ("wallets" :> ("restore" :> (Capture "passphrase" CPassPhrase :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet)))))
+type NewWallet = API :> ("wallets" :> (Capture "passphrase" CPassPhrase :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet))))
+type IsValidAddress = API :> ("addresses" :> (Capture "address" Text :> ("currencies" :> (Capture "currency" CCurrency :> Get '[JSON] (Either WalletError Bool)))))
+type GetProfile = API :> ("profile" :> Get '[JSON] (Either WalletError CProfile))
+type UpdateProfile = API :> ("profile" :> (ReqBody '[JSON] CProfile :> Post '[JSON] (Either WalletError CProfile)))
+type NewPayment = API :> ("txs" :> ("payments" :> (Capture "passphrase" CPassPhrase :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> Post '[JSON] (Either WalletError CTx)))))))
+type NewPaymentExt = API :> ("txs" :> ("payments" :> (Capture "passphrase" CPassPhrase :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> (Capture "currency" CCurrency :> (Capture "title" Text :> (Capture "description" Text :> Post '[JSON] (Either WalletError CTx))))))))))
+type UpdateTx = API :> ("txs" :> ("payments" :> (Capture "address" CAddress :> (Capture "transaction" CTxId :> (ReqBody '[JSON] CTxMeta :> Post '[JSON] (Either WalletError ()))))))
+type GetHistory = API :> ("txs" :> ("histories" :> (Capture "address" CAddress :> (QueryParam "skip" Word :> (QueryParam "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word)))))))
+type SearchHistory = API :> ("txs" :> ("histories" :> (Capture "address" CAddress :> (Capture "search" Text :> (QueryParam "skip" Word :> (QueryParam "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word))))))))
+type NextUpdate = API :> ("update" :> Get '[JSON] (Either WalletError CUpdateInfo))
+type ApplyUpdate = API :> ("update" :> Post '[JSON] (Either WalletError ()))
+type RedeemADA = API :> ("redemptions" :> ("ada" :> (ReqBody '[JSON] CWalletRedeem :> Post '[JSON] (Either WalletError CTx))))
+type RedeemADAPaperVend = API :> ("papervend" :> ("redemptions" :> ("ada" :> (ReqBody '[JSON] CPaperVendWalletRedeem :> Post '[JSON] (Either WalletError CTx)))))
+type ReportingInitialized = API :> ("reporting" :> ("initialized" :> (ReqBody '[JSON] CInitialized :> Post '[JSON] (Either WalletError ()))))
+type ReportingElectroncrash = API :> ("reporting" :> ("electroncrash" :> (MultipartForm CElectronCrashReport :> Post '[JSON] (Either WalletError ()))))
+type GetSlotsDuration = API :> ("settings" :> ("slots" :> ("duration" :> Get '[JSON] (Either WalletError Word))))
+type GetVersion = API :> ("settings" :> ("version" :> Get '[JSON] (Either WalletError SoftwareVersion)))
+type GetSyncProgress = API :> ("settings" :> ("sync" :> ("progress" :> Get '[JSON] (Either WalletError SyncProgress))))
 data SyncProgress
 SyncProgress :: ChainDifficulty -> Maybe ChainDifficulty -> Word -> SyncProgress
 [_spLocalCD] :: SyncProgress -> ChainDifficulty
@@ -4231,13 +4259,11 @@ type CPwHash = Text
 --   by client. It includes meta data which are not part of Cardano, too
 --   (Flow type: transactionType)
 data CTx
-CTx :: !CTxId -> !CCoin -> ![(CAddress, CCoin)] -> ![(CAddress, CCoin)] -> !Word -> !CTType -> CTx
-[ctId] :: CTx -> !CTxId
-[ctAmount] :: CTx -> !CCoin
-[ctFrom] :: CTx -> ![(CAddress, CCoin)]
-[ctTo] :: CTx -> ![(CAddress, CCoin)]
-[ctConfirmations] :: CTx -> !Word
-[ctType] :: CTx -> !CTType
+CTx :: CTxId -> CCoin -> Word -> CTType -> CTx
+[ctId] :: CTx -> CTxId
+[ctAmount] :: CTx -> CCoin
+[ctConfirmations] :: CTx -> Word
+[ctType] :: CTx -> CTType
 
 -- | Client transaction id
 data CTxId
@@ -4362,6 +4388,7 @@ mkCTxId :: Text -> CTxId
 
 -- | transform TxId into CTxId
 txIdToCTxId :: TxId -> CTxId
+ctTypeMeta :: Lens' CTType CTxMeta
 txContainsTitle :: Text -> CTx -> Bool
 
 -- | Creates <tt>CTUpdateInfo</tt> from <a>ConfirmedProposalState</a>
@@ -4415,7 +4442,7 @@ type WebWalletModeDB m = (MonadWalletWebDB m, MonadIO m, MonadMockable m)
 openState :: MonadIO m => Bool -> FilePath -> m WalletState
 openMemState :: MonadIO m => m WalletState
 closeState :: MonadIO m => WalletState -> m ()
-getProfile :: WebWalletModeDB m => m CProfile
+getProfile :: WebWalletModeDB m => m (CProfile)
 getWalletMetas :: WebWalletModeDB m => m [CWalletMeta]
 getWalletMeta :: WebWalletModeDB m => CAddress -> m (Maybe CWalletMeta)
 getTxMeta :: WebWalletModeDB m => CAddress -> CTxId -> m (Maybe CTxMeta)
