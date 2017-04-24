@@ -6,7 +6,7 @@
 --   
 --   Please see README.md
 @package cardano-sl
-@version 0.4.3
+@version 0.4.1
 
 
 -- | Secret key file storage and management functions based on file
@@ -1176,9 +1176,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172612 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679172612)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172604 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679172604)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172596 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679172596)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172599 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679172599)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172591 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679172591)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172583 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679172583)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Timestamp.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SoftwareVersion
@@ -3048,11 +3048,11 @@ ToilModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> !exten
 [_tmUndos] :: GenericToilModifier extension -> !UndoMap
 [_tmExtra] :: GenericToilModifier extension -> !extension
 type ToilModifier = GenericToilModifier ()
-tmUtxo :: forall extension_a1T96. Lens' (GenericToilModifier extension_a1T96) UtxoModifier
-tmBalances :: forall extension_a1T96. Lens' (GenericToilModifier extension_a1T96) BalancesView
-tmMemPool :: forall extension_a1T96. Lens' (GenericToilModifier extension_a1T96) MemPool
-tmUndos :: forall extension_a1T96. Lens' (GenericToilModifier extension_a1T96) UndoMap
-tmExtra :: forall extension_a1T96 extension_a1Tbl. Lens (GenericToilModifier extension_a1T96) (GenericToilModifier extension_a1Tbl) extension_a1T96 extension_a1Tbl
+tmUtxo :: forall extension_a1T8B. Lens' (GenericToilModifier extension_a1T8B) UtxoModifier
+tmBalances :: forall extension_a1T8B. Lens' (GenericToilModifier extension_a1T8B) BalancesView
+tmMemPool :: forall extension_a1T8B. Lens' (GenericToilModifier extension_a1T8B) MemPool
+tmUndos :: forall extension_a1T8B. Lens' (GenericToilModifier extension_a1T8B) UndoMap
+tmExtra :: forall extension_a1T8B extension_a1TaQ. Lens (GenericToilModifier extension_a1T8B) (GenericToilModifier extension_a1TaQ) extension_a1T8B extension_a1TaQ
 
 -- | Environment used by Toil.
 data ToilEnv
@@ -4231,11 +4231,13 @@ type CPwHash = Text
 --   by client. It includes meta data which are not part of Cardano, too
 --   (Flow type: transactionType)
 data CTx
-CTx :: CTxId -> CCoin -> Word -> CTType -> CTx
-[ctId] :: CTx -> CTxId
-[ctAmount] :: CTx -> CCoin
-[ctConfirmations] :: CTx -> Word
-[ctType] :: CTx -> CTType
+CTx :: !CTxId -> !CCoin -> !(Maybe [(CAddress, CCoin)]) -> ![(CAddress, CCoin)] -> !Word -> !CTType -> CTx
+[ctId] :: CTx -> !CTxId
+[ctAmount] :: CTx -> !CCoin
+[ctFrom] :: CTx -> !(Maybe [(CAddress, CCoin)])
+[ctTo] :: CTx -> ![(CAddress, CCoin)]
+[ctConfirmations] :: CTx -> !Word
+[ctType] :: CTx -> !CTType
 
 -- | Client transaction id
 data CTxId
@@ -4360,7 +4362,6 @@ mkCTxId :: Text -> CTxId
 
 -- | transform TxId into CTxId
 txIdToCTxId :: TxId -> CTxId
-ctTypeMeta :: Lens' CTType CTxMeta
 txContainsTitle :: Text -> CTx -> Bool
 
 -- | Creates <tt>CTUpdateInfo</tt> from <a>ConfirmedProposalState</a>
@@ -4414,7 +4415,7 @@ type WebWalletModeDB m = (MonadWalletWebDB m, MonadIO m, MonadMockable m)
 openState :: MonadIO m => Bool -> FilePath -> m WalletState
 openMemState :: MonadIO m => m WalletState
 closeState :: MonadIO m => WalletState -> m ()
-getProfile :: WebWalletModeDB m => m (CProfile)
+getProfile :: WebWalletModeDB m => m CProfile
 getWalletMetas :: WebWalletModeDB m => m [CWalletMeta]
 getWalletMeta :: WebWalletModeDB m => CAddress -> m (Maybe CWalletMeta)
 getTxMeta :: WebWalletModeDB m => CAddress -> CTxId -> m (Maybe CTxMeta)
