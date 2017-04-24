@@ -6,7 +6,7 @@
 --   
 --   Please see README.md
 @package cardano-sl
-@version 0.4.1
+@version 0.4.3
 
 
 -- | Secret key file storage and management functions based on file
@@ -294,6 +294,8 @@ mehBlockVersion :: Lens' MainExtraHeaderData BlockVersion
 mehSoftwareVersion :: Lens' MainExtraHeaderData SoftwareVersion
 mehAttributes :: Lens' MainExtraHeaderData BlockHeaderAttributes
 mebAttributes :: Iso' MainExtraBodyData BlockBodyAttributes
+gehAttributes :: Iso' GenesisExtraHeaderData GenesisHeaderAttributes
+gebAttributes :: Iso' GenesisExtraBodyData GenesisBodyAttributes
 instance GHC.Generics.Generic Pos.Types.Block.Types.GenesisExtraBodyData
 instance GHC.Show.Show Pos.Types.Block.Types.GenesisExtraBodyData
 instance GHC.Classes.Eq Pos.Types.Block.Types.GenesisExtraBodyData
@@ -836,6 +838,10 @@ instance Pos.Types.Block.Types.BiHeader ssc => Pos.Core.Class.IsHeader (Pos.Type
 instance Pos.Types.Block.Types.BiHeader ssc => Pos.Core.Class.IsMainHeader (Pos.Types.Block.Types.MainBlockHeader ssc)
 instance Pos.Types.Block.Types.BiHeader ssc => Pos.Core.Class.IsHeader (Pos.Types.Block.Types.BlockHeader ssc)
 
+
+-- | Functions related to blocks and headers.
+module Pos.Types.Block
+
 module Pos.CompileConfig
 compileConfig :: CompileConfig
 
@@ -966,6 +972,108 @@ mdNoCommitmentsEpochThreshold :: Integral i => i
 appSystemTag :: SystemTag
 
 
+-- | Pure functions related to blocks and headers.
+module Pos.Block.Pure
+
+-- | Difficulty of the Block, which is determined from header.
+blockDifficultyIncrement :: Block ssc -> ChainDifficulty
+
+-- | Difficulty of the BlockHeader. 0 for genesis block, 1 for main block.
+headerDifficultyIncrement :: BlockHeader ssc -> ChainDifficulty
+
+-- | Smart constructor for <a>GenericBlock</a>. Uses
+--   <tt>mkGenericBlockHeader</tt>.
+mkGenericBlock :: forall b. (HasHeaderHash (BBlockHeader b), Blockchain b, BHeaderHash b ~ HeaderHash) => Maybe (BBlockHeader b) -> Body b -> (BHeaderHash b -> BodyProof b -> ConsensusData b) -> ExtraHeaderData b -> ExtraBodyData b -> GenericBlock b
+
+-- | Smart constructor for <a>GenericBlockHeader</a>.
+mkGenericHeader :: forall b. (HasHeaderHash (BBlockHeader b), Blockchain b, BHeaderHash b ~ HeaderHash) => Maybe (BBlockHeader b) -> Body b -> (BHeaderHash b -> BodyProof b -> ConsensusData b) -> ExtraHeaderData b -> GenericBlockHeader b
+
+-- | Smart constructor for <a>MainBlock</a>. Uses <a>mkMainHeader</a>.
+mkMainBlock :: (BiSsc ssc, SscHelpersClass ssc, MonadFail m) => Maybe (BlockHeader ssc) -> SlotId -> SecretKey -> Maybe ProxySKEither -> Body (MainBlockchain ssc) -> MainExtraHeaderData -> MainExtraBodyData -> m (MainBlock ssc)
+recreateMainBlock :: (BiSsc ssc, SscHelpersClass ssc, MonadFail m) => MainBlockHeader ssc -> Body (MainBlockchain ssc) -> MainExtraBodyData -> m (MainBlock ssc)
+
+-- | Smart constructor for <a>MainBlockHeader</a>.
+mkMainHeader :: (BiSsc ssc, SscHelpersClass ssc) => Maybe (BlockHeader ssc) -> SlotId -> SecretKey -> Maybe ProxySKEither -> Body (MainBlockchain ssc) -> MainExtraHeaderData -> MainBlockHeader ssc
+
+-- | Smart constructor for <a>GenesisBlockHeader</a>. Uses
+--   <a>mkGenericHeader</a>.
+mkGenesisHeader :: BiSsc ssc => Maybe (BlockHeader ssc) -> EpochIndex -> Body (GenesisBlockchain ssc) -> GenesisBlockHeader ssc
+
+-- | Smart constructor for <a>GenesisBlock</a>. Uses
+--   <a>mkGenesisHeader</a>.
+mkGenesisBlock :: BiSsc ssc => Maybe (BlockHeader ssc) -> EpochIndex -> SlotLeaders -> GenesisBlock ssc
+
+-- | Predefined <a>Hash</a> of <a>GenesisBlock</a>.
+genesisHash :: Hash a
+
+-- | Parameters of Block static verification. Note: to check that block
+--   references previous block and/or is referenced by next block, use
+--   header verification (via vbpVerifyHeader).
+data VerifyBlockParams ssc
+VerifyBlockParams :: !(Maybe (VerifyHeaderParams ssc)) -> !Bool -> !Bool -> !Bool -> !(Maybe Byte) -> !Bool -> VerifyBlockParams ssc
+
+-- | Verifies header accordingly to params (<a>verifyHeader</a>)
+[vbpVerifyHeader] :: VerifyBlockParams ssc -> !(Maybe (VerifyHeaderParams ssc))
+
+-- | Checks <tt>verifyGenesisBlock</tt> property.
+[vbpVerifyGeneric] :: VerifyBlockParams ssc -> !Bool
+
+-- | Verifies ssc payload with <a>sscVerifyPayload</a>.
+[vbpVerifySsc] :: VerifyBlockParams ssc -> !Bool
+
+-- | Check that's number of sks is limited (1000 for now).
+[vbpVerifyProxySKs] :: VerifyBlockParams ssc -> !Bool
+
+-- | Maximal block size.
+[vbpMaxSize] :: VerifyBlockParams ssc -> !(Maybe Byte)
+
+-- | Check that block has no unknown attributes.
+[vbpVerifyNoUnknown] :: VerifyBlockParams ssc -> !Bool
+
+-- | Extra data which may be used by verifyHeader function to do more
+--   checks.
+data VerifyHeaderParams ssc
+VerifyHeaderParams :: !Bool -> !(Maybe (BlockHeader ssc)) -> !(Maybe (BlockHeader ssc)) -> !(Maybe SlotId) -> !(Maybe SlotLeaders) -> !(Maybe Byte) -> !Bool -> VerifyHeaderParams ssc
+[vhpVerifyConsensus] :: VerifyHeaderParams ssc -> !Bool
+
+-- | Nothing means that block is unknown, not genesis.
+[vhpPrevHeader] :: VerifyHeaderParams ssc -> !(Maybe (BlockHeader ssc))
+[vhpNextHeader] :: VerifyHeaderParams ssc -> !(Maybe (BlockHeader ssc))
+[vhpCurrentSlot] :: VerifyHeaderParams ssc -> !(Maybe SlotId)
+[vhpLeaders] :: VerifyHeaderParams ssc -> !(Maybe SlotLeaders)
+[vhpMaxSize] :: VerifyHeaderParams ssc -> !(Maybe Byte)
+
+-- | Check that header has no unknown attributes.
+[vhpVerifyNoUnknown] :: VerifyHeaderParams ssc -> !Bool
+
+-- | Check predicates defined by VerifyBlockParams. #verifyHeader
+--   #verifyGenericBlock
+verifyBlock :: (SscHelpersClass ssc, BiSsc ssc) => VerifyBlockParams ssc -> Block ssc -> VerificationRes
+
+-- | Verify a sequence of blocks.
+--   
+--   foldl' is used here which eliminates laziness of triple. It doesn't
+--   affect laziness of <a>VerificationRes</a> which is good because
+--   laziness for this data type is crucial.
+verifyBlocks :: forall ssc f t. (SscHelpersClass ssc, BiSsc ssc, t ~ OldestFirst f (Block ssc), NontrivialContainer t) => Maybe SlotId -> Bool -> BlockVersionData -> Maybe SlotLeaders -> OldestFirst f (Block ssc) -> VerificationRes
+
+-- | Perform cheap checks of GenericBlock, which can be done using only
+--   block itself. Checks which can be done using only header are ignored
+--   here. It is assumed that they will be done separately.
+verifyGenericBlock :: forall b. Blockchain b => GenericBlock b -> VerificationRes
+
+-- | Check some predicates (determined by VerifyHeaderParams) about
+--   BlockHeader. #verifyConsensusLocal
+verifyHeader :: forall ssc. BiSsc ssc => VerifyHeaderParams ssc -> BlockHeader ssc -> VerificationRes
+
+-- | Verifies a set of block headers.
+verifyHeaders :: BiSsc ssc => Bool -> NewestFirst [] (BlockHeader ssc) -> VerificationRes
+instance Pos.Ssc.Class.Types.Ssc ssc => GHC.Classes.Eq (Pos.Block.Pure.VerifyHeaderParams ssc)
+instance Pos.Ssc.Class.Types.Ssc ssc => GHC.Show.Show (Pos.Block.Pure.VerifyHeaderParams ssc)
+instance Data.Default.Class.Default (Pos.Block.Pure.VerifyHeaderParams ssc)
+instance Data.Default.Class.Default (Pos.Block.Pure.VerifyBlockParams ssc)
+
+
 -- | <a>Arbitrary</a> instances for core types for using in tests and
 --   benchmarks
 module Pos.Types.Arbitrary
@@ -1068,9 +1176,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172597 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679172597)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172589 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679172589)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172581 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679172581)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172612 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679172612)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172604 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679172604)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172596 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679172596)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Timestamp.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SoftwareVersion
@@ -1148,106 +1256,6 @@ instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.Address
 module Pos.Slotting.Arbitrary
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Slotting.Types.SlottingData
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Slotting.Types.EpochSlottingData
-
-
--- | Functions related to blocks and headers.
-module Pos.Types.Block.Functions
-
--- | Difficulty of the Block, which is determined from header.
-blockDifficultyIncrement :: Block ssc -> ChainDifficulty
-
--- | Difficulty of the BlockHeader. 0 for genesis block, 1 for main block.
-headerDifficultyIncrement :: BlockHeader ssc -> ChainDifficulty
-
--- | Smart constructor for <a>GenericBlock</a>. Uses
---   <tt>mkGenericBlockHeader</tt>.
-mkGenericBlock :: forall b. (HasHeaderHash (BBlockHeader b), Blockchain b, BHeaderHash b ~ HeaderHash) => Maybe (BBlockHeader b) -> Body b -> (BHeaderHash b -> BodyProof b -> ConsensusData b) -> ExtraHeaderData b -> ExtraBodyData b -> GenericBlock b
-
--- | Smart constructor for <a>GenericBlockHeader</a>.
-mkGenericHeader :: forall b. (HasHeaderHash (BBlockHeader b), Blockchain b, BHeaderHash b ~ HeaderHash) => Maybe (BBlockHeader b) -> Body b -> (BHeaderHash b -> BodyProof b -> ConsensusData b) -> ExtraHeaderData b -> GenericBlockHeader b
-
--- | Smart constructor for <a>MainBlock</a>. Uses <a>mkMainHeader</a>.
-mkMainBlock :: (BiSsc ssc, SscHelpersClass ssc, MonadFail m) => Maybe (BlockHeader ssc) -> SlotId -> SecretKey -> Maybe ProxySKEither -> Body (MainBlockchain ssc) -> MainExtraHeaderData -> MainExtraBodyData -> m (MainBlock ssc)
-recreateMainBlock :: (BiSsc ssc, SscHelpersClass ssc, MonadFail m) => MainBlockHeader ssc -> Body (MainBlockchain ssc) -> MainExtraBodyData -> m (MainBlock ssc)
-
--- | Smart constructor for <a>MainBlockHeader</a>.
-mkMainHeader :: (BiSsc ssc, SscHelpersClass ssc) => Maybe (BlockHeader ssc) -> SlotId -> SecretKey -> Maybe ProxySKEither -> Body (MainBlockchain ssc) -> MainExtraHeaderData -> MainBlockHeader ssc
-
--- | Smart constructor for <a>GenesisBlockHeader</a>. Uses
---   <a>mkGenericHeader</a>.
-mkGenesisHeader :: BiSsc ssc => Maybe (BlockHeader ssc) -> EpochIndex -> Body (GenesisBlockchain ssc) -> GenesisBlockHeader ssc
-
--- | Smart constructor for <a>GenesisBlock</a>. Uses
---   <a>mkGenesisHeader</a>.
-mkGenesisBlock :: BiSsc ssc => Maybe (BlockHeader ssc) -> EpochIndex -> SlotLeaders -> GenesisBlock ssc
-
--- | Predefined <a>Hash</a> of <a>GenesisBlock</a>.
-genesisHash :: Hash a
-
--- | Parameters of Block static verification. Note: to check that block
---   references previous block and/or is referenced by next block, use
---   header verification (via vbpVerifyHeader).
-data VerifyBlockParams ssc
-VerifyBlockParams :: !(Maybe (VerifyHeaderParams ssc)) -> !Bool -> !Bool -> !Bool -> !Byte -> VerifyBlockParams ssc
-
--- | Verifies header accordingly to params (<a>verifyHeader</a>)
-[vbpVerifyHeader] :: VerifyBlockParams ssc -> !(Maybe (VerifyHeaderParams ssc))
-
--- | Checks <tt>verifyGenesisBlock</tt> property.
-[vbpVerifyGeneric] :: VerifyBlockParams ssc -> !Bool
-
--- | Verifies ssc payload with <a>sscVerifyPayload</a>.
-[vbpVerifySsc] :: VerifyBlockParams ssc -> !Bool
-
--- | Check that's number of sks is limited (1000 for now).
-[vbpVerifyProxySKs] :: VerifyBlockParams ssc -> !Bool
-
--- | Maximal block size.
-[vbpMaxSize] :: VerifyBlockParams ssc -> !Byte
-
--- | Extra data which may be used by verifyHeader function to do more
---   checks.
-data VerifyHeaderParams ssc
-VerifyHeaderParams :: !Bool -> !(Maybe (BlockHeader ssc)) -> !(Maybe (BlockHeader ssc)) -> !(Maybe SlotId) -> !(Maybe SlotLeaders) -> !Byte -> VerifyHeaderParams ssc
-[vhpVerifyConsensus] :: VerifyHeaderParams ssc -> !Bool
-
--- | Nothing means that block is unknown, not genesis.
-[vhpPrevHeader] :: VerifyHeaderParams ssc -> !(Maybe (BlockHeader ssc))
-[vhpNextHeader] :: VerifyHeaderParams ssc -> !(Maybe (BlockHeader ssc))
-[vhpCurrentSlot] :: VerifyHeaderParams ssc -> !(Maybe SlotId)
-[vhpLeaders] :: VerifyHeaderParams ssc -> !(Maybe SlotLeaders)
-[vhpMaxSize] :: VerifyHeaderParams ssc -> !Byte
-
--- | Check predicates defined by VerifyBlockParams. #verifyHeader
---   #verifyGenericBlock
-verifyBlock :: (SscHelpersClass ssc, BiSsc ssc) => VerifyBlockParams ssc -> Block ssc -> VerificationRes
-
--- | Verify a sequence of blocks.
---   
---   foldl' is used here which eliminates laziness of triple. It doesn't
---   affect laziness of <a>VerificationRes</a> which is good because
---   laziness for this data type is crucial.
-verifyBlocks :: forall ssc f t. (SscHelpersClass ssc, BiSsc ssc, t ~ OldestFirst f (Block ssc), NontrivialContainer t) => Maybe SlotId -> BlockVersionData -> Maybe SlotLeaders -> OldestFirst f (Block ssc) -> VerificationRes
-
--- | Perform cheap checks of GenericBlock, which can be done using only
---   block itself. Checks which can be done using only header are ignored
---   here. It is assumed that they will be done separately.
-verifyGenericBlock :: forall b. Blockchain b => GenericBlock b -> VerificationRes
-
--- | Check some predicates (determined by VerifyHeaderParams) about
---   BlockHeader. #verifyConsensusLocal
-verifyHeader :: forall ssc. BiSsc ssc => VerifyHeaderParams ssc -> BlockHeader ssc -> VerificationRes
-
--- | Verifies a set of block headers.
-verifyHeaders :: BiSsc ssc => Bool -> NewestFirst [] (BlockHeader ssc) -> VerificationRes
-instance Pos.Ssc.Class.Types.Ssc ssc => GHC.Classes.Eq (Pos.Types.Block.Functions.VerifyHeaderParams ssc)
-instance Pos.Ssc.Class.Types.Ssc ssc => GHC.Show.Show (Pos.Types.Block.Functions.VerifyHeaderParams ssc)
-instance Data.Default.Class.Default (Pos.Types.Block.Functions.VerifyHeaderParams ssc)
-instance Data.Default.Class.Default (Pos.Types.Block.Functions.VerifyBlockParams ssc)
-
-
--- | Functions related to blocks and headers.
-module Pos.Types.Block
 
 
 -- | Re-export of Pos.Types.* + binary instances
@@ -3040,11 +3048,11 @@ ToilModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> !exten
 [_tmUndos] :: GenericToilModifier extension -> !UndoMap
 [_tmExtra] :: GenericToilModifier extension -> !extension
 type ToilModifier = GenericToilModifier ()
-tmUtxo :: forall extension_a1SmE. Lens' (GenericToilModifier extension_a1SmE) UtxoModifier
-tmBalances :: forall extension_a1SmE. Lens' (GenericToilModifier extension_a1SmE) BalancesView
-tmMemPool :: forall extension_a1SmE. Lens' (GenericToilModifier extension_a1SmE) MemPool
-tmUndos :: forall extension_a1SmE. Lens' (GenericToilModifier extension_a1SmE) UndoMap
-tmExtra :: forall extension_a1SmE extension_a1SoT. Lens (GenericToilModifier extension_a1SmE) (GenericToilModifier extension_a1SoT) extension_a1SmE extension_a1SoT
+tmUtxo :: forall extension_a1T96. Lens' (GenericToilModifier extension_a1T96) UtxoModifier
+tmBalances :: forall extension_a1T96. Lens' (GenericToilModifier extension_a1T96) BalancesView
+tmMemPool :: forall extension_a1T96. Lens' (GenericToilModifier extension_a1T96) MemPool
+tmUndos :: forall extension_a1T96. Lens' (GenericToilModifier extension_a1T96) UndoMap
+tmExtra :: forall extension_a1T96 extension_a1Tbl. Lens (GenericToilModifier extension_a1T96) (GenericToilModifier extension_a1Tbl) extension_a1T96 extension_a1Tbl
 
 -- | Environment used by Toil.
 data ToilEnv
@@ -3308,7 +3316,12 @@ usRollbackBlocks :: forall m. USGlobalApplyMode m => NewestFirst NE (UpdateBlock
 -- | Verify whether sequence of blocks can be applied to US part of current
 --   GState DB. This function doesn't make pure checks, they are assumed to
 --   be done earlier, most likely during objects construction.
-usVerifyBlocks :: (USGlobalVerifyMode m) => OldestFirst NE UpdateBlock -> m (PollModifier, OldestFirst NE USUndo)
+--   
+--   If the first argument is <a>True</a> it means that all data must be
+--   known. Currently it only means that <tt>UpdateProposal</tt>s must have
+--   only known attributes, but I can't guarantee this comment will always
+--   be up-to-date.
+usVerifyBlocks :: (USGlobalVerifyMode m) => Bool -> OldestFirst NE UpdateBlock -> m (PollModifier, OldestFirst NE USUndo)
 
 -- | This function returns true if update proposal with given identifier
 --   should be requested.
@@ -4172,38 +4185,10 @@ module Pos.Wallet.Web
 -- | Servant API which provides access to wallet. TODO: Should be composed
 --   depending on the resource - wallets, txs, ...
 --   <a>http://haskell-servant.github.io/tutorial/0.4/server.html#nested-apis</a>
-type WalletApi = TestReset :<|> (GetWallet :<|> (GetWallets :<|> (UpdateWallet :<|> (DeleteWallet :<|> (ImportKey :<|> (WalletRestore :<|> (NewWallet :<|> (IsValidAddress :<|> (GetProfile :<|> (UpdateProfile :<|> (NewPayment :<|> (NewPaymentExt :<|> (UpdateTx :<|> (GetHistory :<|> (SearchHistory :<|> (NextUpdate :<|> (ApplyUpdate :<|> (RedeemADA :<|> (RedeemADAPaperVend :<|> (ReportingInitialized :<|> (ReportingElectroncrash :<|> (GetSlotsDuration :<|> (GetVersion :<|> GetSyncProgress)))))))))))))))))))))))
+type WalletApi = ("api" :> ("test" :> ("reset" :> Post '[JSON] (Either WalletError ())))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> Get '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("wallets" :> Get '[JSON] (Either WalletError [CWallet]))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> (ReqBody '[JSON] CWalletMeta :> Put '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> Delete '[JSON] (Either WalletError ())))) :<|> (("api" :> ("wallets" :> ("keys" :> (ReqBody '[JSON] Text :> Post '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("wallets" :> ("restore" :> (Capture "passphrase" CPassPhrase :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet)))))) :<|> (("api" :> ("wallets" :> (Capture "passphrase" CPassPhrase :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("addresses" :> (Capture "address" Text :> ("currencies" :> (Capture "currency" CCurrency :> Get '[JSON] (Either WalletError Bool)))))) :<|> (("api" :> ("profile" :> Get '[JSON] (Either WalletError CProfile))) :<|> (("api" :> ("profile" :> (ReqBody '[JSON] CProfile :> Post '[JSON] (Either WalletError CProfile)))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "passphrase" CPassPhrase :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> Post '[JSON] (Either WalletError CTx)))))))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "passphrase" CPassPhrase :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> (Capture "currency" CCurrency :> (Capture "title" Text :> (Capture "description" Text :> Post '[JSON] (Either WalletError CTx))))))))))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "address" CAddress :> (Capture "transaction" CTxId :> (ReqBody '[JSON] CTxMeta :> Post '[JSON] (Either WalletError ()))))))) :<|> (("api" :> ("txs" :> ("histories" :> (Capture "address" CAddress :> (QueryParam "skip" Word :> (QueryParam "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word)))))))) :<|> (("api" :> ("txs" :> ("histories" :> (Capture "address" CAddress :> (Capture "search" Text :> (QueryParam "skip" Word :> (QueryParam "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word))))))))) :<|> (("api" :> ("update" :> Get '[JSON] (Either WalletError CUpdateInfo))) :<|> (("api" :> ("update" :> Post '[JSON] (Either WalletError ()))) :<|> (("api" :> ("redemptions" :> ("ada" :> (ReqBody '[JSON] CWalletRedeem :> Post '[JSON] (Either WalletError CTx))))) :<|> (("api" :> ("papervend" :> ("redemptions" :> ("ada" :> (ReqBody '[JSON] CPaperVendWalletRedeem :> Post '[JSON] (Either WalletError CTx)))))) :<|> (("api" :> ("reporting" :> ("initialized" :> (ReqBody '[JSON] CInitialized :> Post '[JSON] (Either WalletError ()))))) :<|> (("api" :> ("reporting" :> ("electroncrash" :> (MultipartForm CElectronCrashReport :> Post '[JSON] (Either WalletError ()))))) :<|> (("api" :> ("settings" :> ("slots" :> ("duration" :> Get '[JSON] (Either WalletError Word))))) :<|> (("api" :> ("settings" :> ("version" :> Get '[JSON] (Either WalletError SoftwareVersion)))) :<|> ("api" :> ("settings" :> ("sync" :> ("progress" :> Get '[JSON] (Either WalletError SyncProgress))))))))))))))))))))))))))))
 
 -- | Helper Proxy.
 walletApi :: Proxy WalletApi
-
--- | All endpoints are defined as a separate types, for description in
---   Swagger-based HTML-documentation.
-type TestReset = API :> ("test" :> ("reset" :> Post '[JSON] (Either WalletError ())))
-type GetWallet = API :> ("wallets" :> (Capture "walletId" CAddress :> Get '[JSON] (Either WalletError CWallet)))
-type GetWallets = API :> ("wallets" :> Get '[JSON] (Either WalletError [CWallet]))
-type UpdateWallet = API :> ("wallets" :> (Capture "walletId" CAddress :> (ReqBody '[JSON] CWalletMeta :> Put '[JSON] (Either WalletError CWallet))))
-type DeleteWallet = API :> ("wallets" :> (Capture "walletId" CAddress :> Delete '[JSON] (Either WalletError ())))
-type ImportKey = API :> ("wallets" :> ("keys" :> (ReqBody '[JSON] Text :> Post '[JSON] (Either WalletError CWallet))))
-type WalletRestore = API :> ("wallets" :> ("restore" :> (Capture "passphrase" CPassPhrase :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet)))))
-type NewWallet = API :> ("wallets" :> (Capture "passphrase" CPassPhrase :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet))))
-type IsValidAddress = API :> ("addresses" :> (Capture "address" Text :> ("currencies" :> (Capture "currency" CCurrency :> Get '[JSON] (Either WalletError Bool)))))
-type GetProfile = API :> ("profile" :> Get '[JSON] (Either WalletError CProfile))
-type UpdateProfile = API :> ("profile" :> (ReqBody '[JSON] CProfile :> Post '[JSON] (Either WalletError CProfile)))
-type NewPayment = API :> ("txs" :> ("payments" :> (Capture "passphrase" CPassPhrase :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> Post '[JSON] (Either WalletError CTx)))))))
-type NewPaymentExt = API :> ("txs" :> ("payments" :> (Capture "passphrase" CPassPhrase :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> (Capture "currency" CCurrency :> (Capture "title" Text :> (Capture "description" Text :> Post '[JSON] (Either WalletError CTx))))))))))
-type UpdateTx = API :> ("txs" :> ("payments" :> (Capture "address" CAddress :> (Capture "transaction" CTxId :> (ReqBody '[JSON] CTxMeta :> Post '[JSON] (Either WalletError ()))))))
-type GetHistory = API :> ("txs" :> ("histories" :> (Capture "address" CAddress :> (QueryParam "skip" Word :> (QueryParam "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word)))))))
-type SearchHistory = API :> ("txs" :> ("histories" :> (Capture "address" CAddress :> (Capture "search" Text :> (QueryParam "skip" Word :> (QueryParam "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word))))))))
-type NextUpdate = API :> ("update" :> Get '[JSON] (Either WalletError CUpdateInfo))
-type ApplyUpdate = API :> ("update" :> Post '[JSON] (Either WalletError ()))
-type RedeemADA = API :> ("redemptions" :> ("ada" :> (ReqBody '[JSON] CWalletRedeem :> Post '[JSON] (Either WalletError CTx))))
-type RedeemADAPaperVend = API :> ("papervend" :> ("redemptions" :> ("ada" :> (ReqBody '[JSON] CPaperVendWalletRedeem :> Post '[JSON] (Either WalletError CTx)))))
-type ReportingInitialized = API :> ("reporting" :> ("initialized" :> (ReqBody '[JSON] CInitialized :> Post '[JSON] (Either WalletError ()))))
-type ReportingElectroncrash = API :> ("reporting" :> ("electroncrash" :> (MultipartForm CElectronCrashReport :> Post '[JSON] (Either WalletError ()))))
-type GetSlotsDuration = API :> ("settings" :> ("slots" :> ("duration" :> Get '[JSON] (Either WalletError Word))))
-type GetVersion = API :> ("settings" :> ("version" :> Get '[JSON] (Either WalletError SoftwareVersion)))
-type GetSyncProgress = API :> ("settings" :> ("sync" :> ("progress" :> Get '[JSON] (Either WalletError SyncProgress))))
 data SyncProgress
 SyncProgress :: ChainDifficulty -> Maybe ChainDifficulty -> Word -> SyncProgress
 [_spLocalCD] :: SyncProgress -> ChainDifficulty
