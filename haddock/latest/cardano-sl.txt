@@ -3048,11 +3048,11 @@ ToilModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> !exten
 [_tmUndos] :: GenericToilModifier extension -> !UndoMap
 [_tmExtra] :: GenericToilModifier extension -> !extension
 type ToilModifier = GenericToilModifier ()
-tmUtxo :: forall extension_a1T8B. Lens' (GenericToilModifier extension_a1T8B) UtxoModifier
-tmBalances :: forall extension_a1T8B. Lens' (GenericToilModifier extension_a1T8B) BalancesView
-tmMemPool :: forall extension_a1T8B. Lens' (GenericToilModifier extension_a1T8B) MemPool
-tmUndos :: forall extension_a1T8B. Lens' (GenericToilModifier extension_a1T8B) UndoMap
-tmExtra :: forall extension_a1T8B extension_a1TaQ. Lens (GenericToilModifier extension_a1T8B) (GenericToilModifier extension_a1TaQ) extension_a1T8B extension_a1TaQ
+tmUtxo :: forall extension_a1T8z. Lens' (GenericToilModifier extension_a1T8z) UtxoModifier
+tmBalances :: forall extension_a1T8z. Lens' (GenericToilModifier extension_a1T8z) BalancesView
+tmMemPool :: forall extension_a1T8z. Lens' (GenericToilModifier extension_a1T8z) MemPool
+tmUndos :: forall extension_a1T8z. Lens' (GenericToilModifier extension_a1T8z) UndoMap
+tmExtra :: forall extension_a1T8z extension_a1TaO. Lens (GenericToilModifier extension_a1T8z) (GenericToilModifier extension_a1TaO) extension_a1T8z extension_a1TaO
 
 -- | Environment used by Toil.
 data ToilEnv
@@ -4231,10 +4231,10 @@ type CPwHash = Text
 --   by client. It includes meta data which are not part of Cardano, too
 --   (Flow type: transactionType)
 data CTx
-CTx :: !CTxId -> !CCoin -> !(Maybe [(CAddress, CCoin)]) -> ![(CAddress, CCoin)] -> !Word -> !CTType -> CTx
+CTx :: !CTxId -> !CCoin -> ![(CAddress, CCoin)] -> ![(CAddress, CCoin)] -> !Word -> !CTType -> CTx
 [ctId] :: CTx -> !CTxId
 [ctAmount] :: CTx -> !CCoin
-[ctFrom] :: CTx -> !(Maybe [(CAddress, CCoin)])
+[ctFrom] :: CTx -> ![(CAddress, CCoin)]
 [ctTo] :: CTx -> ![(CAddress, CCoin)]
 [ctConfirmations] :: CTx -> !Word
 [ctType] :: CTx -> !CTType
