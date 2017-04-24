@@ -6,7 +6,7 @@
 --   
 --   Please see README.md
 @package cardano-sl
-@version 0.4.3
+@version 0.4.1
 
 
 -- | Secret key file storage and management functions based on file
@@ -99,7 +99,12 @@ arbitrarySizedSL :: Int -> Gen ByteString
 
 -- | Get something out of a quickcheck <a>Gen</a> without having to do IO
 runGen :: Gen a -> a
+
+-- | Specialized version of <a>mappend</a> for restricted to pair type.
 mappendPair :: (Monoid a, Monoid b) => (a, b) -> (a, b) -> (a, b)
+
+-- | Specialized version of <a>mconcat</a> (or <a>fold</a>) for restricting
+--   type to list of pairs.
 mconcatPair :: (Monoid a, Monoid b) => [(a, b)] -> (a, b)
 
 -- | Concatenates two url part using regular slash <a>/</a>. E.g.
@@ -167,8 +172,6 @@ readUntilEqualTVar :: (Eq a, MonadIO m) => (x -> a) -> TVar x -> a -> m x
 withReadLifted :: (MonadIO m, MonadMask m) => RWLock -> m a -> m a
 withWriteLifted :: (MonadIO m, MonadMask m) => RWLock -> m a -> m a
 instance Control.Monad.Fail.MonadFail m => Control.Monad.Fail.MonadFail (System.Wlog.LoggerNameBox.LoggerNameBox m)
-instance Data.SafeCopy.SafeCopy.SafeCopy Serokell.Util.Verify.VerificationRes
-instance (GHC.Classes.Ord k, Data.SafeCopy.SafeCopy.SafeCopy k, Data.SafeCopy.SafeCopy.SafeCopy v) => Data.SafeCopy.SafeCopy.SafeCopy (Data.Cache.LRU.Internal.LRU k v)
 instance Control.Monad.Fail.MonadFail (Text.Parsec.Prim.ParsecT s u m)
 instance Control.Monad.Fail.MonadFail m => Control.Monad.Fail.MonadFail (Control.Monad.Trans.Resource.Internal.ResourceT m)
 
@@ -291,6 +294,8 @@ mehBlockVersion :: Lens' MainExtraHeaderData BlockVersion
 mehSoftwareVersion :: Lens' MainExtraHeaderData SoftwareVersion
 mehAttributes :: Lens' MainExtraHeaderData BlockHeaderAttributes
 mebAttributes :: Iso' MainExtraBodyData BlockBodyAttributes
+gehAttributes :: Iso' GenesisExtraHeaderData GenesisHeaderAttributes
+gebAttributes :: Iso' GenesisExtraBodyData GenesisBodyAttributes
 instance GHC.Generics.Generic Pos.Types.Block.Types.GenesisExtraBodyData
 instance GHC.Show.Show Pos.Types.Block.Types.GenesisExtraBodyData
 instance GHC.Classes.Eq Pos.Types.Block.Types.GenesisExtraBodyData
@@ -587,10 +592,10 @@ txOutputs :: Lens' Tx (NonEmpty TxOut)
 txAttributes :: Lens' Tx TxAttributes
 
 -- | Specialized formatter for <a>Tx</a>.
-txF :: Format r (Tx -> r)
+txF :: Bi Tx => Format r (Tx -> r)
 
 -- | Specialized formatter for <a>Tx</a> with auxiliary data
-txaF :: Format r (TxAux -> r)
+txaF :: Bi Tx => Format r (TxAux -> r)
 data TxProof
 TxProof :: !Word32 -> !(MerkleRoot Tx) -> !(Hash [TxWitness]) -> !(Hash [TxDistribution]) -> TxProof
 [txpNumber] :: TxProof -> !Word32
@@ -833,6 +838,10 @@ instance Pos.Types.Block.Types.BiHeader ssc => Pos.Core.Class.IsHeader (Pos.Type
 instance Pos.Types.Block.Types.BiHeader ssc => Pos.Core.Class.IsMainHeader (Pos.Types.Block.Types.MainBlockHeader ssc)
 instance Pos.Types.Block.Types.BiHeader ssc => Pos.Core.Class.IsHeader (Pos.Types.Block.Types.BlockHeader ssc)
 
+
+-- | Functions related to blocks and headers.
+module Pos.Types.Block
+
 module Pos.CompileConfig
 compileConfig :: CompileConfig
 
@@ -963,66 +972,106 @@ mdNoCommitmentsEpochThreshold :: Integral i => i
 appSystemTag :: SystemTag
 
 
--- | Module for command-line utilites, parsers and convenient handlers.
-module Pos.CLI
+-- | Pure functions related to blocks and headers.
+module Pos.Block.Pure
 
--- | Parsed for network address in format <tt>host:port</tt>.
-addrParser :: Parser NetworkAddress
-attackTypeParser :: Parser AttackType
-attackTargetParser :: Parser AttackTarget
+-- | Difficulty of the Block, which is determined from header.
+blockDifficultyIncrement :: Block ssc -> ChainDifficulty
 
--- | Default logger config. Will be used if `--log-config` argument is not
---   passed. Corresponds to next logger config:
+-- | Difficulty of the BlockHeader. 0 for genesis block, 1 for main block.
+headerDifficultyIncrement :: BlockHeader ssc -> ChainDifficulty
+
+-- | Smart constructor for <a>GenericBlock</a>. Uses
+--   <tt>mkGenericBlockHeader</tt>.
+mkGenericBlock :: forall b. (HasHeaderHash (BBlockHeader b), Blockchain b, BHeaderHash b ~ HeaderHash) => Maybe (BBlockHeader b) -> Body b -> (BHeaderHash b -> BodyProof b -> ConsensusData b) -> ExtraHeaderData b -> ExtraBodyData b -> GenericBlock b
+
+-- | Smart constructor for <a>GenericBlockHeader</a>.
+mkGenericHeader :: forall b. (HasHeaderHash (BBlockHeader b), Blockchain b, BHeaderHash b ~ HeaderHash) => Maybe (BBlockHeader b) -> Body b -> (BHeaderHash b -> BodyProof b -> ConsensusData b) -> ExtraHeaderData b -> GenericBlockHeader b
+
+-- | Smart constructor for <a>MainBlock</a>. Uses <a>mkMainHeader</a>.
+mkMainBlock :: (BiSsc ssc, SscHelpersClass ssc, MonadFail m) => Maybe (BlockHeader ssc) -> SlotId -> SecretKey -> Maybe ProxySKEither -> Body (MainBlockchain ssc) -> MainExtraHeaderData -> MainExtraBodyData -> m (MainBlock ssc)
+recreateMainBlock :: (BiSsc ssc, SscHelpersClass ssc, MonadFail m) => MainBlockHeader ssc -> Body (MainBlockchain ssc) -> MainExtraBodyData -> m (MainBlock ssc)
+
+-- | Smart constructor for <a>MainBlockHeader</a>.
+mkMainHeader :: (BiSsc ssc, SscHelpersClass ssc) => Maybe (BlockHeader ssc) -> SlotId -> SecretKey -> Maybe ProxySKEither -> Body (MainBlockchain ssc) -> MainExtraHeaderData -> MainBlockHeader ssc
+
+-- | Smart constructor for <a>GenesisBlockHeader</a>. Uses
+--   <a>mkGenericHeader</a>.
+mkGenesisHeader :: BiSsc ssc => Maybe (BlockHeader ssc) -> EpochIndex -> Body (GenesisBlockchain ssc) -> GenesisBlockHeader ssc
+
+-- | Smart constructor for <a>GenesisBlock</a>. Uses
+--   <a>mkGenesisHeader</a>.
+mkGenesisBlock :: BiSsc ssc => Maybe (BlockHeader ssc) -> EpochIndex -> SlotLeaders -> GenesisBlock ssc
+
+-- | Predefined <a>Hash</a> of <a>GenesisBlock</a>.
+genesisHash :: Hash a
+
+-- | Parameters of Block static verification. Note: to check that block
+--   references previous block and/or is referenced by next block, use
+--   header verification (via vbpVerifyHeader).
+data VerifyBlockParams ssc
+VerifyBlockParams :: !(Maybe (VerifyHeaderParams ssc)) -> !Bool -> !Bool -> !Bool -> !(Maybe Byte) -> !Bool -> VerifyBlockParams ssc
+
+-- | Verifies header accordingly to params (<a>verifyHeader</a>)
+[vbpVerifyHeader] :: VerifyBlockParams ssc -> !(Maybe (VerifyHeaderParams ssc))
+
+-- | Checks <tt>verifyGenesisBlock</tt> property.
+[vbpVerifyGeneric] :: VerifyBlockParams ssc -> !Bool
+
+-- | Verifies ssc payload with <a>sscVerifyPayload</a>.
+[vbpVerifySsc] :: VerifyBlockParams ssc -> !Bool
+
+-- | Check that's number of sks is limited (1000 for now).
+[vbpVerifyProxySKs] :: VerifyBlockParams ssc -> !Bool
+
+-- | Maximal block size.
+[vbpMaxSize] :: VerifyBlockParams ssc -> !(Maybe Byte)
+
+-- | Check that block has no unknown attributes.
+[vbpVerifyNoUnknown] :: VerifyBlockParams ssc -> !Bool
+
+-- | Extra data which may be used by verifyHeader function to do more
+--   checks.
+data VerifyHeaderParams ssc
+VerifyHeaderParams :: !Bool -> !(Maybe (BlockHeader ssc)) -> !(Maybe (BlockHeader ssc)) -> !(Maybe SlotId) -> !(Maybe SlotLeaders) -> !(Maybe Byte) -> !Bool -> VerifyHeaderParams ssc
+[vhpVerifyConsensus] :: VerifyHeaderParams ssc -> !Bool
+
+-- | Nothing means that block is unknown, not genesis.
+[vhpPrevHeader] :: VerifyHeaderParams ssc -> !(Maybe (BlockHeader ssc))
+[vhpNextHeader] :: VerifyHeaderParams ssc -> !(Maybe (BlockHeader ssc))
+[vhpCurrentSlot] :: VerifyHeaderParams ssc -> !(Maybe SlotId)
+[vhpLeaders] :: VerifyHeaderParams ssc -> !(Maybe SlotLeaders)
+[vhpMaxSize] :: VerifyHeaderParams ssc -> !(Maybe Byte)
+
+-- | Check that header has no unknown attributes.
+[vhpVerifyNoUnknown] :: VerifyHeaderParams ssc -> !Bool
+
+-- | Check predicates defined by VerifyBlockParams. #verifyHeader
+--   #verifyGenericBlock
+verifyBlock :: (SscHelpersClass ssc, BiSsc ssc) => VerifyBlockParams ssc -> Block ssc -> VerificationRes
+
+-- | Verify a sequence of blocks.
 --   
---   <pre>
---   node:
---     severity: Info
---     comm:
---       severity: Warning
---   </pre>
-defaultLoggerConfig :: LoggerConfig
+--   foldl' is used here which eliminates laziness of triple. It doesn't
+--   affect laziness of <a>VerificationRes</a> which is good because
+--   laziness for this data type is crucial.
+verifyBlocks :: forall ssc f t. (SscHelpersClass ssc, BiSsc ssc, t ~ OldestFirst f (Block ssc), NontrivialContainer t) => Maybe SlotId -> Bool -> BlockVersionData -> Maybe SlotLeaders -> OldestFirst f (Block ssc) -> VerificationRes
 
--- | Parser for DHT key.
-dhtKeyParser :: Parser DHTKey
+-- | Perform cheap checks of GenericBlock, which can be done using only
+--   block itself. Checks which can be done using only header are ignored
+--   here. It is assumed that they will be done separately.
+verifyGenericBlock :: forall b. Blockchain b => GenericBlock b -> VerificationRes
 
--- | Parser for <a>DHTNode</a>.
-dhtNodeParser :: Parser DHTNode
+-- | Check some predicates (determined by VerifyHeaderParams) about
+--   BlockHeader. #verifyConsensusLocal
+verifyHeader :: forall ssc. BiSsc ssc => VerifyHeaderParams ssc -> BlockHeader ssc -> VerificationRes
 
--- | Reads logger config from given path. By default return
---   <a>defaultLoggerConfig</a>.
-readLoggerConfig :: MonadIO m => Maybe FilePath -> m LoggerConfig
-
--- | Decides which secret-sharing algorithm to use.
-sscAlgoParser :: Parser SscAlgo
-data CommonArgs
-CommonArgs :: !Bool -> ![DHTNode] -> !(Maybe FilePath) -> !(Maybe FilePath) -> !(Maybe FilePath) -> !SscAlgo -> !Bool -> ![Text] -> ![Text] -> !(Maybe (Int, Int)) -> !(Maybe (Int, Int)) -> !(Maybe (Int, Int, Integer, Double)) -> !Bool -> !Timestamp -> CommonArgs
-[dhtExplicitInitial] :: CommonArgs -> !Bool
-[dhtPeers] :: CommonArgs -> ![DHTNode]
-[dhtPeersFile] :: CommonArgs -> !(Maybe FilePath)
-[logConfig] :: CommonArgs -> !(Maybe FilePath)
-[logPrefix] :: CommonArgs -> !(Maybe FilePath)
-[sscAlgo] :: CommonArgs -> !SscAlgo
-[disablePropagation] :: CommonArgs -> !Bool
-[reportServers] :: CommonArgs -> ![Text]
-[updateServers] :: CommonArgs -> ![Text]
-[flatDistr] :: CommonArgs -> !(Maybe (Int, Int))
-[bitcoinDistr] :: CommonArgs -> !(Maybe (Int, Int))
-[richPoorDistr] :: CommonArgs -> !(Maybe (Int, Int, Integer, Double))
-[expDistr] :: CommonArgs -> !Bool
-[sysStart] :: CommonArgs -> !Timestamp
-commonArgsParser :: String -> Parser CommonArgs
-optionalJSONPath :: Parser (Maybe FilePath)
-optionalLogPrefix :: Parser (Maybe String)
-portOption :: Word16 -> Parser Word16
-timeLordOption :: Parser Bool
-webPortOption :: Word16 -> String -> Parser Word16
-walletPortOption :: Word16 -> String -> Parser Word16
-networkAddressOption :: Parser NetworkAddress
-
--- | Parse <a>DHTNode</a>s from a file (nodes should be separated by
---   newlines).
-readPeersFile :: FilePath -> IO [DHTNode]
-instance GHC.Show.Show Pos.CLI.CommonArgs
+-- | Verifies a set of block headers.
+verifyHeaders :: BiSsc ssc => Bool -> NewestFirst [] (BlockHeader ssc) -> VerificationRes
+instance Pos.Ssc.Class.Types.Ssc ssc => GHC.Classes.Eq (Pos.Block.Pure.VerifyHeaderParams ssc)
+instance Pos.Ssc.Class.Types.Ssc ssc => GHC.Show.Show (Pos.Block.Pure.VerifyHeaderParams ssc)
+instance Data.Default.Class.Default (Pos.Block.Pure.VerifyHeaderParams ssc)
+instance Data.Default.Class.Default (Pos.Block.Pure.VerifyBlockParams ssc)
 
 
 -- | <a>Arbitrary</a> instances for core types for using in tests and
@@ -1127,9 +1176,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679173457 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679173457)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679173449 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679173449)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679173441 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679173441)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172599 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679172599)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172591 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679172591)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172583 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679172583)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Timestamp.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SoftwareVersion
@@ -1209,106 +1258,6 @@ instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Slotting.Types.SlottingData
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Slotting.Types.EpochSlottingData
 
 
--- | Functions related to blocks and headers.
-module Pos.Types.Block.Functions
-
--- | Difficulty of the Block, which is determined from header.
-blockDifficultyIncrement :: Block ssc -> ChainDifficulty
-
--- | Difficulty of the BlockHeader. 0 for genesis block, 1 for main block.
-headerDifficultyIncrement :: BlockHeader ssc -> ChainDifficulty
-
--- | Smart constructor for <a>GenericBlock</a>. Uses
---   <tt>mkGenericBlockHeader</tt>.
-mkGenericBlock :: forall b. (HasHeaderHash (BBlockHeader b), Blockchain b, BHeaderHash b ~ HeaderHash) => Maybe (BBlockHeader b) -> Body b -> (BHeaderHash b -> BodyProof b -> ConsensusData b) -> ExtraHeaderData b -> ExtraBodyData b -> GenericBlock b
-
--- | Smart constructor for <a>GenericBlockHeader</a>.
-mkGenericHeader :: forall b. (HasHeaderHash (BBlockHeader b), Blockchain b, BHeaderHash b ~ HeaderHash) => Maybe (BBlockHeader b) -> Body b -> (BHeaderHash b -> BodyProof b -> ConsensusData b) -> ExtraHeaderData b -> GenericBlockHeader b
-
--- | Smart constructor for <a>MainBlock</a>. Uses <a>mkMainHeader</a>.
-mkMainBlock :: (BiSsc ssc, SscHelpersClass ssc, MonadFail m) => Maybe (BlockHeader ssc) -> SlotId -> SecretKey -> Maybe ProxySKEither -> Body (MainBlockchain ssc) -> MainExtraHeaderData -> MainExtraBodyData -> m (MainBlock ssc)
-recreateMainBlock :: (BiSsc ssc, SscHelpersClass ssc, MonadFail m) => MainBlockHeader ssc -> Body (MainBlockchain ssc) -> MainExtraBodyData -> m (MainBlock ssc)
-
--- | Smart constructor for <a>MainBlockHeader</a>.
-mkMainHeader :: (BiSsc ssc, SscHelpersClass ssc) => Maybe (BlockHeader ssc) -> SlotId -> SecretKey -> Maybe ProxySKEither -> Body (MainBlockchain ssc) -> MainExtraHeaderData -> MainBlockHeader ssc
-
--- | Smart constructor for <a>GenesisBlockHeader</a>. Uses
---   <a>mkGenericHeader</a>.
-mkGenesisHeader :: BiSsc ssc => Maybe (BlockHeader ssc) -> EpochIndex -> Body (GenesisBlockchain ssc) -> GenesisBlockHeader ssc
-
--- | Smart constructor for <a>GenesisBlock</a>. Uses
---   <a>mkGenesisHeader</a>.
-mkGenesisBlock :: BiSsc ssc => Maybe (BlockHeader ssc) -> EpochIndex -> SlotLeaders -> GenesisBlock ssc
-
--- | Predefined <a>Hash</a> of <a>GenesisBlock</a>.
-genesisHash :: Hash a
-
--- | Parameters of Block static verification. Note: to check that block
---   references previous block and/or is referenced by next block, use
---   header verification (via vbpVerifyHeader).
-data VerifyBlockParams ssc
-VerifyBlockParams :: !(Maybe (VerifyHeaderParams ssc)) -> !Bool -> !Bool -> !Bool -> !Byte -> VerifyBlockParams ssc
-
--- | Verifies header accordingly to params (<a>verifyHeader</a>)
-[vbpVerifyHeader] :: VerifyBlockParams ssc -> !(Maybe (VerifyHeaderParams ssc))
-
--- | Checks <tt>verifyGenesisBlock</tt> property.
-[vbpVerifyGeneric] :: VerifyBlockParams ssc -> !Bool
-
--- | Verifies ssc payload with <a>sscVerifyPayload</a>.
-[vbpVerifySsc] :: VerifyBlockParams ssc -> !Bool
-
--- | Check that's number of sks is limited (1000 for now).
-[vbpVerifyProxySKs] :: VerifyBlockParams ssc -> !Bool
-
--- | Maximal block size.
-[vbpMaxSize] :: VerifyBlockParams ssc -> !Byte
-
--- | Extra data which may be used by verifyHeader function to do more
---   checks.
-data VerifyHeaderParams ssc
-VerifyHeaderParams :: !Bool -> !(Maybe (BlockHeader ssc)) -> !(Maybe (BlockHeader ssc)) -> !(Maybe SlotId) -> !(Maybe SlotLeaders) -> !Byte -> VerifyHeaderParams ssc
-[vhpVerifyConsensus] :: VerifyHeaderParams ssc -> !Bool
-
--- | Nothing means that block is unknown, not genesis.
-[vhpPrevHeader] :: VerifyHeaderParams ssc -> !(Maybe (BlockHeader ssc))
-[vhpNextHeader] :: VerifyHeaderParams ssc -> !(Maybe (BlockHeader ssc))
-[vhpCurrentSlot] :: VerifyHeaderParams ssc -> !(Maybe SlotId)
-[vhpLeaders] :: VerifyHeaderParams ssc -> !(Maybe SlotLeaders)
-[vhpMaxSize] :: VerifyHeaderParams ssc -> !Byte
-
--- | Check predicates defined by VerifyBlockParams. #verifyHeader
---   #verifyGenericBlock
-verifyBlock :: (SscHelpersClass ssc, BiSsc ssc) => VerifyBlockParams ssc -> Block ssc -> VerificationRes
-
--- | Verify a sequence of blocks.
---   
---   foldl' is used here which eliminates laziness of triple. It doesn't
---   affect laziness of <a>VerificationRes</a> which is good because
---   laziness for this data type is crucial.
-verifyBlocks :: forall ssc f t. (SscHelpersClass ssc, BiSsc ssc, t ~ OldestFirst f (Block ssc), NontrivialContainer t) => Maybe SlotId -> BlockVersionData -> Maybe SlotLeaders -> OldestFirst f (Block ssc) -> VerificationRes
-
--- | Perform cheap checks of GenericBlock, which can be done using only
---   block itself. Checks which can be done using only header are ignored
---   here. It is assumed that they will be done separately.
-verifyGenericBlock :: forall b. Blockchain b => GenericBlock b -> VerificationRes
-
--- | Check some predicates (determined by VerifyHeaderParams) about
---   BlockHeader. #verifyConsensusLocal
-verifyHeader :: forall ssc. BiSsc ssc => VerifyHeaderParams ssc -> BlockHeader ssc -> VerificationRes
-
--- | Verifies a set of block headers.
-verifyHeaders :: BiSsc ssc => Bool -> NewestFirst [] (BlockHeader ssc) -> VerificationRes
-instance Pos.Ssc.Class.Types.Ssc ssc => GHC.Classes.Eq (Pos.Types.Block.Functions.VerifyHeaderParams ssc)
-instance Pos.Ssc.Class.Types.Ssc ssc => GHC.Show.Show (Pos.Types.Block.Functions.VerifyHeaderParams ssc)
-instance Data.Default.Class.Default (Pos.Types.Block.Functions.VerifyHeaderParams ssc)
-instance Data.Default.Class.Default (Pos.Types.Block.Functions.VerifyBlockParams ssc)
-
-
--- | Functions related to blocks and headers.
-module Pos.Types.Block
-
-
 -- | Re-export of Pos.Types.* + binary instances
 module Pos.Types
 
@@ -1380,9 +1329,136 @@ module Pos.Lrc.FtsPure
 --   as “owning” funds for the purposes of follow-the-satoshi.
 followTheSatoshi :: SharedSeed -> Utxo -> NonEmpty StakeholderId
 
--- | A version of <tt>followTheSatoshi</tt> that uses an iterator over
---   <tt>TxOut</tt>s instead of <tt>Utxo</tt>.
-followTheSatoshiM :: MonadIterator (StakeholderId, Coin) m => SharedSeed -> Coin -> m (NonEmpty StakeholderId)
+-- | Select slot leaders for an entire epoch, randomly. The probability
+--   that a stakeholder will be chosen as a slot leader is directly
+--   proportional to his stake. The same stakeholder can be chosen for
+--   multiple slots within an epoch.
+--   
+--   As input, the <i>follow-the-satoshi</i> procedure requires:
+--   
+--   <ul>
+--   <li>a source of randomness (PRNG seed).</li>
+--   <li>the list of balances, i.e. (StakeholderId, Coin) pairs, ordered by
+--   stakeholder identifiers. Since the list can be quite large, we access
+--   it using <a>MonadIterator</a> to achieve streaming.</li>
+--   <li>the total amount of coins in the system. We could compute it as
+--   the sum of balances (indeed, it is assumed to be equal to that value),
+--   but computing it here would break streaming, so we take it as a
+--   separate input.</li>
+--   </ul>
+--   
+--   As an output, we have one slot leader per slot: a list of stakeholder
+--   identifiers of length <a>epochSlots</a>.
+--   
+--   The algorithm here is a bit tricky to ensure that it runs in
+--   O(balances) time. First we generate a random coin index for each slot,
+--   so we get a list like this:
+--   
+--   <pre>
+--   <a>assignToSlots</a> coinIndices =
+--     [ (LocalSlotIndex 0, CoinIndex 5)
+--     , (LocalSlotIndex 1, CoinIndex 327)
+--     , (LocalSlotIndex 2, CoinIndex 61)
+--     , ...
+--     , (LocalSlotIndex k, CoinIndex 205) ]
+--   
+--     where k = epochSlots - 1
+--   </pre>
+--   
+--   The coin indices are random numbers in range
+--   <tt>[0..totalCoins-1]</tt>.
+--   
+--   Then we want to find the owners of the coins with the generated
+--   indices. In the example above, the stakeholder that owns the 5th coin
+--   will be the leader of the 0th slot in the epoch, the owner of the
+--   327th coin will be the leader of the 1st slot, and so on.
+--   
+--   Recall that we have a sorted list of balances. We could use it to
+--   compute a table of coin indices, for example:
+--   
+--   <pre>
+--   StakeholderId | Coin (amount) | Coin indices (inclusive range)
+--   --------------+---------------+-----------------------------
+--             aaa | 200           |   [0..199]
+--             bbb | 50            | [200..249]
+--             ccc | 80            | [250..329]
+--             ... | ...           | ...
+--             zzz | 500           | [totalCoins - 1 - 500 .. totalCoins - 1]
+--   </pre>
+--   
+--   A solution with complexity O(slots * balances) would be
+--   straightforward: just lookup a leader for each slot in the table -
+--   whenever the selected coin is in the coin index range, we have a
+--   match.
+--   
+--   However, we can be a bit smarter and get an asymptotic improvement.
+--   First, let's sort the generated coin indices:
+--   
+--   <pre>
+--   [ (LocalSlotIndex 0, CoinIndex 5)
+--   , (LocalSlotIndex 2, CoinIndex 61)
+--   , (LocalSlotIndex k, CoinIndex 205)
+--   , (LocalSlotIndex 1, CoinIndex 327)
+--   , ... ]
+--   </pre>
+--   
+--   Since they are zipped together with their slot indices, we can restore
+--   the original ordering later (using <a>arrangeBySlots</a>).
+--   
+--   Now that selected coin indices and stakeholder coin index ranges are
+--   both sorted, we can walk through them in one pass! To do that, we
+--   <a>traverse</a> the list of selected coin indices. As we do that, we
+--   monadically iterate through the table of balances, storing current
+--   stakeholder identifier and coin index range in a state (see
+--   <a>FtsState</a>).
+--   
+--   Let's take a look at the intermediate states during execution:
+--   
+--   <ol>
+--   <li>Initialize the state as <tt>StakeholderId=aaa,
+--   CoinRange=[0..199]</tt>.</li>
+--   <li>Select the next coin, <tt>LocalSlotIndex=0, CoinIndex=5</tt>.</li>
+--   <li><tt>CoinIndex</tt> falls within the <tt>CoinRange</tt>, yield slot
+--   leader <tt>LocalSlotIndex=0, StakeholderId=aaa</tt>.</li>
+--   <li>Select the next coin, <tt>LocalSlotIndex=2,
+--   CoinIndex=61</tt>.</li>
+--   <li><tt>CoinIndex</tt> falls within the <tt>CoinRange</tt>, yield slot
+--   leader <tt>LocalSlotIndex=2, StakeholderId=aaa</tt>.</li>
+--   <li>Select the next coin, <tt>LocalSlotIndex=k,
+--   CoinIndex=205</tt>.</li>
+--   <li><tt>CoinIndex</tt> does not fall within the <tt>CoinRange</tt>.
+--   Update the state to <tt>StakeholderId=bbb,
+--   CoinRange=[200..249]</tt>.</li>
+--   <li><tt>CoinIndex</tt> falls within the <tt>CoinRange</tt>, yield slot
+--   leader <tt>LocalSlotIndex=k, StakeholderId=bbb</tt>.</li>
+--   <li>Select the next coin, <tt>LocalSlotIndex=1,
+--   CoinIndex=327</tt>.</li>
+--   <li><tt>CoinIndex</tt> does not fall within the <tt>CoinRange</tt>.
+--   Update the state to...</li>
+--   </ol>
+--   
+--   Eventually, we end up with a list of slot leaders:
+--   
+--   <pre>
+--   [ (LocalSlotIndex 0, StakeholderId aaa)
+--   , (LocalSlotIndex 2, StakeholderId aaa)
+--   , (LocalSlotIndex k, StakeholderId bbb)
+--   , (LocalSlotIndex 1, StakeholderId ccc)
+--   , ... ]
+--   </pre>
+--   
+--   and we're done. One thing to notice is that <a>MonadIterator</a>
+--   provides us with a balance - the amount of coins a stakeholder has -
+--   but not with a coin index range. So in order to have access to coin
+--   range, we have to accumulate (by summation) those balances - this way
+--   we get upper bounds. There's no need to calculate lower bounds, since
+--   every lower bound is equal to the upper bound of the previous
+--   stakeholder plus 1, and we transition to next coin only when the
+--   current coin index exceeds the upper bound. Since coin indices are
+--   sorted, whenever we transition to the next coin, its index bona fide
+--   exceeds the previous upper bound (and thus it's more or equal to the
+--   current lower bound).
+followTheSatoshiM :: MonadIterator (StakeholderId, Coin) m => SharedSeed -> Coin -> m SlotLeaders
 
 
 -- | Blockchain genesis. Not to be confused with genesis block in epoch.
@@ -1427,6 +1503,7 @@ genesisDelegation :: HashMap StakeholderId [StakeholderId]
 
 -- | List of addresses in genesis. See <tt>genesisPublicKeys</tt>.
 genesisAddresses :: [Address]
+genesisSeed :: SharedSeed
 genesisBalances :: HashMap StakeholderId Coin
 
 -- | List of pairs from <a>SecretKey</a> with corresponding
@@ -1529,6 +1606,7 @@ PutFtsStake :: !StakeholderId -> !Coin -> BalancesOp
 isBootstrapEra :: MonadDB m => m Bool
 getEffectiveTotalStake :: MonadDB m => m Coin
 getEffectiveStake :: MonadDB m => StakeholderId -> m (Maybe Coin)
+genesisFakeTotalStake :: Coin
 prepareGStateBalances :: forall m. MonadDB m => Utxo -> m ()
 data BalanceIter :: *
 
@@ -1536,7 +1614,8 @@ data BalanceIter :: *
 runBalanceIterator :: forall m a. MonadDB m => (forall iter. (MonadIterator (IterType BalanceIter) iter, MonadDB iter) => iter a) -> m a
 
 -- | Run map iterator over effective balances.
-runBalanceMapIterator :: forall v m a. MonadDB m => (forall iter. (MonadIterator v iter, MonadDB iter) => iter a) -> ((StakeholderId, Coin) -> v) -> m a
+runBalanceMapIterator :: forall v m a. MonadDB m => (forall iter. (MonadIterator v iter, MonadDB iter) => iter a) -> (IterType BalanceIter -> v) -> m a
+runBalanceIterBootstrap :: forall m a. Monad m => ListHolderT (IterType BalanceIter) m a -> m a
 sanityCheckBalances :: (MonadMask m, MonadDB m, WithLogger m) => m ()
 getTxOutFromDB :: (MonadIO m, MonadThrow m) => TxIn -> DB -> m (Maybe TxOutAux)
 getTxOut :: MonadDB m => TxIn -> m (Maybe TxOutAux)
@@ -1616,8 +1695,9 @@ jlCreatedBlock :: BiSsc ssc => Block ssc -> JLEvent
 jlAdoptedBlock :: Ssc ssc => Block ssc -> JLEvent
 
 -- | Monad for things that can log Json log events.
-class Monad m => MonadJL m
+class Monad m => MonadJL m where jlLog = lift . jlLog
 jlLog :: MonadJL m => JLEvent -> m ()
+jlLog :: (MonadJL m, MonadTrans t, MonadJL m', t m' ~ m) => JLEvent -> m ()
 
 -- | Append event into log by given <a>FilePath</a>.
 appendJL :: (MonadIO m) => FilePath -> JLEvent -> m ()
@@ -1626,8 +1706,7 @@ appendJL :: (MonadIO m) => FilePath -> JLEvent -> m ()
 fromJLSlotId :: JLSlotId -> SlotId
 instance Data.Aeson.Types.ToJSON.ToJSON Pos.Util.JsonLog.JLTimedEvent
 instance Data.Aeson.Types.FromJSON.FromJSON Pos.Util.JsonLog.JLTimedEvent
-instance Pos.Util.JsonLog.MonadJL m => Pos.Util.JsonLog.MonadJL (Control.Monad.Trans.Reader.ReaderT s m)
-instance Pos.Util.JsonLog.MonadJL m => Pos.Util.JsonLog.MonadJL (Control.Monad.Trans.State.Lazy.StateT s m)
+instance (Pos.Util.JsonLog.MonadJL m, Control.Monad.Trans.Class.MonadTrans t, GHC.Base.Monad (t m)) => Pos.Util.JsonLog.MonadJL (t m)
 instance Data.Aeson.Types.ToJSON.ToJSON Pos.Util.JsonLog.JLEvent
 instance Data.Aeson.Types.FromJSON.FromJSON Pos.Util.JsonLog.JLEvent
 instance Data.Aeson.Types.ToJSON.ToJSON Pos.Util.JsonLog.JLBlock
@@ -1639,13 +1718,12 @@ instance GHC.Show.Show Pos.Util.JsonLog.JLBlock
 module Pos.Context
 
 -- | Class for something that has <a>NodeContext</a> inside.
-class Monad m => WithNodeContext ssc m | m -> ssc where getNodeContext = lift getNodeContext
+type WithNodeContext ssc = MonadReader ContextTag (NodeContext ssc)
 getNodeContext :: WithNodeContext ssc m => m (NodeContext ssc)
-getNodeContext :: (WithNodeContext ssc m, MonadTrans t, WithNodeContext ssc m', t m' ~ m) => m (NodeContext ssc)
 
 -- | NodeContext contains runtime context of node.
 data NodeContext ssc
-NodeContext :: !(Maybe (MVar FilePath)) -> !(SscNodeContext ssc) -> !UpdateContext -> !LrcContext -> !(MVar HeaderHash) -> !(TVar UserSecret) -> !(TBQueue (NodeId, NewestFirst NE (BlockHeader ssc))) -> !(TMVar (NodeId, BlockHeader ssc)) -> !(TMVar (BlockHeader ssc)) -> !RelayInvQueue -> !LoggerConfig -> !NodeParams -> !(TVar Bool) -> !(TBQueue ()) -> !(Maybe (MVar ())) -> !UTCTime -> !(TVar (Maybe (BlockHeader ssc))) -> !TxpGlobalSettings -> NodeContext ssc
+NodeContext :: !(Maybe (MVar FilePath)) -> !(SscNodeContext ssc) -> !UpdateContext -> !LrcContext -> !(MVar HeaderHash) -> !(TVar UserSecret) -> !(TBQueue (NodeId, NewestFirst NE (BlockHeader ssc))) -> !(TMVar (NodeId, BlockHeader ssc)) -> !(TMVar (BlockHeader ssc)) -> !RelayInvQueue -> !LoggerConfig -> !NodeParams -> !(TVar Bool) -> !(TBQueue ()) -> !(Maybe (MVar ())) -> !UTCTime -> !(TVar (Maybe (BlockHeader ssc))) -> !TxpGlobalSettings -> !SlotLeaders -> !(TVar (Set NodeId)) -> NodeContext ssc
 [ncJLFile] :: NodeContext ssc -> !(Maybe (MVar FilePath))
 [ncSscContext] :: NodeContext ssc -> !(SscNodeContext ssc)
 
@@ -1710,19 +1788,24 @@ NodeContext :: !(Maybe (MVar FilePath)) -> !(SscNodeContext ssc) -> !UpdateConte
 -- | Settings for global Txp.
 [ncTxpGlobalSettings] :: NodeContext ssc -> !TxpGlobalSettings
 
+-- | Leaders of the first epoch
+[ncGenesisLeaders] :: NodeContext ssc -> !SlotLeaders
+
+-- | Set of peers that we're connected to.
+[ncConnectedPeers] :: NodeContext ssc -> !(TVar (Set NodeId))
+
 -- | Generate <a>PublicKey</a> from <tt>SecretKey</tt> of
 --   <a>NodeContext</a>.
 ncPublicKey :: NodeContext ssc -> PublicKey
 
 -- | Generate <a>Address</a> from <tt>SecretKey</tt> of <a>NodeContext</a>
 ncPubKeyAddress :: NodeContext ssc -> Address
-ncGenesisLeaders :: NodeContext ssc -> SlotLeaders
 ncGenesisUtxo :: NodeContext ssc -> Utxo
 ncSystemStart :: NodeContext __ -> Timestamp
 
 -- | Contains algorithm specific &amp; storage parameters for Node.
 data NodeParams
-NodeParams :: !FilePath -> !Bool -> !Timestamp -> !SecretKey -> !UserSecret -> !BaseParams -> !Utxo -> !Bool -> !(Maybe FilePath) -> ![AttackType] -> ![AttackTarget] -> !Bool -> ![Text] -> !UpdateParams -> NodeParams
+NodeParams :: !FilePath -> !Bool -> !Timestamp -> !SecretKey -> !UserSecret -> !BaseParams -> !Utxo -> !(Maybe FilePath) -> ![AttackType] -> ![AttackTarget] -> !Bool -> ![Text] -> !UpdateParams -> NodeParams
 
 -- | Path to node's database.
 [npDbPathM] :: NodeParams -> !FilePath
@@ -1744,9 +1827,6 @@ NodeParams :: !FilePath -> !Bool -> !Timestamp -> !SecretKey -> !UserSecret -> !
 
 -- | predefined custom utxo
 [npCustomUtxo] :: NodeParams -> !Utxo
-
--- | <tt>True</tt> if node started as time-lord
-[npTimeLord] :: NodeParams -> !Bool
 [npJLFile] :: NodeParams -> !(Maybe FilePath)
 
 -- | List of attack types used by malicious emulation
@@ -1766,26 +1846,10 @@ NodeParams :: !FilePath -> !Bool -> !Timestamp -> !SecretKey -> !UserSecret -> !
 
 -- | Contains basic &amp; networking parameters for running node.
 data BaseParams
-BaseParams :: !(Maybe NetworkAddress) -> !(Maybe String) -> ![DHTNode] -> !(Maybe DHTKey) -> !Bool -> !LoggingParams -> !FilePath -> BaseParams
-
--- | Host/port to bind to
-[bpBindAddress] :: BaseParams -> !(Maybe NetworkAddress)
-
--- | Public host if different from <a>bpBindAddress</a> host
-[bpPublicHost] :: BaseParams -> !(Maybe String)
-
--- | Peers passed from CLI
-[bpDHTPeers] :: BaseParams -> ![DHTNode]
-
--- | DHT key
-[bpDHTKey] :: BaseParams -> !(Maybe DHTKey)
-[bpDHTExplicitInitial] :: BaseParams -> !Bool
+BaseParams :: !LoggingParams -> BaseParams
 
 -- | Logger parameters
 [bpLoggingParams] :: BaseParams -> !LoggingParams
-
--- | Path to kademlia dump file
-[bpKademliaDump] :: BaseParams -> !FilePath
 genesisUtxoM :: (Functor m, WithNodeContext ssc m) => m Utxo
 genesisLeadersM :: (Functor m, WithNodeContext ssc m) => m SlotLeaders
 putBlkSemaphore :: (MonadIO m, WithNodeContext ssc m) => HeaderHash -> m ()
@@ -1805,9 +1869,7 @@ getUptime :: (MonadIO m, WithNodeContext ssc m) => m Microsecond
 isRecoveryMode :: (MonadIO m, WithNodeContext ssc m) => m Bool
 
 -- | Wrapper for monadic action which brings <a>NodeContext</a>.
-newtype ContextHolder ssc m a
-ContextHolder :: ReaderT (NodeContext ssc) m a -> ContextHolder ssc m a
-[getContextHolder] :: ContextHolder ssc m a -> ReaderT (NodeContext ssc) m a
+type ContextHolder ssc = ContextHolder' (ContextHolderTrans ssc)
 
 -- | Run <a>ContextHolder</a> action.
 runContextHolder :: NodeContext ssc -> ContextHolder ssc m a -> m a
@@ -1817,12 +1879,10 @@ shouldIgnoreAddress :: NodeContext ssc -> NetworkAddress -> Bool
 shouldIgnorePkAddress :: NodeContext ssc -> StakeholderId -> Bool
 
 module Pos.Ssc.Extra
-class Monad m => MonadSscMem ssc m | m -> ssc where askSscMem = lift askSscMem
+type MonadSscMem ssc = MonadReader SscMemTag (SscState ssc)
 askSscMem :: MonadSscMem ssc m => m (SscState ssc)
-askSscMem :: (MonadSscMem ssc m, MonadTrans t, MonadSscMem ssc m', t m' ~ m) => m (SscState ssc)
-newtype SscHolder ssc m a
-SscHolder :: ReaderT (SscState ssc) m a -> SscHolder ssc m a
-[getSscHolder] :: SscHolder ssc m a -> ReaderT (SscState ssc) m a
+data SscMemTag
+type SscHolder ssc = ReaderT SscMemTag (SscState ssc)
 mkSscHolderState :: forall ssc m. (WithLogger m, HasContext LrcContext m, SscGStateClass ssc, SscLocalDataClass ssc, MonadDB m, MonadSlots m) => m (SscState ssc)
 mkStateAndRunSscHolder :: forall ssc m a. (WithLogger m, HasContext LrcContext m, SscGStateClass ssc, SscLocalDataClass ssc, MonadDB m, MonadSlots m) => SscHolder ssc m a -> m a
 
@@ -1902,19 +1962,12 @@ resetStat :: (MonadStats m, MonadTrans t, MonadStats m', t m' ~ m, StatLabel l) 
 logStatM :: (MonadStats m, StatLabel l) => l -> m (EntryType l) -> m ()
 
 -- | Stats wrapper for collecting statistics without collecting it.
-newtype NoStatsT m a
-NoStatsT :: m a -> NoStatsT m a
-
--- | action inside wrapper without collecting statistics
-[getNoStatsT] :: NoStatsT m a -> m a
+type NoStatsT = TaggedTrans NoStatsTag IdentityT
+getNoStatsT :: NoStatsT m a -> m a
 
 -- | Statistics wrapper around some monadic action to collect statistics
 --   during execution of this action. Used in benchmarks.
-newtype StatsT m a
-StatsT :: ReaderT StatsMap m a -> StatsT m a
-
--- | action inside wrapper with collected statistics
-[getStatsT] :: StatsT m a -> ReaderT StatsMap m a
+type StatsT = ReaderT StatsMap
 runStatsT :: MonadIO m => StatsT m a -> m a
 runStatsT' :: StatsMap -> StatsT m a -> m a
 getStatsMap :: Monad m => StatsT m StatsMap
@@ -1956,10 +2009,10 @@ module Pos.WorkMode
 
 -- | Bunch of constraints to perform work for real world distributed
 --   system.
-type WorkMode ssc m = (MinWorkMode m, MonadMask m, MonadSlots m, MonadDB m, MonadDBLimits m, MonadTxpMem TxpExtra_TMP m, MonadDhtMem m, MonadRelayMem m, MonadDelegation m, MonadSscMem ssc m, MonadReportingMem m, SscGStateClass ssc, SscLocalDataClass ssc, SscHelpersClass ssc, WithNodeContext ssc m, HasContext LrcContext m, HasContext UpdateContext m, HasContext NodeParams m, HasContext UpdateParams m, MonadStats m, MonadJL m, WithKademliaDHTInstance m, WithPeerState m, MonadShutdownMem m)
+type WorkMode ssc m = (MinWorkMode m, MonadMask m, MonadSlots m, MonadDB m, MonadDBLimits m, MonadTxpMem TxpExtra_TMP m, MonadRelayMem m, MonadDelegation m, MonadSscMem ssc m, MonadReportingMem m, SscGStateClass ssc, SscLocalDataClass ssc, SscHelpersClass ssc, WithNodeContext ssc m, HasContext LrcContext m, HasContext UpdateContext m, HasContext NodeParams m, HasContext UpdateParams m, MonadStats m, MonadJL m, WithPeerState m, MonadShutdownMem m)
 
 -- | More relaxed version of <a>WorkMode</a>.
-type MinWorkMode m = (WithLogger m, MonadMockable m, MonadDHT m, MonadIO m, WithPeerState m)
+type MinWorkMode m = (WithLogger m, MonadMockable m, MonadIO m, WithPeerState m)
 type TxpExtra_TMP = ()
 
 -- | ProductionMode is an instance of WorkMode which is used
@@ -1967,63 +2020,17 @@ type TxpExtra_TMP = ()
 type ProductionMode ssc = NoStatsT (RawRealMode ssc)
 
 -- | RawRealMode is a basis for <a>WorkMode</a>s used to really run system.
-type RawRealMode ssc = PeerStateHolder (KademliaDHT (DelegationT (TxpHolder TxpExtra_TMP (SscHolder ssc (NtpSlotting (SlottingHolder (ContextHolder ssc (DBHolder (LoggerNameBox Production)))))))))
+type RawRealMode ssc = PeerStateHolder (DelegationT (TxpHolder TxpExtra_TMP (SscHolder ssc (NtpSlotting (SlottingHolder (DBHolder (ContextHolder ssc (LoggerNameBox Production))))))))
 
 -- | ServiceMode is the mode in which support nodes work.
-type ServiceMode = PeerStateHolder (KademliaDHT (LoggerNameBox Production))
+type ServiceMode = PeerStateHolder (LoggerNameBox Production)
 
 -- | StatsMode is used for remote benchmarking.
 type StatsMode ssc = StatsT (RawRealMode ssc)
-instance (GHC.Base.Monad m, Pos.Context.Class.WithNodeContext ssc m) => Pos.Context.Class.WithNodeContext ssc (Pos.DHT.Real.Types.KademliaDHT m)
-instance (GHC.Base.Monad m, Pos.Context.Class.WithNodeContext ssc m) => Pos.Context.Class.WithNodeContext ssc (Pos.Communication.PeerState.PeerStateHolder m)
-instance Pos.Context.Class.WithNodeContext ssc m => Pos.Context.Class.WithNodeContext ssc (Pos.Slotting.Ntp.NtpSlotting m)
-instance Pos.Context.Class.WithNodeContext ssc m => Pos.Context.Class.WithNodeContext ssc (Pos.Slotting.MemState.Holder.SlottingHolder m)
-instance Pos.Slotting.Class.MonadSlots m => Pos.Slotting.Class.MonadSlots (Pos.Communication.PeerState.PeerStateHolder m)
-instance Pos.Slotting.Class.MonadSlots m => Pos.Slotting.Class.MonadSlots (Pos.DHT.Real.Types.KademliaDHT m)
-instance Pos.Slotting.MemState.Class.MonadSlotsData m => Pos.Slotting.MemState.Class.MonadSlotsData (Pos.Communication.PeerState.PeerStateHolder m)
-instance Pos.Slotting.MemState.Class.MonadSlotsData m => Pos.Slotting.MemState.Class.MonadSlotsData (Pos.DHT.Real.Types.KademliaDHT m)
-instance Pos.DB.Class.MonadDB m => Pos.DB.Class.MonadDB (Pos.DHT.Real.Types.KademliaDHT m)
-instance Pos.DB.Class.MonadDBCore m => Pos.DB.Class.MonadDBCore (Pos.DHT.Real.Types.KademliaDHT m)
-instance Pos.DB.Limits.MonadDBLimits m => Pos.DB.Limits.MonadDBLimits (Pos.DHT.Real.Types.KademliaDHT m)
-instance Pos.DB.Class.MonadDB m => Pos.DB.Class.MonadDB (Pos.Communication.PeerState.PeerStateHolder m)
-instance Pos.DB.Class.MonadDBCore m => Pos.DB.Class.MonadDBCore (Pos.Communication.PeerState.PeerStateHolder m)
-instance Pos.DB.Limits.MonadDBLimits m => Pos.DB.Limits.MonadDBLimits (Pos.Communication.PeerState.PeerStateHolder m)
-instance Pos.DB.Class.MonadDB m => Pos.DB.Class.MonadDB (Pos.Slotting.Ntp.NtpSlotting m)
-instance Pos.DB.Class.MonadDBCore m => Pos.DB.Class.MonadDBCore (Pos.Slotting.Ntp.NtpSlotting m)
-instance Pos.DB.Limits.MonadDBLimits m => Pos.DB.Limits.MonadDBLimits (Pos.Slotting.Ntp.NtpSlotting m)
-instance Pos.DB.Class.MonadDB m => Pos.DB.Class.MonadDB (Pos.Slotting.MemState.Holder.SlottingHolder m)
-instance Pos.DB.Class.MonadDBCore m => Pos.DB.Class.MonadDBCore (Pos.Slotting.MemState.Holder.SlottingHolder m)
-instance Pos.DB.Limits.MonadDBLimits m => Pos.DB.Limits.MonadDBLimits (Pos.Slotting.MemState.Holder.SlottingHolder m)
-instance Pos.Delegation.Class.MonadDelegation m => Pos.Delegation.Class.MonadDelegation (Pos.DHT.Real.Types.KademliaDHT m)
-instance Pos.Delegation.Class.MonadDelegation m => Pos.Delegation.Class.MonadDelegation (Pos.Communication.PeerState.PeerStateHolder m)
-instance Pos.Reporting.MemState.MonadReportingMem m => Pos.Reporting.MemState.MonadReportingMem (Pos.Communication.PeerState.PeerStateHolder m)
-instance Pos.Reporting.MemState.MonadReportingMem m => Pos.Reporting.MemState.MonadReportingMem (Pos.DHT.Real.Types.KademliaDHT m)
-instance Pos.Reporting.MemState.MonadReportingMem m => Pos.Reporting.MemState.MonadReportingMem (Pos.Slotting.Ntp.NtpSlotting m)
-instance Pos.Reporting.MemState.MonadReportingMem m => Pos.Reporting.MemState.MonadReportingMem (Pos.Slotting.MemState.Holder.SlottingHolder m)
-instance Pos.DHT.MemState.Class.MonadDhtMem m => Pos.DHT.MemState.Class.MonadDhtMem (Pos.Communication.PeerState.PeerStateHolder m)
-instance Pos.DHT.MemState.Class.MonadDhtMem m => Pos.DHT.MemState.Class.MonadDhtMem (Pos.DHT.Real.Types.KademliaDHT m)
-instance Pos.DHT.MemState.Class.MonadDhtMem m => Pos.DHT.MemState.Class.MonadDhtMem (Pos.Slotting.Ntp.NtpSlotting m)
-instance Pos.DHT.MemState.Class.MonadDhtMem m => Pos.DHT.MemState.Class.MonadDhtMem (Pos.Slotting.MemState.Holder.SlottingHolder m)
-instance Pos.Communication.Relay.Class.MonadRelayMem m => Pos.Communication.Relay.Class.MonadRelayMem (Pos.Communication.PeerState.PeerStateHolder m)
-instance Pos.Communication.Relay.Class.MonadRelayMem m => Pos.Communication.Relay.Class.MonadRelayMem (Pos.DHT.Real.Types.KademliaDHT m)
-instance Pos.Communication.Relay.Class.MonadRelayMem m => Pos.Communication.Relay.Class.MonadRelayMem (Pos.Slotting.Ntp.NtpSlotting m)
-instance Pos.Communication.Relay.Class.MonadRelayMem m => Pos.Communication.Relay.Class.MonadRelayMem (Pos.Slotting.MemState.Holder.SlottingHolder m)
-instance Pos.Ssc.Extra.Class.MonadSscMem ssc m => Pos.Ssc.Extra.Class.MonadSscMem ssc (Pos.Communication.PeerState.PeerStateHolder m)
-instance Pos.Txp.MemState.Class.MonadTxpMem x m => Pos.Txp.MemState.Class.MonadTxpMem x (Pos.Communication.PeerState.PeerStateHolder m)
-instance Pos.Shutdown.Class.MonadShutdownMem m => Pos.Shutdown.Class.MonadShutdownMem (Pos.Communication.PeerState.PeerStateHolder m)
-instance Pos.Shutdown.Class.MonadShutdownMem m => Pos.Shutdown.Class.MonadShutdownMem (Pos.DHT.Real.Types.KademliaDHT m)
-instance Pos.Shutdown.Class.MonadShutdownMem m => Pos.Shutdown.Class.MonadShutdownMem (Pos.Slotting.Ntp.NtpSlotting m)
-instance Pos.Shutdown.Class.MonadShutdownMem m => Pos.Shutdown.Class.MonadShutdownMem (Pos.Slotting.MemState.Holder.SlottingHolder m)
-instance Pos.Util.JsonLog.MonadJL m => Pos.Util.JsonLog.MonadJL (Pos.Communication.PeerState.PeerStateHolder m)
-instance Pos.Util.JsonLog.MonadJL m => Pos.Util.JsonLog.MonadJL (Pos.Slotting.Ntp.NtpSlotting m)
-instance Pos.Util.JsonLog.MonadJL m => Pos.Util.JsonLog.MonadJL (Pos.Slotting.MemState.Holder.SlottingHolder m)
-instance Pos.DHT.Model.Class.MonadDHT m => Pos.DHT.Model.Class.MonadDHT (Pos.Communication.PeerState.PeerStateHolder m)
-instance (GHC.Base.Monad m, Pos.DHT.Real.Types.WithKademliaDHTInstance m) => Pos.DHT.Real.Types.WithKademliaDHTInstance (Pos.Communication.PeerState.PeerStateHolder m)
-instance Pos.Util.JsonLog.MonadJL m => Pos.Util.JsonLog.MonadJL (Pos.DHT.Real.Types.KademliaDHT m)
 
 module Pos.Security.Class
 class Ssc ssc => SecurityWorkersClass ssc
-securityWorkers :: (SecurityWorkersClass ssc, WorkMode ssc m) => Tagged ssc ([WorkerSpec m], OutSpecs)
+securityWorkers :: (SecurityWorkersClass ssc, WorkMode ssc m) => m (Set NodeId) -> Tagged ssc ([WorkerSpec m], OutSpecs)
 
 module Pos.Security
 
@@ -2099,7 +2106,7 @@ sscCreateNodeContext :: (Ssc ssc, MonadIO m) => Tagged ssc (SscParams ssc -> m (
 class Ssc ssc => SscWorkersClass ssc
 
 -- | All workers specific to SSC.
-sscWorkers :: (SscWorkersClass ssc, WorkMode ssc m) => Tagged ssc ([WorkerSpec m], OutSpecs)
+sscWorkers :: (SscWorkersClass ssc, WorkMode ssc m) => m (Set NodeId) -> Tagged ssc ([WorkerSpec m], OutSpecs)
 sscLrcConsumers :: (SscWorkersClass ssc, WorkMode ssc m, MonadDBCore m) => Tagged ssc [LrcConsumer m]
 type SscConstraint ssc = (Ssc ssc, SscListenersClass ssc, SscLocalDataClass ssc, SscHelpersClass ssc, SscGStateClass ssc, SscWorkersClass ssc, SecurityWorkersClass ssc)
 type WorkModeSsc ssc = (SscLocalDataClass ssc, SscHelpersClass ssc)
@@ -2463,7 +2470,7 @@ verifyEntriesGuardM :: MonadError TossVerFailure m => (entry -> key) -> (entry -
 
 -- | Type class which provides functions necessary for read-only
 --   verification of GodTossing data.
-class (Monad m, WithLogger m) => MonadTossRead m where getCommitments = lift getCommitments getOpenings = lift getOpenings getShares = lift getShares getVssCertificates = lift getVssCertificates getStableCertificates = lift . getStableCertificates getRichmen = lift . getRichmen
+class (Monad m, WithLogger m) => MonadTossRead m where getCommitments = lift getCommitments getOpenings = lift getOpenings getShares = lift getShares getVssCertData = lift getVssCertData getVssCertificates = lift getVssCertificates getStableCertificates = lift . getStableCertificates getRichmen = lift . getRichmen
 
 -- | Get <a>CommitmentsMap</a> with all commitments.
 getCommitments :: MonadTossRead m => m CommitmentsMap
@@ -2476,6 +2483,9 @@ getShares :: MonadTossRead m => m SharesMap
 
 -- | Get <a>VssCertificatesMap</a> with all VSS certificates.
 getVssCertificates :: MonadTossRead m => m VssCertificatesMap
+
+-- | Get <a>VssCertData</a>.
+getVssCertData :: MonadTossRead m => m VssCertData
 
 -- | Retrieve all stable <a>VssCertificate</a>s for given epoch.
 getStableCertificates :: MonadTossRead m => EpochIndex -> m VssCertificatesMap
@@ -2491,6 +2501,9 @@ getOpenings :: (MonadTossRead m, MonadTrans t, MonadTossRead m', t m' ~ m) => m 
 
 -- | Get <a>SharesMap</a> with all shares.
 getShares :: (MonadTossRead m, MonadTrans t, MonadTossRead m', t m' ~ m) => m SharesMap
+
+-- | Get <a>VssCertData</a>.
+getVssCertData :: (MonadTossRead m, MonadTrans t, MonadTossRead m', t m' ~ m) => m VssCertData
 
 -- | Get <a>VssCertificatesMap</a> with all VSS certificates.
 getVssCertificates :: (MonadTossRead m, MonadTrans t, MonadTossRead m', t m' ~ m) => m VssCertificatesMap
@@ -2612,6 +2625,7 @@ PureToss :: NamedPureLogger (RWS MultiRichmenStake () GtGlobalState) a -> PureTo
 [getPureToss] :: PureToss a -> NamedPureLogger (RWS MultiRichmenStake () GtGlobalState) a
 type MultiRichmenStake = HashMap EpochIndex RichmenStake
 type MultiRichmenSet = HashMap EpochIndex RichmenSet
+runPureToss :: MultiRichmenStake -> GtGlobalState -> PureToss a -> (a, GtGlobalState, [LogEvent])
 runPureTossWithLogger :: WithLogger m => MultiRichmenStake -> GtGlobalState -> PureToss a -> m (a, GtGlobalState)
 evalPureTossWithLogger :: WithLogger m => MultiRichmenStake -> GtGlobalState -> PureToss a -> m a
 execPureTossWithLogger :: WithLogger m => MultiRichmenStake -> GtGlobalState -> PureToss a -> m GtGlobalState
@@ -2623,12 +2637,10 @@ execPureTossWithLogger :: WithLogger m => MultiRichmenStake -> GtGlobalState -> 
 --   <li><i>WARNING</i> This transformer uses StateT and is intended for
 --   single-threaded usage only.</li>
 --   </ul>
-newtype TossT m a
-TossT :: StateT TossModifier m a -> TossT m a
-[getTossT] :: TossT m a -> StateT TossModifier m a
+type TossT = StateT TossModifier
 runTossT :: TossModifier -> TossT m a -> m (a, TossModifier)
-evalTossT :: Functor m => TossModifier -> TossT m a -> m a
-execTossT :: Functor m => TossModifier -> TossT m a -> m TossModifier
+evalTossT :: Monad m => TossModifier -> TossT m a -> m a
+execTossT :: Monad m => TossModifier -> TossT m a -> m TossModifier
 
 -- | Tag corresponding to GodTossing data.
 data GtTag
@@ -2834,13 +2846,9 @@ txProcessTransaction :: TxpLocalWorkMode m => (TxId, TxAux) -> m ()
 txNormalize :: (MonadDB m, MonadTxpMem () m) => m ()
 
 -- | Reduced equivalent of <tt>MonadReader (GenericTxpLocalData mw) m</tt>.
-class Monad m => MonadTxpMem extra m | m -> extra where askTxpMem = lift askTxpMem
-
--- | Retrieve <a>GenericTxpLocalData</a>.
-askTxpMem :: MonadTxpMem extra m => m (GenericTxpLocalData extra)
-
--- | Retrieve <a>GenericTxpLocalData</a>.
-askTxpMem :: (MonadTxpMem extra m, MonadTrans t, MonadTxpMem extra m', t m' ~ m) => m (GenericTxpLocalData extra)
+type MonadTxpMem ext = MonadReader TxpHolderTag (GenericTxpLocalData ext)
+askTxpMem :: MonadTxpMem ext m => m (GenericTxpLocalData ext)
+data TxpHolderTag
 getUtxoModifier :: (MonadTxpMem e m, MonadIO m) => m UtxoModifier
 getLocalTxsNUndo :: (MonadIO m, MonadTxpMem e m) => m ([(TxId, TxAux)], HashMap TxId (NonEmpty TxOutAux))
 getMemPool :: (MonadIO m, MonadTxpMem e m) => m MemPool
@@ -2849,9 +2857,7 @@ getLocalTxsMap :: (MonadIO m, MonadTxpMem e m) => m (HashMap TxId TxAux)
 getTxpExtra :: (MonadIO m, MonadTxpMem e m) => m e
 modifyTxpLocalData :: (MonadIO m, MonadTxpMem ext m) => (GenericTxpLocalDataPure ext -> (a, GenericTxpLocalDataPure ext)) -> m a
 setTxpLocalData :: (MonadIO m, MonadTxpMem ext m) => GenericTxpLocalDataPure ext -> m ()
-newtype TxpHolder ext m a
-TxpHolder :: ReaderT (GenericTxpLocalData ext) m a -> TxpHolder ext m a
-[getTxpHolder] :: TxpHolder ext m a -> ReaderT (GenericTxpLocalData ext) m a
+type TxpHolder ext = ReaderT TxpHolderTag (GenericTxpLocalData ext)
 mkTxpLocalData :: (Default e, MonadIO m) => UtxoModifier -> HeaderHash -> m (GenericTxpLocalData e)
 runTxpHolder :: GenericTxpLocalData ext -> TxpHolder ext m a -> m a
 
@@ -2925,9 +2931,8 @@ putTxWithUndo :: MonadTxPool m => TxId -> TxAux -> TxUndo -> m ()
 hasTx :: (MonadTxPool m, MonadTrans t, MonadTxPool m', t m' ~ m) => TxId -> m Bool
 poolSize :: (MonadTxPool m, MonadTrans t, MonadTxPool m', t m' ~ m) => m Int
 putTxWithUndo :: (MonadTxPool m, MonadTrans t, MonadTxPool m', t m' ~ m) => TxId -> TxAux -> TxUndo -> m ()
-newtype DBTxp m a
-DBTxp :: m a -> DBTxp m a
-[runDBTxp] :: DBTxp m a -> m a
+type DBTxp = TaggedTrans DBTxpTag IdentityT
+runDBTxp :: DBTxp m a -> m a
 
 -- | Result of transaction processing
 data ToilVerFailure
@@ -2989,12 +2994,7 @@ verifyAndApplyTx :: (MonadUtxo m, MonadToilEnv m, MonadError ToilVerFailure m) =
 --   <li><i>WARNING</i> This transformer uses StateT and is intended for
 --   single-threaded usage only. Used for block application now.</li>
 --   </ul>
-newtype ToilT ext m a
-ToilT :: StateT (GenericToilModifier ext) m a -> ToilT ext m a
-[getToilT] :: ToilT ext m a -> StateT (GenericToilModifier ext) m a
-
--- | Run ToilT using specified modifier.
-runToilT :: GenericToilModifier ext -> ToilT ext m a -> m (a, GenericToilModifier ext)
+type ToilT ext m = StateT (GenericToilModifier ext) m
 
 -- | Run ToilT using empty modifier. Should be used for global transaction
 --   processing.
@@ -3048,11 +3048,11 @@ ToilModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> !exten
 [_tmUndos] :: GenericToilModifier extension -> !UndoMap
 [_tmExtra] :: GenericToilModifier extension -> !extension
 type ToilModifier = GenericToilModifier ()
-tmUtxo :: forall extension_a1Vem. Lens' (GenericToilModifier extension_a1Vem) UtxoModifier
-tmBalances :: forall extension_a1Vem. Lens' (GenericToilModifier extension_a1Vem) BalancesView
-tmMemPool :: forall extension_a1Vem. Lens' (GenericToilModifier extension_a1Vem) MemPool
-tmUndos :: forall extension_a1Vem. Lens' (GenericToilModifier extension_a1Vem) UndoMap
-tmExtra :: forall extension_a1Vem extension_a1Vgp. Lens (GenericToilModifier extension_a1Vem) (GenericToilModifier extension_a1Vgp) extension_a1Vem extension_a1Vgp
+tmUtxo :: forall extension_a1T8B. Lens' (GenericToilModifier extension_a1T8B) UtxoModifier
+tmBalances :: forall extension_a1T8B. Lens' (GenericToilModifier extension_a1T8B) BalancesView
+tmMemPool :: forall extension_a1T8B. Lens' (GenericToilModifier extension_a1T8B) MemPool
+tmUndos :: forall extension_a1T8B. Lens' (GenericToilModifier extension_a1T8B) UndoMap
+tmExtra :: forall extension_a1T8B extension_a1TaQ. Lens (GenericToilModifier extension_a1T8B) (GenericToilModifier extension_a1TaQ) extension_a1T8B extension_a1TaQ
 
 -- | Environment used by Toil.
 data ToilEnv
@@ -3098,15 +3098,11 @@ applyTxToUtxo :: MonadUtxo m => WithHash Tx -> TxDistribution -> m ()
 --   This function assumes that transaction has been really applied and
 --   doesn't check anything.
 rollbackTxUtxo :: (MonadUtxo m) => (TxAux, TxUndo) -> m ()
-newtype UtxoReaderT m a
-UtxoReaderT :: ReaderT Utxo m a -> UtxoReaderT m a
-[getUtxoReaderT] :: UtxoReaderT m a -> ReaderT Utxo m a
+type UtxoReaderT = ReaderT Utxo
 runUtxoReaderT :: UtxoReaderT m a -> Utxo -> m a
 type UtxoReader = UtxoReaderT Identity
 runUtxoReader :: UtxoReader a -> Utxo -> a
-newtype UtxoStateT m a
-UtxoStateT :: StateT Utxo m a -> UtxoStateT m a
-[getUtxoStateT] :: UtxoStateT m a -> StateT Utxo m a
+type UtxoStateT = StateT Utxo
 runUtxoStateT :: UtxoStateT m a -> Utxo -> m (a, Utxo)
 evalUtxoStateT :: Monad m => UtxoStateT m a -> Utxo -> m a
 execUtxoStateT :: Monad m => UtxoStateT m a -> Utxo -> m Utxo
@@ -3126,6 +3122,61 @@ filterUtxoByAddr :: Address -> Utxo -> Utxo
 
 -- | Convert <a>Utxo</a> to map from <a>StakeholderId</a> to stake.
 utxoToStakes :: Utxo -> HashMap StakeholderId Coin
+
+module Pos.Client.Txp.Balances
+
+-- | A class which have the methods to get state of address' balance
+class Monad m => MonadBalances m where getOwnUtxo = lift . getOwnUtxo getBalance = lift . getBalance
+getOwnUtxo :: MonadBalances m => Address -> m Utxo
+getBalance :: MonadBalances m => Address -> m Coin
+getOwnUtxo :: (MonadBalances m, MonadTrans t, MonadBalances m', t m' ~ m) => Address -> m Utxo
+getBalance :: (MonadBalances m, MonadTrans t, MonadBalances m', t m' ~ m) => Address -> m Coin
+getBalanceFromUtxo :: MonadBalances m => Address -> m Coin
+instance (Pos.Client.Txp.Balances.MonadBalances m, Control.Monad.Trans.Class.MonadTrans t, GHC.Base.Monad (t m)) => Pos.Client.Txp.Balances.MonadBalances (t m)
+instance (Pos.DB.Class.MonadDB m, Control.Monad.Catch.MonadMask m, System.Wlog.CanLog.WithLogger m) => Pos.Client.Txp.Balances.MonadBalances (Pos.Txp.MemState.Holder.TxpHolder __ m)
+
+module Pos.Client.Txp.History
+
+-- | Datatype for returning info about tx history
+data TxHistoryEntry
+THEntry :: !TxId -> !Tx -> !Bool -> !(Maybe ChainDifficulty) -> TxHistoryEntry
+[_thTxId] :: TxHistoryEntry -> !TxId
+[_thTx] :: TxHistoryEntry -> !Tx
+[_thIsOutput] :: TxHistoryEntry -> !Bool
+[_thDifficulty] :: TxHistoryEntry -> !(Maybe ChainDifficulty)
+thTxId :: Lens' TxHistoryEntry TxId
+thTx :: Lens' TxHistoryEntry Tx
+thIsOutput :: Lens' TxHistoryEntry Bool
+thDifficulty :: Lens' TxHistoryEntry (Maybe ChainDifficulty)
+data TxHistoryAnswer
+TxHistoryAnswer :: HeaderHash -> Int -> Utxo -> [TxHistoryEntry] -> TxHistoryAnswer
+[taLastCachedHash] :: TxHistoryAnswer -> HeaderHash
+[taCachedNum] :: TxHistoryAnswer -> Int
+[taCachedUtxo] :: TxHistoryAnswer -> Utxo
+[taHistory] :: TxHistoryAnswer -> [TxHistoryEntry]
+
+-- | A class which have methods to get transaction history
+class Monad m => MonadTxHistory m where getTxHistory = fmap lift <<$>> getTxHistory saveTx = lift . saveTx
+getTxHistory :: (MonadTxHistory m, SscHelpersClass ssc) => Tagged ssc (Address -> Maybe (HeaderHash, Utxo) -> m TxHistoryAnswer)
+saveTx :: MonadTxHistory m => (TxId, TxAux) -> m ()
+getTxHistory :: (MonadTxHistory m, SscHelpersClass ssc, MonadTrans t, MonadTxHistory m', t m' ~ m) => Tagged ssc (Address -> Maybe (HeaderHash, Utxo) -> m TxHistoryAnswer)
+saveTx :: (MonadTxHistory m, MonadTrans t, MonadTxHistory m', t m' ~ m) => (TxId, TxAux) -> m ()
+
+-- | Select transactions related to given address. <a>Bool</a> indicates
+--   whether the transaction is outgoing (i. e. is sent from given address)
+getRelatedTxs :: Monad m => Address -> [(WithHash Tx, TxWitness, TxDistribution)] -> TxSelectorT m [TxHistoryEntry]
+
+-- | Given a full blockchain, derive address history and Utxo TODO: Such
+--   functionality will still be useful for merging blockchains when wallet
+--   state is ready, but some metadata for Tx will be required.
+deriveAddrHistory :: (Monad m) => Address -> [Block ssc] -> TxSelectorT m [TxHistoryEntry]
+deriveAddrHistoryPartial :: (Monad m) => [TxHistoryEntry] -> Address -> [Block ssc] -> TxSelectorT m [TxHistoryEntry]
+instance (Pos.Client.Txp.History.MonadTxHistory m, Control.Monad.Trans.Class.MonadTrans t, GHC.Base.Monad (t m)) => Pos.Client.Txp.History.MonadTxHistory (t m)
+instance (Pos.DB.Class.MonadDB m, Control.Monad.Catch.MonadThrow m, System.Wlog.CanLog.WithLogger m, Pos.Slotting.Class.MonadSlots m, Pos.Context.Class.WithNodeContext s m) => Pos.Client.Txp.History.MonadTxHistory (Pos.Txp.MemState.Holder.TxpHolder Pos.WorkMode.TxpExtra_TMP m)
+instance GHC.Show.Show Pos.Client.Txp.History.TxHistoryAnswer
+instance GHC.Generics.Generic Pos.Client.Txp.History.TxHistoryEntry
+instance GHC.Classes.Eq Pos.Client.Txp.History.TxHistoryEntry
+instance GHC.Show.Show Pos.Client.Txp.History.TxHistoryEntry
 
 
 -- | Pure functions for operations with transactions
@@ -3225,7 +3276,7 @@ module Pos.Web
 baseDocsText :: Text
 gtDocsText :: Text
 type MyWorkMode ssc m = (WorkMode ssc m, SscConstraint ssc)
-type WebHandler ssc = TxpHolder TxpExtra_TMP (ContextHolder ssc (DBHolder Production))
+type WebHandler ssc = TxpHolder TxpExtra_TMP (DBHolder (ContextHolder ssc Production))
 serveImpl :: MonadIO m => m Application -> String -> Word16 -> m ()
 nat :: forall ssc m. (MyWorkMode ssc m) => m (WebHandler ssc :~> Handler)
 serveWebBase :: MyWorkMode ssc m => Word16 -> m ()
@@ -3265,7 +3316,12 @@ usRollbackBlocks :: forall m. USGlobalApplyMode m => NewestFirst NE (UpdateBlock
 -- | Verify whether sequence of blocks can be applied to US part of current
 --   GState DB. This function doesn't make pure checks, they are assumed to
 --   be done earlier, most likely during objects construction.
-usVerifyBlocks :: (USGlobalVerifyMode m) => OldestFirst NE UpdateBlock -> m (PollModifier, OldestFirst NE USUndo)
+--   
+--   If the first argument is <a>True</a> it means that all data must be
+--   known. Currently it only means that <tt>UpdateProposal</tt>s must have
+--   only known attributes, but I can't guarantee this comment will always
+--   be up-to-date.
+usVerifyBlocks :: (USGlobalVerifyMode m) => Bool -> OldestFirst NE UpdateBlock -> m (PollModifier, OldestFirst NE USUndo)
 
 -- | This function returns true if update proposal with given identifier
 --   should be requested.
@@ -3329,7 +3385,11 @@ data VoteMsgTag
 VoteMsgTag :: VoteMsgTag
 
 -- | Update System related workers.
-usWorkers :: WorkMode ssc m => ([WorkerSpec m], OutSpecs)
+usWorkers :: WorkMode ssc m => m (Set NodeId) -> ([WorkerSpec m], OutSpecs)
+
+
+-- | Module for exposing JSON instances for Cardano types
+module Pos.Aeson
 
 module Pos.Delegation
 
@@ -3364,13 +3424,8 @@ dwThisEpochPosted :: Lens' DelegationWrap (HashSet PublicKey)
 --   we're locking on the whole delegation wrap at once. Locking on
 --   independent components is better in performance, so there's a place
 --   for optimization here.
-class (Monad m) => MonadDelegation m where askDelegationState = lift askDelegationState
-
--- | Retrieves <a>TVar</a> on <a>DelegationWrap</a>
+type MonadDelegation = MonadReader (TVar DelegationWrap)
 askDelegationState :: MonadDelegation m => m (TVar DelegationWrap)
-
--- | Retrieves <a>TVar</a> on <a>DelegationWrap</a>
-askDelegationState :: (MonadDelegation m, MonadTrans t, MonadDelegation m', t m' ~ m) => m (TVar DelegationWrap)
 
 -- | Retrieves certificate by issuer address (hash of public key) if
 --   present.
@@ -3390,9 +3445,7 @@ runPskIterator :: forall m a. MonadDB m => DBnIterator PskIter a -> m a
 runPskMapIterator :: forall v m a. MonadDB m => DBnMapIterator PskIter v a -> (IterType PskIter -> v) -> m a
 
 -- | Wrapper of <tt>ReaderT (TVar DelegationWrap)</tt>, nothing smart.
-newtype DelegationT m a
-DelegationT :: ReaderT ReaderTCtx m a -> DelegationT m a
-[getDelegationT] :: DelegationT m a -> ReaderT ReaderTCtx m a
+type DelegationT = ReaderT (TVar DelegationWrap)
 
 -- | Executes delegationT transformer creating tvar from given wrap.
 runDelegationT :: MonadIO m => DelegationWrap -> DelegationT m a -> m a
@@ -3401,18 +3454,16 @@ runDelegationT :: MonadIO m => DelegationWrap -> DelegationT m a -> m a
 runDelegationTFromTVar :: TVar DelegationWrap -> DelegationT m a -> m a
 
 -- | Listeners for requests related to delegation processing.
-delegationListeners :: WorkMode ssc m => ([ListenerSpec m], OutSpecs)
+delegationListeners :: WorkMode ssc m => m (Set NodeId) -> ([ListenerSpec m], OutSpecs)
 delegationStubListeners :: WithLogger m => ([ListenerSpec m], OutSpecs)
 
 -- | Handler <a>SendProxySK</a> event.
-handleSendProxySK :: forall ssc m. (WorkMode ssc m) => (ListenerSpec m, OutSpecs)
-handleConfirmProxySK :: forall ssc m. (WorkMode ssc m) => (ListenerSpec m, OutSpecs)
+handleSendProxySK :: forall ssc m. (WorkMode ssc m) => m (Set NodeId) -> (ListenerSpec m, OutSpecs)
+handleConfirmProxySK :: forall ssc m. (WorkMode ssc m) => m (Set NodeId) -> (ListenerSpec m, OutSpecs)
 
 -- | Convenient monad to work in <a>DelegationWrap</a> context while being
 --   in STM.
-newtype DelegationStateAction a
-DelegationStateAction :: StateT DelegationWrap STM a -> DelegationStateAction a
-[getDelegationStateM] :: DelegationStateAction a -> StateT DelegationWrap STM a
+type DelegationStateAction = StateT DelegationWrap STM
 
 -- | Effectively takes a lock on ProxyCaches mvar in NodeContext and allows
 --   you to run some computation producing updated ProxyCaches and return
@@ -3520,14 +3571,14 @@ isProxySKConfirmed :: ProxySKLight -> DelegationStateAction Bool
 delegationLrcConsumer :: MonadDBCore m => LrcConsumer m
 
 -- | Sends epoch psk to neighbours
-sendProxySKLight :: (MinWorkMode m) => ProxySKLight -> Action' m ()
+sendProxySKLight :: (MinWorkMode m) => m (Set NodeId) -> ProxySKLight -> Action' m ()
 
 -- | Sends simple psk to neighbours
-sendProxySKHeavy :: (MinWorkMode m) => ProxySKHeavy -> Action' m ()
+sendProxySKHeavy :: (MinWorkMode m) => m (Set NodeId) -> ProxySKHeavy -> Action' m ()
 
 -- | Generates a proof of being a delegate for psk and sends it to
 --   neighbors.
-sendProxyConfirmSK :: (WorkMode ssc m) => ProxySKLight -> Action' m ()
+sendProxyConfirmSK :: (WorkMode ssc m) => m (Set NodeId) -> ProxySKLight -> Action' m ()
 sendProxySKLightOuts :: OutSpecs
 sendProxySKHeavyOuts :: OutSpecs
 sendProxyConfirmSKOuts :: OutSpecs
@@ -3548,82 +3599,7 @@ data ConfirmProxySK
 ConfirmProxySK :: !ProxySKLight -> !(ProxySigLight ProxySKLight) -> ConfirmProxySK
 
 -- | All workers specific to proxy sertificates processing.
-dlgWorkers :: (WorkMode ssc m) => ([WorkerSpec m], OutSpecs)
-
-module Pos.Client.Txp.Balances
-
--- | A class which have the methods to get state of address' balance
-class Monad m => MonadBalances m where getOwnUtxo = lift . getOwnUtxo getBalance = lift . getBalance
-getOwnUtxo :: MonadBalances m => Address -> m Utxo
-getBalance :: MonadBalances m => Address -> m Coin
-getOwnUtxo :: (MonadBalances m, MonadTrans t, MonadBalances m', t m' ~ m) => Address -> m Utxo
-getBalance :: (MonadBalances m, MonadTrans t, MonadBalances m', t m' ~ m) => Address -> m Coin
-getBalanceFromUtxo :: MonadBalances m => Address -> m Coin
-instance Pos.Client.Txp.Balances.MonadBalances m => Pos.Client.Txp.Balances.MonadBalances (Pos.Context.Holder.ContextHolder ssc m)
-instance Pos.Client.Txp.Balances.MonadBalances m => Pos.Client.Txp.Balances.MonadBalances (Pos.Ssc.Extra.Holder.SscHolder ssc m)
-instance Pos.Client.Txp.Balances.MonadBalances m => Pos.Client.Txp.Balances.MonadBalances (Pos.Delegation.Holder.DelegationT m)
-instance Pos.Client.Txp.Balances.MonadBalances m => Pos.Client.Txp.Balances.MonadBalances (Control.Monad.Trans.Reader.ReaderT r m)
-instance Pos.Client.Txp.Balances.MonadBalances m => Pos.Client.Txp.Balances.MonadBalances (Control.Monad.Trans.State.Lazy.StateT s m)
-instance Pos.Client.Txp.Balances.MonadBalances m => Pos.Client.Txp.Balances.MonadBalances (Pos.DHT.Real.Types.KademliaDHT m)
-instance Pos.Client.Txp.Balances.MonadBalances m => Pos.Client.Txp.Balances.MonadBalances (Pos.Communication.PeerState.PeerStateHolder m)
-instance Pos.Client.Txp.Balances.MonadBalances m => Pos.Client.Txp.Balances.MonadBalances (Pos.Slotting.Ntp.NtpSlotting m)
-instance Pos.Client.Txp.Balances.MonadBalances m => Pos.Client.Txp.Balances.MonadBalances (Pos.Slotting.MemState.Holder.SlottingHolder m)
-instance (Pos.DB.Class.MonadDB m, Control.Monad.Catch.MonadMask m, System.Wlog.CanLog.WithLogger m) => Pos.Client.Txp.Balances.MonadBalances (Pos.Txp.MemState.Holder.TxpHolder __ m)
-
-module Pos.Client.Txp.History
-
--- | Datatype for returning info about tx history
-data TxHistoryEntry
-THEntry :: !TxId -> !Tx -> !Bool -> !(Maybe ChainDifficulty) -> TxHistoryEntry
-[_thTxId] :: TxHistoryEntry -> !TxId
-[_thTx] :: TxHistoryEntry -> !Tx
-[_thIsOutput] :: TxHistoryEntry -> !Bool
-[_thDifficulty] :: TxHistoryEntry -> !(Maybe ChainDifficulty)
-thTxId :: Lens' TxHistoryEntry TxId
-thTx :: Lens' TxHistoryEntry Tx
-thIsOutput :: Lens' TxHistoryEntry Bool
-thDifficulty :: Lens' TxHistoryEntry (Maybe ChainDifficulty)
-data TxHistoryAnswer
-TxHistoryAnswer :: HeaderHash -> Int -> Utxo -> [TxHistoryEntry] -> TxHistoryAnswer
-[taLastCachedHash] :: TxHistoryAnswer -> HeaderHash
-[taCachedNum] :: TxHistoryAnswer -> Int
-[taCachedUtxo] :: TxHistoryAnswer -> Utxo
-[taHistory] :: TxHistoryAnswer -> [TxHistoryEntry]
-
--- | A class which have methods to get transaction history
-class Monad m => MonadTxHistory m where getTxHistory = fmap lift <<$>> getTxHistory saveTx = lift . saveTx
-getTxHistory :: (MonadTxHistory m, SscHelpersClass ssc) => Tagged ssc (Address -> Maybe (HeaderHash, Utxo) -> m TxHistoryAnswer)
-saveTx :: MonadTxHistory m => (TxId, TxAux) -> m ()
-getTxHistory :: (MonadTxHistory m, SscHelpersClass ssc, MonadTrans t, MonadTxHistory m', t m' ~ m) => Tagged ssc (Address -> Maybe (HeaderHash, Utxo) -> m TxHistoryAnswer)
-saveTx :: (MonadTxHistory m, MonadTrans t, MonadTxHistory m', t m' ~ m) => (TxId, TxAux) -> m ()
-
--- | Select transactions related to given address. <a>Bool</a> indicates
---   whether the transaction is outgoing (i. e. is sent from given address)
-getRelatedTxs :: Monad m => Address -> [(WithHash Tx, TxWitness, TxDistribution)] -> TxSelectorT m [TxHistoryEntry]
-
--- | Given a full blockchain, derive address history and Utxo TODO: Such
---   functionality will still be useful for merging blockchains when wallet
---   state is ready, but some metadata for Tx will be required.
-deriveAddrHistory :: (Monad m) => Address -> [Block ssc] -> TxSelectorT m [TxHistoryEntry]
-deriveAddrHistoryPartial :: (Monad m) => [TxHistoryEntry] -> Address -> [Block ssc] -> TxSelectorT m [TxHistoryEntry]
-instance Pos.Client.Txp.History.MonadTxHistory m => Pos.Client.Txp.History.MonadTxHistory (Pos.Context.Holder.ContextHolder ssc m)
-instance Pos.Client.Txp.History.MonadTxHistory m => Pos.Client.Txp.History.MonadTxHistory (Pos.Ssc.Extra.Holder.SscHolder ssc m)
-instance Pos.Client.Txp.History.MonadTxHistory m => Pos.Client.Txp.History.MonadTxHistory (Pos.Delegation.Holder.DelegationT m)
-instance Pos.Client.Txp.History.MonadTxHistory m => Pos.Client.Txp.History.MonadTxHistory (Control.Monad.Trans.Reader.ReaderT r m)
-instance Pos.Client.Txp.History.MonadTxHistory m => Pos.Client.Txp.History.MonadTxHistory (Control.Monad.Trans.State.Lazy.StateT s m)
-instance Pos.Client.Txp.History.MonadTxHistory m => Pos.Client.Txp.History.MonadTxHistory (Pos.DHT.Real.Types.KademliaDHT m)
-instance Pos.Client.Txp.History.MonadTxHistory m => Pos.Client.Txp.History.MonadTxHistory (Pos.Communication.PeerState.PeerStateHolder m)
-instance Pos.Client.Txp.History.MonadTxHistory m => Pos.Client.Txp.History.MonadTxHistory (Pos.Slotting.Ntp.NtpSlotting m)
-instance Pos.Client.Txp.History.MonadTxHistory m => Pos.Client.Txp.History.MonadTxHistory (Pos.Slotting.MemState.Holder.SlottingHolder m)
-instance (Pos.DB.Class.MonadDB m, Control.Monad.Catch.MonadThrow m, System.Wlog.CanLog.WithLogger m, Pos.Slotting.Class.MonadSlots m, Pos.Context.Class.WithNodeContext s m) => Pos.Client.Txp.History.MonadTxHistory (Pos.Txp.MemState.Holder.TxpHolder Pos.WorkMode.TxpExtra_TMP m)
-instance GHC.Show.Show Pos.Client.Txp.History.TxHistoryAnswer
-instance GHC.Generics.Generic Pos.Client.Txp.History.TxHistoryEntry
-instance GHC.Classes.Eq Pos.Client.Txp.History.TxHistoryEntry
-instance GHC.Show.Show Pos.Client.Txp.History.TxHistoryEntry
-
-
--- | Module for exposing JSON instances for Cardano types
-module Pos.Aeson
+dlgWorkers :: (WorkMode ssc m) => m (Set NodeId) -> ([WorkerSpec m], OutSpecs)
 
 
 -- | Logic of blocks processing.
@@ -3695,7 +3671,7 @@ classifyHeaders :: forall ssc m. WorkMode ssc m => NewestFirst NE (BlockHeader s
 --   encountered. In case we got deeper than <a>recoveryHeadersMessage</a>,
 --   we return <a>recoveryHeadersMessage</a> headers starting from the the
 --   newest checkpoint that's in our main chain to the newest ones.
-getHeadersFromManyTo :: forall ssc m. (MonadDB m, SscHelpersClass ssc, CanLog m, HasLoggerName m) => NonEmpty HeaderHash -> Maybe HeaderHash -> m (Maybe (NewestFirst NE (BlockHeader ssc)))
+getHeadersFromManyTo :: forall ssc m. (MonadDB m, SscHelpersClass ssc, CanLog m, HasLoggerName m) => NonEmpty HeaderHash -> Maybe HeaderHash -> m (Either Text (NewestFirst NE (BlockHeader ssc)))
 
 -- | Given a starting point hash (we take tip if it's not in storage) it
 --   returns not more than <a>blkSecurityParam</a> blocks distributed
@@ -3715,13 +3691,13 @@ getHeadersFromToIncl :: forall ssc m. (MonadDB m, SscHelpersClass ssc) => Header
 --   to apply as much blocks as it's possible and return header hash of new
 --   tip. It's up to caller to log warning that partial application
 --   happened.
-verifyAndApplyBlocks :: (MonadDBCore m, WorkMode ssc m, SscWorkersClass ssc) => Bool -> OldestFirst NE (Block ssc) -> m (Either Text HeaderHash)
+verifyAndApplyBlocks :: (MonadDBCore m, WorkMode ssc m, SscWorkersClass ssc) => m (Set NodeId) -> Bool -> OldestFirst NE (Block ssc) -> m (Either Text HeaderHash)
 
 -- | Rollbacks blocks. Head must be the current tip.
-rollbackBlocks :: (WorkMode ssc m) => NewestFirst NE (Blund ssc) -> m (Maybe Text)
+rollbackBlocks :: (WorkMode ssc m) => m (Set NodeId) -> NewestFirst NE (Blund ssc) -> m (Maybe Text)
 
 -- | Rollbacks some blocks and then applies some blocks.
-applyWithRollback :: (MonadDBCore m, WorkMode ssc m, SscWorkersClass ssc) => NewestFirst NE (Blund ssc) -> OldestFirst NE (Block ssc) -> m (Either Text HeaderHash)
+applyWithRollback :: (MonadDBCore m, WorkMode ssc m, SscWorkersClass ssc) => m (Set NodeId) -> NewestFirst NE (Blund ssc) -> OldestFirst NE (Block ssc) -> m (Either Text HeaderHash)
 
 -- | Create genesis block if necessary.
 --   
@@ -3732,13 +3708,13 @@ applyWithRollback :: (MonadDBCore m, WorkMode ssc m, SscWorkersClass ssc) => New
 --   genesis block on top of blocks from previous epoch which are not from
 --   last slotSecurityParam slots, because it's practically impossible for
 --   them to be valid. [CSL-481] We can do consider doing it though.
-createGenesisBlock :: forall ssc m. WorkMode ssc m => EpochIndex -> m (Maybe (GenesisBlock ssc))
+createGenesisBlock :: forall ssc m. WorkMode ssc m => m (Set NodeId) -> EpochIndex -> m (Maybe (GenesisBlock ssc))
 
 -- | Create a new main block on top of best chain if possible. Block can be
 --   created if: • we know genesis block for epoch from given SlotId • last
 --   known block is not more than <a>slotSecurityParam</a> blocks away from
 --   given SlotId
-createMainBlock :: forall ssc m. (WorkMode ssc m) => SlotId -> Maybe ProxySKEither -> m (Either Text (MainBlock ssc))
+createMainBlock :: forall ssc m. (WorkMode ssc m) => m (Set NodeId) -> SlotId -> Maybe ProxySKEither -> m (Either Text (MainBlock ssc))
 instance Pos.Ssc.Class.Types.Ssc ssc => GHC.Show.Show (Pos.Block.Logic.ClassifyHeadersRes ssc)
 instance GHC.Show.Show Pos.Block.Logic.ClassifyHeaderRes
 
@@ -3746,8 +3722,67 @@ instance GHC.Show.Show Pos.Block.Logic.ClassifyHeaderRes
 -- | Re-exports of Pos.Communication.*
 module Pos.Communication
 
+
+-- | Module for command-line utilites, parsers and convenient handlers.
+module Pos.CLI
+
+-- | Parsed for network address in format <tt>host:port</tt>.
+addrParser :: Parser NetworkAddress
+attackTypeParser :: Parser AttackType
+attackTargetParser :: Parser AttackTarget
+
+-- | Default logger config. Will be used if `--log-config` argument is not
+--   passed. Corresponds to next logger config:
+--   
+--   <pre>
+--   node:
+--     severity: Info
+--     comm:
+--       severity: Warning
+--   </pre>
+defaultLoggerConfig :: LoggerConfig
+
+-- | Reads logger config from given path. By default return
+--   <a>defaultLoggerConfig</a>.
+readLoggerConfig :: MonadIO m => Maybe FilePath -> m LoggerConfig
+
+-- | Decides which secret-sharing algorithm to use.
+sscAlgoParser :: Parser SscAlgo
+data CommonArgs
+CommonArgs :: !(Maybe FilePath) -> !(Maybe FilePath) -> !SscAlgo -> !Bool -> ![Text] -> ![Text] -> !(Maybe (Int, Int)) -> !(Maybe (Int, Int)) -> !(Maybe (Int, Int, Integer, Double)) -> !Bool -> !Timestamp -> !PeerId -> CommonArgs
+[logConfig] :: CommonArgs -> !(Maybe FilePath)
+[logPrefix] :: CommonArgs -> !(Maybe FilePath)
+[sscAlgo] :: CommonArgs -> !SscAlgo
+[disablePropagation] :: CommonArgs -> !Bool
+[reportServers] :: CommonArgs -> ![Text]
+[updateServers] :: CommonArgs -> ![Text]
+[flatDistr] :: CommonArgs -> !(Maybe (Int, Int))
+[bitcoinDistr] :: CommonArgs -> !(Maybe (Int, Int))
+[richPoorDistr] :: CommonArgs -> !(Maybe (Int, Int, Integer, Double))
+[expDistr] :: CommonArgs -> !Bool
+
+-- | The system start time.
+[sysStart] :: CommonArgs -> !Timestamp
+
+-- | A node's peer identifier.
+[peerId] :: CommonArgs -> !PeerId
+commonArgsParser :: Parser CommonArgs
+optionalJSONPath :: Parser (Maybe FilePath)
+optionalLogPrefix :: Parser (Maybe String)
+portOption :: Word16 -> Parser Word16
+timeLordOption :: Parser Bool
+webPortOption :: Word16 -> String -> Parser Word16
+walletPortOption :: Word16 -> String -> Parser Word16
+networkAddressOption :: String -> String -> Parser NetworkAddress
+externalNetworkAddressOption :: Maybe NetworkAddress -> Parser NetworkAddress
+listenNetworkAddressOption :: Maybe NetworkAddress -> Parser NetworkAddress
+sysStartOption :: Parser Timestamp
+peerIdOption :: Parser PeerId
+nodeIdOption :: String -> String -> Parser NodeId
+instance GHC.Show.Show Pos.CLI.CommonArgs
+
 module Pos.Block.Network
-announceBlock :: WorkMode ssc m => SendActions m -> MainBlockHeader ssc -> m ()
+announceBlock :: WorkMode ssc m => m (Set NodeId) -> SendActions m -> MainBlockHeader ssc -> m ()
 announceBlockOuts :: OutSpecs
 handleHeadersCommunication :: forall ssc m s. (WorkMode ssc m, Reifies s (Limit MsgGetHeaders)) => ConversationActions (MsgHeaders ssc) (LimitedLength s MsgGetHeaders) m -> Proxy s -> m ()
 blockListeners :: (SscWorkersClass ssc, WorkMode ssc m) => m ([ListenerSpec m], OutSpecs)
@@ -3755,7 +3790,7 @@ blockStubListeners :: (SscHelpersClass ssc, WithLogger m) => Tagged ssc ([Listen
 needRecovery :: forall ssc m. (SscWorkersClass ssc, WorkMode ssc m) => Proxy ssc -> m Bool
 
 -- | Triggers recovery based on established communication.
-triggerRecovery :: forall ssc m. (SscWorkersClass ssc, WorkMode ssc m) => SendActions m -> m ()
+triggerRecovery :: forall ssc m. (SscWorkersClass ssc, WorkMode ssc m) => m (Set NodeId) -> SendActions m -> m ()
 requestTipOuts :: OutSpecs
 
 -- | Is used if we're recovering after offline and want to know what's
@@ -3774,8 +3809,8 @@ requestHeaders :: forall ssc s m. (SscWorkersClass ssc, WorkMode ssc m) => MsgGe
 --   LcaChild is the first block after LCA we don't know. WantedBlock is
 --   the newest one we want to get.
 mkBlocksRequest :: HeaderHash -> HeaderHash -> MsgGetBlocks
-handleBlocks :: forall ssc m. (MonadDBCore m, SscWorkersClass ssc, WorkMode ssc m) => NodeId -> OldestFirst NE (Block ssc) -> SendActions m -> m ()
-retrievalWorker :: forall ssc m. (MonadDBCore m, SscWorkersClass ssc, WorkMode ssc m) => (WorkerSpec m, OutSpecs)
+handleBlocks :: forall ssc m. (MonadDBCore m, SscWorkersClass ssc, WorkMode ssc m) => m (Set NodeId) -> NodeId -> OldestFirst NE (Block ssc) -> SendActions m -> m ()
+retrievalWorker :: forall ssc m. (MonadDBCore m, SscWorkersClass ssc, WorkMode ssc m) => m (Set NodeId) -> (WorkerSpec m, OutSpecs)
 
 -- | <tt>GetHeaders</tt> message. Behaviour of the response depends on
 --   particular combination of <a>mghFrom</a> and <a>mghTo</a>.
@@ -3921,18 +3956,18 @@ findDelegatedRichmen :: (MonadDB m, MonadIterator (StakeholderId, Coin) m) => Co
 data RichmenType
 RTUsual :: RichmenType
 RTDelegation :: (HashMap StakeholderId [StakeholderId]) -> RichmenType
-lrcOnNewSlotWorker :: (SscWorkersClass ssc, WorkMode ssc m, MonadDBCore m) => (WorkerSpec m, OutSpecs)
+lrcOnNewSlotWorker :: (SscWorkersClass ssc, WorkMode ssc m, MonadDBCore m) => m (Set NodeId) -> (WorkerSpec m, OutSpecs)
 
 -- | Run leaders and richmen computation for given epoch. If stable block
 --   for this epoch is not known, LrcError will be thrown.
-lrcSingleShot :: (SscWorkersClass ssc, WorkMode ssc m, MonadDBCore m) => EpochIndex -> m ()
+lrcSingleShot :: (SscWorkersClass ssc, WorkMode ssc m, MonadDBCore m) => m (Set NodeId) -> EpochIndex -> m ()
 
 -- | Same, but doesn't take lock on the semaphore.
-lrcSingleShotNoLock :: (SscWorkersClass ssc, WorkMode ssc m, MonadDBCore m) => EpochIndex -> m ()
+lrcSingleShotNoLock :: (SscWorkersClass ssc, WorkMode ssc m, MonadDBCore m) => m (Set NodeId) -> EpochIndex -> m ()
 
 module Pos.Security.Workers
 class Ssc ssc => SecurityWorkersClass ssc
-securityWorkers :: (SecurityWorkersClass ssc, WorkMode ssc m) => Tagged ssc ([WorkerSpec m], OutSpecs)
+securityWorkers :: (SecurityWorkersClass ssc, WorkMode ssc m) => m (Set NodeId) -> Tagged ssc ([WorkerSpec m], OutSpecs)
 instance Pos.Security.Class.SecurityWorkersClass Pos.Ssc.GodTossing.Type.SscGodTossing
 instance Pos.Security.Class.SecurityWorkersClass Pos.Ssc.NistBeacon.SscNistBeacon
 
@@ -3941,16 +3976,16 @@ instance Pos.Security.Class.SecurityWorkersClass Pos.Ssc.NistBeacon.SscNistBeaco
 module Pos.Worker
 
 -- | All, but in reality not all, workers used by full node.
-allWorkers :: (SscWorkersClass ssc, SecurityWorkersClass ssc, WorkMode ssc m, MonadDBCore m) => ([WorkerSpec m], OutSpecs)
+allWorkers :: (SscWorkersClass ssc, SecurityWorkersClass ssc, WorkMode ssc m, MonadDBCore m) => m (Set NodeId) -> ([WorkerSpec m], OutSpecs)
 allWorkersCount :: forall ssc m. (MonadDBCore m, SscWorkersClass ssc, SecurityWorkersClass ssc, WorkMode ssc m) => Int
 
 module Pos.Launcher
 
 -- | Run full node in real mode.
-runNodeProduction :: forall ssc. SscConstraint ssc => RealModeResources -> ([WorkerSpec (ProductionMode ssc)], OutSpecs) -> NodeParams -> SscParams ssc -> Production ()
+runNodeProduction :: forall ssc. SscConstraint ssc => PeerId -> RealModeResources (ProductionMode ssc) -> ([WorkerSpec (ProductionMode ssc)], OutSpecs) -> NodeParams -> SscParams ssc -> Production ()
 
 -- | Run full node in benchmarking node
-runNodeStats :: forall ssc. SscConstraint ssc => RealModeResources -> ([WorkerSpec (StatsMode ssc)], OutSpecs) -> NodeParams -> SscParams ssc -> Production ()
+runNodeStats :: forall ssc. SscConstraint ssc => PeerId -> RealModeResources (StatsMode ssc) -> ([WorkerSpec (StatsMode ssc)], OutSpecs) -> NodeParams -> SscParams ssc -> Production ()
 stakesDistr :: DistrOption -> DistrOption -> Maybe (Int, Int, Integer, Double) -> Bool -> StakeDistribution
 
 -- | Contains all parameters required for hierarchical logger
@@ -3970,30 +4005,14 @@ LoggingParams :: !LoggerName -> !(Maybe FilePath) -> !(Maybe FilePath) -> !(Mayb
 
 -- | Contains basic &amp; networking parameters for running node.
 data BaseParams
-BaseParams :: !(Maybe NetworkAddress) -> !(Maybe String) -> ![DHTNode] -> !(Maybe DHTKey) -> !Bool -> !LoggingParams -> !FilePath -> BaseParams
-
--- | Host/port to bind to
-[bpBindAddress] :: BaseParams -> !(Maybe NetworkAddress)
-
--- | Public host if different from <a>bpBindAddress</a> host
-[bpPublicHost] :: BaseParams -> !(Maybe String)
-
--- | Peers passed from CLI
-[bpDHTPeers] :: BaseParams -> ![DHTNode]
-
--- | DHT key
-[bpDHTKey] :: BaseParams -> !(Maybe DHTKey)
-[bpDHTExplicitInitial] :: BaseParams -> !Bool
+BaseParams :: !LoggingParams -> BaseParams
 
 -- | Logger parameters
 [bpLoggingParams] :: BaseParams -> !LoggingParams
 
--- | Path to kademlia dump file
-[bpKademliaDump] :: BaseParams -> !FilePath
-
 -- | Contains algorithm specific &amp; storage parameters for Node.
 data NodeParams
-NodeParams :: !FilePath -> !Bool -> !Timestamp -> !SecretKey -> !UserSecret -> !BaseParams -> !Utxo -> !Bool -> !(Maybe FilePath) -> ![AttackType] -> ![AttackTarget] -> !Bool -> ![Text] -> !UpdateParams -> NodeParams
+NodeParams :: !FilePath -> !Bool -> !Timestamp -> !SecretKey -> !UserSecret -> !BaseParams -> !Utxo -> !(Maybe FilePath) -> ![AttackType] -> ![AttackTarget] -> !Bool -> ![Text] -> !UpdateParams -> NodeParams
 
 -- | Path to node's database.
 [npDbPathM] :: NodeParams -> !FilePath
@@ -4015,9 +4034,6 @@ NodeParams :: !FilePath -> !Bool -> !Timestamp -> !SecretKey -> !UserSecret -> !
 
 -- | predefined custom utxo
 [npCustomUtxo] :: NodeParams -> !Utxo
-
--- | <tt>True</tt> if node started as time-lord
-[npTimeLord] :: NodeParams -> !Bool
 [npJLFile] :: NodeParams -> !(Maybe FilePath)
 
 -- | List of attack types used by malicious emulation
@@ -4034,43 +4050,56 @@ NodeParams :: !FilePath -> !Bool -> !Timestamp -> !SecretKey -> !UserSecret -> !
 
 -- | Params for update system
 [npUpdateParams] :: NodeParams -> !UpdateParams
+data RealModeResources m
+RealModeResources :: Transport m -> m (Set NodeId) -> m (Set NodeId) -> RealModeResources m
+[rmTransport] :: RealModeResources m -> Transport m
+[rmGetPeers] :: RealModeResources m -> m (Set NodeId)
+[rmFindPeers] :: RealModeResources m -> m (Set NodeId)
+hoistResources :: (Functor n) => (forall t. m t -> n t) -> RealModeResources m -> RealModeResources n
 
 -- | RawRealMode runner.
-runRawRealMode :: forall ssc a. SscConstraint ssc => RealModeResources -> NodeParams -> SscParams ssc -> RawRealMode ssc (ListenersWithOut (RawRealMode ssc)) -> OutSpecs -> ActionSpec (RawRealMode ssc) a -> Production a
+runRawRealMode :: forall ssc a. SscConstraint ssc => PeerId -> RealModeResources (RawRealMode ssc) -> NodeParams -> SscParams ssc -> RawRealMode ssc (ListenersWithOut (RawRealMode ssc)) -> OutSpecs -> ActionSpec (RawRealMode ssc) a -> Production a
 
 -- | ProductionMode runner.
-runProductionMode :: forall ssc a. (SscConstraint ssc) => RealModeResources -> NodeParams -> SscParams ssc -> (ActionSpec (ProductionMode ssc) a, OutSpecs) -> Production a
+runProductionMode :: forall ssc a. (SscConstraint ssc) => PeerId -> RealModeResources (ProductionMode ssc) -> NodeParams -> SscParams ssc -> (ActionSpec (ProductionMode ssc) a, OutSpecs) -> Production a
 
 -- | StatsMode runner. [CSL-169]: spawn here additional listener, which
 --   would accept stat queries can be done as part of refactoring (or
 --   someone who will refactor will create new issue).
-runStatsMode :: forall ssc a. (SscConstraint ssc) => RealModeResources -> NodeParams -> SscParams ssc -> (ActionSpec (StatsMode ssc) a, OutSpecs) -> Production a
+runStatsMode :: forall ssc a. (SscConstraint ssc) => PeerId -> RealModeResources (StatsMode ssc) -> NodeParams -> SscParams ssc -> (ActionSpec (StatsMode ssc) a, OutSpecs) -> Production a
 
 -- | ServiceMode runner.
-runServiceMode :: RealModeResources -> BaseParams -> ListenersWithOut ServiceMode -> OutSpecs -> ActionSpec ServiceMode a -> Production a
-addDevListeners :: MinWorkMode m => Timestamp -> ListenersWithOut m -> ListenersWithOut m
+runServiceMode :: PeerId -> RealModeResources ServiceMode -> BaseParams -> ListenersWithOut ServiceMode -> OutSpecs -> ActionSpec ServiceMode a -> Production a
+addDevListeners :: MinWorkMode m => ListenersWithOut m -> ListenersWithOut m
 setupLoggers :: MonadIO m => LoggingParams -> m ()
-bracketDHTInstance :: BaseParams -> (KademliaDHTInstance -> Production a) -> Production a
-runServer :: (MonadIO m, MonadMockable m, MonadFix m, WithLogger m, MonadDHT m) => Transport -> m (ListenersWithOut m) -> OutSpecs -> (Node m -> m t) -> (t -> m ()) -> ActionSpec m b -> m b
-runServer_ :: (MonadIO m, MonadMockable m, MonadFix m, WithLogger m, MonadDHT m) => Transport -> ListenersWithOut m -> OutSpecs -> ActionSpec m b -> m b
+bracketDHTInstance :: BaseParams -> KademliaParams -> (KademliaDHTInstance -> Production a) -> Production a
+runServer :: (MonadIO m, MonadMockable m, MonadFix m, WithLogger m) => PeerId -> Transport m -> m (ListenersWithOut m) -> OutSpecs -> (Node m -> m t) -> (t -> m ()) -> ActionSpec m b -> m b
+runServer_ :: (MonadIO m, MonadMockable m, MonadFix m, WithLogger m) => PeerId -> Transport m -> ListenersWithOut m -> OutSpecs -> ActionSpec m b -> m b
 
 -- | RAII for node starter.
 loggerBracket :: LoggingParams -> IO a -> IO a
-createTransport :: (MonadIO m, WithLogger m, Mockable Throw m) => TCPAddr -> m Transport
-bracketTransport :: BaseParams -> (Transport -> Production a) -> Production a
-bracketResources :: BaseParams -> (RealModeResources -> Production a) -> IO a
-data RealModeResources
-RealModeResources :: Transport -> KademliaDHTInstance -> RealModeResources
-[rmTransport] :: RealModeResources -> Transport
-[rmDHT] :: RealModeResources -> KademliaDHTInstance
+createTransportTCP :: (MonadIO m, WithLogger m, Mockable Throw m) => TCPAddr -> m (Transport m)
+bracketTransport :: TCPAddr -> (Transport Production -> Production a) -> Production a
+
+-- | Bracket a transport and use a static set of peers for discovery.
+bracketResources :: BaseParams -> TCPAddr -> Set NodeId -> (RealModeResources Production -> Production a) -> IO a
+
+-- | Bracket a transport and a Kademlia node, using the latter for
+--   discovery.
+bracketResourcesKademlia :: BaseParams -> TCPAddr -> KademliaParams -> (KademliaDHTInstance -> RealModeResources Production -> Production a) -> IO a
+data RealModeResources m
+RealModeResources :: Transport m -> m (Set NodeId) -> m (Set NodeId) -> RealModeResources m
+[rmTransport] :: RealModeResources m -> Transport m
+[rmGetPeers] :: RealModeResources m -> m (Set NodeId)
+[rmFindPeers] :: RealModeResources m -> m (Set NodeId)
 
 -- | Run full node in any WorkMode.
-runNode :: (SscConstraint ssc, WorkMode ssc m, MonadDBCore m) => ([WorkerSpec m], OutSpecs) -> (WorkerSpec m, OutSpecs)
+runNode :: (SscConstraint ssc, WorkMode ssc m, MonadDBCore m) => RealModeResources m -> ([WorkerSpec m], OutSpecs) -> (WorkerSpec m, OutSpecs)
 initSemaphore :: (WorkMode ssc m) => m ()
 initLrc :: WorkMode ssc m => m ()
 
 -- | Run full node in any WorkMode.
-runNode' :: forall ssc m. (SscConstraint ssc, WorkMode ssc m, MonadDBCore m) => [WorkerSpec m] -> WorkerSpec m
+runNode' :: forall ssc m. (SscConstraint ssc, WorkMode ssc m, MonadDBCore m) => RealModeResources m -> [WorkerSpec m] -> WorkerSpec m
 
 module Pos.Wallet
 class Monad m => MonadKeys m where getPrimaryKey = lift getPrimaryKey getSecretKeys = lift getSecretKeys addSecretKey = lift . addSecretKey deleteSecretKey = lift . deleteSecretKey
@@ -4085,9 +4114,7 @@ deleteSecretKey :: (MonadKeys m, MonadTrans t, MonadKeys m', t m' ~ m) => Word -
 
 -- | Helper for generating a new secret key
 newSecretKey :: (MonadIO m, MonadKeys m) => PassPhrase -> m EncryptedSecretKey
-newtype KeyStorage m a
-KeyStorage :: ReaderT KeyData m a -> KeyStorage m a
-[getKeyStorage] :: KeyStorage m a -> ReaderT KeyData m a
+type KeyStorage = ReaderT KeyData
 type KeyData = TVar UserSecret
 data KeyError
 
@@ -4106,18 +4133,18 @@ WalletParams :: !(Maybe FilePath) -> !Bool -> !FilePath -> Timestamp -> !Bool ->
 
 -- | Genesis utxo
 [wpGenesisUtxo] :: WalletParams -> !Utxo
-runRawRealWallet :: RealModeResources -> WalletParams -> ListenersWithOut WalletRealMode -> (ActionSpec WalletRealMode a, OutSpecs) -> Production a
+runRawRealWallet :: PeerId -> RealModeResources WalletRealMode -> WalletParams -> ListenersWithOut WalletRealMode -> (ActionSpec WalletRealMode a, OutSpecs) -> Production a
 
 -- | WalletMode runner
-runWalletRealMode :: RealModeResources -> WalletParams -> (ActionSpec WalletRealMode a, OutSpecs) -> Production a
-runWalletReal :: RealModeResources -> WalletParams -> ([WorkerSpec WalletRealMode], OutSpecs) -> Production ()
-runWallet :: WalletMode ssc m => ([WorkerSpec m], OutSpecs) -> (WorkerSpec m, OutSpecs)
+runWalletRealMode :: PeerId -> RealModeResources WalletRealMode -> WalletParams -> (ActionSpec WalletRealMode a, OutSpecs) -> Production a
+runWalletReal :: PeerId -> RealModeResources WalletRealMode -> WalletParams -> ([WorkerSpec WalletRealMode], OutSpecs) -> Production ()
+runWallet :: WalletMode ssc m => RealModeResources m -> ([WorkerSpec m], OutSpecs) -> (WorkerSpec m, OutSpecs)
 
 -- | Send UpdateVote to given addresses
-submitVote :: (MinWorkMode m, MonadDBLimits m) => SendActions m -> [DHTNode] -> UpdateVote -> m ()
+submitVote :: (MinWorkMode m, MonadDBLimits m) => SendActions m -> [NodeId] -> UpdateVote -> m ()
 
 -- | Send UpdateProposal with one positive vote to given addresses
-submitUpdateProposal :: (MinWorkMode m, MonadDBLimits m) => SendActions m -> SafeSigner -> [DHTNode] -> UpdateProposal -> m ()
+submitUpdateProposal :: (MinWorkMode m, MonadDBLimits m) => SendActions m -> SafeSigner -> [NodeId] -> UpdateProposal -> m ()
 sendVoteOuts :: OutSpecs
 sendProposalOuts :: OutSpecs
 
@@ -4150,18 +4177,46 @@ waitForUpdate :: MonadUpdates m => m ConfirmedProposalState
 applyLastUpdate :: MonadUpdates m => m ()
 waitForUpdate :: (MonadUpdates m, MonadTrans t, MonadUpdates m', t m' ~ m) => m ConfirmedProposalState
 applyLastUpdate :: (MonadUpdates m, MonadTrans t, MonadUpdates m', t m' ~ m) => m ()
-type WalletMode ssc m = (TxMode ssc m, MonadKeys m, MonadBlockchainInfo m, MonadUpdates m, WithWalletContext m, MonadDHT m, WithPeerState m)
-type WalletRealMode = PeerStateHolder (KademliaDHT (KeyStorage (WalletDB (ContextHolder (LoggerNameBox Production)))))
+type WalletMode ssc m = (TxMode ssc m, MonadKeys m, MonadBlockchainInfo m, MonadUpdates m, WithPeerState m)
+type WalletRealMode = PeerStateHolder (KeyStorage (WalletDB (ReportingContextT (LoggerNameBox Production))))
 
 module Pos.Wallet.Web
 
 -- | Servant API which provides access to wallet. TODO: Should be composed
 --   depending on the resource - wallets, txs, ...
 --   <a>http://haskell-servant.github.io/tutorial/0.4/server.html#nested-apis</a>
-type WalletApi = ("api" :> ("test" :> ("reset" :> Post '[JSON] (Either WalletError ())))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> Get '[JSON] (Either WalletError CWallet)))) :<|> (("api" :> ("wallets" :> Get '[JSON] (Either WalletError [CWallet]))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> (ReqBody '[JSON] CWalletMeta :> Put '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("wallets" :> (Capture "walletId" CAddress :> Delete '[JSON] (Either WalletError ())))) :<|> (("api" :> ("wallets" :> ("keys" :> (ReqBody '[JSON] Text :> Post '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("wallets" :> ("restore" :> (Capture "passphrase" CPassPhrase :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet)))))) :<|> (("api" :> ("wallets" :> (Capture "passphrase" CPassPhrase :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet))))) :<|> (("api" :> ("addresses" :> (Capture "address" Text :> ("currencies" :> (Capture "currency" CCurrency :> Get '[JSON] (Either WalletError Bool)))))) :<|> (("api" :> ("profile" :> Get '[JSON] (Either WalletError CProfile))) :<|> (("api" :> ("profile" :> (ReqBody '[JSON] CProfile :> Post '[JSON] (Either WalletError CProfile)))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "passphrase" CPassPhrase :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> Post '[JSON] (Either WalletError CTx)))))))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "passphrase" CPassPhrase :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> (Capture "currency" CCurrency :> (Capture "title" Text :> (Capture "description" Text :> Post '[JSON] (Either WalletError CTx))))))))))) :<|> (("api" :> ("txs" :> ("payments" :> (Capture "address" CAddress :> (Capture "transaction" CTxId :> (ReqBody '[JSON] CTxMeta :> Post '[JSON] (Either WalletError ()))))))) :<|> (("api" :> ("txs" :> ("histories" :> (Capture "address" CAddress :> (QueryParam "skip" Word :> (QueryParam "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word)))))))) :<|> (("api" :> ("txs" :> ("histories" :> (Capture "address" CAddress :> (Capture "search" Text :> (QueryParam "skip" Word :> (QueryParam "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word))))))))) :<|> (("api" :> ("update" :> Get '[JSON] (Either WalletError CUpdateInfo))) :<|> (("api" :> ("update" :> Post '[JSON] (Either WalletError ()))) :<|> (("api" :> ("redemptions" :> ("ada" :> (ReqBody '[JSON] CWalletRedeem :> Post '[JSON] (Either WalletError CTx))))) :<|> (("api" :> ("papervend" :> ("redemptions" :> ("ada" :> (ReqBody '[JSON] CPaperVendWalletRedeem :> Post '[JSON] (Either WalletError CTx)))))) :<|> (("api" :> ("reporting" :> ("initialized" :> (ReqBody '[JSON] CInitialized :> Post '[JSON] (Either WalletError ()))))) :<|> (("api" :> ("reporting" :> ("electroncrash" :> (MultipartForm CElectronCrashReport :> Post '[JSON] (Either WalletError ()))))) :<|> (("api" :> ("settings" :> ("slots" :> ("duration" :> Get '[JSON] (Either WalletError Word))))) :<|> (("api" :> ("settings" :> ("version" :> Get '[JSON] (Either WalletError SoftwareVersion)))) :<|> ("api" :> ("settings" :> ("sync" :> ("progress" :> Get '[JSON] (Either WalletError SyncProgress))))))))))))))))))))))))))))
+type WalletApi = TestReset :<|> (GetWallet :<|> (GetWallets :<|> (UpdateWallet :<|> (DeleteWallet :<|> (ImportKey :<|> (WalletRestore :<|> (NewWallet :<|> (IsValidAddress :<|> (GetProfile :<|> (UpdateProfile :<|> (NewPayment :<|> (NewPaymentExt :<|> (UpdateTx :<|> (GetHistory :<|> (SearchHistory :<|> (NextUpdate :<|> (ApplyUpdate :<|> (RedeemADA :<|> (RedeemADAPaperVend :<|> (ReportingInitialized :<|> (ReportingElectroncrash :<|> (GetSlotsDuration :<|> (GetVersion :<|> GetSyncProgress)))))))))))))))))))))))
 
 -- | Helper Proxy.
 walletApi :: Proxy WalletApi
+
+-- | All endpoints are defined as a separate types, for description in
+--   Swagger-based HTML-documentation.
+type TestReset = API :> ("test" :> ("reset" :> Post '[JSON] (Either WalletError ())))
+type GetWallet = API :> ("wallets" :> (Capture "walletId" CAddress :> Get '[JSON] (Either WalletError CWallet)))
+type GetWallets = API :> ("wallets" :> Get '[JSON] (Either WalletError [CWallet]))
+type UpdateWallet = API :> ("wallets" :> (Capture "walletId" CAddress :> (ReqBody '[JSON] CWalletMeta :> Put '[JSON] (Either WalletError CWallet))))
+type DeleteWallet = API :> ("wallets" :> (Capture "walletId" CAddress :> Delete '[JSON] (Either WalletError ())))
+type ImportKey = API :> ("wallets" :> ("keys" :> (ReqBody '[JSON] Text :> Post '[JSON] (Either WalletError CWallet))))
+type WalletRestore = API :> ("wallets" :> ("restore" :> (Capture "passphrase" CPassPhrase :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet)))))
+type NewWallet = API :> ("wallets" :> (Capture "passphrase" CPassPhrase :> (ReqBody '[JSON] CWalletInit :> Post '[JSON] (Either WalletError CWallet))))
+type IsValidAddress = API :> ("addresses" :> (Capture "address" Text :> ("currencies" :> (Capture "currency" CCurrency :> Get '[JSON] (Either WalletError Bool)))))
+type GetProfile = API :> ("profile" :> Get '[JSON] (Either WalletError CProfile))
+type UpdateProfile = API :> ("profile" :> (ReqBody '[JSON] CProfile :> Post '[JSON] (Either WalletError CProfile)))
+type NewPayment = API :> ("txs" :> ("payments" :> (Capture "passphrase" CPassPhrase :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> Post '[JSON] (Either WalletError CTx)))))))
+type NewPaymentExt = API :> ("txs" :> ("payments" :> (Capture "passphrase" CPassPhrase :> (Capture "from" CAddress :> (Capture "to" CAddress :> (Capture "amount" Coin :> (Capture "currency" CCurrency :> (Capture "title" Text :> (Capture "description" Text :> Post '[JSON] (Either WalletError CTx))))))))))
+type UpdateTx = API :> ("txs" :> ("payments" :> (Capture "address" CAddress :> (Capture "transaction" CTxId :> (ReqBody '[JSON] CTxMeta :> Post '[JSON] (Either WalletError ()))))))
+type GetHistory = API :> ("txs" :> ("histories" :> (Capture "address" CAddress :> (QueryParam "skip" Word :> (QueryParam "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word)))))))
+type SearchHistory = API :> ("txs" :> ("histories" :> (Capture "address" CAddress :> (Capture "search" Text :> (QueryParam "skip" Word :> (QueryParam "limit" Word :> Get '[JSON] (Either WalletError ([CTx], Word))))))))
+type NextUpdate = API :> ("update" :> Get '[JSON] (Either WalletError CUpdateInfo))
+type ApplyUpdate = API :> ("update" :> Post '[JSON] (Either WalletError ()))
+type RedeemADA = API :> ("redemptions" :> ("ada" :> (ReqBody '[JSON] CWalletRedeem :> Post '[JSON] (Either WalletError CTx))))
+type RedeemADAPaperVend = API :> ("papervend" :> ("redemptions" :> ("ada" :> (ReqBody '[JSON] CPaperVendWalletRedeem :> Post '[JSON] (Either WalletError CTx)))))
+type ReportingInitialized = API :> ("reporting" :> ("initialized" :> (ReqBody '[JSON] CInitialized :> Post '[JSON] (Either WalletError ()))))
+type ReportingElectroncrash = API :> ("reporting" :> ("electroncrash" :> (MultipartForm CElectronCrashReport :> Post '[JSON] (Either WalletError ()))))
+type GetSlotsDuration = API :> ("settings" :> ("slots" :> ("duration" :> Get '[JSON] (Either WalletError Word))))
+type GetVersion = API :> ("settings" :> ("version" :> Get '[JSON] (Either WalletError SoftwareVersion)))
+type GetSyncProgress = API :> ("settings" :> ("sync" :> ("progress" :> Get '[JSON] (Either WalletError SyncProgress))))
 data SyncProgress
 SyncProgress :: ChainDifficulty -> Maybe ChainDifficulty -> Word -> SyncProgress
 [_spLocalCD] :: SyncProgress -> ChainDifficulty
@@ -4344,23 +4399,23 @@ data WalletError
 
 -- | Some internal error.
 Internal :: !Text -> WalletError
-walletServeWebFull :: forall ssc. (SscConstraint ssc) => SendActions (RawRealMode ssc) -> Bool -> FilePath -> Bool -> Word16 -> RawRealMode ssc ()
+walletServeWebFull :: forall ssc. (SscConstraint ssc) => RawRealMode ssc (Set NodeId) -> SendActions (RawRealMode ssc) -> Bool -> FilePath -> Bool -> Word16 -> RawRealMode ssc ()
 walletServerOuts :: OutSpecs
-walletServeWebLite :: forall ssc. SscHelpersClass ssc => Proxy ssc -> SendActions WalletRealMode -> FilePath -> Bool -> Word16 -> WalletRealMode ()
+walletServeWebLite :: forall ssc. SscHelpersClass ssc => Proxy ssc -> WalletRealMode (Set NodeId) -> SendActions WalletRealMode -> FilePath -> Bool -> Word16 -> WalletRealMode ()
 walletServerOuts :: OutSpecs
 type WalletWebHandler m = WalletWebSockets (WalletWebDB m)
-walletApplication :: WalletWebMode ssc m => m (Server WalletApi) -> m Application
-walletServer :: forall ssc m. (SscHelpersClass ssc, Monad m, MonadIO m, WalletWebMode ssc (WalletWebHandler m)) => SendActions m -> WalletWebHandler m (WalletWebHandler m :~> Handler) -> WalletWebHandler m (Server WalletApi)
-walletServeImpl :: (MonadIO m, MonadMask m, WalletWebMode ssc (WalletWebHandler m)) => WalletWebHandler m Application -> FilePath -> Bool -> Word16 -> m ()
+walletApplication :: WalletWebMode m => m (Server WalletApi) -> m Application
+walletServer :: (Monad m, MonadIO m, WalletWebMode (WalletWebHandler m)) => m (Set NodeId) -> SendActions m -> WalletWebHandler m (WalletWebHandler m :~> Handler) -> WalletWebHandler m (Server WalletApi)
+walletServeImpl :: (MonadIO m, MonadMask m, WalletWebMode (WalletWebHandler m)) => WalletWebHandler m Application -> FilePath -> Bool -> Word16 -> m ()
 walletServerOuts :: OutSpecs
 
 -- | Holder for web wallet data
-data WalletWebSockets m a
+type WalletWebSockets = ReaderT ConnectionsVar
 type WebWalletSockets m = (MonadWalletWebSockets m, MonadIO m)
 
 -- | MonadWalletWebSockets stands for monad which is able to get web wallet
 --   sockets
-class Monad m => MonadWalletWebSockets m
+type MonadWalletWebSockets = MonadReader ConnectionsVar
 getWalletWebSockets :: MonadWalletWebSockets m => m ConnectionsVar
 type ConnectionsVar = TVar (Maybe Connection)
 initWSConnection :: MonadIO m => m ConnectionsVar
@@ -4370,9 +4425,7 @@ notify :: WebWalletSockets m => NotifyEvent -> m ()
 runWalletWS :: ConnectionsVar -> WalletWebSockets m a -> m a
 
 -- | Holder for web wallet data
-newtype WalletWebDB m a
-WalletWebDB :: ReaderT WalletState m a -> WalletWebDB m a
-[getWalletWebDB] :: WalletWebDB m a -> ReaderT WalletState m a
+type WalletWebDB = ReaderT WalletState
 
 -- | Execute <a>WalletWebDB</a> action with given <a>WalletState</a>
 runWalletWebDB :: WalletState -> WalletWebDB m a -> m a
@@ -4381,7 +4434,7 @@ type WalletState = ExtendedState WalletStorage
 
 -- | MonadWalletWebDB stands for monad which is able to get web wallet
 --   state
-class Monad m => MonadWalletWebDB m
+type MonadWalletWebDB = MonadReader WalletState
 getWalletWebState :: MonadWalletWebDB m => m WalletState
 
 -- | Constraint for working with web wallet DB
