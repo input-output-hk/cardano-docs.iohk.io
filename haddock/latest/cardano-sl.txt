@@ -1176,9 +1176,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172681 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679172681)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172673 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679172673)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172665 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679172665)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172606 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679172606)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172598 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679172598)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172590 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679172590)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Timestamp.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SoftwareVersion
@@ -1503,6 +1503,11 @@ genesisDelegation :: HashMap StakeholderId [StakeholderId]
 
 -- | List of addresses in genesis. See <tt>genesisPublicKeys</tt>.
 genesisAddresses :: [Address]
+
+-- | Seed that will be used for the 0th epoch. We must hardcode a seed
+--   because we need to somehow determine leaders for the first ever epoch
+--   (stakes are hardcoded as well so we can run FTS on those stakes using
+--   this seed).
 genesisSeed :: SharedSeed
 genesisBalances :: HashMap StakeholderId Coin
 
@@ -1622,7 +1627,7 @@ getTxOut :: MonadDB m => TxIn -> m (Maybe TxOutAux)
 data UtxoOp
 DelTxIn :: !TxIn -> UtxoOp
 AddTxOut :: !TxIn -> !TxOutAux -> UtxoOp
-prepareGStateUtxo :: forall m. MonadDB m => Utxo -> m ()
+prepareGStateUtxo :: MonadDB m => Utxo -> m ()
 data UtxoIter
 runUtxoIterator :: forall i m a. (MonadDB m, DBIteratorClass i, IterKey i ~ TxIn, IterValue i ~ TxOutAux) => DBnIterator i a -> m a
 runUtxoMapIterator :: forall i v m a. (MonadDB m, DBIteratorClass i, IterKey i ~ TxIn, IterValue i ~ TxOutAux) => DBnMapIterator i v a -> (IterType i -> v) -> m a
@@ -1904,7 +1909,7 @@ sscRunLocalSTM :: forall ssc m a. (MonadSscMem ssc m, MonadIO m, WithLogger m) =
 sscRunGlobalQuery :: forall ssc m a. (MonadSscMem ssc m, MonadIO m) => ReaderT (SscGlobalState ssc) m a -> m a
 
 -- | Calculate <a>SharedSeed</a> for given epoch.
-sscCalculateSeed :: forall ssc m. (MonadSscMem ssc m, SscGStateClass ssc, MonadIO m, WithLogger m) => EpochIndex -> m (Either (SscSeedError ssc) SharedSeed)
+sscCalculateSeed :: forall ssc m. (MonadSscMem ssc m, MonadDB m, SscGStateClass ssc, HasContext LrcContext m, MonadIO m, WithLogger m) => EpochIndex -> m (Either (SscSeedError ssc) SharedSeed)
 
 -- | Get <a>SscPayload</a> for inclusion into main block with given
 --   <a>SlotId</a>.
@@ -2078,7 +2083,7 @@ sscVerifyAndApplyBlocks :: SscGStateClass ssc => RichmenStake -> OldestFirst NE 
 
 -- | Calculate <a>SharedSeed</a> for given epoch using
 --   <a>SscGlobalState</a>.
-sscCalculateSeedQ :: SscGStateClass ssc => EpochIndex -> SscGlobalQuery ssc (Either (SscSeedError ssc) SharedSeed)
+sscCalculateSeedQ :: SscGStateClass ssc => EpochIndex -> RichmenStake -> SscGlobalQuery ssc (Either (SscSeedError ssc) SharedSeed)
 type SscGlobalQuery ssc a = forall m. (MonadReader (SscGlobalState ssc) m, WithLogger m) => m a
 type SscGlobalUpdate ssc a = forall m. (MonadState (SscGlobalState ssc) m, WithLogger m) => m a
 type SscVerifier ssc a = forall m. SscVerifyMode ssc m => m a
@@ -2335,27 +2340,34 @@ data SeedError
 
 -- | Some nodes in the <tt>OpeningsMap</tt> aren't in the set of
 --   participants
-ExtraneousOpenings :: !(HashSet StakeholderId) -> SeedError
+ExtraOpenings :: !(HashSet StakeholderId) -> SeedError
 
 -- | Some nodes in the <tt>SharesMap</tt> aren't in the set of participants
-ExtraneousShares :: !(HashSet StakeholderId) -> SeedError
+ExtraShares :: !(HashSet StakeholderId) -> SeedError
 
--- | There were no participants so a random string couldn't be generated
-NoParticipants :: SeedError
+-- | Some participants aren't richmen
+NonRichmenParticipants :: !(HashSet StakeholderId) -> SeedError
+
+-- | There was no majority of stake participating (first parameter –
+--   participating stake, second – total richmen stake)
+NotEnoughParticipatingStake :: !Coin -> !Coin -> SeedError
+
+-- | There were no good secrets so a seed couldn't be generated
+NoSecrets :: SeedError
 
 -- | Commitment can't be deserialized or didn't match secret (either
 --   recovered or in openings)
-BrokenCommitment :: StakeholderId -> SeedError
+BrokenCommitment :: !StakeholderId -> SeedError
 
 -- | Secret couldn't be recovered, or wasn't found in either
 --   <tt>OpeningsMap</tt> or <tt>SharesMap</tt>
-NoSecretFound :: StakeholderId -> SeedError
+NoSecretFound :: !StakeholderId -> SeedError
 
 -- | Secret can't be deserialized
-BrokenSecret :: StakeholderId -> SeedError
+BrokenSecret :: !StakeholderId -> SeedError
 
 -- | Share can't be deserialized
-BrokenShare :: StakeholderId -> SeedError
+BrokenShare :: !StakeholderId -> SeedError
 
 -- | Some errors during computation of commitment distribution
 CommitmentDistrError :: !Text -> SeedError
@@ -2430,7 +2442,7 @@ putOurSecret :: MonadDB m => SignedCommitment -> Opening -> EpochIndex -> m ()
 --   generate together and agree on.
 --   
 --   TODO: do we need to check secrets' lengths? Probably not.
-calculateSeed :: CommitmentsMap -> OpeningsMap -> SharesMap -> Either SeedError SharedSeed
+calculateSeed :: CommitmentsMap -> OpeningsMap -> SharesMap -> RichmenStake -> Either SeedError SharedSeed
 getGlobalCerts :: (MonadSscMem SscGodTossing m, MonadIO m) => SlotId -> m VssCertificatesMap
 gtGetGlobalState :: (MonadSscMem SscGodTossing m, MonadIO m) => m GtGlobalState
 
@@ -3048,11 +3060,11 @@ ToilModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> !exten
 [_tmUndos] :: GenericToilModifier extension -> !UndoMap
 [_tmExtra] :: GenericToilModifier extension -> !extension
 type ToilModifier = GenericToilModifier ()
-tmUtxo :: forall extension_a1T9X. Lens' (GenericToilModifier extension_a1T9X) UtxoModifier
-tmBalances :: forall extension_a1T9X. Lens' (GenericToilModifier extension_a1T9X) BalancesView
-tmMemPool :: forall extension_a1T9X. Lens' (GenericToilModifier extension_a1T9X) MemPool
-tmUndos :: forall extension_a1T9X. Lens' (GenericToilModifier extension_a1T9X) UndoMap
-tmExtra :: forall extension_a1T9X extension_a1Tcc. Lens (GenericToilModifier extension_a1T9X) (GenericToilModifier extension_a1Tcc) extension_a1T9X extension_a1Tcc
+tmUtxo :: forall extension_a1TAe. Lens' (GenericToilModifier extension_a1TAe) UtxoModifier
+tmBalances :: forall extension_a1TAe. Lens' (GenericToilModifier extension_a1TAe) BalancesView
+tmMemPool :: forall extension_a1TAe. Lens' (GenericToilModifier extension_a1TAe) MemPool
+tmUndos :: forall extension_a1TAe. Lens' (GenericToilModifier extension_a1TAe) UndoMap
+tmExtra :: forall extension_a1TAe extension_a1TCt. Lens (GenericToilModifier extension_a1TAe) (GenericToilModifier extension_a1TCt) extension_a1TAe extension_a1TCt
 
 -- | Environment used by Toil.
 data ToilEnv
@@ -3926,7 +3938,7 @@ Valid :: RichmenStake -> ValidRichmenStake thd
 allLrcConsumers :: (SscWorkersClass ssc, WorkMode ssc m, MonadDBCore m) => [LrcConsumer m]
 getLeaders :: MonadDB m => EpochIndex -> m (Maybe SlotLeaders)
 putLeaders :: MonadDB m => EpochIndex -> SlotLeaders -> m ()
-prepareLrcLeaders :: forall ssc m. (WithNodeContext ssc m, MonadDB m) => m ()
+prepareLrcLeaders :: (WithNodeContext ssc m, MonadDB m) => m ()
 
 -- | Put missing initial data into LRC DB.
 prepareLrcDB :: (WithNodeContext ssc m, MonadDB m) => m ()
