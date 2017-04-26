@@ -3151,14 +3151,16 @@ module Pos.Client.Txp.History
 
 -- | Datatype for returning info about tx history
 data TxHistoryEntry
-THEntry :: !TxId -> !Tx -> !Bool -> !(Maybe ChainDifficulty) -> TxHistoryEntry
+THEntry :: !TxId -> !Tx -> !Bool -> ![TxOut] -> !(Maybe ChainDifficulty) -> TxHistoryEntry
 [_thTxId] :: TxHistoryEntry -> !TxId
 [_thTx] :: TxHistoryEntry -> !Tx
 [_thIsOutput] :: TxHistoryEntry -> !Bool
+[_thInputs] :: TxHistoryEntry -> ![TxOut]
 [_thDifficulty] :: TxHistoryEntry -> !(Maybe ChainDifficulty)
 thTxId :: Lens' TxHistoryEntry TxId
 thTx :: Lens' TxHistoryEntry Tx
 thIsOutput :: Lens' TxHistoryEntry Bool
+thInputs :: Lens' TxHistoryEntry [TxOut]
 thDifficulty :: Lens' TxHistoryEntry (Maybe ChainDifficulty)
 data TxHistoryAnswer
 TxHistoryAnswer :: HeaderHash -> Int -> Utxo -> [TxHistoryEntry] -> TxHistoryAnswer
