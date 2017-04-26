@@ -107,16 +107,16 @@
 </span><a name="line-107"></a><span class="hs-comment">-- Top level functionality</span><span>
 </span><a name="line-108"></a><span class="hs-comment">----------------------------------------------------------------------------</span><span>
 </span><a name="line-109"></a><span>
-</span><a name="line-110"></a><span class="hs-keyword">type</span><span> </span><a name="WalletWebHandler"><a href="Pos.Wallet.Web.Server.Methods.html#WalletWebHandler"><span class="hs-identifier">WalletWebHandler</span></a></a><span> </span><a name="local-6989586621681762260"><a href="#local-6989586621681762260"><span class="hs-identifier">m</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="Pos.Wallet.Web.Server.Sockets.html#WalletWebSockets"><span class="hs-identifier hs-type">WalletWebSockets</span></a><span> </span><span class="hs-special">(</span><a href="Pos.Wallet.Web.State.Holder.html#WalletWebDB"><span class="hs-identifier hs-type">WalletWebDB</span></a><span> </span><a href="#local-6989586621681762260"><span class="hs-identifier hs-type">m</span></a><span class="hs-special">)</span><span>
+</span><a name="line-110"></a><span class="hs-keyword">type</span><span> </span><a name="WalletWebHandler"><a href="Pos.Wallet.Web.Server.Methods.html#WalletWebHandler"><span class="hs-identifier">WalletWebHandler</span></a></a><span> </span><a name="local-6989586621681757535"><a href="#local-6989586621681757535"><span class="hs-identifier">m</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="Pos.Wallet.Web.Server.Sockets.html#WalletWebSockets"><span class="hs-identifier hs-type">WalletWebSockets</span></a><span> </span><span class="hs-special">(</span><a href="Pos.Wallet.Web.State.Holder.html#WalletWebDB"><span class="hs-identifier hs-type">WalletWebDB</span></a><span> </span><a href="#local-6989586621681757535"><span class="hs-identifier hs-type">m</span></a><span class="hs-special">)</span><span>
 </span><a name="line-111"></a><span>
-</span><a name="line-112"></a><span class="hs-keyword">type</span><span> </span><a name="WalletWebMode"><a href="Pos.Wallet.Web.Server.Methods.html#WalletWebMode"><span class="hs-identifier">WalletWebMode</span></a></a><span> </span><a name="local-6989586621681762259"><a href="#local-6989586621681762259"><span class="hs-identifier">m</span></a></a><span>
-</span><a name="line-113"></a><span>    </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span> </span><a href="Pos.Wallet.WalletMode.html#WalletMode"><span class="hs-identifier hs-type">WalletMode</span></a><span> </span><a href="Pos.Wallet.SscType.html#WalletSscType"><span class="hs-identifier hs-type">WalletSscType</span></a><span> </span><a href="#local-6989586621681762259"><span class="hs-identifier hs-type">m</span></a><span>
-</span><a name="line-114"></a><span>      </span><span class="hs-special">,</span><span> </span><a href="Pos.Wallet.KeyStorage.html#MonadKeys"><span class="hs-identifier hs-type">MonadKeys</span></a><span> </span><a href="#local-6989586621681762259"><span class="hs-identifier hs-type">m</span></a><span> </span><span class="hs-comment">-- FIXME: Why isn't it implied by the</span><span>
+</span><a name="line-112"></a><span class="hs-keyword">type</span><span> </span><a name="WalletWebMode"><a href="Pos.Wallet.Web.Server.Methods.html#WalletWebMode"><span class="hs-identifier">WalletWebMode</span></a></a><span> </span><a name="local-6989586621681757534"><a href="#local-6989586621681757534"><span class="hs-identifier">m</span></a></a><span>
+</span><a name="line-113"></a><span>    </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span> </span><a href="Pos.Wallet.WalletMode.html#WalletMode"><span class="hs-identifier hs-type">WalletMode</span></a><span> </span><a href="Pos.Wallet.SscType.html#WalletSscType"><span class="hs-identifier hs-type">WalletSscType</span></a><span> </span><a href="#local-6989586621681757534"><span class="hs-identifier hs-type">m</span></a><span>
+</span><a name="line-114"></a><span>      </span><span class="hs-special">,</span><span> </span><a href="Pos.Wallet.KeyStorage.html#MonadKeys"><span class="hs-identifier hs-type">MonadKeys</span></a><span> </span><a href="#local-6989586621681757534"><span class="hs-identifier hs-type">m</span></a><span> </span><span class="hs-comment">-- FIXME: Why isn't it implied by the</span><span>
 </span><a name="line-115"></a><span>                    </span><span class="hs-comment">-- WalletMode constraint above?</span><span>
-</span><a name="line-116"></a><span>      </span><span class="hs-special">,</span><span> </span><a href="Pos.Wallet.Web.State.State.html#WebWalletModeDB"><span class="hs-identifier hs-type">WebWalletModeDB</span></a><span> </span><a href="#local-6989586621681762259"><span class="hs-identifier hs-type">m</span></a><span>
-</span><a name="line-117"></a><span>      </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">MonadDBLimits</span><span> </span><a href="#local-6989586621681762259"><span class="hs-identifier hs-type">m</span></a><span>
-</span><a name="line-118"></a><span>      </span><span class="hs-special">,</span><span> </span><a href="Pos.Wallet.Web.Server.Sockets.html#MonadWalletWebSockets"><span class="hs-identifier hs-type">MonadWalletWebSockets</span></a><span> </span><a href="#local-6989586621681762259"><span class="hs-identifier hs-type">m</span></a><span>
-</span><a name="line-119"></a><span>      </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">MonadReportingMem</span><span> </span><a href="#local-6989586621681762259"><span class="hs-identifier hs-type">m</span></a><span>
+</span><a name="line-116"></a><span>      </span><span class="hs-special">,</span><span> </span><a href="Pos.Wallet.Web.State.State.html#WebWalletModeDB"><span class="hs-identifier hs-type">WebWalletModeDB</span></a><span> </span><a href="#local-6989586621681757534"><span class="hs-identifier hs-type">m</span></a><span>
+</span><a name="line-117"></a><span>      </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">MonadDBLimits</span><span> </span><a href="#local-6989586621681757534"><span class="hs-identifier hs-type">m</span></a><span>
+</span><a name="line-118"></a><span>      </span><span class="hs-special">,</span><span> </span><a href="Pos.Wallet.Web.Server.Sockets.html#MonadWalletWebSockets"><span class="hs-identifier hs-type">MonadWalletWebSockets</span></a><span> </span><a href="#local-6989586621681757534"><span class="hs-identifier hs-type">m</span></a><span>
+</span><a name="line-119"></a><span>      </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">MonadReportingMem</span><span> </span><a href="#local-6989586621681757534"><span class="hs-identifier hs-type">m</span></a><span>
 </span><a name="line-120"></a><span>      </span><span class="hs-special">)</span><span>
 </span><a name="line-121"></a><span>
 </span><a name="line-122"></a><span class="hs-identifier hs-var">makeLenses</span><span> </span><span class="hs-char">''SyncProgress
@@ -401,8 +401,8 @@ sendExtended getPeers sendActions cpassphrase srcCAddr dstCAddr c curr title des
                     c idx dstAddr
                 -- TODO: this should be removed in production
                 let txHash = hash tx
-                () &lt;$ addHistoryTx dstCAddr curr title desc (THEntry txHash tx False [TxOut srcAddr c] Nothing)
-                addHistoryTx srcCAddr curr title desc (THEntry txHash tx True [TxOut srcAddr c] Nothing)
+                () &lt;$ addHistoryTx dstCAddr curr title desc (THEntry txHash tx False Nothing)
+                addHistoryTx srcCAddr curr title desc (THEntry txHash tx True Nothing)
 
 getHistory
     :: (WebWalletModeDB m, MonadTxHistory m, MonadThrow m, MonadBlockchainInfo m)
@@ -438,14 +438,14 @@ searchHistory
 searchHistory cAddr search skip limit = first (filter $ txContainsTitle search) &lt;$&gt; getHistory cAddr skip limit
 
 addHistoryTx
-    :: (WebWalletModeDB m, MonadThrow m, MonadBlockchainInfo m)
+    :: (WebWalletModeDB m, MonadThrow m, MonadBlockchainInfo m, MonadIO m)
     =&gt; CAddress
     -&gt; CCurrency
     -&gt; Text
     -&gt; Text
     -&gt; TxHistoryEntry
     -&gt; m CTx
-addHistoryTx cAddr curr title desc wtx@(THEntry txId _ _ _ _) = do
+addHistoryTx cAddr curr title desc wtx@(THEntry txId _ _ _) = do
     -- TODO: this should be removed in production
     diff &lt;- maybe localChainDifficulty pure =&lt;&lt;
             networkChainDifficulty
@@ -544,10 +544,10 @@ redeemAdaInternal getPeers sendActions walletId seedBs = do
     etx &lt;- submitRedemptionTx sendActions redeemSK (toList na) dstAddr
     case etx of
         Left err -&gt; throwM . Internal $ &quot;Cannot send redemption transaction: &quot; &lt;&gt; err
-        Right ((tx, _, _), redeemAddress, redeemBalance) -&gt; do
+        Right (tx, _, _) -&gt; do
             -- add redemption transaction to the history of new wallet
             addHistoryTx dstCAddr ADA &quot;ADA redemption&quot; &quot;&quot;
-              (THEntry (hash tx) tx False [TxOut redeemAddress redeemBalance] Nothing)
+              (THEntry (hash tx) tx False Nothing)
 
 
 reportingInitialized :: forall m. WalletWebMode m =&gt; CInitialized -&gt; m ()

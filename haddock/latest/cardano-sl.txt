@@ -1176,9 +1176,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172690 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679172690)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172682 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679172682)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679172674 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679172674)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679176693 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679176693)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679176685 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679176685)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679176677 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679176677)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Timestamp.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SoftwareVersion
@@ -3060,11 +3060,11 @@ ToilModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> !exten
 [_tmUndos] :: GenericToilModifier extension -> !UndoMap
 [_tmExtra] :: GenericToilModifier extension -> !extension
 type ToilModifier = GenericToilModifier ()
-tmUtxo :: forall extension_a1TBU. Lens' (GenericToilModifier extension_a1TBU) UtxoModifier
-tmBalances :: forall extension_a1TBU. Lens' (GenericToilModifier extension_a1TBU) BalancesView
-tmMemPool :: forall extension_a1TBU. Lens' (GenericToilModifier extension_a1TBU) MemPool
-tmUndos :: forall extension_a1TBU. Lens' (GenericToilModifier extension_a1TBU) UndoMap
-tmExtra :: forall extension_a1TBU extension_a1TE9. Lens (GenericToilModifier extension_a1TBU) (GenericToilModifier extension_a1TE9) extension_a1TBU extension_a1TE9
+tmUtxo :: forall extension_a1UDy. Lens' (GenericToilModifier extension_a1UDy) UtxoModifier
+tmBalances :: forall extension_a1UDy. Lens' (GenericToilModifier extension_a1UDy) BalancesView
+tmMemPool :: forall extension_a1UDy. Lens' (GenericToilModifier extension_a1UDy) MemPool
+tmUndos :: forall extension_a1UDy. Lens' (GenericToilModifier extension_a1UDy) UndoMap
+tmExtra :: forall extension_a1UDy extension_a1UFN. Lens (GenericToilModifier extension_a1UDy) (GenericToilModifier extension_a1UFN) extension_a1UDy extension_a1UFN
 
 -- | Environment used by Toil.
 data ToilEnv
@@ -3151,16 +3151,14 @@ module Pos.Client.Txp.History
 
 -- | Datatype for returning info about tx history
 data TxHistoryEntry
-THEntry :: !TxId -> !Tx -> !Bool -> ![TxOut] -> !(Maybe ChainDifficulty) -> TxHistoryEntry
+THEntry :: !TxId -> !Tx -> !Bool -> !(Maybe ChainDifficulty) -> TxHistoryEntry
 [_thTxId] :: TxHistoryEntry -> !TxId
 [_thTx] :: TxHistoryEntry -> !Tx
 [_thIsOutput] :: TxHistoryEntry -> !Bool
-[_thInputs] :: TxHistoryEntry -> ![TxOut]
 [_thDifficulty] :: TxHistoryEntry -> !(Maybe ChainDifficulty)
 thTxId :: Lens' TxHistoryEntry TxId
 thTx :: Lens' TxHistoryEntry Tx
 thIsOutput :: Lens' TxHistoryEntry Bool
-thInputs :: Lens' TxHistoryEntry [TxOut]
 thDifficulty :: Lens' TxHistoryEntry (Maybe ChainDifficulty)
 data TxHistoryAnswer
 TxHistoryAnswer :: HeaderHash -> Int -> Utxo -> [TxHistoryEntry] -> TxHistoryAnswer
@@ -4272,13 +4270,11 @@ type CPwHash = Text
 --   by client. It includes meta data which are not part of Cardano, too
 --   (Flow type: transactionType)
 data CTx
-CTx :: !CTxId -> !CCoin -> ![(CAddress, CCoin)] -> ![(CAddress, CCoin)] -> !Word -> !CTType -> CTx
-[ctId] :: CTx -> !CTxId
-[ctAmount] :: CTx -> !CCoin
-[ctFrom] :: CTx -> ![(CAddress, CCoin)]
-[ctTo] :: CTx -> ![(CAddress, CCoin)]
-[ctConfirmations] :: CTx -> !Word
-[ctType] :: CTx -> !CTType
+CTx :: CTxId -> CCoin -> Word -> CTType -> CTx
+[ctId] :: CTx -> CTxId
+[ctAmount] :: CTx -> CCoin
+[ctConfirmations] :: CTx -> Word
+[ctType] :: CTx -> CTType
 
 -- | Client transaction id
 data CTxId
@@ -4403,6 +4399,7 @@ mkCTxId :: Text -> CTxId
 
 -- | transform TxId into CTxId
 txIdToCTxId :: TxId -> CTxId
+ctTypeMeta :: Lens' CTType CTxMeta
 txContainsTitle :: Text -> CTx -> Bool
 
 -- | Creates <tt>CTUpdateInfo</tt> from <a>ConfirmedProposalState</a>
@@ -4456,7 +4453,7 @@ type WebWalletModeDB m = (MonadWalletWebDB m, MonadIO m, MonadMockable m)
 openState :: MonadIO m => Bool -> FilePath -> m WalletState
 openMemState :: MonadIO m => m WalletState
 closeState :: MonadIO m => WalletState -> m ()
-getProfile :: WebWalletModeDB m => m CProfile
+getProfile :: WebWalletModeDB m => m (CProfile)
 getWalletMetas :: WebWalletModeDB m => m [CWalletMeta]
 getWalletMeta :: WebWalletModeDB m => CAddress -> m (Maybe CWalletMeta)
 getTxMeta :: WebWalletModeDB m => CAddress -> CTxId -> m (Maybe CTxMeta)
