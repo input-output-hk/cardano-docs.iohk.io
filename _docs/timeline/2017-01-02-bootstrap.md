@@ -5,20 +5,18 @@ permalink: /timeline/bootstrap/
 group: timeline
 ---
 
-[//]: # (Reviewed at f766612fb6c75b941cbe3c2d9c2db17dd2dc9bd3)
+[//]: # (Reviewed at 357ac1f7b4a9f1d98ee7f7bee46e874d7356958f)
 
 # Bootstrap Era
 
-After Cardano SL test net resets in late March 2017, network will operate
-in “bootstrap mode” for the initial 90 days after that. As people who purchased
-Ada redeem their coins, the stake will automatically get delegated to a pool of
-trusted nodes that will maintain the network. During this time no block rewards will
-be issued — we will maintain the network pro bono. This is required
-because in order for the protocol to function properly, some of
-the stakeholders who jointly posses majority of stake have to be online,
-which in reality won't be the case during the first months of
-network operation.
+After the Cardano SL Testnet era and release of Cardano SL, the network will operate
+in “bootstrap mode” for a period of time called Bootstrap era.
+As people who purchased Ada redeem their coins, the stake will automatically get delegated to a pool of
+trusted nodes that will maintain the network. During this time no block rewards will be issued —
+we will maintain the network pro bono. This is required because in order for the protocol to
+function properly, some of the stakeholders who jointly posses majority of stake have to be online,
+which in reality won't be the case during the first months of network operation.
 
-The Bootstrap era will lead to the [Reward era](/timeline/reward) when we
-issue updates to the protocol and provide the major stakeholders with
+The Bootstrap era will lead to the [Reward era](/timeline/reward), during which updates to the protocol
+will be issued, and the major stakeholders will be provided with
 convenient options to run their nodes on personal servers in the cloud.
