@@ -882,8 +882,8 @@ CompileConfig :: !Int -> !Int -> !Word -> ![String] -> !Int -> !Word -> !Int -> 
 -- | Timeout for holding light psks confirmations
 [ccLightDlgConfirmationTimeout] :: CompileConfig -> !Int
 
--- | True if we should enable enhanced bessage broadcast
-[ccEnhancedMessageBroadcast] :: CompileConfig -> !Word
+-- | We consider node as known if it was pinged at most 10 sec ago.
+[ccEnhancedMessageTimeout] :: CompileConfig -> !Word
 
 -- | Numbers of headers put in message in recovery mode.
 [ccRecoveryHeadersMessage] :: CompileConfig -> !Int
@@ -1176,9 +1176,9 @@ newtype SmallHashMap
 SmallHashMap :: (HashMap PublicKey (HashMap PublicKey (AsBinary Share))) -> SmallHashMap
 newtype SmallGoodTx
 SmallGoodTx :: GoodTx -> SmallGoodTx
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679177045 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679177045)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679177037 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679177037)
-instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679177029 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679177029)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679177054 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.FixedSizeInt a_6989586621679177054)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679177046 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.SignedVarInt a_6989586621679177046)
+instance Test.QuickCheck.Arbitrary.Arbitrary a_6989586621679177038 => Test.QuickCheck.Arbitrary.Arbitrary (Pos.Binary.Class.UnsignedVarInt a_6989586621679177038)
 instance GHC.Show.Show Pos.Types.Arbitrary.SmallHashMap
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Timestamp.Timestamp
 instance Test.QuickCheck.Arbitrary.Arbitrary Pos.Core.Types.SoftwareVersion
@@ -3060,11 +3060,11 @@ ToilModifier :: !UtxoModifier -> !BalancesView -> !MemPool -> !UndoMap -> !exten
 [_tmUndos] :: GenericToilModifier extension -> !UndoMap
 [_tmExtra] :: GenericToilModifier extension -> !extension
 type ToilModifier = GenericToilModifier ()
-tmUtxo :: forall extension_a1UK3. Lens' (GenericToilModifier extension_a1UK3) UtxoModifier
-tmBalances :: forall extension_a1UK3. Lens' (GenericToilModifier extension_a1UK3) BalancesView
-tmMemPool :: forall extension_a1UK3. Lens' (GenericToilModifier extension_a1UK3) MemPool
-tmUndos :: forall extension_a1UK3. Lens' (GenericToilModifier extension_a1UK3) UndoMap
-tmExtra :: forall extension_a1UK3 extension_a1UMi. Lens (GenericToilModifier extension_a1UK3) (GenericToilModifier extension_a1UMi) extension_a1UK3 extension_a1UMi
+tmUtxo :: forall extension_a1UKd. Lens' (GenericToilModifier extension_a1UKd) UtxoModifier
+tmBalances :: forall extension_a1UKd. Lens' (GenericToilModifier extension_a1UKd) BalancesView
+tmMemPool :: forall extension_a1UKd. Lens' (GenericToilModifier extension_a1UKd) MemPool
+tmUndos :: forall extension_a1UKd. Lens' (GenericToilModifier extension_a1UKd) UndoMap
+tmExtra :: forall extension_a1UKd extension_a1UMs. Lens (GenericToilModifier extension_a1UKd) (GenericToilModifier extension_a1UMs) extension_a1UKd extension_a1UMs
 
 -- | Environment used by Toil.
 data ToilEnv
@@ -3228,11 +3228,8 @@ data ExplorerOp
 AddTxExtra :: !TxId -> !TxExtra -> ExplorerOp
 DelTxExtra :: !TxId -> ExplorerOp
 UpdateAddrHistory :: !Address -> !AddrHistory -> ExplorerOp
-PutAddrBalance :: !Address -> !Coin -> ExplorerOp
-DelAddrBalance :: !Address -> ExplorerOp
 getTxExtra :: MonadDB m => TxId -> m (Maybe TxExtra)
 getAddrHistory :: MonadDB m => Address -> m AddrHistory
-getAddrBalance :: MonadDB m => Address -> m (Maybe Coin)
 
 -- | Settings used for global transactions data processing used by
 --   explorer.
@@ -3244,24 +3241,18 @@ eTxProcessTransaction :: ETxpLocalWorkMode m => (TxId, TxAux) -> m ()
 --   transactions from MemPool | 3. Set new tip to txp local data</li>
 --   </ol>
 eTxNormalize :: (MonadDB m, MonadTxpMem ExplorerExtra m) => m ()
-class MonadTxExtraRead m => MonadTxExtra m where putTxExtra id = lift . putTxExtra id delTxExtra = lift . delTxExtra updateAddrHistory addr = lift . updateAddrHistory addr putAddrBalance addr = lift . putAddrBalance addr delAddrBalance = lift . delAddrBalance
+class MonadTxExtraRead m => MonadTxExtra m where putTxExtra id = lift . putTxExtra id delTxExtra = lift . delTxExtra updateAddrHistory addr = lift . updateAddrHistory addr
 putTxExtra :: MonadTxExtra m => TxId -> TxExtra -> m ()
 delTxExtra :: MonadTxExtra m => TxId -> m ()
 updateAddrHistory :: MonadTxExtra m => Address -> AddrHistory -> m ()
-putAddrBalance :: MonadTxExtra m => Address -> Coin -> m ()
-delAddrBalance :: MonadTxExtra m => Address -> m ()
 putTxExtra :: (MonadTxExtra m, MonadTrans t, MonadTxExtra m', t m' ~ m) => TxId -> TxExtra -> m ()
 delTxExtra :: (MonadTxExtra m, MonadTrans t, MonadTxExtra m', t m' ~ m) => TxId -> m ()
 updateAddrHistory :: (MonadTxExtra m, MonadTrans t, MonadTxExtra m', t m' ~ m) => Address -> AddrHistory -> m ()
-putAddrBalance :: (MonadTxExtra m, MonadTrans t, MonadTxExtra m', t m' ~ m) => Address -> Coin -> m ()
-delAddrBalance :: (MonadTxExtra m, MonadTrans t, MonadTxExtra m', t m' ~ m) => Address -> m ()
-class Monad m => MonadTxExtraRead m where getTxExtra = lift . getTxExtra getAddrHistory = lift . getAddrHistory getAddrBalance = lift . getAddrBalance
+class Monad m => MonadTxExtraRead m where getTxExtra = lift . getTxExtra getAddrHistory = lift . getAddrHistory
 getTxExtra :: MonadTxExtraRead m => TxId -> m (Maybe TxExtra)
 getAddrHistory :: MonadTxExtraRead m => Address -> m AddrHistory
-getAddrBalance :: MonadTxExtraRead m => Address -> m (Maybe Coin)
 getTxExtra :: (MonadTxExtraRead m, MonadTrans t, MonadTxExtraRead m', t m' ~ m) => TxId -> m (Maybe TxExtra)
 getAddrHistory :: (MonadTxExtraRead m, MonadTrans t, MonadTxExtraRead m', t m' ~ m) => Address -> m AddrHistory
-getAddrBalance :: (MonadTxExtraRead m, MonadTrans t, MonadTxExtraRead m', t m' ~ m) => Address -> m (Maybe Coin)
 type EGlobalToilMode m = (GlobalToilMode m, MonadTxExtra m)
 
 -- | Apply transactions from one block. They must be valid (for example, it
@@ -3279,23 +3270,19 @@ eNormalizeToil :: (ELocalToilMode m) => [(TxId, (TxAux, TxExtra))] -> m ()
 --   if transaction is valid.
 eProcessTx :: (ELocalToilMode m, MonadError ToilVerFailure m) => (TxId, TxAux) -> TxExtra -> m ()
 data ExplorerExtra
-ExplorerExtra :: !TxMapExtra -> !UpdatedAddrHistories -> !TxMapBalances -> ExplorerExtra
+ExplorerExtra :: !TxMapExtra -> !UpdatedAddrHistories -> ExplorerExtra
 [_eeLocalTxsExtra] :: ExplorerExtra -> !TxMapExtra
 [_eeAddrHistories] :: ExplorerExtra -> !UpdatedAddrHistories
-[_eeAddrBalances] :: ExplorerExtra -> !TxMapBalances
 type EToilModifier = GenericToilModifier ExplorerExtra
 eeLocalTxsExtra :: Lens' ExplorerExtra TxMapExtra
 eeAddrHistories :: Lens' ExplorerExtra UpdatedAddrHistories
-eeAddrBalances :: Lens' ExplorerExtra TxMapBalances
 data ExplorerExtra
-ExplorerExtra :: !TxMapExtra -> !UpdatedAddrHistories -> !TxMapBalances -> ExplorerExtra
+ExplorerExtra :: !TxMapExtra -> !UpdatedAddrHistories -> ExplorerExtra
 [_eeLocalTxsExtra] :: ExplorerExtra -> !TxMapExtra
 [_eeAddrHistories] :: ExplorerExtra -> !UpdatedAddrHistories
-[_eeAddrBalances] :: ExplorerExtra -> !TxMapBalances
 type EToilModifier = GenericToilModifier ExplorerExtra
 eeLocalTxsExtra :: Lens' ExplorerExtra TxMapExtra
 eeAddrHistories :: Lens' ExplorerExtra UpdatedAddrHistories
-eeAddrBalances :: Lens' ExplorerExtra TxMapBalances
 
 
 -- | Web-related part of cardano-sl.
