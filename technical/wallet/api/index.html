@@ -1,8 +1,5 @@
 <script>
-var hash = '';
-if(window.location.hash){
-  hash = window.location.hash;
-}
+var hash = (window.location.hash) ? window.location.hash : "";
 location.href='https://cardanodocs.com/technical/wallet/api/'+hash;
 </script>
 
