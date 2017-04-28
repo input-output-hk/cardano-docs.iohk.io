@@ -1,4 +1,10 @@
-{% if page.redirect %}<script>location.href='{{page.redirect}}';</script>{% endif %}
+
+
+<script>
+location.href='https://cardanodocs.com{{page.permalink}}';
+</script>
+
+
 <head>
 <title>{% if page.permalink == '/' %}{{ site.title }} - {{ site.description }}{% else %}{{ page.title }} - {{ site.title }}{% endif %}</title>
 <meta charset="utf-8">
