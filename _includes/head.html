@@ -1,7 +1,11 @@
 
 
 <script>
-location.href='https://cardanodocs.com{{page.permalink}}';
+var hash = '';
+if(window.location.hash){
+  hash = window.location.hash;
+}
+location.href='https://cardanodocs.com{{page.permalink}}'+hash;
 </script>
 
 
