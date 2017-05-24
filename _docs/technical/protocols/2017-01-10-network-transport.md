@@ -81,12 +81,13 @@ it is just a thin abstraction over the TCP/IP notion of an endpoint, addressed
 via a hostname and port.
 
 Endpoint addresses are binary strings with the structure `HOST:PORT:LOCAL_ID`,
-for example, `192.168.0.1:3010:0`.
+where `LOCAL_ID` is an unsigned 32-bit integer. For example, `192.168.0.1:3010:0`.
 
 Note that while a transport instance listens on a single port, in principle
 there can be multiple addressable endpoints within a single transport instance,
-and this is what the `LOCAL_ID` refers to. Cardano SL, however, does not
-currently make use of this feature, so it always uses `LOCAL_ID` 0.
+and this is what the `LOCAL_ID` refers to. Cardano SL, however, currently uses
+only one endpoint, which in practice happens to give `LOCAL_ID = 0`, but this
+fact should not be relied upon.
 
 **Heavyweight connection** refers to a TCP connection between two endpoints.
 Two connected endpoints use one and _only one_ TCP-connection at once.
@@ -97,9 +98,9 @@ between endpoints are multiplexed on a single heavyweight connection (i.e. a
 single TCP connection).
 
 The lightweight connections are a logical concept layered on top of TCP.
-Every connection has an integer ID. It is in principle possible to have
-thousands of lightweight connections multiplexed on a single heavyweight TCP
-connection.
+Every connection has an unsigned 32-bit integer ID. It is in principle possible
+to have thousands of lightweight connections multiplexed on a single heavyweight
+TCP connection.
 
 The typical style of operation is that the application layer wishes to
 establish a lightweight connection to an endpoint, and if no heavyweight
@@ -123,7 +124,7 @@ are only collections of unidirectional connections.
 In the following descriptions of control messages, all integers are encoded in
 [network byte order](https://en.wikipedia.org/wiki/Endianness#Networking).
 
-Thus `Int32` used below in message definitions refers to a 32-bit _signed_
+Thus `Word32` used below in message definitions refers to a 32-bit _unsigned_
 integer value in network byte order.
 
 
@@ -155,7 +156,7 @@ Endpoint A sends a **connection request** message with the following structure:
 +-----------+-------------+--------------------+
 |   B-LID   |   A-EIDlen  |       A-EID        |
 +-----------+-------------+--------------------+
-|   Int32   |   Int32     |       bytes        |
+|  Word32   |   Word32    |       bytes        |
 ~~~
 
 Where
@@ -168,14 +169,14 @@ Thus A sends the local endpoint ID that it wishes to connect to, and its own
 address to identify the initiating node. The address that A sends should be
 its canonical public address. The host part may be an IP address or DNS name.
 It is used to avoid establishing multiple TCP connections between endpoints.
-Within the Cardano SL protocol, the local endpoint ID is always 0.
 
 Endpoint A then expects a **connection request response** message which is a
-single `Int32` encoding one of the following responses:
+single `Word32` encoding one of the following responses:
 
 - `ConnectionRequestAccepted` (0)
 - `ConnectionRequestInvalid` (1)
 - `ConnectionRequestCrossed` (2)
+- `ConnectionRequestHostMismatch` (3)
 
 In the typical `ConnectionRequestAccepted` case, endpoint A must record in
 its local state that it now has an established (i.e. no longer initializing)
@@ -192,13 +193,20 @@ a TCP connection already exists between A and B, or connections
 between A and B, and B and A were being established concurrently. In this case
 both endpoints must close the TCP connection.
 
+A `ConnectionRequestHostMismatch` response occurs when the host which B
+observes does not match the host which A claims in its address. In this case
+B will send to A the host which A claimed, the numeric host which B observed,
+and the reverse DNS resolved host which B observed, each length-prefixed, and
+then will close the socket. A must also close the socket.
+
 ## Establishing Heavyweight Connections (Receiving)
 
 Assume, as before, that a heavyweight connection is to be established between
 endpoints labelled A and B, with endpoint A initiating the connection. We now
 consider this from the point of view of endpoint B.
 
-Both endpoints have endpoint address of the form `HOST:PORT:LOCAL_ID`. To be concrete, assume that B has only one endpoint, with `LOCAL_ID` of 0.
+Both endpoints have endpoint address of the form `HOST:PORT:LOCAL_ID`. To be
+concrete, assume that B has only one endpoint, with `LOCAL_ID` of 0.
 
 The transport instance for B has a listening socket open on the host and port
 corresponding to the endpoint IDs. It accepts a new TCP connection from some
@@ -213,6 +221,14 @@ If the connection request asks for a local endpoint ID that does not exist
 `ConnectionRequestInvalid` and close the TCP connection.
 
 The rules for `ConnectionRequestCrossed` are described below in more detail.
+
+B may choose to check that the host claimed by A matches the host determined
+by the OS. This is intended to prevent denial-of-service attacks, in which A
+lies about its host address, thereby causing connections to B from that address
+to be rejected. In case the OS-determined host does not match the host calimed
+by A, B must send `ConnectionRequestHostMismatch` followed by the host which
+A claimed, the actual numeric host, and the reverse DNS resolved host, each
+length-prefixed.
 
 Otherwise, when the endpoint ID is valid and there is no existing TCP
 connection, it should reply with `ConnectionRequestAccepted` and record in
@@ -281,12 +297,12 @@ The encoding for these messages is simple:
 +-------------+
 | ProbeSocket |
 +-------------+
-|    Int32    |
+|   Word32    |
 
 +----------------+
 | ProbeSocketAck |
 +----------------+
-|     Int32      |
+|    Word32      |
 ~~~
 
 where the value for the control message headers are 4 and 5 respectively.
@@ -308,8 +324,9 @@ connections in each direction are managed by the _sending_ side. The receiving
 side has no direct control over the allocation of lightweight connections.
 
 Lightweight connections are identified by a Lightweight connection ID, which is
-a 32-bit signed integer. Lightweight connection IDs must be greater than 1024.
-Lightweight connection ID numbers should be used sequentially.
+a 32-bit unsigned integer. Lightweight connection IDs must be greater than or
+equal to 1024. Lightweight connection ID numbers need not be allocated
+sequentially.
 
 The control messages to create or close a lightweight connection simply
 identify the lightweight connection ID that they act on. Similarly, data
@@ -328,17 +345,17 @@ The format of these messages is as follows:
 +-----------+-----------+
 | CreateCon |   LWCId   |
 +-----------+-----------+
-|   Int32   |   Int32   |
+|  Word32   |  Word32   |
 
 +-----------+-----------+
 |  CloseCon |   LWCId   |
 +-----------+-----------+
-|   Int32   |   Int32   |
+|  Word32   |  Word32   |
 
 +-----------+-----------+-------------------+
 |   LWCId   |    Len    |       Data        |
 +-----------+-----------+-------------------+
-|   Int32   |   Int32   |     Len-bytes     |
+|  Word32   |  Word32   |     Len-bytes     |
 ~~~
 
 where:
@@ -347,7 +364,7 @@ where:
 - CloseCon control header is 1;
 - LWCId is the lightweight connection id, which is >= 1024.
 
-The header Int32 is aliased between the control message headers and the
+The header Word32 is aliased between the control message headers and the
 lightweight connection IDs of the data messages, which is why connection ids
 must be 1024 or greater.
 
@@ -373,24 +390,22 @@ connections in either direction.
 When one endpoint determines that it has no more outgoing lightweight
 connections, and the set of incoming connections it knows of is empty, then it
 may initiate the protocol to close the heavyweight connection. It does so by
-sending a **CloseSocket** message. The message carries the maximum
-incoming lightweight connection ID seen by the endpoint: i.e. the highest
-connection ID that has been allocated by the remote endpoint that has so far
-been seen by the local endpoint. The local endpoint now updates the state it
-uses to track the remote endpoint to note that it is now in the process of
-closing. If the local endpoint now receives a create connection message from
-the remote endpoint, while it has the remote endpoint marked as being in the
-process of closing then it resets the state back to the normal connection
-established state. This happens if the remote endpoint opened a new lightweight
-connection before it received the close socket message, and so the attempt to
-close the socket should be abandoned.
+sending a **CloseSocket** message. The message carries the most recently
+observed incoming lightweight connection ID seen by the endpoint.
+The local endpoint now updates the state it uses to track the remote endpoint
+to note that it is now in the process of closing. If the local endpoint now
+receives a create connection message from the remote endpoint, while it has the
+remote endpoint marked as being in the process of closing then it resets the
+state back to the normal connection established state. This happens if the
+remote endpoint opened a new lightweight connection before it received the close
+socket message, and so the attempt to close the socket should be abandoned.
 
 When an endpoint receives a **CloseSocket** message it checks its local state
-to check the number of outbound lightweight connections and the maximum
-lightweight connection ID it has used for outgoing connections. If there are
-still outbound connections then the close socket message is ignored.
-Additionally, if the maximum outbound lightweight connection ID used thus far
-by the local node is higher than the one received in the close socket message
+to check the number of outbound lightweight connections and the most recently
+created lightweight connection ID it has used for outgoing connections. If
+there are still outbound connections then the close socket message is ignored.
+Additionally, if the latest outbound lightweight connection ID used thus far
+by the local node is not equal to the one received in the close socket message
 then the close socket message is ignored. This case can happen even if the
 number of outbound connections is currently zero, if an outbound connection was
 created and then closed prior to the close socket message arriving. In both
@@ -408,7 +423,7 @@ The message structure is:
 +-------------+-----------+
 | CloseSocket |   LWCId   |
 +-------------+-----------|
-|    Int32    |   Int32   |
+|   Word32    |  Word32   |
 ~~~
 
 where:
